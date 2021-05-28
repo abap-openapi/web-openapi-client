@@ -1,0 +1,22 @@
+/*
+ * ATTENTION: The "eval" devtool has been used (maybe by default in mode: "development").
+ * This devtool is neither made for production nor for readable output files.
+ * It uses "eval()" calls to create a separate source file in the browser devtools.
+ * If you are trying to read the output file, select a different devtool (https://webpack.js.org/configuration/devtool/)
+ * or disable the default devtool with "devtool: false".
+ * If you are looking for production-ready output files, see mode: "production" (https://webpack.js.org/configuration/mode/).
+ */
+(self["webpackChunkweb"] = self["webpackChunkweb"] || []).push([["output_cl_abap_tstmp_clas_mjs"],{
+
+/***/ "../output/cl_abap_tstmp.clas.mjs":
+/*!****************************************!*\
+  !*** ../output/cl_abap_tstmp.clas.mjs ***!
+  \****************************************/
+/***/ ((__webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+eval("__webpack_require__.a(__webpack_module__, async (__webpack_handle_async_dependencies__) => {\n__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"cl_abap_tstmp\": () => (/* binding */ cl_abap_tstmp)\n/* harmony export */ });\nconst {cx_root} = await __webpack_require__.e(/*! import() */ \"output_cx_root_clas_mjs\").then(__webpack_require__.bind(__webpack_require__, /*! ./cx_root.clas.mjs */ \"../output/cx_root.clas.mjs\"));\n// cl_abap_tstmp.clas.abap\nconst constant_minus_1 = new abap.types.Integer().set(-1);\nclass cl_abap_tstmp {\n  async constructor_() {\n    this.me = new abap.types.ABAPObject();\n    this.me.set(this);\n    return this;\n  }\n  async subtract(INPUT) {\n    return cl_abap_tstmp.subtract(INPUT);\n  }\n  static async subtract(INPUT) {\n    let r_secs = new abap.types.Integer();\n    let tstmp1 = new abap.types.Packed({length: 1, decimals: 0});\n    if (INPUT && INPUT.tstmp1) {tstmp1.set(INPUT.tstmp1);}\n    let tstmp2 = new abap.types.Packed({length: 1, decimals: 0});\n    if (INPUT && INPUT.tstmp2) {tstmp2.set(INPUT.tstmp2);}\n    let str = new abap.types.String();\n    str.set(`${abap.templateFormatting(tstmp1,{timestamp: 'iso'})}`);\n    let t1 = Date.parse(str.get());\n    str.set(`${abap.templateFormatting(tstmp2,{timestamp: 'iso'})}`);\n    let t2 = Date.parse(str.get());\n    r_secs.set((t1 - t2)/1000);\n    return r_secs;\n  }\n  async add(INPUT) {\n    return cl_abap_tstmp.add(INPUT);\n  }\n  static async add(INPUT) {\n    let time = new abap.types.Packed({length: 15, decimals: 0});\n    let tstmp = new abap.types.Packed({length: 1, decimals: 0});\n    if (INPUT && INPUT.tstmp) {tstmp.set(INPUT.tstmp);}\n    let secs = new abap.types.Integer();\n    if (INPUT && INPUT.secs) {secs.set(INPUT.secs);}\n    let str = new abap.types.String();\n    str.set(`${abap.templateFormatting(tstmp,{timestamp: 'iso'})}`);\n    let t1 = new Date(Date.parse(str.get() + \"Z\"));\n    t1.setSeconds( t1.getSeconds() + secs.get() );\n    time.set(t1.toISOString().slice(0, 19).replace(/-/g, \"\").replace(/:/g, \"\").replace(\"T\", \"\"));\n    return time;\n  }\n  async subtractsecs(INPUT) {\n    return cl_abap_tstmp.subtractsecs(INPUT);\n  }\n  static async subtractsecs(INPUT) {\n    let time = new abap.types.Packed({length: 15, decimals: 0});\n    let tstmp = new abap.types.Packed({length: 1, decimals: 0});\n    if (INPUT && INPUT.tstmp) {tstmp.set(INPUT.tstmp);}\n    let secs = new abap.types.Integer();\n    if (INPUT && INPUT.secs) {secs.set(INPUT.secs);}\n    let lv_secs = new abap.types.Integer();\n    lv_secs.set(abap.operators.multiply(secs,constant_minus_1));\n    time.set(await this.add({tstmp: tstmp, secs: lv_secs}));\n    return time;\n  }\n}\nabap.Classes['CL_ABAP_TSTMP'] = cl_abap_tstmp;\n\n__webpack_handle_async_dependencies__();\n}, 1);\n\n//# sourceURL=webpack://web/../output/cl_abap_tstmp.clas.mjs?");
+
+/***/ })
+
+}]);
