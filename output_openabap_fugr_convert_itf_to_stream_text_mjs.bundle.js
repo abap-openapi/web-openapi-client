@@ -1,3 +1,4 @@
+"use strict";
 /*
  * ATTENTION: The "eval" devtool has been used (maybe by default in mode: "development").
  * This devtool is neither made for production nor for readable output files.
@@ -14,7 +15,6 @@
   \**************************************************************/
 /***/ ((__webpack_module__, __webpack_exports__, __webpack_require__) => {
 
-"use strict";
 eval("__webpack_require__.a(__webpack_module__, async (__webpack_handle_async_dependencies__) => {\n__webpack_require__.r(__webpack_exports__);\nconst {cx_root} = await __webpack_require__.e(/*! import() */ \"output_cx_root_clas_mjs\").then(__webpack_require__.bind(__webpack_require__, /*! ./cx_root.clas.mjs */ \"../output/cx_root.clas.mjs\"));\n// openabap.fugr.convert_itf_to_stream_text.abap\nconst constant_1 = new abap.types.Integer().set(1);\nasync function convert_itf_to_stream_text(input) {\n  // importing LF undefined\n  let lf = input.exporting.lf;\n  // exporting STREAM_LINES STRING_TABLE\n  let stream_lines = input.importing.stream_lines;\n  // tables ITF_TEXT TLINE\n  let itf_text = input.tables.itf_text;\n  // tables TEXT_STREAM undefined\n  let text_stream = input.tables.text_stream;\n  abap.statements.assert(abap.compare.eq(new abap.types.Character({length: 4}).set('todo'), constant_1));\n}\nabap.FunctionModules['CONVERT_ITF_TO_STREAM_TEXT'] = convert_itf_to_stream_text;\n__webpack_handle_async_dependencies__();\n}, 1);\n\n//# sourceURL=webpack://web/../output/openabap.fugr.convert_itf_to_stream_text.mjs?");
 
 /***/ })

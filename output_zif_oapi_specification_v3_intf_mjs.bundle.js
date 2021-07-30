@@ -1,3 +1,4 @@
+"use strict";
 /*
  * ATTENTION: The "eval" devtool has been used (maybe by default in mode: "development").
  * This devtool is neither made for production nor for readable output files.
@@ -14,7 +15,6 @@
   \****************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
-"use strict";
 eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"zif_oapi_specification_v3\": () => (/* binding */ zif_oapi_specification_v3)\n/* harmony export */ });\n// zif_oapi_specification_v3.intf.abap\nclass zif_oapi_specification_v3 {\n}\nabap.Classes['ZIF_OAPI_SPECIFICATION_V3'] = zif_oapi_specification_v3;\n\n\n//# sourceURL=webpack://web/../output/zif_oapi_specification_v3.intf.mjs?");
 
 /***/ })

@@ -1,3 +1,4 @@
+"use strict";
 /*
  * ATTENTION: The "eval" devtool has been used (maybe by default in mode: "development").
  * This devtool is neither made for production nor for readable output files.
@@ -14,7 +15,6 @@
   \****************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
-"use strict";
 eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"if_sxml_value\": () => (/* binding */ if_sxml_value)\n/* harmony export */ });\n// if_sxml_value.intf.abap\nconst constant_2 = new abap.types.Integer().set(2);\nclass if_sxml_value {\n}\nabap.Classes['IF_SXML_VALUE'] = if_sxml_value;\nif_sxml_value.if_sxml_value$co_vt_text = new abap.types.Integer();\nif_sxml_value.if_sxml_value$co_vt_text.set(2);\n\n\n//# sourceURL=webpack://web/../output/if_sxml_value.intf.mjs?");
 
 /***/ })

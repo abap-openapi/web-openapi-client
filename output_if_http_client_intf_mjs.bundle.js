@@ -1,3 +1,4 @@
+"use strict";
 /*
  * ATTENTION: The "eval" devtool has been used (maybe by default in mode: "development").
  * This devtool is neither made for production nor for readable output files.
@@ -14,7 +15,6 @@
   \*****************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
-"use strict";
 eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"if_http_client\": () => (/* binding */ if_http_client)\n/* harmony export */ });\n// if_http_client.intf.abap\nclass if_http_client {\n}\nabap.Classes['IF_HTTP_CLIENT'] = if_http_client;\n\n\n//# sourceURL=webpack://web/../output/if_http_client.intf.mjs?");
 
 /***/ })
