@@ -15,7 +15,7 @@
   \*****************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"if_http_client\": () => (/* binding */ if_http_client)\n/* harmony export */ });\n// if_http_client.intf.abap\nclass if_http_client {\n}\nabap.Classes['IF_HTTP_CLIENT'] = if_http_client;\n\n\n//# sourceURL=webpack://web/../output/if_http_client.intf.mjs?");
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"if_http_client\": () => (/* binding */ if_http_client)\n/* harmony export */ });\n// if_http_client.intf.abap\nconst constant_0 = new abap.types.Integer().set(0);\nclass if_http_client {\n}\nabap.Classes['IF_HTTP_CLIENT'] = if_http_client;\nif_http_client.if_http_client$co_disabled = new abap.types.Integer();\nif_http_client.if_http_client$co_disabled.set(0);\n\n\n//# sourceURL=webpack://web/../output/if_http_client.intf.mjs?");
 
 /***/ })
 
