@@ -16,17 +16,25 @@ __webpack_require__.r(__webpack_exports__);
 /* provided dependency */ var Buffer = __webpack_require__(/*! buffer */ "./node_modules/buffer/index.js")["Buffer"];
 const {cx_root} = await Promise.resolve(/*! import() */).then(__webpack_require__.bind(__webpack_require__, /*! ./cx_root.clas.mjs */ "../output/cx_root.clas.mjs"));
 // cl_apc_tcp_client_manager.clas.locals_imp.abap
+const constant_1 = new abap.types.Integer().set(1);
 class lcl_message {
+  static INTERNAL_TYPE = 'CLAS';
+  static IMPLEMENTED_INTERFACES = ["IF_APC_WSP_MESSAGE"];
   async constructor_() {
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
-    this.mv_data = new abap.types.XString();
+    this.mv_data = new abap.types.XString({qualifiedName: "XSTRING"});
     return this;
   }
   async if_apc_wsp_message$get_binary() {
-    let rv_binary = new abap.types.XString();
+    let rv_binary = new abap.types.XString({qualifiedName: "XSTRING"});
     rv_binary.set(this.mv_data);
     return rv_binary;
+  }
+  async if_apc_wsp_message$get_text() {
+    let r_message = new abap.types.String({qualifiedName: "STRING"});
+    abap.statements.assert(abap.compare.eq(constant_1, new abap.types.Character({length: 4}).set('todo')));
+    return r_message;
   }
   async if_apc_wsp_message$set_binary(INPUT) {
     let iv_binary = new abap.types.Hex();
@@ -36,15 +44,17 @@ class lcl_message {
 }
 abap.Classes['CLAS-CL_APC_TCP_CLIENT_MANAGER-LCL_MESSAGE'] = lcl_message;
 class lcl_client {
+  static INTERNAL_TYPE = 'CLAS';
+  static IMPLEMENTED_INTERFACES = ["IF_APC_WSP_CLIENT","IF_APC_WSP_MESSAGE_MANAGER"];
   async constructor_(INPUT) {
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
-    this.mv_host = new abap.types.String();
-    this.mv_port = new abap.types.Integer();
+    this.mv_host = new abap.types.String({qualifiedName: "STRING"});
+    this.mv_port = new abap.types.Integer({qualifiedName: "I"});
     this.mo_handler = new abap.types.ABAPObject({qualifiedName: "IF_APC_WSP_EVENT_HANDLER"});
-    let iv_host = new abap.types.String();
+    let iv_host = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.iv_host) {iv_host.set(INPUT.iv_host);}
-    let iv_port = new abap.types.Integer();
+    let iv_port = new abap.types.Integer({qualifiedName: "I"});
     if (INPUT && INPUT.iv_port) {iv_port.set(INPUT.iv_port);}
     let io_handler = new abap.types.ABAPObject({qualifiedName: "IF_APC_WSP_EVENT_HANDLER"});
     if (INPUT && INPUT.io_handler) {io_handler.set(INPUT.io_handler);}

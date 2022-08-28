@@ -28,12 +28,14 @@ const constant_0 = new abap.types.Integer().set(0);
 const constant_1 = new abap.types.Integer().set(1);
 const constant_2 = new abap.types.Integer().set(2);
 class lcl_node_iterator {
+  static INTERNAL_TYPE = 'CLAS';
+  static IMPLEMENTED_INTERFACES = ["IF_IXML_NODE_ITERATOR"];
   async constructor_(INPUT) {
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
-    this.mv_pointer = new abap.types.Integer();
-    this.mt_list = new abap.types.Table(new abap.types.ABAPObject({qualifiedName: "IF_IXML_NODE"}), {"withHeader":false,"type":"STANDARD","isUnique":false,"keyFields":[]});
-    let it_list = new abap.types.Table(new abap.types.ABAPObject({qualifiedName: "IF_IXML_NODE"}), {"withHeader":false,"type":"STANDARD","isUnique":false,"keyFields":[]});
+    this.mv_pointer = new abap.types.Integer({qualifiedName: "I"});
+    this.mt_list = new abap.types.Table(new abap.types.ABAPObject({qualifiedName: "IF_IXML_NODE"}), {"withHeader":false,"type":"STANDARD","isUnique":false,"keyFields":[]}, "lcl_node_iterator=>ty_list");
+    let it_list = new abap.types.Table(new abap.types.ABAPObject({qualifiedName: "IF_IXML_NODE"}), {"withHeader":false,"type":"STANDARD","isUnique":false,"keyFields":[]}, "lcl_node_iterator=>ty_list");
     if (INPUT && INPUT.it_list) {it_list.set(INPUT.it_list);}
     this.mt_list.set(it_list);
     this.mv_pointer.set(constant_1);
@@ -51,6 +53,8 @@ class lcl_node_iterator {
 }
 abap.Classes['CLAS-CL_IXML-LCL_NODE_ITERATOR'] = lcl_node_iterator;
 class lcl_encoding {
+  static INTERNAL_TYPE = 'CLAS';
+  static IMPLEMENTED_INTERFACES = ["IF_IXML_ENCODING"];
   async constructor_() {
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
@@ -59,10 +63,12 @@ class lcl_encoding {
 }
 abap.Classes['CLAS-CL_IXML-LCL_ENCODING'] = lcl_encoding;
 class lcl_named_node_map {
+  static INTERNAL_TYPE = 'CLAS';
+  static IMPLEMENTED_INTERFACES = ["IF_IXML_NAMED_NODE_MAP"];
   async constructor_() {
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
-    this.mt_list = new abap.types.Table(new abap.types.ABAPObject({qualifiedName: "IF_IXML_NODE"}), {"withHeader":false,"type":"STANDARD","isUnique":false,"keyFields":[]});
+    this.mt_list = new abap.types.Table(new abap.types.ABAPObject({qualifiedName: "IF_IXML_NODE"}), {"withHeader":false,"type":"STANDARD","isUnique":false,"keyFields":[]}, "");
     return this;
   }
   async if_ixml_named_node_map$create_iterator() {
@@ -71,13 +77,13 @@ class lcl_named_node_map {
     return iterator;
   }
   async if_ixml_named_node_map$get_length() {
-    let val = new abap.types.Integer();
+    let val = new abap.types.Integer({qualifiedName: "I"});
     val.set(abap.builtin.lines({val: this.mt_list}));
     return val;
   }
   async if_ixml_named_node_map$get_named_item_ns(INPUT) {
     let val = new abap.types.ABAPObject({qualifiedName: "IF_IXML_NODE"});
-    let name = new abap.types.String();
+    let name = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.name) {name.set(INPUT.name);}
     let li_node = new abap.types.ABAPObject({qualifiedName: "IF_IXML_NODE"});
     for (const unique83 of abap.statements.loop(this.mt_list)) {
@@ -91,13 +97,13 @@ class lcl_named_node_map {
   }
   async if_ixml_named_node_map$get_named_item(INPUT) {
     let val = new abap.types.ABAPObject({qualifiedName: "IF_IXML_NODE"});
-    let name = new abap.types.String();
+    let name = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.name) {name.set(INPUT.name);}
     abap.statements.assert(abap.compare.eq(constant_1, new abap.types.Character({length: 4}).set('todo')));
     return val;
   }
   async if_ixml_named_node_map$remove_named_item(INPUT) {
-    let name = new abap.types.String();
+    let name = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.name) {name.set(INPUT.name);}
     abap.statements.assert(abap.compare.eq(constant_1, new abap.types.Character({length: 4}).set('todo')));
   }
@@ -109,10 +115,12 @@ class lcl_named_node_map {
 }
 abap.Classes['CLAS-CL_IXML-LCL_NAMED_NODE_MAP'] = lcl_named_node_map;
 class lcl_node_list {
+  static INTERNAL_TYPE = 'CLAS';
+  static IMPLEMENTED_INTERFACES = ["IF_IXML_NODE_LIST"];
   async constructor_() {
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
-    this.mt_list = new abap.types.Table(new abap.types.ABAPObject({qualifiedName: "IF_IXML_NODE"}), {"withHeader":false,"type":"STANDARD","isUnique":false,"keyFields":[]});
+    this.mt_list = new abap.types.Table(new abap.types.ABAPObject({qualifiedName: "IF_IXML_NODE"}), {"withHeader":false,"type":"STANDARD","isUnique":false,"keyFields":[]}, "");
     return this;
   }
   async append(INPUT) {
@@ -130,7 +138,7 @@ class lcl_node_list {
     }
   }
   async if_ixml_node_list$get_length() {
-    let length = new abap.types.Integer();
+    let length = new abap.types.Integer({qualifiedName: "I"});
     length.set(abap.builtin.lines({val: this.mt_list}));
     return length;
   }
@@ -141,7 +149,7 @@ class lcl_node_list {
   }
   async if_ixml_node_list$get_item(INPUT) {
     let val = new abap.types.ABAPObject({qualifiedName: "IF_IXML_NODE"});
-    let index = new abap.types.Integer();
+    let index = new abap.types.Integer({qualifiedName: "I"});
     if (INPUT && INPUT.index) {index.set(INPUT.index);}
     abap.statements.readTable(this.mt_list,{index: index,into: val});
     return val;
@@ -156,12 +164,14 @@ class lcl_node_list {
 }
 abap.Classes['CLAS-CL_IXML-LCL_NODE_LIST'] = lcl_node_list;
 class lcl_node {
+  static INTERNAL_TYPE = 'CLAS';
+  static IMPLEMENTED_INTERFACES = ["IF_IXML_ELEMENT"];
   async constructor_(INPUT) {
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
-    this.mv_name = new abap.types.String();
-    this.mv_namespace = new abap.types.String();
-    this.mv_value = new abap.types.String();
+    this.mv_name = new abap.types.String({qualifiedName: "STRING"});
+    this.mv_namespace = new abap.types.String({qualifiedName: "STRING"});
+    this.mv_value = new abap.types.String({qualifiedName: "STRING"});
     this.mo_children = new abap.types.ABAPObject({qualifiedName: "LCL_NODE_LIST"});
     this.mi_parent = new abap.types.ABAPObject({qualifiedName: "IF_IXML_NODE"});
     this.mi_attributes = new abap.types.ABAPObject({qualifiedName: "IF_IXML_NAMED_NODE_MAP"});
@@ -177,20 +187,20 @@ class lcl_node {
   }
   async if_ixml_element$get_attribute_node_ns(INPUT) {
     let val = new abap.types.ABAPObject({qualifiedName: "IF_IXML_ATTRIBUTE"});
-    let name = new abap.types.String();
+    let name = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.name) {name.set(INPUT.name);}
-    let uri = new abap.types.String();
+    let uri = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.uri) {uri.set(INPUT.uri);}
     abap.statements.assert(abap.compare.eq(constant_1, new abap.types.Character({length: 4}).set('todo')));
     return val;
   }
   async if_ixml_node$get_namespace_prefix() {
-    let rv_prefix = new abap.types.String();
+    let rv_prefix = new abap.types.String({qualifiedName: "STRING"});
     abap.statements.assert(abap.compare.eq(constant_1, new abap.types.Character({length: 4}).set('todo')));
     return rv_prefix;
   }
   async if_ixml_node$get_namespace_uri() {
-    let rval = new abap.types.String();
+    let rval = new abap.types.String({qualifiedName: "STRING"});
     abap.statements.assert(abap.compare.eq(constant_1, new abap.types.Character({length: 4}).set('todo')));
     return rval;
   }
@@ -205,12 +215,12 @@ class lcl_node {
     return next;
   }
   async if_ixml_element$get_name() {
-    let name = new abap.types.String();
+    let name = new abap.types.String({qualifiedName: "STRING"});
     abap.statements.assert(abap.compare.eq(constant_1, new abap.types.Character({length: 4}).set('todo')));
     return name;
   }
   async if_ixml_element$append_child(INPUT) {
-    let rc = new abap.types.Integer();
+    let rc = new abap.types.Integer({qualifiedName: "I"});
     let new_child = new abap.types.ABAPObject({qualifiedName: "IF_IXML_NODE"});
     if (INPUT && INPUT.new_child) {new_child.set(INPUT.new_child);}
     let lo_node = new abap.types.ABAPObject({qualifiedName: "LCL_NODE"});
@@ -226,13 +236,13 @@ class lcl_node {
   }
   async if_ixml_element$create_filter_node_type(INPUT) {
     let val = new abap.types.DataReference(new abap.types.Character({length: 4}));
-    let name = new abap.types.String();
+    let name = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.name) {name.set(INPUT.name);}
     abap.statements.assert(abap.compare.eq(constant_1, new abap.types.Character({length: 4}).set('todo')));
     return val;
   }
   async if_ixml_element$remove_attribute_ns(INPUT) {
-    let foo = new abap.types.String();
+    let foo = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.foo) {foo.set(INPUT.foo);}
     abap.statements.assert(abap.compare.eq(constant_1, new abap.types.Character({length: 4}).set('todo')));
   }
@@ -243,18 +253,18 @@ class lcl_node {
   }
   async if_ixml_element$find_from_name_ns(INPUT) {
     let val = new abap.types.ABAPObject({qualifiedName: "IF_IXML_ELEMENT"});
-    let name = new abap.types.String();
+    let name = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.name) {name.set(INPUT.name);}
-    let namespace = new abap.types.String();
+    let namespace = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.namespace) {namespace.set(INPUT.namespace);}
-    let uri = new abap.types.String();
+    let uri = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.uri) {uri.set(INPUT.uri);}
-    let depth = new abap.types.Integer();
+    let depth = new abap.types.Integer({qualifiedName: "I"});
     if (INPUT && INPUT.depth) {depth.set(INPUT.depth);}
     let li_iterator = new abap.types.ABAPObject({qualifiedName: "IF_IXML_NODE_ITERATOR"});
     let li_node = new abap.types.ABAPObject({qualifiedName: "IF_IXML_NODE"});
     let li_children = new abap.types.ABAPObject({qualifiedName: "IF_IXML_NODE_LIST"});
-    let lt_nodes = new abap.types.Table(new abap.types.ABAPObject({qualifiedName: "IF_IXML_NODE"}), {"withHeader":false,"type":"STANDARD","isUnique":false,"keyFields":[]});
+    let lt_nodes = new abap.types.Table(new abap.types.ABAPObject({qualifiedName: "IF_IXML_NODE"}), {"withHeader":false,"type":"STANDARD","isUnique":false,"keyFields":[]}, "");
     let li_top = new abap.types.ABAPObject({qualifiedName: "IF_IXML_NODE"});
     abap.statements.append({source: this.me, target: lt_nodes});
     for (const unique84 of abap.statements.loop(lt_nodes)) {
@@ -279,27 +289,27 @@ class lcl_node {
   }
   async if_ixml_element$find_from_name(INPUT) {
     let val = new abap.types.ABAPObject({qualifiedName: "IF_IXML_ELEMENT"});
-    let name = new abap.types.String();
+    let name = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.name) {name.set(INPUT.name);}
-    let namespace = new abap.types.String();
+    let namespace = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.namespace) {namespace.set(INPUT.namespace);}
-    let depth = new abap.types.Integer();
+    let depth = new abap.types.Integer({qualifiedName: "I"});
     if (INPUT && INPUT.depth) {depth.set(INPUT.depth);}
     abap.statements.assert(abap.compare.eq(constant_1, new abap.types.Character({length: 4}).set('todo')));
     return val;
   }
   async if_ixml_element$get_attribute_node(INPUT) {
     let val = new abap.types.ABAPObject({qualifiedName: "IF_IXML_ATTRIBUTE"});
-    let name = new abap.types.String();
+    let name = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.name) {name.set(INPUT.name);}
     abap.statements.assert(abap.compare.eq(constant_1, new abap.types.Character({length: 4}).set('todo')));
     return val;
   }
   async if_ixml_element$get_attribute_ns(INPUT) {
-    let val = new abap.types.String();
-    let name = new abap.types.String();
+    let val = new abap.types.String({qualifiedName: "STRING"});
+    let name = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.name) {name.set(INPUT.name);}
-    let uri = new abap.types.String();
+    let uri = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.uri) {uri.set(INPUT.uri);}
     let li_node = new abap.types.ABAPObject({qualifiedName: "IF_IXML_NODE"});
     li_node.set((await (await this.if_ixml_node$get_attributes()).get().if_ixml_named_node_map$get_named_item_ns({name: name})));
@@ -309,10 +319,10 @@ class lcl_node {
     return val;
   }
   async if_ixml_element$get_attribute(INPUT) {
-    let val = new abap.types.String();
-    let name = new abap.types.String();
+    let val = new abap.types.String({qualifiedName: "STRING"});
+    let name = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.name) {name.set(INPUT.name);}
-    let namespace = new abap.types.String();
+    let namespace = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.namespace) {namespace.set(INPUT.namespace);}
     abap.statements.assert(abap.compare.eq(constant_1, new abap.types.Character({length: 4}).set('todo')));
     return val;
@@ -324,16 +334,16 @@ class lcl_node {
   }
   async if_ixml_element$get_elements_by_tag_name(INPUT) {
     let val = new abap.types.Character({length: 4});
-    let name = new abap.types.String();
+    let name = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.name) {name.set(INPUT.name);}
     abap.statements.assert(abap.compare.eq(constant_1, new abap.types.Character({length: 4}).set('todo')));
     return val;
   }
   async if_ixml_element$get_elements_by_tag_name_ns(INPUT) {
     let val = new abap.types.Character({length: 4});
-    let name = new abap.types.String();
+    let name = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.name) {name.set(INPUT.name);}
-    let uri = new abap.types.String();
+    let uri = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.uri) {uri.set(INPUT.uri);}
     abap.statements.assert(abap.compare.eq(constant_1, new abap.types.Character({length: 4}).set('todo')));
     return val;
@@ -344,12 +354,12 @@ class lcl_node {
     return val;
   }
   async if_ixml_element$get_value() {
-    let val = new abap.types.String();
+    let val = new abap.types.String({qualifiedName: "STRING"});
     val.set((await this.if_ixml_node$get_value()));
     return val;
   }
   async if_ixml_element$remove_attribute(INPUT) {
-    let name = new abap.types.String();
+    let name = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.name) {name.set(INPUT.name);}
     abap.statements.assert(abap.compare.eq(constant_1, new abap.types.Character({length: 4}).set('todo')));
   }
@@ -362,8 +372,8 @@ class lcl_node {
     let li_iterator = new abap.types.ABAPObject({qualifiedName: "IF_IXML_NODE_ITERATOR"});
     let li_node = new abap.types.ABAPObject({qualifiedName: "IF_IXML_NODE"});
     let li_element = new abap.types.ABAPObject({qualifiedName: "IF_IXML_ELEMENT"});
-    let lv_attributes = new abap.types.String();
-    let lv_ns = new abap.types.String();
+    let lv_attributes = new abap.types.String({qualifiedName: "STRING"});
+    let lv_ns = new abap.types.String({qualifiedName: "STRING"});
     li_iterator.set((await this.mi_attributes.get().if_ixml_named_node_map$create_iterator()));
     let unique86 = 1;
     while (true) {
@@ -403,20 +413,20 @@ class lcl_node {
     abap.statements.assert(abap.compare.eq(constant_1, new abap.types.Character({length: 4}).set('todo')));
   }
   async if_ixml_element$set_attribute(INPUT) {
-    let name = new abap.types.String();
+    let name = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.name) {name.set(INPUT.name);}
-    let namespace = new abap.types.String();
+    let namespace = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.namespace) {namespace.set(INPUT.namespace);}
-    let value = new abap.types.String();
+    let value = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.value) {value.set(INPUT.value);}
     await this.if_ixml_element$set_attribute_ns({name: name, value: value});
   }
   async if_ixml_element$set_attribute_ns(INPUT) {
-    let name = new abap.types.String();
+    let name = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.name) {name.set(INPUT.name);}
-    let prefix = new abap.types.String();
+    let prefix = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.prefix) {prefix.set(INPUT.prefix);}
-    let value = new abap.types.String();
+    let value = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.value) {value.set(INPUT.value);}
     let lo_node = new abap.types.ABAPObject({qualifiedName: "IF_IXML_NODE"});
     lo_node.set(await (new abap.Classes['CLAS-CL_IXML-LCL_NODE']()).constructor_());
@@ -425,14 +435,14 @@ class lcl_node {
     await this.mi_attributes.get().if_ixml_named_node_map$set_named_item_ns({node: lo_node});
   }
   async if_ixml_element$set_value(INPUT) {
-    let rc = new abap.types.Integer();
-    let value = new abap.types.String();
+    let rc = new abap.types.Integer({qualifiedName: "I"});
+    let value = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.value) {value.set(INPUT.value);}
     await this.if_ixml_node$set_value({value: value});
     return rc;
   }
   async if_ixml_node$set_namespace_prefix(INPUT) {
-    let val = new abap.types.String();
+    let val = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.val) {val.set(INPUT.val);}
     this.mv_namespace.set(val);
   }
@@ -461,7 +471,7 @@ class lcl_node {
   }
   async if_ixml_node$query_interface(INPUT) {
     let rval = new abap.types.ABAPObject({qualifiedName: "IF_IXML_UNKNOWN"});
-    let foo = new abap.types.String();
+    let foo = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.foo) {foo.set(INPUT.foo);}
     abap.statements.assert(abap.compare.eq(constant_1, new abap.types.Character({length: 4}).set('todo')));
     return rval;
@@ -475,22 +485,22 @@ class lcl_node {
     return val;
   }
   async if_ixml_node$replace_child(INPUT) {
-    let new_child = new abap.types.String();
+    let new_child = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.new_child) {new_child.set(INPUT.new_child);}
-    let old_child = new abap.types.String();
+    let old_child = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.old_child) {old_child.set(INPUT.old_child);}
     abap.statements.assert(abap.compare.eq(constant_1, new abap.types.Character({length: 4}).set('todo')));
   }
   async if_ixml_node$get_name() {
-    let val = new abap.types.String();
+    let val = new abap.types.String({qualifiedName: "STRING"});
     val.set(this.mv_name);
     return val;
   }
   async if_ixml_node$get_depth() {
-    let val = new abap.types.Integer();
+    let val = new abap.types.Integer({qualifiedName: "I"});
     let li_iterator = new abap.types.ABAPObject({qualifiedName: "IF_IXML_NODE_ITERATOR"});
     let li_node = new abap.types.ABAPObject({qualifiedName: "IF_IXML_NODE"});
-    let lv_max = new abap.types.Integer();
+    let lv_max = new abap.types.Integer({qualifiedName: "I"});
     if (abap.compare.eq((await this.mo_children.get().if_ixml_node_list$get_length()), constant_0)) {
       val.set(constant_0);
     } else {
@@ -516,15 +526,15 @@ class lcl_node {
     return val;
   }
   async if_ixml_node$get_namespace() {
-    let val = new abap.types.String();
+    let val = new abap.types.String({qualifiedName: "STRING"});
     val.set(this.mv_namespace);
     return val;
   }
   async if_ixml_node$get_value() {
-    let val = new abap.types.String();
+    let val = new abap.types.String({qualifiedName: "STRING"});
     let li_iterator = new abap.types.ABAPObject({qualifiedName: "IF_IXML_NODE_ITERATOR"});
     let li_node = new abap.types.ABAPObject({qualifiedName: "IF_IXML_NODE"});
-    let lv_max = new abap.types.Integer();
+    let lv_max = new abap.types.Integer({qualifiedName: "I"});
     if (abap.compare.eq((await this.mo_children.get().if_ixml_node_list$get_length()), constant_0)) {
       val.set(this.mv_value);
     } else {
@@ -542,12 +552,12 @@ class lcl_node {
     return val;
   }
   async if_ixml_node$get_type() {
-    let val = new abap.types.String();
+    let val = new abap.types.String({qualifiedName: "STRING"});
     abap.statements.assert(abap.compare.eq(constant_1, new abap.types.Character({length: 4}).set('todo')));
     return val;
   }
   async if_ixml_node$set_name(INPUT) {
-    let name = new abap.types.String();
+    let name = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.name) {name.set(INPUT.name);}
     this.mv_name.set(name);
   }
@@ -557,13 +567,15 @@ class lcl_node {
     await this.mo_children.get().remove({ii_node: child});
   }
   async if_ixml_node$set_value(INPUT) {
-    let value = new abap.types.String();
+    let value = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.value) {value.set(INPUT.value);}
     this.mv_value.set(value);
   }
 }
 abap.Classes['CLAS-CL_IXML-LCL_NODE'] = lcl_node;
 class lcl_document {
+  static INTERNAL_TYPE = 'CLAS';
+  static IMPLEMENTED_INTERFACES = ["IF_IXML_DOCUMENT"];
   async constructor_(INPUT) {
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
@@ -573,12 +585,12 @@ class lcl_document {
     return this;
   }
   async if_ixml_node$get_namespace_prefix() {
-    let rv_prefix = new abap.types.String();
+    let rv_prefix = new abap.types.String({qualifiedName: "STRING"});
     abap.statements.assert(abap.compare.eq(constant_1, new abap.types.Character({length: 4}).set('todo')));
     return rv_prefix;
   }
   async if_ixml_node$get_namespace_uri() {
-    let rval = new abap.types.String();
+    let rval = new abap.types.String({qualifiedName: "STRING"});
     abap.statements.assert(abap.compare.eq(constant_1, new abap.types.Character({length: 4}).set('todo')));
     return rval;
   }
@@ -591,7 +603,7 @@ class lcl_document {
     await this.mi_node.get().if_ixml_node$append_child({new_child: new_child});
   }
   async if_ixml_node$set_namespace_prefix(INPUT) {
-    let val = new abap.types.String();
+    let val = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.val) {val.set(INPUT.val);}
     await this.mi_node.get().if_ixml_node$set_namespace_prefix({val: val});
   }
@@ -612,7 +624,7 @@ class lcl_document {
   }
   async if_ixml_node$query_interface(INPUT) {
     let rval = new abap.types.ABAPObject({qualifiedName: "IF_IXML_UNKNOWN"});
-    let foo = new abap.types.String();
+    let foo = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.foo) {foo.set(INPUT.foo);}
     await this.mi_node.get().if_ixml_node$query_interface({foo: foo});
     return rval;
@@ -626,19 +638,19 @@ class lcl_document {
     return val;
   }
   async if_ixml_node$replace_child(INPUT) {
-    let new_child = new abap.types.String();
+    let new_child = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.new_child) {new_child.set(INPUT.new_child);}
-    let old_child = new abap.types.String();
+    let old_child = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.old_child) {old_child.set(INPUT.old_child);}
     await this.mi_node.get().if_ixml_node$replace_child({new_child: new_child, old_child: old_child});
   }
   async if_ixml_node$get_name() {
-    let val = new abap.types.String();
+    let val = new abap.types.String({qualifiedName: "STRING"});
     val.set((await this.mi_node.get().if_ixml_node$get_name()));
     return val;
   }
   async if_ixml_node$get_depth() {
-    let val = new abap.types.Integer();
+    let val = new abap.types.Integer({qualifiedName: "I"});
     val.set((await this.mi_node.get().if_ixml_node$get_depth()));
     return val;
   }
@@ -648,22 +660,22 @@ class lcl_document {
     return val;
   }
   async if_ixml_node$get_namespace() {
-    let val = new abap.types.String();
+    let val = new abap.types.String({qualifiedName: "STRING"});
     val.set((await this.mi_node.get().if_ixml_node$get_namespace()));
     return val;
   }
   async if_ixml_node$get_value() {
-    let val = new abap.types.String();
+    let val = new abap.types.String({qualifiedName: "STRING"});
     val.set((await this.mi_node.get().if_ixml_node$get_value()));
     return val;
   }
   async if_ixml_node$get_type() {
-    let val = new abap.types.String();
+    let val = new abap.types.String({qualifiedName: "STRING"});
     val.set((await this.mi_node.get().if_ixml_node$get_type()));
     return val;
   }
   async if_ixml_node$set_name(INPUT) {
-    let name = new abap.types.String();
+    let name = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.name) {name.set(INPUT.name);}
     await this.mi_node.get().if_ixml_node$set_name({name: name});
   }
@@ -673,7 +685,7 @@ class lcl_document {
     await this.mi_node.get().if_ixml_node$remove_child({child: child});
   }
   async if_ixml_node$set_value(INPUT) {
-    let value = new abap.types.String();
+    let value = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.value) {value.set(INPUT.value);}
     await this.mi_node.get().if_ixml_node$set_value({value: value});
   }
@@ -688,7 +700,7 @@ class lcl_document {
     return;
   }
   async if_ixml_document$set_namespace_prefix(INPUT) {
-    let prefix = new abap.types.String();
+    let prefix = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.prefix) {prefix.set(INPUT.prefix);}
     return;
   }
@@ -704,18 +716,18 @@ class lcl_document {
   }
   async if_ixml_document$create_attribute_ns(INPUT) {
     let element = new abap.types.ABAPObject({qualifiedName: "IF_IXML_ATTRIBUTE"});
-    let name = new abap.types.String();
+    let name = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.name) {name.set(INPUT.name);}
-    let prefix = new abap.types.String();
+    let prefix = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.prefix) {prefix.set(INPUT.prefix);}
     abap.statements.assert(abap.compare.eq(constant_1, new abap.types.Character({length: 4}).set('todo')));
     return element;
   }
   async if_ixml_document$create_element_ns(INPUT) {
     let element = new abap.types.ABAPObject({qualifiedName: "IF_IXML_ELEMENT"});
-    let name = new abap.types.String();
+    let name = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.name) {name.set(INPUT.name);}
-    let prefix = new abap.types.String();
+    let prefix = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.prefix) {prefix.set(INPUT.prefix);}
     element.set(await (new abap.Classes['CLAS-CL_IXML-LCL_NODE']()).constructor_());
     await element.get().if_ixml_node$set_name({name: name});
@@ -724,7 +736,7 @@ class lcl_document {
   }
   async if_ixml_document$create_element(INPUT) {
     let element = new abap.types.ABAPObject({qualifiedName: "IF_IXML_ELEMENT"});
-    let name = new abap.types.String();
+    let name = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.name) {name.set(INPUT.name);}
     element.set(await (new abap.Classes['CLAS-CL_IXML-LCL_NODE']()).constructor_());
     await element.get().if_ixml_node$set_name({name: name});
@@ -753,18 +765,18 @@ class lcl_document {
   }
   async if_ixml_document$create_filter_node_type(INPUT) {
     let val = new abap.types.Character({length: 4});
-    let typ = new abap.types.String();
+    let typ = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.typ) {typ.set(INPUT.typ);}
     abap.statements.assert(abap.compare.eq(constant_1, new abap.types.Character({length: 4}).set('todo')));
     return val;
   }
   async if_ixml_document$create_simple_element_ns(INPUT) {
     let val = new abap.types.ABAPObject({qualifiedName: "IF_IXML_ELEMENT"});
-    let name = new abap.types.String();
+    let name = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.name) {name.set(INPUT.name);}
     let parent = new abap.types.ABAPObject({qualifiedName: "IF_IXML_NODE"});
     if (INPUT && INPUT.parent) {parent.set(INPUT.parent);}
-    let prefix = new abap.types.String();
+    let prefix = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.prefix) {prefix.set(INPUT.prefix);}
     let li_node = new abap.types.ABAPObject({qualifiedName: "IF_IXML_NODE"});
     val.set((await this.if_ixml_document$create_simple_element({name: name, parent: parent})));
@@ -774,14 +786,14 @@ class lcl_document {
   }
   async if_ixml_document$create_filter_attribute(INPUT) {
     let val = new abap.types.Character({length: 4});
-    let name = new abap.types.String();
+    let name = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.name) {name.set(INPUT.name);}
     abap.statements.assert(abap.compare.eq(constant_1, new abap.types.Character({length: 4}).set('todo')));
     return val;
   }
   async if_ixml_document$create_simple_element(INPUT) {
     let val = new abap.types.ABAPObject({qualifiedName: "IF_IXML_ELEMENT"});
-    let name = new abap.types.String();
+    let name = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.name) {name.set(INPUT.name);}
     let parent = new abap.types.ABAPObject({qualifiedName: "IF_IXML_NODE"});
     if (INPUT && INPUT.parent) {parent.set(INPUT.parent);}
@@ -791,49 +803,49 @@ class lcl_document {
   }
   async if_ixml_document$find_from_name(INPUT) {
     let element = new abap.types.ABAPObject({qualifiedName: "IF_IXML_ELEMENT"});
-    let name = new abap.types.String();
+    let name = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.name) {name.set(INPUT.name);}
-    let namespace = new abap.types.String();
+    let namespace = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.namespace) {namespace.set(INPUT.namespace);}
     abap.statements.assert(abap.compare.eq(constant_1, new abap.types.Character({length: 35}).set('todo, use find_from_name_ns instead')));
     return element;
   }
   async if_ixml_document$find_from_name_ns(INPUT) {
     let element = new abap.types.ABAPObject({qualifiedName: "IF_IXML_ELEMENT"});
-    let depth = new abap.types.Integer();
+    let depth = new abap.types.Integer({qualifiedName: "I"});
     if (INPUT && INPUT.depth) {depth.set(INPUT.depth);}
-    let uri = new abap.types.String();
+    let uri = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.uri) {uri.set(INPUT.uri);}
-    let name = new abap.types.String();
+    let name = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.name) {name.set(INPUT.name);}
     element.set((await this.mi_node.get().if_ixml_element$find_from_name_ns({name: name, depth: depth, namespace: new abap.types.Character({length: 0}).set('')})));
     return element;
   }
   async if_ixml_document$find_from_path(INPUT) {
     let val = new abap.types.ABAPObject({qualifiedName: "IF_IXML_ELEMENT"});
-    let path = new abap.types.String();
+    let path = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.path) {path.set(INPUT.path);}
     abap.statements.assert(abap.compare.eq(constant_1, new abap.types.Character({length: 4}).set('todo')));
     return val;
   }
   async if_ixml_document$get_elements_by_tag_name_ns(INPUT) {
     let val = new abap.types.Character({length: 4});
-    let name = new abap.types.String();
+    let name = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.name) {name.set(INPUT.name);}
-    let namespace = new abap.types.String();
+    let namespace = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.namespace) {namespace.set(INPUT.namespace);}
-    let uri = new abap.types.String();
+    let uri = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.uri) {uri.set(INPUT.uri);}
     abap.statements.assert(abap.compare.eq(constant_1, new abap.types.Character({length: 4}).set('todo')));
     return val;
   }
   async if_ixml_document$get_elements_by_tag_name(INPUT) {
     let val = new abap.types.Character({length: 4});
-    let depth = new abap.types.Integer();
+    let depth = new abap.types.Integer({qualifiedName: "I"});
     if (INPUT && INPUT.depth) {depth.set(INPUT.depth);}
-    let name = new abap.types.String();
+    let name = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.name) {name.set(INPUT.name);}
-    let namespace = new abap.types.String();
+    let namespace = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.namespace) {namespace.set(INPUT.namespace);}
     abap.statements.assert(abap.compare.eq(constant_1, new abap.types.Character({length: 4}).set('todo')));
     return val;
@@ -851,6 +863,8 @@ class lcl_document {
 }
 abap.Classes['CLAS-CL_IXML-LCL_DOCUMENT'] = lcl_document;
 class lcl_renderer {
+  static INTERNAL_TYPE = 'CLAS';
+  static IMPLEMENTED_INTERFACES = ["IF_IXML_RENDERER"];
   async constructor_(INPUT) {
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
@@ -890,15 +904,17 @@ class lcl_renderer {
 }
 abap.Classes['CLAS-CL_IXML-LCL_RENDERER'] = lcl_renderer;
 class lcl_ostream {
+  static INTERNAL_TYPE = 'CLAS';
+  static IMPLEMENTED_INTERFACES = ["IF_IXML_OSTREAM"];
   async constructor_() {
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
-    this.mv_string = new abap.types.String();
+    this.mv_string = new abap.types.String({qualifiedName: "STRING"});
     return this;
   }
   async if_ixml_ostream$write_string(INPUT) {
-    let rval = new abap.types.Integer();
-    let string = new abap.types.String();
+    let rval = new abap.types.Integer({qualifiedName: "I"});
+    let string = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.string) {string.set(INPUT.string);}
     this.mv_string.set(abap.operators.concat(this.mv_string,string));
     return rval;
@@ -906,11 +922,13 @@ class lcl_ostream {
 }
 abap.Classes['CLAS-CL_IXML-LCL_OSTREAM'] = lcl_ostream;
 class lcl_istream {
+  static INTERNAL_TYPE = 'CLAS';
+  static IMPLEMENTED_INTERFACES = ["IF_IXML_ISTREAM"];
   async constructor_(INPUT) {
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
-    this.mv_xml = new abap.types.String();
-    let iv_xml = new abap.types.String();
+    this.mv_xml = new abap.types.String({qualifiedName: "STRING"});
+    let iv_xml = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.iv_xml) {iv_xml.set(INPUT.iv_xml);}
     this.mv_xml.set(iv_xml);
     return this;
@@ -921,6 +939,8 @@ class lcl_istream {
 }
 abap.Classes['CLAS-CL_IXML-LCL_ISTREAM'] = lcl_istream;
 class lcl_stream_factory {
+  static INTERNAL_TYPE = 'CLAS';
+  static IMPLEMENTED_INTERFACES = ["IF_IXML_STREAM_FACTORY"];
   async constructor_() {
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
@@ -928,7 +948,7 @@ class lcl_stream_factory {
   }
   async if_ixml_stream_factory$create_ostream_cstring(INPUT) {
     let stream = new abap.types.ABAPObject({qualifiedName: "IF_IXML_OSTREAM"});
-    let string = new abap.types.String();
+    let string = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.string) {string.set(INPUT.string);}
     stream.set(await (new abap.Classes['CLAS-CL_IXML-LCL_OSTREAM']()).constructor_());
     stream.get().mv_string = INPUT.string;
@@ -937,21 +957,21 @@ class lcl_stream_factory {
   }
   async if_ixml_stream_factory$create_ostream_xstring(INPUT) {
     let stream = new abap.types.ABAPObject({qualifiedName: "IF_IXML_OSTREAM"});
-    let string = new abap.types.XString();
+    let string = new abap.types.XString({qualifiedName: "XSTRING"});
     if (INPUT && INPUT.string) {string.set(INPUT.string);}
     abap.statements.assert(abap.compare.eq(constant_1, new abap.types.Character({length: 4}).set('todo')));
     return stream;
   }
   async if_ixml_stream_factory$create_istream_xstring(INPUT) {
     let stream = new abap.types.ABAPObject({qualifiedName: "IF_IXML_ISTREAM"});
-    let xml = new abap.types.XString();
+    let xml = new abap.types.XString({qualifiedName: "XSTRING"});
     if (INPUT && INPUT.xml) {xml.set(INPUT.xml);}
     abap.statements.assert(abap.compare.eq(constant_1, new abap.types.Character({length: 4}).set('todo')));
     return stream;
   }
   async if_ixml_stream_factory$create_istream_string(INPUT) {
     let stream = new abap.types.ABAPObject({qualifiedName: "IF_IXML_ISTREAM"});
-    let xml = new abap.types.String();
+    let xml = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.xml) {xml.set(INPUT.xml);}
     stream.set(await (new abap.Classes['CLAS-CL_IXML-LCL_ISTREAM']()).constructor_({iv_xml: xml}));
     return stream;
@@ -959,6 +979,8 @@ class lcl_stream_factory {
 }
 abap.Classes['CLAS-CL_IXML-LCL_STREAM_FACTORY'] = lcl_stream_factory;
 class lcl_parser {
+  static INTERNAL_TYPE = 'CLAS';
+  static IMPLEMENTED_INTERFACES = ["IF_IXML_PARSER"];
   async constructor_(INPUT) {
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
@@ -976,20 +998,20 @@ class lcl_parser {
   }
   async if_ixml_parser$set_validating(INPUT) {
     let rval = new abap.types.Character({qualifiedName: "ABAP_BOOL"});
-    let mode = new abap.types.Integer();
+    let mode = new abap.types.Integer({qualifiedName: "I"});
     if (INPUT && INPUT.mode) {mode.set(INPUT.mode);}
     abap.statements.assert(abap.compare.eq(constant_1, new abap.types.Character({length: 4}).set('todo')));
     return rval;
   }
   async if_ixml_parser$parse() {
-    let subrc = new abap.types.Integer();
-    let lv_xml = new abap.types.String();
-    let lv_offset = new abap.types.Integer();
-    let lv_value = new abap.types.String();
-    let lv_name = new abap.types.String();
-    let lv_namespace = new abap.types.String();
-    let ls_match = new abap.types.Structure({line: new abap.types.Integer(), offset: new abap.types.Integer(), length: new abap.types.Integer(), submatches: new abap.types.Table(new abap.types.Structure({offset: new abap.types.Integer(), length: new abap.types.Integer()}, "SUBMATCH_RESULT"), {"withHeader":false})}, "MATCH_RESULT");
-    let ls_submatch = new abap.types.Structure({offset: new abap.types.Integer(), length: new abap.types.Integer()}, "SUBMATCH_RESULT");
+    let subrc = new abap.types.Integer({qualifiedName: "I"});
+    let lv_xml = new abap.types.String({qualifiedName: "STRING"});
+    let lv_offset = new abap.types.Integer({qualifiedName: "I"});
+    let lv_value = new abap.types.String({qualifiedName: "STRING"});
+    let lv_name = new abap.types.String({qualifiedName: "STRING"});
+    let lv_namespace = new abap.types.String({qualifiedName: "STRING"});
+    let ls_match = new abap.types.Structure({line: new abap.types.Integer({qualifiedName: "MATCH_RESULT-LINE"}), offset: new abap.types.Integer({qualifiedName: "MATCH_RESULT-OFFSET"}), length: new abap.types.Integer({qualifiedName: "MATCH_RESULT-LENGTH"}), submatches: new abap.types.Table(new abap.types.Structure({offset: new abap.types.Integer({qualifiedName: "SUBMATCH_RESULT-OFFSET"}), length: new abap.types.Integer({qualifiedName: "SUBMATCH_RESULT-LENGTH"})}, "SUBMATCH_RESULT"), {"withHeader":false}, "SUBMATCH_RESULT_TAB")}, "MATCH_RESULT");
+    let ls_submatch = new abap.types.Structure({offset: new abap.types.Integer({qualifiedName: "SUBMATCH_RESULT-OFFSET"}), length: new abap.types.Integer({qualifiedName: "SUBMATCH_RESULT-LENGTH"})}, "SUBMATCH_RESULT");
     let lo_parent = new abap.types.ABAPObject({qualifiedName: "LCL_NODE"});
     let lo_node = new abap.types.ABAPObject({qualifiedName: "LCL_NODE"});
     await abap.statements.cast(lo_parent, (await this.mi_document.get().if_ixml_document$get_root()));
@@ -1035,17 +1057,17 @@ class lcl_parser {
   async parse_attributes(INPUT) {
     let ii_node = new abap.types.ABAPObject({qualifiedName: "IF_IXML_NODE"});
     if (INPUT && INPUT.ii_node) {ii_node.set(INPUT.ii_node);}
-    let iv_xml = new abap.types.String();
+    let iv_xml = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.iv_xml) {iv_xml.set(INPUT.iv_xml);}
-    let is_match = new abap.types.Structure({line: new abap.types.Integer(), offset: new abap.types.Integer(), length: new abap.types.Integer(), submatches: new abap.types.Table(new abap.types.Structure({offset: new abap.types.Integer(), length: new abap.types.Integer()}, "SUBMATCH_RESULT"), {"withHeader":false})}, "MATCH_RESULT");
+    let is_match = new abap.types.Structure({line: new abap.types.Integer({qualifiedName: "MATCH_RESULT-LINE"}), offset: new abap.types.Integer({qualifiedName: "MATCH_RESULT-OFFSET"}), length: new abap.types.Integer({qualifiedName: "MATCH_RESULT-LENGTH"}), submatches: new abap.types.Table(new abap.types.Structure({offset: new abap.types.Integer({qualifiedName: "SUBMATCH_RESULT-OFFSET"}), length: new abap.types.Integer({qualifiedName: "SUBMATCH_RESULT-LENGTH"})}, "SUBMATCH_RESULT"), {"withHeader":false}, "SUBMATCH_RESULT_TAB")}, "MATCH_RESULT");
     if (INPUT && INPUT.is_match) {is_match.set(INPUT.is_match);}
-    let ls_submatch = new abap.types.Structure({offset: new abap.types.Integer(), length: new abap.types.Integer()}, "SUBMATCH_RESULT");
-    let lv_name = new abap.types.String();
-    let lv_value = new abap.types.String();
-    let lv_xml = new abap.types.String();
+    let ls_submatch = new abap.types.Structure({offset: new abap.types.Integer({qualifiedName: "SUBMATCH_RESULT-OFFSET"}), length: new abap.types.Integer({qualifiedName: "SUBMATCH_RESULT-LENGTH"})}, "SUBMATCH_RESULT");
+    let lv_name = new abap.types.String({qualifiedName: "STRING"});
+    let lv_value = new abap.types.String({qualifiedName: "STRING"});
+    let lv_xml = new abap.types.String({qualifiedName: "STRING"});
     let li_node = new abap.types.ABAPObject({qualifiedName: "IF_IXML_NODE"});
-    let lv_offset = new abap.types.Integer();
-    let lv_length = new abap.types.Integer();
+    let lv_offset = new abap.types.Integer({qualifiedName: "I"});
+    let lv_length = new abap.types.Integer({qualifiedName: "I"});
     if (abap.compare.eq(abap.builtin.lines({val: is_match.get().submatches}), constant_1)) {
       return;
     }
@@ -1071,7 +1093,7 @@ class lcl_parser {
     return;
   }
   async if_ixml_parser$num_errors() {
-    let errors = new abap.types.Integer();
+    let errors = new abap.types.Integer({qualifiedName: "I"});
     return errors;
     return errors;
   }
@@ -1080,16 +1102,16 @@ class lcl_parser {
   }
   async if_ixml_parser$get_error(INPUT) {
     let error = new abap.types.ABAPObject({qualifiedName: "IF_IXML_PARSE_ERROR"});
-    let index = new abap.types.Integer();
+    let index = new abap.types.Integer({qualifiedName: "I"});
     if (INPUT && INPUT.index) {index.set(INPUT.index);}
     return error;
     return error;
   }
 }
 abap.Classes['CLAS-CL_IXML-LCL_PARSER'] = lcl_parser;
-lcl_parser.lc_regex_tag = new abap.types.String();
+lcl_parser.lc_regex_tag = new abap.types.String({qualifiedName: "STRING"});
 lcl_parser.lc_regex_tag.set('<\\/?([\\w:]+)( [\\w:]+="[\\w\\.:\\/]+")*>');
-lcl_parser.lc_regex_attr = new abap.types.String();
+lcl_parser.lc_regex_attr = new abap.types.String({qualifiedName: "STRING"});
 lcl_parser.lc_regex_attr.set('([\\w:]+)="([\\w\\.:\\/]+)"');
 
 __webpack_async_result__();

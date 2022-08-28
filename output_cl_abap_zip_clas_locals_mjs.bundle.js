@@ -22,10 +22,12 @@ const constant_3 = new abap.types.Integer().set(3);
 const constant_4 = new abap.types.Integer().set(4);
 const constant_8 = new abap.types.Integer().set(8);
 class lcl_stream {
+  static INTERNAL_TYPE = 'CLAS';
+  static IMPLEMENTED_INTERFACES = [];
   async constructor_() {
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
-    this.mv_xstr = new abap.types.XString();
+    this.mv_xstr = new abap.types.XString({qualifiedName: "XSTRING"});
     return this;
   }
   async append(INPUT) {
@@ -34,35 +36,35 @@ class lcl_stream {
     abap.statements.concatenate({source: [this.mv_xstr, iv_xstr], target: this.mv_xstr});
   }
   async get() {
-    let rv_xstr = new abap.types.XString();
+    let rv_xstr = new abap.types.XString({qualifiedName: "XSTRING"});
     rv_xstr.set(this.mv_xstr);
     return rv_xstr;
   }
   async append_date(INPUT) {
-    let iv_date = new abap.types.Date();
+    let iv_date = new abap.types.Date({qualifiedName: "D"});
     if (INPUT && INPUT.iv_date) {iv_date.set(INPUT.iv_date);}
   }
   async append_time(INPUT) {
-    let iv_time = new abap.types.Time();
+    let iv_time = new abap.types.Time({qualifiedName: "T"});
     if (INPUT && INPUT.iv_time) {iv_time.set(INPUT.iv_time);}
   }
   async append_int2(INPUT) {
-    let iv_int = new abap.types.Integer();
+    let iv_int = new abap.types.Integer({qualifiedName: "I"});
     if (INPUT && INPUT.iv_int) {iv_int.set(INPUT.iv_int);}
     let lv_hex = new abap.types.Hex();
     lv_hex.set(iv_int);
     await this.append({iv_xstr: lv_hex});
   }
   async append_int4(INPUT) {
-    let iv_int = new abap.types.Integer();
+    let iv_int = new abap.types.Integer({qualifiedName: "I"});
     if (INPUT && INPUT.iv_int) {iv_int.set(INPUT.iv_int);}
     let lv_hex = new abap.types.Hex({length: 2});
     lv_hex.set(iv_int);
     await this.append({iv_xstr: lv_hex});
   }
   async append_crc(INPUT) {
-    let rv_crc = new abap.types.XString();
-    let iv_xstring = new abap.types.XString();
+    let rv_crc = new abap.types.XString({qualifiedName: "XSTRING"});
+    let iv_xstring = new abap.types.XString({qualifiedName: "XSTRING"});
     if (INPUT && INPUT.iv_xstring) {iv_xstring.set(INPUT.iv_xstring);}
     let magic_nr = new abap.types.Hex({length: 4});
     magic_nr.set('EDB88320');
@@ -78,8 +80,8 @@ class lcl_stream {
     m000000.set('000000');
     let cindex = new abap.types.Hex({length: 4});
     let low_bit = new abap.types.Hex({length: 4});
-    let len = new abap.types.Integer();
-    let nindex = new abap.types.Integer();
+    let len = new abap.types.Integer({qualifiedName: "I"});
+    let nindex = new abap.types.Integer({qualifiedName: "I"});
     let crc = new abap.types.Hex({length: 4});
     crc.set(mffffffff);
     let x4 = new abap.types.Hex({length: 4});
@@ -123,7 +125,7 @@ class lcl_stream {
   }
 }
 abap.Classes['CLAS-CL_ABAP_ZIP-LCL_STREAM'] = lcl_stream;
-lcl_stream.crc32_map = new abap.types.XString();
+lcl_stream.crc32_map = new abap.types.XString({qualifiedName: "XSTRING"});
 
 __webpack_async_result__();
 } catch(e) { __webpack_async_result__(e); } }, 1);

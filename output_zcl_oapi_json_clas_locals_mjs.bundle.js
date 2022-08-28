@@ -19,35 +19,37 @@ const {cx_root} = await Promise.resolve(/*! import() */).then(__webpack_require_
 const constant_0 = new abap.types.Integer().set(0);
 const constant_1 = new abap.types.Integer().set(1);
 class lcl_stack {
+  static INTERNAL_TYPE = 'CLAS';
+  static IMPLEMENTED_INTERFACES = [];
   async constructor_() {
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
-    this.mt_data = new abap.types.Table(new abap.types.Structure({name: new abap.types.String(), is_array: new abap.types.Character({qualifiedName: "ABAP_BOOL"}), array_index: new abap.types.Integer()}, "lcl_stack=>ty_data"), {"withHeader":false,"type":"STANDARD","isUnique":false,"keyFields":[]});
+    this.mt_data = new abap.types.Table(new abap.types.Structure({name: new abap.types.String({qualifiedName: "LCL_STACK=>TY_DATA-NAME"}), is_array: new abap.types.Character({qualifiedName: "ABAP_BOOL"}), array_index: new abap.types.Integer({qualifiedName: "LCL_STACK=>TY_DATA-ARRAY_INDEX"})}, "lcl_stack=>ty_data"), {"withHeader":false,"type":"STANDARD","isUnique":false,"keyFields":[]}, "");
     return this;
   }
   async push(INPUT) {
-    let iv_name = new abap.types.String();
+    let iv_name = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.iv_name) {iv_name.set(INPUT.iv_name);}
-    let iv_type = new abap.types.String();
+    let iv_type = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.iv_type) {iv_type.set(INPUT.iv_type);}
-    let ls_data = new abap.types.Structure({name: new abap.types.String(), is_array: new abap.types.Character({qualifiedName: "ABAP_BOOL"}), array_index: new abap.types.Integer()}, "lcl_stack=>ty_data");
+    let ls_data = new abap.types.Structure({name: new abap.types.String({qualifiedName: "LCL_STACK=>TY_DATA-NAME"}), is_array: new abap.types.Character({qualifiedName: "ABAP_BOOL"}), array_index: new abap.types.Integer({qualifiedName: "LCL_STACK=>TY_DATA-ARRAY_INDEX"})}, "lcl_stack=>ty_data");
     ls_data.get().name.set(iv_name);
     ls_data.get().is_array.set(abap.builtin.boolc(abap.compare.eq(iv_type, new abap.types.Character({length: 5}).set('array'))));
     abap.statements.append({source: ls_data, target: this.mt_data});
   }
   async is_array() {
     let rv_array = new abap.types.Character({qualifiedName: "ABAP_BOOL"});
-    let lv_index = new abap.types.Integer();
-    let ls_data = new abap.types.Structure({name: new abap.types.String(), is_array: new abap.types.Character({qualifiedName: "ABAP_BOOL"}), array_index: new abap.types.Integer()}, "lcl_stack=>ty_data");
+    let lv_index = new abap.types.Integer({qualifiedName: "I"});
+    let ls_data = new abap.types.Structure({name: new abap.types.String({qualifiedName: "LCL_STACK=>TY_DATA-NAME"}), is_array: new abap.types.Character({qualifiedName: "ABAP_BOOL"}), array_index: new abap.types.Integer({qualifiedName: "LCL_STACK=>TY_DATA-ARRAY_INDEX"})}, "lcl_stack=>ty_data");
     lv_index.set(abap.builtin.lines({val: this.mt_data}));
     abap.statements.readTable(this.mt_data,{index: lv_index,into: ls_data});
     rv_array.set(ls_data.get().is_array);
     return rv_array;
   }
   async get_and_increase_index() {
-    let rv_index = new abap.types.String();
-    let lv_index = new abap.types.Integer();
-    let fs_ls_data_ = new abap.types.FieldSymbol(new abap.types.Structure({name: new abap.types.String(), is_array: new abap.types.Character({qualifiedName: "ABAP_BOOL"}), array_index: new abap.types.Integer()}, "lcl_stack=>ty_data"));
+    let rv_index = new abap.types.String({qualifiedName: "STRING"});
+    let lv_index = new abap.types.Integer({qualifiedName: "I"});
+    let fs_ls_data_ = new abap.types.FieldSymbol(new abap.types.Structure({name: new abap.types.String({qualifiedName: "LCL_STACK=>TY_DATA-NAME"}), is_array: new abap.types.Character({qualifiedName: "ABAP_BOOL"}), array_index: new abap.types.Integer({qualifiedName: "LCL_STACK=>TY_DATA-ARRAY_INDEX"})}, "lcl_stack=>ty_data"));
     lv_index.set(abap.builtin.lines({val: this.mt_data}));
     abap.statements.readTable(this.mt_data,{index: lv_index,assigning: fs_ls_data_});
     if (abap.compare.eq(abap.builtin.sy.get().subrc, constant_0)) {
@@ -58,9 +60,9 @@ class lcl_stack {
     return rv_index;
   }
   async pop() {
-    let rv_name = new abap.types.String();
-    let lv_index = new abap.types.Integer();
-    let ls_data = new abap.types.Structure({name: new abap.types.String(), is_array: new abap.types.Character({qualifiedName: "ABAP_BOOL"}), array_index: new abap.types.Integer()}, "lcl_stack=>ty_data");
+    let rv_name = new abap.types.String({qualifiedName: "STRING"});
+    let lv_index = new abap.types.Integer({qualifiedName: "I"});
+    let ls_data = new abap.types.Structure({name: new abap.types.String({qualifiedName: "LCL_STACK=>TY_DATA-NAME"}), is_array: new abap.types.Character({qualifiedName: "ABAP_BOOL"}), array_index: new abap.types.Integer({qualifiedName: "LCL_STACK=>TY_DATA-ARRAY_INDEX"})}, "lcl_stack=>ty_data");
     lv_index.set(abap.builtin.lines({val: this.mt_data}));
     if (abap.compare.gt(lv_index, constant_0)) {
       abap.statements.readTable(this.mt_data,{index: lv_index,into: ls_data});
@@ -70,8 +72,8 @@ class lcl_stack {
     return rv_name;
   }
   async get_full_name() {
-    let rv_path = new abap.types.String();
-    let ls_data = new abap.types.Structure({name: new abap.types.String(), is_array: new abap.types.Character({qualifiedName: "ABAP_BOOL"}), array_index: new abap.types.Integer()}, "lcl_stack=>ty_data");
+    let rv_path = new abap.types.String({qualifiedName: "STRING"});
+    let ls_data = new abap.types.Structure({name: new abap.types.String({qualifiedName: "LCL_STACK=>TY_DATA-NAME"}), is_array: new abap.types.Character({qualifiedName: "ABAP_BOOL"}), array_index: new abap.types.Integer({qualifiedName: "LCL_STACK=>TY_DATA-ARRAY_INDEX"})}, "lcl_stack=>ty_data");
     for (const unique17 of abap.statements.loop(this.mt_data)) {
       ls_data.set(unique17);
       rv_path.set(abap.operators.concat(rv_path,ls_data.get().name));
@@ -81,29 +83,31 @@ class lcl_stack {
 }
 abap.Classes['CLAS-ZCL_OAPI_JSON-LCL_STACK'] = lcl_stack;
 class lcl_parser {
+  static INTERNAL_TYPE = 'CLAS';
+  static IMPLEMENTED_INTERFACES = [];
   async constructor_() {
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
     return this;
   }
   async parse(INPUT) {
-    let rt_data = new abap.types.Table(new abap.types.Structure({parent: new abap.types.String(), name: new abap.types.String(), full_name: new abap.types.String(), value: new abap.types.String()}, "ty_data"), {"withHeader":false,"type":"STANDARD","isUnique":false,"keyFields":[]});
-    let iv_json = new abap.types.String();
+    let rt_data = new abap.types.Table(new abap.types.Structure({parent: new abap.types.String({qualifiedName: "TY_DATA-PARENT"}), name: new abap.types.String({qualifiedName: "TY_DATA-NAME"}), full_name: new abap.types.String({qualifiedName: "TY_DATA-FULL_NAME"}), value: new abap.types.String({qualifiedName: "TY_DATA-VALUE"})}, "ty_data"), {"withHeader":false,"type":"STANDARD","isUnique":false,"keyFields":[]}, "ty_data_tt");
+    let iv_json = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.iv_json) {iv_json.set(INPUT.iv_json);}
     let li_node = new abap.types.ABAPObject({qualifiedName: "IF_SXML_NODE"});
     let li_next = new abap.types.ABAPObject({qualifiedName: "IF_SXML_NODE"});
     let li_reader = new abap.types.ABAPObject({qualifiedName: "IF_SXML_READER"});
     let li_close = new abap.types.ABAPObject({qualifiedName: "IF_SXML_CLOSE_ELEMENT"});
     let li_open = new abap.types.ABAPObject({qualifiedName: "IF_SXML_OPEN_ELEMENT"});
-    let lt_attributes = new abap.types.Table(new abap.types.ABAPObject({qualifiedName: "IF_SXML_ATTRIBUTE"}), {"withHeader":false,"type":"STANDARD","isUnique":false,"keyFields":[]});
+    let lt_attributes = new abap.types.Table(new abap.types.ABAPObject({qualifiedName: "IF_SXML_ATTRIBUTE"}), {"withHeader":false,"type":"STANDARD","isUnique":false,"keyFields":[]}, "if_sxml_attribute=>attributes");
     let li_attribute = new abap.types.ABAPObject({qualifiedName: "IF_SXML_ATTRIBUTE"});
     let li_value = new abap.types.ABAPObject({qualifiedName: "IF_SXML_VALUE_NODE"});
-    let lv_push = new abap.types.String();
-    let lv_name = new abap.types.String();
+    let lv_push = new abap.types.String({qualifiedName: "STRING"});
+    let lv_name = new abap.types.String({qualifiedName: "STRING"});
     let lo_stack = new abap.types.ABAPObject({qualifiedName: "LCL_STACK"});
-    let ls_data = new abap.types.Structure({parent: new abap.types.String(), name: new abap.types.String(), full_name: new abap.types.String(), value: new abap.types.String()}, "ty_data");
-    let lv_index = new abap.types.Integer();
-    let lt_nodes = new abap.types.Table(new abap.types.ABAPObject({qualifiedName: "IF_SXML_NODE"}), {"withHeader":false,"type":"STANDARD","isUnique":false,"keyFields":[]});
+    let ls_data = new abap.types.Structure({parent: new abap.types.String({qualifiedName: "TY_DATA-PARENT"}), name: new abap.types.String({qualifiedName: "TY_DATA-NAME"}), full_name: new abap.types.String({qualifiedName: "TY_DATA-FULL_NAME"}), value: new abap.types.String({qualifiedName: "TY_DATA-VALUE"})}, "ty_data");
+    let lv_index = new abap.types.Integer({qualifiedName: "I"});
+    let lt_nodes = new abap.types.Table(new abap.types.ABAPObject({qualifiedName: "IF_SXML_NODE"}), {"withHeader":false,"type":"STANDARD","isUnique":false,"keyFields":[]}, "");
     lo_stack.set(await (new abap.Classes['CLAS-ZCL_OAPI_JSON-LCL_STACK']()).constructor_());
     li_reader.set((await abap.Classes['CL_SXML_STRING_READER'].create({data: (await abap.Classes['CL_ABAP_CODEPAGE'].convert_to({source: iv_json}))})));
     let unique18 = 1;
