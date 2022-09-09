@@ -20,7 +20,7 @@ const constant_1 = new abap.types.Integer().set(1);
 class lcl_message {
   static INTERNAL_TYPE = 'CLAS';
   static IMPLEMENTED_INTERFACES = ["IF_APC_WSP_MESSAGE"];
-  async constructor_() {
+  async constructor_(INPUT) {
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
     this.mv_data = new abap.types.XString({qualifiedName: "XSTRING"});

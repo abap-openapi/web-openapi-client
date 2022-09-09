@@ -21,7 +21,7 @@ const constant_1 = new abap.types.Integer().set(1);
 class lcl_stack {
   static INTERNAL_TYPE = 'CLAS';
   static IMPLEMENTED_INTERFACES = [];
-  async constructor_() {
+  async constructor_(INPUT) {
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
     this.mt_data = new abap.types.Table(new abap.types.Structure({name: new abap.types.String({qualifiedName: "LCL_STACK=>TY_DATA-NAME"}), is_array: new abap.types.Character({qualifiedName: "ABAP_BOOL"}), array_index: new abap.types.Integer({qualifiedName: "LCL_STACK=>TY_DATA-ARRAY_INDEX"})}, "lcl_stack=>ty_data"), {"withHeader":false,"type":"STANDARD","isUnique":false,"keyFields":[]}, "");
@@ -67,14 +67,14 @@ class lcl_stack {
     if (abap.compare.gt(lv_index, constant_0)) {
       abap.statements.readTable(this.mt_data,{index: lv_index,into: ls_data});
       rv_name.set(ls_data.get().name);
-      abap.statements.deleteInternal(this.mt_data,{index: lv_index});
+      await abap.statements.deleteInternal(this.mt_data,{index: lv_index});
     }
     return rv_name;
   }
   async get_full_name() {
     let rv_path = new abap.types.String({qualifiedName: "STRING"});
     let ls_data = new abap.types.Structure({name: new abap.types.String({qualifiedName: "LCL_STACK=>TY_DATA-NAME"}), is_array: new abap.types.Character({qualifiedName: "ABAP_BOOL"}), array_index: new abap.types.Integer({qualifiedName: "LCL_STACK=>TY_DATA-ARRAY_INDEX"})}, "lcl_stack=>ty_data");
-    for (const unique17 of abap.statements.loop(this.mt_data)) {
+    for await (const unique17 of abap.statements.loop(this.mt_data)) {
       ls_data.set(unique17);
       rv_path.set(abap.operators.concat(rv_path,ls_data.get().name));
     }
@@ -85,7 +85,7 @@ abap.Classes['CLAS-ZCL_OAPI_JSON-LCL_STACK'] = lcl_stack;
 class lcl_parser {
   static INTERNAL_TYPE = 'CLAS';
   static IMPLEMENTED_INTERFACES = [];
-  async constructor_() {
+  async constructor_(INPUT) {
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
     return this;
@@ -119,7 +119,7 @@ class lcl_parser {
       }
       abap.statements.append({source: li_node, target: lt_nodes});
     }
-    for (const unique19 of abap.statements.loop(lt_nodes)) {
+    for await (const unique19 of abap.statements.loop(lt_nodes)) {
       li_node.set(unique19);
       lv_index.set(abap.builtin.sy.get().tabix);
       let unique20 = li_node.get().if_sxml_node$type;
