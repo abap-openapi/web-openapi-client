@@ -21,6 +21,8 @@ class lcl_message {
   static INTERNAL_TYPE = 'CLAS';
   static IMPLEMENTED_INTERFACES = ["IF_APC_WSP_MESSAGE"];
   async constructor_(INPUT) {
+    this.INTERNAL_TYPE = lcl_message.INTERNAL_TYPE;
+    this.IMPLEMENTED_INTERFACES = lcl_message.IMPLEMENTED_INTERFACES;
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
     this.mv_data = new abap.types.XString({qualifiedName: "XSTRING"});
@@ -47,6 +49,8 @@ class lcl_client {
   static INTERNAL_TYPE = 'CLAS';
   static IMPLEMENTED_INTERFACES = ["IF_APC_WSP_CLIENT","IF_APC_WSP_MESSAGE_MANAGER"];
   async constructor_(INPUT) {
+    this.INTERNAL_TYPE = lcl_client.INTERNAL_TYPE;
+    this.IMPLEMENTED_INTERFACES = lcl_client.IMPLEMENTED_INTERFACES;
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
     this.mv_host = new abap.types.String({qualifiedName: "STRING"});

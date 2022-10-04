@@ -22,6 +22,8 @@ class lcl_stack {
   static INTERNAL_TYPE = 'CLAS';
   static IMPLEMENTED_INTERFACES = [];
   async constructor_(INPUT) {
+    this.INTERNAL_TYPE = lcl_stack.INTERNAL_TYPE;
+    this.IMPLEMENTED_INTERFACES = lcl_stack.IMPLEMENTED_INTERFACES;
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
     this.mt_data = new abap.types.Table(new abap.types.Structure({name: new abap.types.String({qualifiedName: "LCL_STACK=>TY_DATA-NAME"}), is_array: new abap.types.Character({qualifiedName: "ABAP_BOOL"}), array_index: new abap.types.Integer({qualifiedName: "LCL_STACK=>TY_DATA-ARRAY_INDEX"})}, "lcl_stack=>ty_data"), {"withHeader":false,"type":"STANDARD","isUnique":false,"keyFields":[]}, "");
@@ -86,6 +88,8 @@ class lcl_parser {
   static INTERNAL_TYPE = 'CLAS';
   static IMPLEMENTED_INTERFACES = [];
   async constructor_(INPUT) {
+    this.INTERNAL_TYPE = lcl_parser.INTERNAL_TYPE;
+    this.IMPLEMENTED_INTERFACES = lcl_parser.IMPLEMENTED_INTERFACES;
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
     return this;

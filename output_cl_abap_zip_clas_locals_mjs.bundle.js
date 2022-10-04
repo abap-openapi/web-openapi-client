@@ -25,6 +25,8 @@ class lcl_stream {
   static INTERNAL_TYPE = 'CLAS';
   static IMPLEMENTED_INTERFACES = [];
   async constructor_(INPUT) {
+    this.INTERNAL_TYPE = lcl_stream.INTERNAL_TYPE;
+    this.IMPLEMENTED_INTERFACES = lcl_stream.IMPLEMENTED_INTERFACES;
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
     this.mv_xstr = new abap.types.XString({qualifiedName: "XSTRING"});

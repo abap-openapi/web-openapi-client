@@ -31,6 +31,8 @@ class lcl_node_iterator {
   static INTERNAL_TYPE = 'CLAS';
   static IMPLEMENTED_INTERFACES = ["IF_IXML_NODE_ITERATOR"];
   async constructor_(INPUT) {
+    this.INTERNAL_TYPE = lcl_node_iterator.INTERNAL_TYPE;
+    this.IMPLEMENTED_INTERFACES = lcl_node_iterator.IMPLEMENTED_INTERFACES;
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
     this.mv_pointer = new abap.types.Integer({qualifiedName: "I"});
@@ -56,6 +58,8 @@ class lcl_encoding {
   static INTERNAL_TYPE = 'CLAS';
   static IMPLEMENTED_INTERFACES = ["IF_IXML_ENCODING"];
   async constructor_(INPUT) {
+    this.INTERNAL_TYPE = lcl_encoding.INTERNAL_TYPE;
+    this.IMPLEMENTED_INTERFACES = lcl_encoding.IMPLEMENTED_INTERFACES;
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
     return this;
@@ -66,6 +70,8 @@ class lcl_named_node_map {
   static INTERNAL_TYPE = 'CLAS';
   static IMPLEMENTED_INTERFACES = ["IF_IXML_NAMED_NODE_MAP"];
   async constructor_(INPUT) {
+    this.INTERNAL_TYPE = lcl_named_node_map.INTERNAL_TYPE;
+    this.IMPLEMENTED_INTERFACES = lcl_named_node_map.IMPLEMENTED_INTERFACES;
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
     this.mt_list = new abap.types.Table(new abap.types.ABAPObject({qualifiedName: "IF_IXML_NODE"}), {"withHeader":false,"type":"STANDARD","isUnique":false,"keyFields":[]}, "");
@@ -118,6 +124,8 @@ class lcl_node_list {
   static INTERNAL_TYPE = 'CLAS';
   static IMPLEMENTED_INTERFACES = ["IF_IXML_NODE_LIST"];
   async constructor_(INPUT) {
+    this.INTERNAL_TYPE = lcl_node_list.INTERNAL_TYPE;
+    this.IMPLEMENTED_INTERFACES = lcl_node_list.IMPLEMENTED_INTERFACES;
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
     this.mt_list = new abap.types.Table(new abap.types.ABAPObject({qualifiedName: "IF_IXML_NODE"}), {"withHeader":false,"type":"STANDARD","isUnique":false,"keyFields":[]}, "");
@@ -167,6 +175,8 @@ class lcl_node {
   static INTERNAL_TYPE = 'CLAS';
   static IMPLEMENTED_INTERFACES = ["IF_IXML_ELEMENT"];
   async constructor_(INPUT) {
+    this.INTERNAL_TYPE = lcl_node.INTERNAL_TYPE;
+    this.IMPLEMENTED_INTERFACES = lcl_node.IMPLEMENTED_INTERFACES;
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
     this.mv_name = new abap.types.String({qualifiedName: "STRING"});
@@ -577,6 +587,8 @@ class lcl_document {
   static INTERNAL_TYPE = 'CLAS';
   static IMPLEMENTED_INTERFACES = ["IF_IXML_DOCUMENT"];
   async constructor_(INPUT) {
+    this.INTERNAL_TYPE = lcl_document.INTERNAL_TYPE;
+    this.IMPLEMENTED_INTERFACES = lcl_document.IMPLEMENTED_INTERFACES;
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
     this.mi_node = new abap.types.ABAPObject({qualifiedName: "LCL_NODE"});
@@ -866,6 +878,8 @@ class lcl_renderer {
   static INTERNAL_TYPE = 'CLAS';
   static IMPLEMENTED_INTERFACES = ["IF_IXML_RENDERER"];
   async constructor_(INPUT) {
+    this.INTERNAL_TYPE = lcl_renderer.INTERNAL_TYPE;
+    this.IMPLEMENTED_INTERFACES = lcl_renderer.IMPLEMENTED_INTERFACES;
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
     this.mi_ostream = new abap.types.ABAPObject({qualifiedName: "IF_IXML_OSTREAM"});
@@ -907,6 +921,8 @@ class lcl_ostream {
   static INTERNAL_TYPE = 'CLAS';
   static IMPLEMENTED_INTERFACES = ["IF_IXML_OSTREAM"];
   async constructor_(INPUT) {
+    this.INTERNAL_TYPE = lcl_ostream.INTERNAL_TYPE;
+    this.IMPLEMENTED_INTERFACES = lcl_ostream.IMPLEMENTED_INTERFACES;
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
     this.mv_string = new abap.types.String({qualifiedName: "STRING"});
@@ -925,6 +941,8 @@ class lcl_istream {
   static INTERNAL_TYPE = 'CLAS';
   static IMPLEMENTED_INTERFACES = ["IF_IXML_ISTREAM"];
   async constructor_(INPUT) {
+    this.INTERNAL_TYPE = lcl_istream.INTERNAL_TYPE;
+    this.IMPLEMENTED_INTERFACES = lcl_istream.IMPLEMENTED_INTERFACES;
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
     this.mv_xml = new abap.types.String({qualifiedName: "STRING"});
@@ -942,6 +960,8 @@ class lcl_stream_factory {
   static INTERNAL_TYPE = 'CLAS';
   static IMPLEMENTED_INTERFACES = ["IF_IXML_STREAM_FACTORY"];
   async constructor_(INPUT) {
+    this.INTERNAL_TYPE = lcl_stream_factory.INTERNAL_TYPE;
+    this.IMPLEMENTED_INTERFACES = lcl_stream_factory.IMPLEMENTED_INTERFACES;
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
     return this;
@@ -982,6 +1002,8 @@ class lcl_parser {
   static INTERNAL_TYPE = 'CLAS';
   static IMPLEMENTED_INTERFACES = ["IF_IXML_PARSER"];
   async constructor_(INPUT) {
+    this.INTERNAL_TYPE = lcl_parser.INTERNAL_TYPE;
+    this.IMPLEMENTED_INTERFACES = lcl_parser.IMPLEMENTED_INTERFACES;
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
     this.mi_istream = new abap.types.ABAPObject({qualifiedName: "IF_IXML_ISTREAM"});
