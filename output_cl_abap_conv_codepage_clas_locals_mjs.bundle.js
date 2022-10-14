@@ -19,8 +19,6 @@ class lcl_in {
   static INTERNAL_TYPE = 'CLAS';
   static IMPLEMENTED_INTERFACES = ["IF_ABAP_CONV_IN"];
   async constructor_(INPUT) {
-    this.INTERNAL_TYPE = lcl_in.INTERNAL_TYPE;
-    this.IMPLEMENTED_INTERFACES = lcl_in.IMPLEMENTED_INTERFACES;
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
     return this;
@@ -40,8 +38,6 @@ class lcl_out {
   static INTERNAL_TYPE = 'CLAS';
   static IMPLEMENTED_INTERFACES = ["IF_ABAP_CONV_OUT"];
   async constructor_(INPUT) {
-    this.INTERNAL_TYPE = lcl_out.INTERNAL_TYPE;
-    this.IMPLEMENTED_INTERFACES = lcl_out.IMPLEMENTED_INTERFACES;
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
     return this;

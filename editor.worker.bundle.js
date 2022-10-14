@@ -11,9 +11,11 @@
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "ArrayQueue": () => (/* binding */ ArrayQueue),
+/* harmony export */   "CompareResult": () => (/* binding */ CompareResult),
 /* harmony export */   "arrayInsert": () => (/* binding */ arrayInsert),
 /* harmony export */   "asArray": () => (/* binding */ asArray),
 /* harmony export */   "binarySearch": () => (/* binding */ binarySearch),
+/* harmony export */   "binarySearch2": () => (/* binding */ binarySearch2),
 /* harmony export */   "coalesce": () => (/* binding */ coalesce),
 /* harmony export */   "compareBy": () => (/* binding */ compareBy),
 /* harmony export */   "distinct": () => (/* binding */ distinct),
@@ -24,17 +26,18 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "findMaxBy": () => (/* binding */ findMaxBy),
 /* harmony export */   "findMinBy": () => (/* binding */ findMinBy),
 /* harmony export */   "firstOrDefault": () => (/* binding */ firstOrDefault),
-/* harmony export */   "flatten": () => (/* binding */ flatten),
 /* harmony export */   "groupBy": () => (/* binding */ groupBy),
 /* harmony export */   "insertInto": () => (/* binding */ insertInto),
 /* harmony export */   "isFalsyOrEmpty": () => (/* binding */ isFalsyOrEmpty),
 /* harmony export */   "isNonEmptyArray": () => (/* binding */ isNonEmptyArray),
 /* harmony export */   "lastIndex": () => (/* binding */ lastIndex),
 /* harmony export */   "numberComparator": () => (/* binding */ numberComparator),
+/* harmony export */   "pushMany": () => (/* binding */ pushMany),
 /* harmony export */   "pushToEnd": () => (/* binding */ pushToEnd),
 /* harmony export */   "pushToStart": () => (/* binding */ pushToStart),
 /* harmony export */   "quickSelect": () => (/* binding */ quickSelect),
 /* harmony export */   "range": () => (/* binding */ range),
+/* harmony export */   "removeFastWithoutKeepingOrder": () => (/* binding */ removeFastWithoutKeepingOrder),
 /* harmony export */   "splice": () => (/* binding */ splice),
 /* harmony export */   "tail": () => (/* binding */ tail),
 /* harmony export */   "tail2": () => (/* binding */ tail2)
@@ -70,11 +73,51 @@ function equals(one, other, itemEquals = (a, b) => a === b) {
     }
     return true;
 }
+/**
+ * Remove the element at `index` by replacing it with the last element. This is faster than `splice`
+ * but changes the order of the array
+ */
+function removeFastWithoutKeepingOrder(array, index) {
+    const last = array.length - 1;
+    if (index < last) {
+        array[index] = array[last];
+    }
+    array.pop();
+}
+/**
+ * Performs a binary search algorithm over a sorted array.
+ *
+ * @param array The array being searched.
+ * @param key The value we search for.
+ * @param comparator A function that takes two array elements and returns zero
+ *   if they are equal, a negative number if the first element precedes the
+ *   second one in the sorting order, or a positive number if the second element
+ *   precedes the first one.
+ * @return See {@link binarySearch2}
+ */
 function binarySearch(array, key, comparator) {
-    let low = 0, high = array.length - 1;
+    return binarySearch2(array.length, i => comparator(array[i], key));
+}
+/**
+ * Performs a binary search algorithm over a sorted collection. Useful for cases
+ * when we need to perform a binary search over something that isn't actually an
+ * array, and converting data to an array would defeat the use of binary search
+ * in the first place.
+ *
+ * @param length The collection length.
+ * @param compareToKey A function that takes an index of an element in the
+ *   collection and returns zero if the value at this index is equal to the
+ *   search key, a negative number if the value precedes the search key in the
+ *   sorting order, or a positive number if the search key precedes the value.
+ * @return A non-negative index of an element, if found. If not found, the
+ *   result is -(n+1) (or ~n, using bitwise notation), where n is the index
+ *   where the key should be inserted to maintain the sorting order.
+ */
+function binarySearch2(length, compareToKey) {
+    let low = 0, high = length - 1;
     while (low <= high) {
         const mid = ((low + high) / 2) | 0;
-        const comp = comparator(array[mid], key);
+        const comp = compareToKey(mid);
         if (comp < 0) {
             low = mid + 1;
         }
@@ -113,11 +156,11 @@ function quickSelect(nth, data, compare) {
     if (nth >= data.length) {
         throw new TypeError('invalid index');
     }
-    let pivotValue = data[Math.floor(data.length * Math.random())];
-    let lower = [];
-    let higher = [];
-    let pivots = [];
-    for (let value of data) {
+    const pivotValue = data[Math.floor(data.length * Math.random())];
+    const lower = [];
+    const higher = [];
+    const pivots = [];
+    for (const value of data) {
         const val = compare(value, pivotValue);
         if (val < 0) {
             lower.push(value);
@@ -202,9 +245,6 @@ function lastIndex(array, fn) {
 function firstOrDefault(array, notFoundValue) {
     return array.length > 0 ? array[0] : notFoundValue;
 }
-function flatten(arr) {
-    return [].concat(...arr);
-}
 function range(arg, to) {
     let from = typeof to === 'number' ? arg : 0;
     if (typeof to === 'number') {
@@ -256,6 +296,11 @@ function pushToEnd(arr, value) {
         arr.push(value);
     }
 }
+function pushMany(arr, items) {
+    for (const item of items) {
+        arr.push(item);
+    }
+}
 function asArray(x) {
     return Array.isArray(x) ? x : [x];
 }
@@ -302,6 +347,24 @@ function splice(array, start, deleteCount, newItems) {
 function getActualStartIndex(array, start) {
     return start < 0 ? Math.max(start + array.length, 0) : Math.min(start, array.length);
 }
+var CompareResult;
+(function (CompareResult) {
+    function isLessThan(result) {
+        return result < 0;
+    }
+    CompareResult.isLessThan = isLessThan;
+    function isGreaterThan(result) {
+        return result > 0;
+    }
+    CompareResult.isGreaterThan = isGreaterThan;
+    function isNeitherLessOrGreaterThan(result) {
+        return result === 0;
+    }
+    CompareResult.isNeitherLessOrGreaterThan = isNeitherLessOrGreaterThan;
+    CompareResult.greaterThan = 1;
+    CompareResult.lessThan = -1;
+    CompareResult.neitherLessOrGreaterThan = 0;
+})(CompareResult || (CompareResult = {}));
 function compareBy(selector, comparator) {
     return (a, b) => comparator(selector(a), selector(b));
 }
@@ -356,6 +419,9 @@ class ArrayQueue {
         this.firstIdx = 0;
         this.lastIdx = this.items.length - 1;
     }
+    get length() {
+        return this.lastIdx - this.firstIdx + 1;
+    }
     /**
      * Consumes elements from the beginning of the queue as long as the predicate returns true.
      * If no elements were consumed, `null` is returned. Has a runtime of O(result.length).
@@ -388,6 +454,9 @@ class ArrayQueue {
         return result;
     }
     peek() {
+        if (this.length === 0) {
+            return undefined;
+        }
         return this.items[this.firstIdx];
     }
     dequeue() {
@@ -413,16 +482,17 @@ class ArrayQueue {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "LRUCachedComputed": () => (/* binding */ LRUCachedComputed)
+/* harmony export */   "CachedFunction": () => (/* binding */ CachedFunction),
+/* harmony export */   "LRUCachedFunction": () => (/* binding */ LRUCachedFunction)
 /* harmony export */ });
 /**
  * Uses a LRU cache to make a given parametrized function cached.
  * Caches just the last value.
  * The key must be JSON serializable.
 */
-class LRUCachedComputed {
-    constructor(computeFn) {
-        this.computeFn = computeFn;
+class LRUCachedFunction {
+    constructor(fn) {
+        this.fn = fn;
         this.lastCache = undefined;
         this.lastArgKey = undefined;
     }
@@ -430,9 +500,29 @@ class LRUCachedComputed {
         const key = JSON.stringify(arg);
         if (this.lastArgKey !== key) {
             this.lastArgKey = key;
-            this.lastCache = this.computeFn(arg);
+            this.lastCache = this.fn(arg);
         }
         return this.lastCache;
+    }
+}
+/**
+ * Uses an unbounded cache (referential equality) to memoize the results of the given function.
+*/
+class CachedFunction {
+    constructor(fn) {
+        this.fn = fn;
+        this._map = new Map();
+    }
+    get cachedValues() {
+        return this._map;
+    }
+    get(arg) {
+        if (this._map.has(arg)) {
+            return this._map.get(arg);
+        }
+        const value = this.fn(arg);
+        this._map.set(arg, value);
+        return value;
     }
 }
 
@@ -992,7 +1082,8 @@ Codicon.debugBreakpointFunctionUnverified = new Codicon('debug-breakpoint-functi
 Codicon.debugBreakpointFunction = new Codicon('debug-breakpoint-function', { fontCharacter: '\\eb88' });
 Codicon.debugBreakpointFunctionDisabled = new Codicon('debug-breakpoint-function-disabled', { fontCharacter: '\\eb88' });
 Codicon.debugStackframeActive = new Codicon('debug-stackframe-active', { fontCharacter: '\\eb89' });
-Codicon.debugStackframeDot = new Codicon('debug-stackframe-dot', { fontCharacter: '\\eb8a' });
+Codicon.circleSmallFilled = new Codicon('circle-small-filled', { fontCharacter: '\\eb8a' });
+Codicon.debugStackframeDot = new Codicon('debug-stackframe-dot', Codicon.circleSmallFilled.definition);
 Codicon.debugStackframe = new Codicon('debug-stackframe', { fontCharacter: '\\eb8b' });
 Codicon.debugStackframeFocused = new Codicon('debug-stackframe-focused', { fontCharacter: '\\eb8b' });
 Codicon.debugBreakpointUnsupported = new Codicon('debug-breakpoint-unsupported', { fontCharacter: '\\eb8c' });
@@ -1105,6 +1196,9 @@ Codicon.layoutSidebarRight = new Codicon('layout-sidebar-right', { fontCharacter
 Codicon.layoutStatusbar = new Codicon('layout-statusbar', { fontCharacter: '\\ebf5' });
 Codicon.layoutMenubar = new Codicon('layout-menubar', { fontCharacter: '\\ebf6' });
 Codicon.layoutCentered = new Codicon('layout-centered', { fontCharacter: '\\ebf7' });
+Codicon.layoutSidebarRightOff = new Codicon('layout-sidebar-right-off', { fontCharacter: '\\ec00' });
+Codicon.layoutPanelOff = new Codicon('layout-panel-off', { fontCharacter: '\\ec01' });
+Codicon.layoutSidebarLeftOff = new Codicon('layout-sidebar-left-off', { fontCharacter: '\\ec02' });
 Codicon.target = new Codicon('target', { fontCharacter: '\\ebf8' });
 Codicon.indent = new Codicon('indent', { fontCharacter: '\\ebf9' });
 Codicon.recordSmall = new Codicon('record-small', { fontCharacter: '\\ebfa' });
@@ -1113,6 +1207,15 @@ Codicon.arrowCircleDown = new Codicon('arrow-circle-down', { fontCharacter: '\\e
 Codicon.arrowCircleLeft = new Codicon('arrow-circle-left', { fontCharacter: '\\ebfd' });
 Codicon.arrowCircleRight = new Codicon('arrow-circle-right', { fontCharacter: '\\ebfe' });
 Codicon.arrowCircleUp = new Codicon('arrow-circle-up', { fontCharacter: '\\ebff' });
+Codicon.heartFilled = new Codicon('heart-filled', { fontCharacter: '\\ec04' });
+Codicon.map = new Codicon('map', { fontCharacter: '\\ec05' });
+Codicon.mapFilled = new Codicon('map-filled', { fontCharacter: '\\ec06' });
+Codicon.circleSmall = new Codicon('circle-small', { fontCharacter: '\\ec07' });
+Codicon.bellSlash = new Codicon('bell-slash', { fontCharacter: '\\ec08' });
+Codicon.bellSlashDot = new Codicon('bell-slash-dot', { fontCharacter: '\\ec09' });
+Codicon.commentUnresolved = new Codicon('comment-unresolved', { fontCharacter: '\\ec0a' });
+Codicon.gitPullRequestGoToChanges = new Codicon('git-pull-request-go-to-changes', { fontCharacter: '\\ec0b' });
+Codicon.gitPullRequestNewChanges = new Codicon('git-pull-request-new-changes', { fontCharacter: '\\ec0c' });
 // derived icons, that could become separate icons
 Codicon.dialogError = new Codicon('dialog-error', Codicon.error.definition);
 Codicon.dialogWarning = new Codicon('dialog-warning', Codicon.warning.definition);
@@ -1147,7 +1250,7 @@ var CSSIcon;
         if (!match) {
             return asClassNameArray(Codicon.error);
         }
-        let [, id, modifier] = match;
+        const [, id, modifier] = match;
         const classNames = ['codicon', 'codicon-' + id];
         if (modifier) {
             classNames.push('codicon-modifier-' + modifier.substr(1));
@@ -1257,8 +1360,8 @@ class DiffChangeHelper {
      */
     constructor() {
         this.m_changes = [];
-        this.m_originalStart = 1073741824 /* MAX_SAFE_SMALL_INTEGER */;
-        this.m_modifiedStart = 1073741824 /* MAX_SAFE_SMALL_INTEGER */;
+        this.m_originalStart = 1073741824 /* Constants.MAX_SAFE_SMALL_INTEGER */;
+        this.m_modifiedStart = 1073741824 /* Constants.MAX_SAFE_SMALL_INTEGER */;
         this.m_originalCount = 0;
         this.m_modifiedCount = 0;
     }
@@ -1274,8 +1377,8 @@ class DiffChangeHelper {
         // Reset for the next change
         this.m_originalCount = 0;
         this.m_modifiedCount = 0;
-        this.m_originalStart = 1073741824 /* MAX_SAFE_SMALL_INTEGER */;
-        this.m_modifiedStart = 1073741824 /* MAX_SAFE_SMALL_INTEGER */;
+        this.m_originalStart = 1073741824 /* Constants.MAX_SAFE_SMALL_INTEGER */;
+        this.m_modifiedStart = 1073741824 /* Constants.MAX_SAFE_SMALL_INTEGER */;
     }
     /**
      * Adds the original element at the given position to the elements
@@ -1503,7 +1606,7 @@ class LcsDiff {
         let diagonalMin = diagonalForwardStart;
         let diagonalMax = diagonalForwardEnd;
         let diagonalRelative = (midOriginalArr[0] - midModifiedArr[0]) - diagonalForwardOffset;
-        let lastOriginalIndex = -1073741824 /* MIN_SAFE_SMALL_INTEGER */;
+        let lastOriginalIndex = -1073741824 /* Constants.MIN_SAFE_SMALL_INTEGER */;
         let historyIndex = this.m_forwardHistory.length - 1;
         do {
             // Get the diagonal index from the relative diagonal number
@@ -1561,7 +1664,7 @@ class LcsDiff {
             diagonalMin = diagonalReverseStart;
             diagonalMax = diagonalReverseEnd;
             diagonalRelative = (midOriginalArr[0] - midModifiedArr[0]) - diagonalReverseOffset;
-            lastOriginalIndex = 1073741824 /* MAX_SAFE_SMALL_INTEGER */;
+            lastOriginalIndex = 1073741824 /* Constants.MAX_SAFE_SMALL_INTEGER */;
             historyIndex = (deltaIsEven) ? this.m_reverseHistory.length - 1 : this.m_reverseHistory.length - 2;
             do {
                 // Get the diagonal index from the relative diagonal number
@@ -1707,7 +1810,7 @@ class LcsDiff {
                     if (originalIndex >= reversePoints[diagonal]) {
                         midOriginalArr[0] = originalIndex;
                         midModifiedArr[0] = modifiedIndex;
-                        if (tempOriginalIndex <= reversePoints[diagonal] && 1447 /* MaxDifferencesHistory */ > 0 && numDifferences <= (1447 /* MaxDifferencesHistory */ + 1)) {
+                        if (tempOriginalIndex <= reversePoints[diagonal] && 1447 /* LocalConstants.MaxDifferencesHistory */ > 0 && numDifferences <= (1447 /* LocalConstants.MaxDifferencesHistory */ + 1)) {
                             // BINGO! We overlapped, and we have the full trace in memory!
                             return this.WALKTRACE(diagonalForwardBase, diagonalForwardStart, diagonalForwardEnd, diagonalForwardOffset, diagonalReverseBase, diagonalReverseStart, diagonalReverseEnd, diagonalReverseOffset, forwardPoints, reversePoints, originalIndex, originalEnd, midOriginalArr, modifiedIndex, modifiedEnd, midModifiedArr, deltaIsEven, quitEarlyArr);
                         }
@@ -1727,7 +1830,7 @@ class LcsDiff {
                 // Use the furthest distance we got in the forward direction.
                 midOriginalArr[0] = furthestOriginalIndex;
                 midModifiedArr[0] = furthestModifiedIndex;
-                if (matchLengthOfLongest > 0 && 1447 /* MaxDifferencesHistory */ > 0 && numDifferences <= (1447 /* MaxDifferencesHistory */ + 1)) {
+                if (matchLengthOfLongest > 0 && 1447 /* LocalConstants.MaxDifferencesHistory */ > 0 && numDifferences <= (1447 /* LocalConstants.MaxDifferencesHistory */ + 1)) {
                     // Enough of the history is in memory to walk it backwards
                     return this.WALKTRACE(diagonalForwardBase, diagonalForwardStart, diagonalForwardEnd, diagonalForwardOffset, diagonalReverseBase, diagonalReverseStart, diagonalReverseEnd, diagonalReverseOffset, forwardPoints, reversePoints, originalIndex, originalEnd, midOriginalArr, modifiedIndex, modifiedEnd, midModifiedArr, deltaIsEven, quitEarlyArr);
                 }
@@ -1772,7 +1875,7 @@ class LcsDiff {
                     if (originalIndex <= forwardPoints[diagonal]) {
                         midOriginalArr[0] = originalIndex;
                         midModifiedArr[0] = modifiedIndex;
-                        if (tempOriginalIndex >= forwardPoints[diagonal] && 1447 /* MaxDifferencesHistory */ > 0 && numDifferences <= (1447 /* MaxDifferencesHistory */ + 1)) {
+                        if (tempOriginalIndex >= forwardPoints[diagonal] && 1447 /* LocalConstants.MaxDifferencesHistory */ > 0 && numDifferences <= (1447 /* LocalConstants.MaxDifferencesHistory */ + 1)) {
                             // BINGO! We overlapped, and we have the full trace in memory!
                             return this.WALKTRACE(diagonalForwardBase, diagonalForwardStart, diagonalForwardEnd, diagonalForwardOffset, diagonalReverseBase, diagonalReverseStart, diagonalReverseEnd, diagonalReverseOffset, forwardPoints, reversePoints, originalIndex, originalEnd, midOriginalArr, modifiedIndex, modifiedEnd, midModifiedArr, deltaIsEven, quitEarlyArr);
                         }
@@ -1785,7 +1888,7 @@ class LcsDiff {
                 }
             }
             // Save current vectors to history before the next iteration
-            if (numDifferences <= 1447 /* MaxDifferencesHistory */) {
+            if (numDifferences <= 1447 /* LocalConstants.MaxDifferencesHistory */) {
                 // We are allocating space for one extra int, which we fill with
                 // the index of the diagonal base index
                 let temp = new Int32Array(diagonalForwardEnd - diagonalForwardStart + 2);
@@ -1831,7 +1934,7 @@ class LcsDiff {
                 change.originalStart++;
                 change.modifiedStart++;
             }
-            let mergedChangeArr = [null];
+            const mergedChangeArr = [null];
             if (i < changes.length - 1 && this.ChangesOverlap(changes[i], changes[i + 1], mergedChangeArr)) {
                 changes[i] = mergedChangeArr[0];
                 changes.splice(i + 1, 1);
@@ -1999,7 +2102,7 @@ class LcsDiff {
      * @returns The concatenated list
      */
     ConcatenateChanges(left, right) {
-        let mergedChangeArr = [];
+        const mergedChangeArr = [];
         if (left.length === 0 || right.length === 0) {
             return (right.length > 0) ? right : left;
         }
@@ -2141,8 +2244,10 @@ class DiffChange {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "BugIndicatingError": () => (/* binding */ BugIndicatingError),
 /* harmony export */   "CancellationError": () => (/* binding */ CancellationError),
 /* harmony export */   "ErrorHandler": () => (/* binding */ ErrorHandler),
+/* harmony export */   "ErrorNoTelemetry": () => (/* binding */ ErrorNoTelemetry),
 /* harmony export */   "NotSupportedError": () => (/* binding */ NotSupportedError),
 /* harmony export */   "canceled": () => (/* binding */ canceled),
 /* harmony export */   "errorHandler": () => (/* binding */ errorHandler),
@@ -2164,6 +2269,9 @@ class ErrorHandler {
         this.unexpectedErrorHandler = function (e) {
             setTimeout(() => {
                 if (e.stack) {
+                    if (ErrorNoTelemetry.isErrorNoTelemetry(e)) {
+                        throw new ErrorNoTelemetry(e.message + '\n\n' + e.stack);
+                    }
                     throw new Error(e.message + '\n\n' + e.stack);
                 }
                 throw e;
@@ -2201,13 +2309,14 @@ function onUnexpectedExternalError(e) {
 }
 function transformErrorForSerialization(error) {
     if (error instanceof Error) {
-        let { name, message } = error;
+        const { name, message } = error;
         const stack = error.stacktrace || error.stack;
         return {
             $isError: true,
             name,
             message,
-            stack
+            stack,
+            noTelemetry: ErrorNoTelemetry.isErrorNoTelemetry(error)
         };
     }
     // return as is
@@ -2263,6 +2372,42 @@ class NotSupportedError extends Error {
         }
     }
 }
+/**
+ * Error that when thrown won't be logged in telemetry as an unhandled error.
+ */
+class ErrorNoTelemetry extends Error {
+    constructor(msg) {
+        super(msg);
+        this.name = 'ErrorNoTelemetry';
+    }
+    static fromError(err) {
+        if (err instanceof ErrorNoTelemetry) {
+            return err;
+        }
+        const result = new ErrorNoTelemetry();
+        result.message = err.message;
+        result.stack = err.stack;
+        return result;
+    }
+    static isErrorNoTelemetry(err) {
+        return err.name === 'ErrorNoTelemetry';
+    }
+}
+/**
+ * This error indicates a bug.
+ * Do not throw this for invalid user input.
+ * Only catch this error to recover gracefully from bugs.
+ */
+class BugIndicatingError extends Error {
+    constructor(message) {
+        super(message || 'An unexpected bug occurred.');
+        Object.setPrototypeOf(this, BugIndicatingError.prototype);
+        // Because we know for sure only buggy code throws this,
+        // we definitely want to break here and fix the bug.
+        // eslint-disable-next-line no-debugger
+        debugger;
+    }
+}
 
 
 /***/ }),
@@ -2279,6 +2424,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "Emitter": () => (/* binding */ Emitter),
 /* harmony export */   "Event": () => (/* binding */ Event),
 /* harmony export */   "EventBufferer": () => (/* binding */ EventBufferer),
+/* harmony export */   "EventDeliveryQueue": () => (/* binding */ EventDeliveryQueue),
 /* harmony export */   "PauseableEmitter": () => (/* binding */ PauseableEmitter),
 /* harmony export */   "Relay": () => (/* binding */ Relay)
 /* harmony export */ });
@@ -2293,13 +2439,13 @@ __webpack_require__.r(__webpack_exports__);
 // -----------------------------------------------------------------------------------------------------------------------
 // Uncomment the next line to print warnings whenever an emitter with listeners is disposed. That is a sign of code smell.
 // -----------------------------------------------------------------------------------------------------------------------
-let _enableDisposeWithListenerWarning = false;
+const _enableDisposeWithListenerWarning = false;
 // _enableDisposeWithListenerWarning = Boolean("TRUE"); // causes a linter warning so that it cannot be pushed
 // -----------------------------------------------------------------------------------------------------------------------
 // Uncomment the next line to print warnings whenever a snapshotted event is used repeatedly without cleanup.
 // See https://github.com/microsoft/vscode/issues/142851
 // -----------------------------------------------------------------------------------------------------------------------
-let _enableSnapshotPotentialLeakWarning = false;
+const _enableSnapshotPotentialLeakWarning = false;
 var Event;
 (function (Event) {
     Event.None = () => _lifecycle_js__WEBPACK_IMPORTED_MODULE_1__.Disposable.None;
@@ -2324,7 +2470,7 @@ var Event;
         return (listener, thisArgs = null, disposables) => {
             // we need this, in case the event fires during the listener call
             let didFire = false;
-            let result;
+            let result = undefined;
             result = event(e => {
                 if (didFire) {
                     return;
@@ -2397,16 +2543,14 @@ var Event;
                 listener = event(emitter.fire, emitter);
             },
             onLastListenerRemove() {
-                listener.dispose();
+                listener === null || listener === void 0 ? void 0 : listener.dispose();
             }
         };
         if (!disposable) {
             _addLeakageTraceLogic(options);
         }
         const emitter = new Emitter(options);
-        if (disposable) {
-            disposable.add(emitter);
-        }
+        disposable === null || disposable === void 0 ? void 0 : disposable.add(emitter);
         return emitter.event;
     }
     function debounce(event, merge, delay = 100, leading = false, leakWarningThreshold, disposable) {
@@ -2444,9 +2588,7 @@ var Event;
             _addLeakageTraceLogic(options);
         }
         const emitter = new Emitter(options);
-        if (disposable) {
-            disposable.add(emitter);
-        }
+        disposable === null || disposable === void 0 ? void 0 : disposable.add(emitter);
         return emitter.event;
     }
     Event.debounce = debounce;
@@ -2494,9 +2636,7 @@ var Event;
             }
         });
         const flush = () => {
-            if (buffer) {
-                buffer.forEach(e => emitter.fire(e));
-            }
+            buffer === null || buffer === void 0 ? void 0 : buffer.forEach(e => emitter.fire(e));
             buffer = null;
         };
         const emitter = new Emitter({
@@ -2528,24 +2668,25 @@ var Event;
     class ChainableEvent {
         constructor(event) {
             this.event = event;
+            this.disposables = new _lifecycle_js__WEBPACK_IMPORTED_MODULE_1__.DisposableStore();
         }
         map(fn) {
-            return new ChainableEvent(map(this.event, fn));
+            return new ChainableEvent(map(this.event, fn, this.disposables));
         }
         forEach(fn) {
-            return new ChainableEvent(forEach(this.event, fn));
+            return new ChainableEvent(forEach(this.event, fn, this.disposables));
         }
         filter(fn) {
-            return new ChainableEvent(filter(this.event, fn));
+            return new ChainableEvent(filter(this.event, fn, this.disposables));
         }
         reduce(merge, initial) {
-            return new ChainableEvent(reduce(this.event, merge, initial));
+            return new ChainableEvent(reduce(this.event, merge, initial, this.disposables));
         }
         latch() {
-            return new ChainableEvent(latch(this.event));
+            return new ChainableEvent(latch(this.event, undefined, this.disposables));
         }
         debounce(merge, delay = 100, leading = false, leakWarningThreshold) {
-            return new ChainableEvent(debounce(this.event, merge, delay, leading, leakWarningThreshold));
+            return new ChainableEvent(debounce(this.event, merge, delay, leading, leakWarningThreshold, this.disposables));
         }
         on(listener, thisArgs, disposables) {
             return this.event(listener, thisArgs, disposables);
@@ -2553,10 +2694,10 @@ var Event;
         once(listener, thisArgs, disposables) {
             return once(this.event)(listener, thisArgs, disposables);
         }
+        dispose() {
+            this.disposables.dispose();
+        }
     }
-    /**
-     * @deprecated DO NOT use, this leaks memory
-     */
     function chain(event) {
         return new ChainableEvent(event);
     }
@@ -2601,6 +2742,48 @@ var Event;
         });
     }
     Event.runAndSubscribeWithStore = runAndSubscribeWithStore;
+    class EmitterObserver {
+        constructor(obs, store) {
+            this.obs = obs;
+            this._counter = 0;
+            this._hasChanged = false;
+            const options = {
+                onFirstListenerAdd: () => {
+                    obs.addObserver(this);
+                },
+                onLastListenerRemove: () => {
+                    obs.removeObserver(this);
+                }
+            };
+            if (!store) {
+                _addLeakageTraceLogic(options);
+            }
+            this.emitter = new Emitter(options);
+            if (store) {
+                store.add(this.emitter);
+            }
+        }
+        beginUpdate(_observable) {
+            // console.assert(_observable === this.obs);
+            this._counter++;
+        }
+        handleChange(_observable, _change) {
+            this._hasChanged = true;
+        }
+        endUpdate(_observable) {
+            if (--this._counter === 0) {
+                if (this._hasChanged) {
+                    this._hasChanged = false;
+                    this.emitter.fire(this.obs.get());
+                }
+            }
+        }
+    }
+    function fromObservable(obs, store) {
+        const observer = new EmitterObserver(obs, store);
+        return observer.emitter.event;
+    }
+    Event.fromObservable = fromObservable;
 })(Event || (Event = {}));
 class EventProfiling {
     constructor(name) {
@@ -2718,11 +2901,12 @@ class Listener {
  */
 class Emitter {
     constructor(options) {
-        var _a;
+        var _a, _b;
         this._disposed = false;
         this._options = options;
         this._leakageMon = _globalLeakWarningThreshold > 0 ? new LeakageMonitor(this._options && this._options.leakWarningThreshold) : undefined;
         this._perfMon = ((_a = this._options) === null || _a === void 0 ? void 0 : _a._profName) ? new EventProfiling(this._options._profName) : undefined;
+        this._deliveryQueue = (_b = this._options) === null || _b === void 0 ? void 0 : _b.deliveryQueue;
     }
     dispose() {
         var _a, _b, _c, _d;
@@ -2752,7 +2936,7 @@ class Emitter {
                 }
                 this._listeners.clear();
             }
-            (_a = this._deliveryQueue) === null || _a === void 0 ? void 0 : _a.clear();
+            (_a = this._deliveryQueue) === null || _a === void 0 ? void 0 : _a.clear(this);
             (_c = (_b = this._options) === null || _b === void 0 ? void 0 : _b.onLastListenerRemove) === null || _c === void 0 ? void 0 : _c.call(_b);
             (_d = this._leakageMon) === null || _d === void 0 ? void 0 : _d.dispose();
         }
@@ -2791,9 +2975,7 @@ class Emitter {
                     this._options.onListenerDidAdd(this, callback, thisArgs);
                 }
                 const result = listener.subscription.set(() => {
-                    if (removeMonitor) {
-                        removeMonitor();
-                    }
+                    removeMonitor === null || removeMonitor === void 0 ? void 0 : removeMonitor();
                     if (!this._disposed) {
                         removeListener();
                         if (this._options && this._options.onLastListenerRemove) {
@@ -2826,24 +3008,64 @@ class Emitter {
             // then emit all event. an inner/nested event might be
             // the driver of this
             if (!this._deliveryQueue) {
-                this._deliveryQueue = new _linkedList_js__WEBPACK_IMPORTED_MODULE_2__.LinkedList();
+                this._deliveryQueue = new PrivateEventDeliveryQueue();
             }
-            for (let listener of this._listeners) {
-                this._deliveryQueue.push([listener, event]);
+            for (const listener of this._listeners) {
+                this._deliveryQueue.push(this, listener, event);
             }
             // start/stop performance insight collection
             (_a = this._perfMon) === null || _a === void 0 ? void 0 : _a.start(this._deliveryQueue.size);
-            while (this._deliveryQueue.size > 0) {
-                const [listener, event] = this._deliveryQueue.shift();
-                try {
-                    listener.invoke(event);
-                }
-                catch (e) {
-                    (0,_errors_js__WEBPACK_IMPORTED_MODULE_0__.onUnexpectedError)(e);
-                }
-            }
+            this._deliveryQueue.deliver();
             (_b = this._perfMon) === null || _b === void 0 ? void 0 : _b.stop();
         }
+    }
+}
+class EventDeliveryQueue {
+    constructor() {
+        this._queue = new _linkedList_js__WEBPACK_IMPORTED_MODULE_2__.LinkedList();
+    }
+    get size() {
+        return this._queue.size;
+    }
+    push(emitter, listener, event) {
+        this._queue.push(new EventDeliveryQueueElement(emitter, listener, event));
+    }
+    clear(emitter) {
+        const newQueue = new _linkedList_js__WEBPACK_IMPORTED_MODULE_2__.LinkedList();
+        for (const element of this._queue) {
+            if (element.emitter !== emitter) {
+                newQueue.push(element);
+            }
+        }
+        this._queue = newQueue;
+    }
+    deliver() {
+        while (this._queue.size > 0) {
+            const element = this._queue.shift();
+            try {
+                element.listener.invoke(element.event);
+            }
+            catch (e) {
+                (0,_errors_js__WEBPACK_IMPORTED_MODULE_0__.onUnexpectedError)(e);
+            }
+        }
+    }
+}
+/**
+ * An `EventDeliveryQueue` that is guaranteed to be used by a single `Emitter`.
+ */
+class PrivateEventDeliveryQueue extends EventDeliveryQueue {
+    clear(emitter) {
+        // Here we can just clear the entire linked list because
+        // all elements are guaranteed to belong to this emitter
+        this._queue.clear();
+    }
+}
+class EventDeliveryQueueElement {
+    constructor(emitter, listener, event) {
+        this.emitter = emitter;
+        this.listener = listener;
+        this.event = event;
     }
 }
 class PauseableEmitter extends Emitter {
@@ -3126,7 +3348,7 @@ class StringSHA1 {
         this._h2 = 0x98BADCFE;
         this._h3 = 0x10325476;
         this._h4 = 0xC3D2E1F0;
-        this._buff = new Uint8Array(64 /* BLOCK_SIZE */ + 3 /* to fit any utf-8 */);
+        this._buff = new Uint8Array(64 /* SHA1Constant.BLOCK_SIZE */ + 3 /* to fit any utf-8 */);
         this._buffDV = new DataView(this._buff.buffer);
         this._buffLen = 0;
         this._totalLen = 0;
@@ -3163,7 +3385,7 @@ class StringSHA1 {
                     }
                     else {
                         // illegal => unicode replacement character
-                        codePoint = 65533 /* UNICODE_REPLACEMENT */;
+                        codePoint = 65533 /* SHA1Constant.UNICODE_REPLACEMENT */;
                     }
                 }
                 else {
@@ -3174,7 +3396,7 @@ class StringSHA1 {
             }
             else if (_strings_js__WEBPACK_IMPORTED_MODULE_0__.isLowSurrogate(charCode)) {
                 // illegal => unicode replacement character
-                codePoint = 65533 /* UNICODE_REPLACEMENT */;
+                codePoint = 65533 /* SHA1Constant.UNICODE_REPLACEMENT */;
             }
             buffLen = this._push(buff, buffLen, codePoint);
             offset++;
@@ -3207,14 +3429,14 @@ class StringSHA1 {
             buff[buffLen++] = 0b10000000 | ((codePoint & 0b00000000000000000000111111000000) >>> 6);
             buff[buffLen++] = 0b10000000 | ((codePoint & 0b00000000000000000000000000111111) >>> 0);
         }
-        if (buffLen >= 64 /* BLOCK_SIZE */) {
+        if (buffLen >= 64 /* SHA1Constant.BLOCK_SIZE */) {
             this._step();
-            buffLen -= 64 /* BLOCK_SIZE */;
-            this._totalLen += 64 /* BLOCK_SIZE */;
+            buffLen -= 64 /* SHA1Constant.BLOCK_SIZE */;
+            this._totalLen += 64 /* SHA1Constant.BLOCK_SIZE */;
             // take last 3 in case of UTF8 overflow
-            buff[0] = buff[64 /* BLOCK_SIZE */ + 0];
-            buff[1] = buff[64 /* BLOCK_SIZE */ + 1];
-            buff[2] = buff[64 /* BLOCK_SIZE */ + 2];
+            buff[0] = buff[64 /* SHA1Constant.BLOCK_SIZE */ + 0];
+            buff[1] = buff[64 /* SHA1Constant.BLOCK_SIZE */ + 1];
+            buff[2] = buff[64 /* SHA1Constant.BLOCK_SIZE */ + 2];
         }
         return buffLen;
     }
@@ -3224,7 +3446,7 @@ class StringSHA1 {
             if (this._leftoverHighSurrogate) {
                 // illegal => unicode replacement character
                 this._leftoverHighSurrogate = 0;
-                this._buffLen = this._push(this._buff, this._buffLen, 65533 /* UNICODE_REPLACEMENT */);
+                this._buffLen = this._push(this._buff, this._buffLen, 65533 /* SHA1Constant.UNICODE_REPLACEMENT */);
             }
             this._totalLen += this._buffLen;
             this._wrapUp();
@@ -3394,6 +3616,13 @@ var Iterable;
         return value;
     }
     Iterable.reduce = reduce;
+    function forEach(iterable, fn) {
+        let index = 0;
+        for (const element of iterable) {
+            fn(element, index++);
+        }
+    }
+    Iterable.forEach = forEach;
     /**
      * Returns an iterable slice of the array, with the same semantics as `array.slice()`.
      */
@@ -3432,6 +3661,14 @@ var Iterable;
         return [consumed, { [Symbol.iterator]() { return iterator; } }];
     }
     Iterable.consume = consume;
+    /**
+     * Consumes `atMost` elements from iterable and returns the consumed elements,
+     * and an iterable for the rest of the elements.
+     */
+    function collect(iterable) {
+        return consume(iterable)[0];
+    }
+    Iterable.collect = collect;
     /**
      * Returns whether the iterables are the same length and all items are
      * equal using the comparator function.
@@ -3491,7 +3728,7 @@ class KeyCodeStrMap {
         return this._keyCodeToStr[keyCode];
     }
     strToKeyCode(str) {
-        return this._strToKeyCode[str.toLowerCase()] || 0 /* Unknown */;
+        return this._strToKeyCode[str.toLowerCase()] || 0 /* KeyCode.Unknown */;
     }
 }
 const uiMap = new KeyCodeStrMap();
@@ -3510,11 +3747,11 @@ const IMMUTABLE_CODE_TO_KEY_CODE = [];
  * -1 if a KeyCode => ScanCode mapping depends on kb layout.
  */
 const IMMUTABLE_KEY_CODE_TO_CODE = [];
-for (let i = 0; i <= 193 /* MAX_VALUE */; i++) {
-    IMMUTABLE_CODE_TO_KEY_CODE[i] = -1 /* DependsOnKbLayout */;
+for (let i = 0; i <= 193 /* ScanCode.MAX_VALUE */; i++) {
+    IMMUTABLE_CODE_TO_KEY_CODE[i] = -1 /* KeyCode.DependsOnKbLayout */;
 }
-for (let i = 0; i <= 127 /* MAX_VALUE */; i++) {
-    IMMUTABLE_KEY_CODE_TO_CODE[i] = -1 /* DependsOnKbLayout */;
+for (let i = 0; i <= 127 /* KeyCode.MAX_VALUE */; i++) {
+    IMMUTABLE_KEY_CODE_TO_CODE[i] = -1 /* ScanCode.DependsOnKbLayout */;
 }
 (function () {
     // See https://msdn.microsoft.com/en-us/library/windows/desktop/dd375731(v=vs.85).aspx
@@ -3522,240 +3759,240 @@ for (let i = 0; i <= 127 /* MAX_VALUE */; i++) {
     const empty = '';
     const mappings = [
         // keyCodeOrd, immutable, scanCode, scanCodeStr, keyCode, keyCodeStr, eventKeyCode, vkey, usUserSettingsLabel, generalUserSettingsLabel
-        [0, 1, 0 /* None */, 'None', 0 /* Unknown */, 'unknown', 0, 'VK_UNKNOWN', empty, empty],
-        [0, 1, 1 /* Hyper */, 'Hyper', 0 /* Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 2 /* Super */, 'Super', 0 /* Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 3 /* Fn */, 'Fn', 0 /* Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 4 /* FnLock */, 'FnLock', 0 /* Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 5 /* Suspend */, 'Suspend', 0 /* Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 6 /* Resume */, 'Resume', 0 /* Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 7 /* Turbo */, 'Turbo', 0 /* Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 8 /* Sleep */, 'Sleep', 0 /* Unknown */, empty, 0, 'VK_SLEEP', empty, empty],
-        [0, 1, 9 /* WakeUp */, 'WakeUp', 0 /* Unknown */, empty, 0, empty, empty, empty],
-        [31, 0, 10 /* KeyA */, 'KeyA', 31 /* KeyA */, 'A', 65, 'VK_A', empty, empty],
-        [32, 0, 11 /* KeyB */, 'KeyB', 32 /* KeyB */, 'B', 66, 'VK_B', empty, empty],
-        [33, 0, 12 /* KeyC */, 'KeyC', 33 /* KeyC */, 'C', 67, 'VK_C', empty, empty],
-        [34, 0, 13 /* KeyD */, 'KeyD', 34 /* KeyD */, 'D', 68, 'VK_D', empty, empty],
-        [35, 0, 14 /* KeyE */, 'KeyE', 35 /* KeyE */, 'E', 69, 'VK_E', empty, empty],
-        [36, 0, 15 /* KeyF */, 'KeyF', 36 /* KeyF */, 'F', 70, 'VK_F', empty, empty],
-        [37, 0, 16 /* KeyG */, 'KeyG', 37 /* KeyG */, 'G', 71, 'VK_G', empty, empty],
-        [38, 0, 17 /* KeyH */, 'KeyH', 38 /* KeyH */, 'H', 72, 'VK_H', empty, empty],
-        [39, 0, 18 /* KeyI */, 'KeyI', 39 /* KeyI */, 'I', 73, 'VK_I', empty, empty],
-        [40, 0, 19 /* KeyJ */, 'KeyJ', 40 /* KeyJ */, 'J', 74, 'VK_J', empty, empty],
-        [41, 0, 20 /* KeyK */, 'KeyK', 41 /* KeyK */, 'K', 75, 'VK_K', empty, empty],
-        [42, 0, 21 /* KeyL */, 'KeyL', 42 /* KeyL */, 'L', 76, 'VK_L', empty, empty],
-        [43, 0, 22 /* KeyM */, 'KeyM', 43 /* KeyM */, 'M', 77, 'VK_M', empty, empty],
-        [44, 0, 23 /* KeyN */, 'KeyN', 44 /* KeyN */, 'N', 78, 'VK_N', empty, empty],
-        [45, 0, 24 /* KeyO */, 'KeyO', 45 /* KeyO */, 'O', 79, 'VK_O', empty, empty],
-        [46, 0, 25 /* KeyP */, 'KeyP', 46 /* KeyP */, 'P', 80, 'VK_P', empty, empty],
-        [47, 0, 26 /* KeyQ */, 'KeyQ', 47 /* KeyQ */, 'Q', 81, 'VK_Q', empty, empty],
-        [48, 0, 27 /* KeyR */, 'KeyR', 48 /* KeyR */, 'R', 82, 'VK_R', empty, empty],
-        [49, 0, 28 /* KeyS */, 'KeyS', 49 /* KeyS */, 'S', 83, 'VK_S', empty, empty],
-        [50, 0, 29 /* KeyT */, 'KeyT', 50 /* KeyT */, 'T', 84, 'VK_T', empty, empty],
-        [51, 0, 30 /* KeyU */, 'KeyU', 51 /* KeyU */, 'U', 85, 'VK_U', empty, empty],
-        [52, 0, 31 /* KeyV */, 'KeyV', 52 /* KeyV */, 'V', 86, 'VK_V', empty, empty],
-        [53, 0, 32 /* KeyW */, 'KeyW', 53 /* KeyW */, 'W', 87, 'VK_W', empty, empty],
-        [54, 0, 33 /* KeyX */, 'KeyX', 54 /* KeyX */, 'X', 88, 'VK_X', empty, empty],
-        [55, 0, 34 /* KeyY */, 'KeyY', 55 /* KeyY */, 'Y', 89, 'VK_Y', empty, empty],
-        [56, 0, 35 /* KeyZ */, 'KeyZ', 56 /* KeyZ */, 'Z', 90, 'VK_Z', empty, empty],
-        [22, 0, 36 /* Digit1 */, 'Digit1', 22 /* Digit1 */, '1', 49, 'VK_1', empty, empty],
-        [23, 0, 37 /* Digit2 */, 'Digit2', 23 /* Digit2 */, '2', 50, 'VK_2', empty, empty],
-        [24, 0, 38 /* Digit3 */, 'Digit3', 24 /* Digit3 */, '3', 51, 'VK_3', empty, empty],
-        [25, 0, 39 /* Digit4 */, 'Digit4', 25 /* Digit4 */, '4', 52, 'VK_4', empty, empty],
-        [26, 0, 40 /* Digit5 */, 'Digit5', 26 /* Digit5 */, '5', 53, 'VK_5', empty, empty],
-        [27, 0, 41 /* Digit6 */, 'Digit6', 27 /* Digit6 */, '6', 54, 'VK_6', empty, empty],
-        [28, 0, 42 /* Digit7 */, 'Digit7', 28 /* Digit7 */, '7', 55, 'VK_7', empty, empty],
-        [29, 0, 43 /* Digit8 */, 'Digit8', 29 /* Digit8 */, '8', 56, 'VK_8', empty, empty],
-        [30, 0, 44 /* Digit9 */, 'Digit9', 30 /* Digit9 */, '9', 57, 'VK_9', empty, empty],
-        [21, 0, 45 /* Digit0 */, 'Digit0', 21 /* Digit0 */, '0', 48, 'VK_0', empty, empty],
-        [3, 1, 46 /* Enter */, 'Enter', 3 /* Enter */, 'Enter', 13, 'VK_RETURN', empty, empty],
-        [9, 1, 47 /* Escape */, 'Escape', 9 /* Escape */, 'Escape', 27, 'VK_ESCAPE', empty, empty],
-        [1, 1, 48 /* Backspace */, 'Backspace', 1 /* Backspace */, 'Backspace', 8, 'VK_BACK', empty, empty],
-        [2, 1, 49 /* Tab */, 'Tab', 2 /* Tab */, 'Tab', 9, 'VK_TAB', empty, empty],
-        [10, 1, 50 /* Space */, 'Space', 10 /* Space */, 'Space', 32, 'VK_SPACE', empty, empty],
-        [83, 0, 51 /* Minus */, 'Minus', 83 /* Minus */, '-', 189, 'VK_OEM_MINUS', '-', 'OEM_MINUS'],
-        [81, 0, 52 /* Equal */, 'Equal', 81 /* Equal */, '=', 187, 'VK_OEM_PLUS', '=', 'OEM_PLUS'],
-        [87, 0, 53 /* BracketLeft */, 'BracketLeft', 87 /* BracketLeft */, '[', 219, 'VK_OEM_4', '[', 'OEM_4'],
-        [89, 0, 54 /* BracketRight */, 'BracketRight', 89 /* BracketRight */, ']', 221, 'VK_OEM_6', ']', 'OEM_6'],
-        [88, 0, 55 /* Backslash */, 'Backslash', 88 /* Backslash */, '\\', 220, 'VK_OEM_5', '\\', 'OEM_5'],
-        [0, 0, 56 /* IntlHash */, 'IntlHash', 0 /* Unknown */, empty, 0, empty, empty, empty],
-        [80, 0, 57 /* Semicolon */, 'Semicolon', 80 /* Semicolon */, ';', 186, 'VK_OEM_1', ';', 'OEM_1'],
-        [90, 0, 58 /* Quote */, 'Quote', 90 /* Quote */, '\'', 222, 'VK_OEM_7', '\'', 'OEM_7'],
-        [86, 0, 59 /* Backquote */, 'Backquote', 86 /* Backquote */, '`', 192, 'VK_OEM_3', '`', 'OEM_3'],
-        [82, 0, 60 /* Comma */, 'Comma', 82 /* Comma */, ',', 188, 'VK_OEM_COMMA', ',', 'OEM_COMMA'],
-        [84, 0, 61 /* Period */, 'Period', 84 /* Period */, '.', 190, 'VK_OEM_PERIOD', '.', 'OEM_PERIOD'],
-        [85, 0, 62 /* Slash */, 'Slash', 85 /* Slash */, '/', 191, 'VK_OEM_2', '/', 'OEM_2'],
-        [8, 1, 63 /* CapsLock */, 'CapsLock', 8 /* CapsLock */, 'CapsLock', 20, 'VK_CAPITAL', empty, empty],
-        [59, 1, 64 /* F1 */, 'F1', 59 /* F1 */, 'F1', 112, 'VK_F1', empty, empty],
-        [60, 1, 65 /* F2 */, 'F2', 60 /* F2 */, 'F2', 113, 'VK_F2', empty, empty],
-        [61, 1, 66 /* F3 */, 'F3', 61 /* F3 */, 'F3', 114, 'VK_F3', empty, empty],
-        [62, 1, 67 /* F4 */, 'F4', 62 /* F4 */, 'F4', 115, 'VK_F4', empty, empty],
-        [63, 1, 68 /* F5 */, 'F5', 63 /* F5 */, 'F5', 116, 'VK_F5', empty, empty],
-        [64, 1, 69 /* F6 */, 'F6', 64 /* F6 */, 'F6', 117, 'VK_F6', empty, empty],
-        [65, 1, 70 /* F7 */, 'F7', 65 /* F7 */, 'F7', 118, 'VK_F7', empty, empty],
-        [66, 1, 71 /* F8 */, 'F8', 66 /* F8 */, 'F8', 119, 'VK_F8', empty, empty],
-        [67, 1, 72 /* F9 */, 'F9', 67 /* F9 */, 'F9', 120, 'VK_F9', empty, empty],
-        [68, 1, 73 /* F10 */, 'F10', 68 /* F10 */, 'F10', 121, 'VK_F10', empty, empty],
-        [69, 1, 74 /* F11 */, 'F11', 69 /* F11 */, 'F11', 122, 'VK_F11', empty, empty],
-        [70, 1, 75 /* F12 */, 'F12', 70 /* F12 */, 'F12', 123, 'VK_F12', empty, empty],
-        [0, 1, 76 /* PrintScreen */, 'PrintScreen', 0 /* Unknown */, empty, 0, empty, empty, empty],
-        [79, 1, 77 /* ScrollLock */, 'ScrollLock', 79 /* ScrollLock */, 'ScrollLock', 145, 'VK_SCROLL', empty, empty],
-        [7, 1, 78 /* Pause */, 'Pause', 7 /* PauseBreak */, 'PauseBreak', 19, 'VK_PAUSE', empty, empty],
-        [19, 1, 79 /* Insert */, 'Insert', 19 /* Insert */, 'Insert', 45, 'VK_INSERT', empty, empty],
-        [14, 1, 80 /* Home */, 'Home', 14 /* Home */, 'Home', 36, 'VK_HOME', empty, empty],
-        [11, 1, 81 /* PageUp */, 'PageUp', 11 /* PageUp */, 'PageUp', 33, 'VK_PRIOR', empty, empty],
-        [20, 1, 82 /* Delete */, 'Delete', 20 /* Delete */, 'Delete', 46, 'VK_DELETE', empty, empty],
-        [13, 1, 83 /* End */, 'End', 13 /* End */, 'End', 35, 'VK_END', empty, empty],
-        [12, 1, 84 /* PageDown */, 'PageDown', 12 /* PageDown */, 'PageDown', 34, 'VK_NEXT', empty, empty],
-        [17, 1, 85 /* ArrowRight */, 'ArrowRight', 17 /* RightArrow */, 'RightArrow', 39, 'VK_RIGHT', 'Right', empty],
-        [15, 1, 86 /* ArrowLeft */, 'ArrowLeft', 15 /* LeftArrow */, 'LeftArrow', 37, 'VK_LEFT', 'Left', empty],
-        [18, 1, 87 /* ArrowDown */, 'ArrowDown', 18 /* DownArrow */, 'DownArrow', 40, 'VK_DOWN', 'Down', empty],
-        [16, 1, 88 /* ArrowUp */, 'ArrowUp', 16 /* UpArrow */, 'UpArrow', 38, 'VK_UP', 'Up', empty],
-        [78, 1, 89 /* NumLock */, 'NumLock', 78 /* NumLock */, 'NumLock', 144, 'VK_NUMLOCK', empty, empty],
-        [108, 1, 90 /* NumpadDivide */, 'NumpadDivide', 108 /* NumpadDivide */, 'NumPad_Divide', 111, 'VK_DIVIDE', empty, empty],
-        [103, 1, 91 /* NumpadMultiply */, 'NumpadMultiply', 103 /* NumpadMultiply */, 'NumPad_Multiply', 106, 'VK_MULTIPLY', empty, empty],
-        [106, 1, 92 /* NumpadSubtract */, 'NumpadSubtract', 106 /* NumpadSubtract */, 'NumPad_Subtract', 109, 'VK_SUBTRACT', empty, empty],
-        [104, 1, 93 /* NumpadAdd */, 'NumpadAdd', 104 /* NumpadAdd */, 'NumPad_Add', 107, 'VK_ADD', empty, empty],
-        [3, 1, 94 /* NumpadEnter */, 'NumpadEnter', 3 /* Enter */, empty, 0, empty, empty, empty],
-        [94, 1, 95 /* Numpad1 */, 'Numpad1', 94 /* Numpad1 */, 'NumPad1', 97, 'VK_NUMPAD1', empty, empty],
-        [95, 1, 96 /* Numpad2 */, 'Numpad2', 95 /* Numpad2 */, 'NumPad2', 98, 'VK_NUMPAD2', empty, empty],
-        [96, 1, 97 /* Numpad3 */, 'Numpad3', 96 /* Numpad3 */, 'NumPad3', 99, 'VK_NUMPAD3', empty, empty],
-        [97, 1, 98 /* Numpad4 */, 'Numpad4', 97 /* Numpad4 */, 'NumPad4', 100, 'VK_NUMPAD4', empty, empty],
-        [98, 1, 99 /* Numpad5 */, 'Numpad5', 98 /* Numpad5 */, 'NumPad5', 101, 'VK_NUMPAD5', empty, empty],
-        [99, 1, 100 /* Numpad6 */, 'Numpad6', 99 /* Numpad6 */, 'NumPad6', 102, 'VK_NUMPAD6', empty, empty],
-        [100, 1, 101 /* Numpad7 */, 'Numpad7', 100 /* Numpad7 */, 'NumPad7', 103, 'VK_NUMPAD7', empty, empty],
-        [101, 1, 102 /* Numpad8 */, 'Numpad8', 101 /* Numpad8 */, 'NumPad8', 104, 'VK_NUMPAD8', empty, empty],
-        [102, 1, 103 /* Numpad9 */, 'Numpad9', 102 /* Numpad9 */, 'NumPad9', 105, 'VK_NUMPAD9', empty, empty],
-        [93, 1, 104 /* Numpad0 */, 'Numpad0', 93 /* Numpad0 */, 'NumPad0', 96, 'VK_NUMPAD0', empty, empty],
-        [107, 1, 105 /* NumpadDecimal */, 'NumpadDecimal', 107 /* NumpadDecimal */, 'NumPad_Decimal', 110, 'VK_DECIMAL', empty, empty],
-        [92, 0, 106 /* IntlBackslash */, 'IntlBackslash', 92 /* IntlBackslash */, 'OEM_102', 226, 'VK_OEM_102', empty, empty],
-        [58, 1, 107 /* ContextMenu */, 'ContextMenu', 58 /* ContextMenu */, 'ContextMenu', 93, empty, empty, empty],
-        [0, 1, 108 /* Power */, 'Power', 0 /* Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 109 /* NumpadEqual */, 'NumpadEqual', 0 /* Unknown */, empty, 0, empty, empty, empty],
-        [71, 1, 110 /* F13 */, 'F13', 71 /* F13 */, 'F13', 124, 'VK_F13', empty, empty],
-        [72, 1, 111 /* F14 */, 'F14', 72 /* F14 */, 'F14', 125, 'VK_F14', empty, empty],
-        [73, 1, 112 /* F15 */, 'F15', 73 /* F15 */, 'F15', 126, 'VK_F15', empty, empty],
-        [74, 1, 113 /* F16 */, 'F16', 74 /* F16 */, 'F16', 127, 'VK_F16', empty, empty],
-        [75, 1, 114 /* F17 */, 'F17', 75 /* F17 */, 'F17', 128, 'VK_F17', empty, empty],
-        [76, 1, 115 /* F18 */, 'F18', 76 /* F18 */, 'F18', 129, 'VK_F18', empty, empty],
-        [77, 1, 116 /* F19 */, 'F19', 77 /* F19 */, 'F19', 130, 'VK_F19', empty, empty],
-        [0, 1, 117 /* F20 */, 'F20', 0 /* Unknown */, empty, 0, 'VK_F20', empty, empty],
-        [0, 1, 118 /* F21 */, 'F21', 0 /* Unknown */, empty, 0, 'VK_F21', empty, empty],
-        [0, 1, 119 /* F22 */, 'F22', 0 /* Unknown */, empty, 0, 'VK_F22', empty, empty],
-        [0, 1, 120 /* F23 */, 'F23', 0 /* Unknown */, empty, 0, 'VK_F23', empty, empty],
-        [0, 1, 121 /* F24 */, 'F24', 0 /* Unknown */, empty, 0, 'VK_F24', empty, empty],
-        [0, 1, 122 /* Open */, 'Open', 0 /* Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 123 /* Help */, 'Help', 0 /* Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 124 /* Select */, 'Select', 0 /* Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 125 /* Again */, 'Again', 0 /* Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 126 /* Undo */, 'Undo', 0 /* Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 127 /* Cut */, 'Cut', 0 /* Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 128 /* Copy */, 'Copy', 0 /* Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 129 /* Paste */, 'Paste', 0 /* Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 130 /* Find */, 'Find', 0 /* Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 131 /* AudioVolumeMute */, 'AudioVolumeMute', 112 /* AudioVolumeMute */, 'AudioVolumeMute', 173, 'VK_VOLUME_MUTE', empty, empty],
-        [0, 1, 132 /* AudioVolumeUp */, 'AudioVolumeUp', 113 /* AudioVolumeUp */, 'AudioVolumeUp', 175, 'VK_VOLUME_UP', empty, empty],
-        [0, 1, 133 /* AudioVolumeDown */, 'AudioVolumeDown', 114 /* AudioVolumeDown */, 'AudioVolumeDown', 174, 'VK_VOLUME_DOWN', empty, empty],
-        [105, 1, 134 /* NumpadComma */, 'NumpadComma', 105 /* NUMPAD_SEPARATOR */, 'NumPad_Separator', 108, 'VK_SEPARATOR', empty, empty],
-        [110, 0, 135 /* IntlRo */, 'IntlRo', 110 /* ABNT_C1 */, 'ABNT_C1', 193, 'VK_ABNT_C1', empty, empty],
-        [0, 1, 136 /* KanaMode */, 'KanaMode', 0 /* Unknown */, empty, 0, empty, empty, empty],
-        [0, 0, 137 /* IntlYen */, 'IntlYen', 0 /* Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 138 /* Convert */, 'Convert', 0 /* Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 139 /* NonConvert */, 'NonConvert', 0 /* Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 140 /* Lang1 */, 'Lang1', 0 /* Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 141 /* Lang2 */, 'Lang2', 0 /* Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 142 /* Lang3 */, 'Lang3', 0 /* Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 143 /* Lang4 */, 'Lang4', 0 /* Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 144 /* Lang5 */, 'Lang5', 0 /* Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 145 /* Abort */, 'Abort', 0 /* Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 146 /* Props */, 'Props', 0 /* Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 147 /* NumpadParenLeft */, 'NumpadParenLeft', 0 /* Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 148 /* NumpadParenRight */, 'NumpadParenRight', 0 /* Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 149 /* NumpadBackspace */, 'NumpadBackspace', 0 /* Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 150 /* NumpadMemoryStore */, 'NumpadMemoryStore', 0 /* Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 151 /* NumpadMemoryRecall */, 'NumpadMemoryRecall', 0 /* Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 152 /* NumpadMemoryClear */, 'NumpadMemoryClear', 0 /* Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 153 /* NumpadMemoryAdd */, 'NumpadMemoryAdd', 0 /* Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 154 /* NumpadMemorySubtract */, 'NumpadMemorySubtract', 0 /* Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 155 /* NumpadClear */, 'NumpadClear', 126 /* Clear */, 'Clear', 12, 'VK_CLEAR', empty, empty],
-        [0, 1, 156 /* NumpadClearEntry */, 'NumpadClearEntry', 0 /* Unknown */, empty, 0, empty, empty, empty],
-        [5, 1, 0 /* None */, empty, 5 /* Ctrl */, 'Ctrl', 17, 'VK_CONTROL', empty, empty],
-        [4, 1, 0 /* None */, empty, 4 /* Shift */, 'Shift', 16, 'VK_SHIFT', empty, empty],
-        [6, 1, 0 /* None */, empty, 6 /* Alt */, 'Alt', 18, 'VK_MENU', empty, empty],
-        [57, 1, 0 /* None */, empty, 57 /* Meta */, 'Meta', 0, 'VK_COMMAND', empty, empty],
-        [5, 1, 157 /* ControlLeft */, 'ControlLeft', 5 /* Ctrl */, empty, 0, 'VK_LCONTROL', empty, empty],
-        [4, 1, 158 /* ShiftLeft */, 'ShiftLeft', 4 /* Shift */, empty, 0, 'VK_LSHIFT', empty, empty],
-        [6, 1, 159 /* AltLeft */, 'AltLeft', 6 /* Alt */, empty, 0, 'VK_LMENU', empty, empty],
-        [57, 1, 160 /* MetaLeft */, 'MetaLeft', 57 /* Meta */, empty, 0, 'VK_LWIN', empty, empty],
-        [5, 1, 161 /* ControlRight */, 'ControlRight', 5 /* Ctrl */, empty, 0, 'VK_RCONTROL', empty, empty],
-        [4, 1, 162 /* ShiftRight */, 'ShiftRight', 4 /* Shift */, empty, 0, 'VK_RSHIFT', empty, empty],
-        [6, 1, 163 /* AltRight */, 'AltRight', 6 /* Alt */, empty, 0, 'VK_RMENU', empty, empty],
-        [57, 1, 164 /* MetaRight */, 'MetaRight', 57 /* Meta */, empty, 0, 'VK_RWIN', empty, empty],
-        [0, 1, 165 /* BrightnessUp */, 'BrightnessUp', 0 /* Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 166 /* BrightnessDown */, 'BrightnessDown', 0 /* Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 167 /* MediaPlay */, 'MediaPlay', 0 /* Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 168 /* MediaRecord */, 'MediaRecord', 0 /* Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 169 /* MediaFastForward */, 'MediaFastForward', 0 /* Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 170 /* MediaRewind */, 'MediaRewind', 0 /* Unknown */, empty, 0, empty, empty, empty],
-        [114, 1, 171 /* MediaTrackNext */, 'MediaTrackNext', 119 /* MediaTrackNext */, 'MediaTrackNext', 176, 'VK_MEDIA_NEXT_TRACK', empty, empty],
-        [115, 1, 172 /* MediaTrackPrevious */, 'MediaTrackPrevious', 120 /* MediaTrackPrevious */, 'MediaTrackPrevious', 177, 'VK_MEDIA_PREV_TRACK', empty, empty],
-        [116, 1, 173 /* MediaStop */, 'MediaStop', 121 /* MediaStop */, 'MediaStop', 178, 'VK_MEDIA_STOP', empty, empty],
-        [0, 1, 174 /* Eject */, 'Eject', 0 /* Unknown */, empty, 0, empty, empty, empty],
-        [117, 1, 175 /* MediaPlayPause */, 'MediaPlayPause', 122 /* MediaPlayPause */, 'MediaPlayPause', 179, 'VK_MEDIA_PLAY_PAUSE', empty, empty],
-        [0, 1, 176 /* MediaSelect */, 'MediaSelect', 123 /* LaunchMediaPlayer */, 'LaunchMediaPlayer', 181, 'VK_MEDIA_LAUNCH_MEDIA_SELECT', empty, empty],
-        [0, 1, 177 /* LaunchMail */, 'LaunchMail', 124 /* LaunchMail */, 'LaunchMail', 180, 'VK_MEDIA_LAUNCH_MAIL', empty, empty],
-        [0, 1, 178 /* LaunchApp2 */, 'LaunchApp2', 125 /* LaunchApp2 */, 'LaunchApp2', 183, 'VK_MEDIA_LAUNCH_APP2', empty, empty],
-        [0, 1, 179 /* LaunchApp1 */, 'LaunchApp1', 0 /* Unknown */, empty, 0, 'VK_MEDIA_LAUNCH_APP1', empty, empty],
-        [0, 1, 180 /* SelectTask */, 'SelectTask', 0 /* Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 181 /* LaunchScreenSaver */, 'LaunchScreenSaver', 0 /* Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 182 /* BrowserSearch */, 'BrowserSearch', 115 /* BrowserSearch */, 'BrowserSearch', 170, 'VK_BROWSER_SEARCH', empty, empty],
-        [0, 1, 183 /* BrowserHome */, 'BrowserHome', 116 /* BrowserHome */, 'BrowserHome', 172, 'VK_BROWSER_HOME', empty, empty],
-        [112, 1, 184 /* BrowserBack */, 'BrowserBack', 117 /* BrowserBack */, 'BrowserBack', 166, 'VK_BROWSER_BACK', empty, empty],
-        [113, 1, 185 /* BrowserForward */, 'BrowserForward', 118 /* BrowserForward */, 'BrowserForward', 167, 'VK_BROWSER_FORWARD', empty, empty],
-        [0, 1, 186 /* BrowserStop */, 'BrowserStop', 0 /* Unknown */, empty, 0, 'VK_BROWSER_STOP', empty, empty],
-        [0, 1, 187 /* BrowserRefresh */, 'BrowserRefresh', 0 /* Unknown */, empty, 0, 'VK_BROWSER_REFRESH', empty, empty],
-        [0, 1, 188 /* BrowserFavorites */, 'BrowserFavorites', 0 /* Unknown */, empty, 0, 'VK_BROWSER_FAVORITES', empty, empty],
-        [0, 1, 189 /* ZoomToggle */, 'ZoomToggle', 0 /* Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 190 /* MailReply */, 'MailReply', 0 /* Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 191 /* MailForward */, 'MailForward', 0 /* Unknown */, empty, 0, empty, empty, empty],
-        [0, 1, 192 /* MailSend */, 'MailSend', 0 /* Unknown */, empty, 0, empty, empty, empty],
+        [0, 1, 0 /* ScanCode.None */, 'None', 0 /* KeyCode.Unknown */, 'unknown', 0, 'VK_UNKNOWN', empty, empty],
+        [0, 1, 1 /* ScanCode.Hyper */, 'Hyper', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [0, 1, 2 /* ScanCode.Super */, 'Super', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [0, 1, 3 /* ScanCode.Fn */, 'Fn', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [0, 1, 4 /* ScanCode.FnLock */, 'FnLock', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [0, 1, 5 /* ScanCode.Suspend */, 'Suspend', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [0, 1, 6 /* ScanCode.Resume */, 'Resume', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [0, 1, 7 /* ScanCode.Turbo */, 'Turbo', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [0, 1, 8 /* ScanCode.Sleep */, 'Sleep', 0 /* KeyCode.Unknown */, empty, 0, 'VK_SLEEP', empty, empty],
+        [0, 1, 9 /* ScanCode.WakeUp */, 'WakeUp', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [31, 0, 10 /* ScanCode.KeyA */, 'KeyA', 31 /* KeyCode.KeyA */, 'A', 65, 'VK_A', empty, empty],
+        [32, 0, 11 /* ScanCode.KeyB */, 'KeyB', 32 /* KeyCode.KeyB */, 'B', 66, 'VK_B', empty, empty],
+        [33, 0, 12 /* ScanCode.KeyC */, 'KeyC', 33 /* KeyCode.KeyC */, 'C', 67, 'VK_C', empty, empty],
+        [34, 0, 13 /* ScanCode.KeyD */, 'KeyD', 34 /* KeyCode.KeyD */, 'D', 68, 'VK_D', empty, empty],
+        [35, 0, 14 /* ScanCode.KeyE */, 'KeyE', 35 /* KeyCode.KeyE */, 'E', 69, 'VK_E', empty, empty],
+        [36, 0, 15 /* ScanCode.KeyF */, 'KeyF', 36 /* KeyCode.KeyF */, 'F', 70, 'VK_F', empty, empty],
+        [37, 0, 16 /* ScanCode.KeyG */, 'KeyG', 37 /* KeyCode.KeyG */, 'G', 71, 'VK_G', empty, empty],
+        [38, 0, 17 /* ScanCode.KeyH */, 'KeyH', 38 /* KeyCode.KeyH */, 'H', 72, 'VK_H', empty, empty],
+        [39, 0, 18 /* ScanCode.KeyI */, 'KeyI', 39 /* KeyCode.KeyI */, 'I', 73, 'VK_I', empty, empty],
+        [40, 0, 19 /* ScanCode.KeyJ */, 'KeyJ', 40 /* KeyCode.KeyJ */, 'J', 74, 'VK_J', empty, empty],
+        [41, 0, 20 /* ScanCode.KeyK */, 'KeyK', 41 /* KeyCode.KeyK */, 'K', 75, 'VK_K', empty, empty],
+        [42, 0, 21 /* ScanCode.KeyL */, 'KeyL', 42 /* KeyCode.KeyL */, 'L', 76, 'VK_L', empty, empty],
+        [43, 0, 22 /* ScanCode.KeyM */, 'KeyM', 43 /* KeyCode.KeyM */, 'M', 77, 'VK_M', empty, empty],
+        [44, 0, 23 /* ScanCode.KeyN */, 'KeyN', 44 /* KeyCode.KeyN */, 'N', 78, 'VK_N', empty, empty],
+        [45, 0, 24 /* ScanCode.KeyO */, 'KeyO', 45 /* KeyCode.KeyO */, 'O', 79, 'VK_O', empty, empty],
+        [46, 0, 25 /* ScanCode.KeyP */, 'KeyP', 46 /* KeyCode.KeyP */, 'P', 80, 'VK_P', empty, empty],
+        [47, 0, 26 /* ScanCode.KeyQ */, 'KeyQ', 47 /* KeyCode.KeyQ */, 'Q', 81, 'VK_Q', empty, empty],
+        [48, 0, 27 /* ScanCode.KeyR */, 'KeyR', 48 /* KeyCode.KeyR */, 'R', 82, 'VK_R', empty, empty],
+        [49, 0, 28 /* ScanCode.KeyS */, 'KeyS', 49 /* KeyCode.KeyS */, 'S', 83, 'VK_S', empty, empty],
+        [50, 0, 29 /* ScanCode.KeyT */, 'KeyT', 50 /* KeyCode.KeyT */, 'T', 84, 'VK_T', empty, empty],
+        [51, 0, 30 /* ScanCode.KeyU */, 'KeyU', 51 /* KeyCode.KeyU */, 'U', 85, 'VK_U', empty, empty],
+        [52, 0, 31 /* ScanCode.KeyV */, 'KeyV', 52 /* KeyCode.KeyV */, 'V', 86, 'VK_V', empty, empty],
+        [53, 0, 32 /* ScanCode.KeyW */, 'KeyW', 53 /* KeyCode.KeyW */, 'W', 87, 'VK_W', empty, empty],
+        [54, 0, 33 /* ScanCode.KeyX */, 'KeyX', 54 /* KeyCode.KeyX */, 'X', 88, 'VK_X', empty, empty],
+        [55, 0, 34 /* ScanCode.KeyY */, 'KeyY', 55 /* KeyCode.KeyY */, 'Y', 89, 'VK_Y', empty, empty],
+        [56, 0, 35 /* ScanCode.KeyZ */, 'KeyZ', 56 /* KeyCode.KeyZ */, 'Z', 90, 'VK_Z', empty, empty],
+        [22, 0, 36 /* ScanCode.Digit1 */, 'Digit1', 22 /* KeyCode.Digit1 */, '1', 49, 'VK_1', empty, empty],
+        [23, 0, 37 /* ScanCode.Digit2 */, 'Digit2', 23 /* KeyCode.Digit2 */, '2', 50, 'VK_2', empty, empty],
+        [24, 0, 38 /* ScanCode.Digit3 */, 'Digit3', 24 /* KeyCode.Digit3 */, '3', 51, 'VK_3', empty, empty],
+        [25, 0, 39 /* ScanCode.Digit4 */, 'Digit4', 25 /* KeyCode.Digit4 */, '4', 52, 'VK_4', empty, empty],
+        [26, 0, 40 /* ScanCode.Digit5 */, 'Digit5', 26 /* KeyCode.Digit5 */, '5', 53, 'VK_5', empty, empty],
+        [27, 0, 41 /* ScanCode.Digit6 */, 'Digit6', 27 /* KeyCode.Digit6 */, '6', 54, 'VK_6', empty, empty],
+        [28, 0, 42 /* ScanCode.Digit7 */, 'Digit7', 28 /* KeyCode.Digit7 */, '7', 55, 'VK_7', empty, empty],
+        [29, 0, 43 /* ScanCode.Digit8 */, 'Digit8', 29 /* KeyCode.Digit8 */, '8', 56, 'VK_8', empty, empty],
+        [30, 0, 44 /* ScanCode.Digit9 */, 'Digit9', 30 /* KeyCode.Digit9 */, '9', 57, 'VK_9', empty, empty],
+        [21, 0, 45 /* ScanCode.Digit0 */, 'Digit0', 21 /* KeyCode.Digit0 */, '0', 48, 'VK_0', empty, empty],
+        [3, 1, 46 /* ScanCode.Enter */, 'Enter', 3 /* KeyCode.Enter */, 'Enter', 13, 'VK_RETURN', empty, empty],
+        [9, 1, 47 /* ScanCode.Escape */, 'Escape', 9 /* KeyCode.Escape */, 'Escape', 27, 'VK_ESCAPE', empty, empty],
+        [1, 1, 48 /* ScanCode.Backspace */, 'Backspace', 1 /* KeyCode.Backspace */, 'Backspace', 8, 'VK_BACK', empty, empty],
+        [2, 1, 49 /* ScanCode.Tab */, 'Tab', 2 /* KeyCode.Tab */, 'Tab', 9, 'VK_TAB', empty, empty],
+        [10, 1, 50 /* ScanCode.Space */, 'Space', 10 /* KeyCode.Space */, 'Space', 32, 'VK_SPACE', empty, empty],
+        [83, 0, 51 /* ScanCode.Minus */, 'Minus', 83 /* KeyCode.Minus */, '-', 189, 'VK_OEM_MINUS', '-', 'OEM_MINUS'],
+        [81, 0, 52 /* ScanCode.Equal */, 'Equal', 81 /* KeyCode.Equal */, '=', 187, 'VK_OEM_PLUS', '=', 'OEM_PLUS'],
+        [87, 0, 53 /* ScanCode.BracketLeft */, 'BracketLeft', 87 /* KeyCode.BracketLeft */, '[', 219, 'VK_OEM_4', '[', 'OEM_4'],
+        [89, 0, 54 /* ScanCode.BracketRight */, 'BracketRight', 89 /* KeyCode.BracketRight */, ']', 221, 'VK_OEM_6', ']', 'OEM_6'],
+        [88, 0, 55 /* ScanCode.Backslash */, 'Backslash', 88 /* KeyCode.Backslash */, '\\', 220, 'VK_OEM_5', '\\', 'OEM_5'],
+        [0, 0, 56 /* ScanCode.IntlHash */, 'IntlHash', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [80, 0, 57 /* ScanCode.Semicolon */, 'Semicolon', 80 /* KeyCode.Semicolon */, ';', 186, 'VK_OEM_1', ';', 'OEM_1'],
+        [90, 0, 58 /* ScanCode.Quote */, 'Quote', 90 /* KeyCode.Quote */, '\'', 222, 'VK_OEM_7', '\'', 'OEM_7'],
+        [86, 0, 59 /* ScanCode.Backquote */, 'Backquote', 86 /* KeyCode.Backquote */, '`', 192, 'VK_OEM_3', '`', 'OEM_3'],
+        [82, 0, 60 /* ScanCode.Comma */, 'Comma', 82 /* KeyCode.Comma */, ',', 188, 'VK_OEM_COMMA', ',', 'OEM_COMMA'],
+        [84, 0, 61 /* ScanCode.Period */, 'Period', 84 /* KeyCode.Period */, '.', 190, 'VK_OEM_PERIOD', '.', 'OEM_PERIOD'],
+        [85, 0, 62 /* ScanCode.Slash */, 'Slash', 85 /* KeyCode.Slash */, '/', 191, 'VK_OEM_2', '/', 'OEM_2'],
+        [8, 1, 63 /* ScanCode.CapsLock */, 'CapsLock', 8 /* KeyCode.CapsLock */, 'CapsLock', 20, 'VK_CAPITAL', empty, empty],
+        [59, 1, 64 /* ScanCode.F1 */, 'F1', 59 /* KeyCode.F1 */, 'F1', 112, 'VK_F1', empty, empty],
+        [60, 1, 65 /* ScanCode.F2 */, 'F2', 60 /* KeyCode.F2 */, 'F2', 113, 'VK_F2', empty, empty],
+        [61, 1, 66 /* ScanCode.F3 */, 'F3', 61 /* KeyCode.F3 */, 'F3', 114, 'VK_F3', empty, empty],
+        [62, 1, 67 /* ScanCode.F4 */, 'F4', 62 /* KeyCode.F4 */, 'F4', 115, 'VK_F4', empty, empty],
+        [63, 1, 68 /* ScanCode.F5 */, 'F5', 63 /* KeyCode.F5 */, 'F5', 116, 'VK_F5', empty, empty],
+        [64, 1, 69 /* ScanCode.F6 */, 'F6', 64 /* KeyCode.F6 */, 'F6', 117, 'VK_F6', empty, empty],
+        [65, 1, 70 /* ScanCode.F7 */, 'F7', 65 /* KeyCode.F7 */, 'F7', 118, 'VK_F7', empty, empty],
+        [66, 1, 71 /* ScanCode.F8 */, 'F8', 66 /* KeyCode.F8 */, 'F8', 119, 'VK_F8', empty, empty],
+        [67, 1, 72 /* ScanCode.F9 */, 'F9', 67 /* KeyCode.F9 */, 'F9', 120, 'VK_F9', empty, empty],
+        [68, 1, 73 /* ScanCode.F10 */, 'F10', 68 /* KeyCode.F10 */, 'F10', 121, 'VK_F10', empty, empty],
+        [69, 1, 74 /* ScanCode.F11 */, 'F11', 69 /* KeyCode.F11 */, 'F11', 122, 'VK_F11', empty, empty],
+        [70, 1, 75 /* ScanCode.F12 */, 'F12', 70 /* KeyCode.F12 */, 'F12', 123, 'VK_F12', empty, empty],
+        [0, 1, 76 /* ScanCode.PrintScreen */, 'PrintScreen', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [79, 1, 77 /* ScanCode.ScrollLock */, 'ScrollLock', 79 /* KeyCode.ScrollLock */, 'ScrollLock', 145, 'VK_SCROLL', empty, empty],
+        [7, 1, 78 /* ScanCode.Pause */, 'Pause', 7 /* KeyCode.PauseBreak */, 'PauseBreak', 19, 'VK_PAUSE', empty, empty],
+        [19, 1, 79 /* ScanCode.Insert */, 'Insert', 19 /* KeyCode.Insert */, 'Insert', 45, 'VK_INSERT', empty, empty],
+        [14, 1, 80 /* ScanCode.Home */, 'Home', 14 /* KeyCode.Home */, 'Home', 36, 'VK_HOME', empty, empty],
+        [11, 1, 81 /* ScanCode.PageUp */, 'PageUp', 11 /* KeyCode.PageUp */, 'PageUp', 33, 'VK_PRIOR', empty, empty],
+        [20, 1, 82 /* ScanCode.Delete */, 'Delete', 20 /* KeyCode.Delete */, 'Delete', 46, 'VK_DELETE', empty, empty],
+        [13, 1, 83 /* ScanCode.End */, 'End', 13 /* KeyCode.End */, 'End', 35, 'VK_END', empty, empty],
+        [12, 1, 84 /* ScanCode.PageDown */, 'PageDown', 12 /* KeyCode.PageDown */, 'PageDown', 34, 'VK_NEXT', empty, empty],
+        [17, 1, 85 /* ScanCode.ArrowRight */, 'ArrowRight', 17 /* KeyCode.RightArrow */, 'RightArrow', 39, 'VK_RIGHT', 'Right', empty],
+        [15, 1, 86 /* ScanCode.ArrowLeft */, 'ArrowLeft', 15 /* KeyCode.LeftArrow */, 'LeftArrow', 37, 'VK_LEFT', 'Left', empty],
+        [18, 1, 87 /* ScanCode.ArrowDown */, 'ArrowDown', 18 /* KeyCode.DownArrow */, 'DownArrow', 40, 'VK_DOWN', 'Down', empty],
+        [16, 1, 88 /* ScanCode.ArrowUp */, 'ArrowUp', 16 /* KeyCode.UpArrow */, 'UpArrow', 38, 'VK_UP', 'Up', empty],
+        [78, 1, 89 /* ScanCode.NumLock */, 'NumLock', 78 /* KeyCode.NumLock */, 'NumLock', 144, 'VK_NUMLOCK', empty, empty],
+        [108, 1, 90 /* ScanCode.NumpadDivide */, 'NumpadDivide', 108 /* KeyCode.NumpadDivide */, 'NumPad_Divide', 111, 'VK_DIVIDE', empty, empty],
+        [103, 1, 91 /* ScanCode.NumpadMultiply */, 'NumpadMultiply', 103 /* KeyCode.NumpadMultiply */, 'NumPad_Multiply', 106, 'VK_MULTIPLY', empty, empty],
+        [106, 1, 92 /* ScanCode.NumpadSubtract */, 'NumpadSubtract', 106 /* KeyCode.NumpadSubtract */, 'NumPad_Subtract', 109, 'VK_SUBTRACT', empty, empty],
+        [104, 1, 93 /* ScanCode.NumpadAdd */, 'NumpadAdd', 104 /* KeyCode.NumpadAdd */, 'NumPad_Add', 107, 'VK_ADD', empty, empty],
+        [3, 1, 94 /* ScanCode.NumpadEnter */, 'NumpadEnter', 3 /* KeyCode.Enter */, empty, 0, empty, empty, empty],
+        [94, 1, 95 /* ScanCode.Numpad1 */, 'Numpad1', 94 /* KeyCode.Numpad1 */, 'NumPad1', 97, 'VK_NUMPAD1', empty, empty],
+        [95, 1, 96 /* ScanCode.Numpad2 */, 'Numpad2', 95 /* KeyCode.Numpad2 */, 'NumPad2', 98, 'VK_NUMPAD2', empty, empty],
+        [96, 1, 97 /* ScanCode.Numpad3 */, 'Numpad3', 96 /* KeyCode.Numpad3 */, 'NumPad3', 99, 'VK_NUMPAD3', empty, empty],
+        [97, 1, 98 /* ScanCode.Numpad4 */, 'Numpad4', 97 /* KeyCode.Numpad4 */, 'NumPad4', 100, 'VK_NUMPAD4', empty, empty],
+        [98, 1, 99 /* ScanCode.Numpad5 */, 'Numpad5', 98 /* KeyCode.Numpad5 */, 'NumPad5', 101, 'VK_NUMPAD5', empty, empty],
+        [99, 1, 100 /* ScanCode.Numpad6 */, 'Numpad6', 99 /* KeyCode.Numpad6 */, 'NumPad6', 102, 'VK_NUMPAD6', empty, empty],
+        [100, 1, 101 /* ScanCode.Numpad7 */, 'Numpad7', 100 /* KeyCode.Numpad7 */, 'NumPad7', 103, 'VK_NUMPAD7', empty, empty],
+        [101, 1, 102 /* ScanCode.Numpad8 */, 'Numpad8', 101 /* KeyCode.Numpad8 */, 'NumPad8', 104, 'VK_NUMPAD8', empty, empty],
+        [102, 1, 103 /* ScanCode.Numpad9 */, 'Numpad9', 102 /* KeyCode.Numpad9 */, 'NumPad9', 105, 'VK_NUMPAD9', empty, empty],
+        [93, 1, 104 /* ScanCode.Numpad0 */, 'Numpad0', 93 /* KeyCode.Numpad0 */, 'NumPad0', 96, 'VK_NUMPAD0', empty, empty],
+        [107, 1, 105 /* ScanCode.NumpadDecimal */, 'NumpadDecimal', 107 /* KeyCode.NumpadDecimal */, 'NumPad_Decimal', 110, 'VK_DECIMAL', empty, empty],
+        [92, 0, 106 /* ScanCode.IntlBackslash */, 'IntlBackslash', 92 /* KeyCode.IntlBackslash */, 'OEM_102', 226, 'VK_OEM_102', empty, empty],
+        [58, 1, 107 /* ScanCode.ContextMenu */, 'ContextMenu', 58 /* KeyCode.ContextMenu */, 'ContextMenu', 93, empty, empty, empty],
+        [0, 1, 108 /* ScanCode.Power */, 'Power', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [0, 1, 109 /* ScanCode.NumpadEqual */, 'NumpadEqual', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [71, 1, 110 /* ScanCode.F13 */, 'F13', 71 /* KeyCode.F13 */, 'F13', 124, 'VK_F13', empty, empty],
+        [72, 1, 111 /* ScanCode.F14 */, 'F14', 72 /* KeyCode.F14 */, 'F14', 125, 'VK_F14', empty, empty],
+        [73, 1, 112 /* ScanCode.F15 */, 'F15', 73 /* KeyCode.F15 */, 'F15', 126, 'VK_F15', empty, empty],
+        [74, 1, 113 /* ScanCode.F16 */, 'F16', 74 /* KeyCode.F16 */, 'F16', 127, 'VK_F16', empty, empty],
+        [75, 1, 114 /* ScanCode.F17 */, 'F17', 75 /* KeyCode.F17 */, 'F17', 128, 'VK_F17', empty, empty],
+        [76, 1, 115 /* ScanCode.F18 */, 'F18', 76 /* KeyCode.F18 */, 'F18', 129, 'VK_F18', empty, empty],
+        [77, 1, 116 /* ScanCode.F19 */, 'F19', 77 /* KeyCode.F19 */, 'F19', 130, 'VK_F19', empty, empty],
+        [0, 1, 117 /* ScanCode.F20 */, 'F20', 0 /* KeyCode.Unknown */, empty, 0, 'VK_F20', empty, empty],
+        [0, 1, 118 /* ScanCode.F21 */, 'F21', 0 /* KeyCode.Unknown */, empty, 0, 'VK_F21', empty, empty],
+        [0, 1, 119 /* ScanCode.F22 */, 'F22', 0 /* KeyCode.Unknown */, empty, 0, 'VK_F22', empty, empty],
+        [0, 1, 120 /* ScanCode.F23 */, 'F23', 0 /* KeyCode.Unknown */, empty, 0, 'VK_F23', empty, empty],
+        [0, 1, 121 /* ScanCode.F24 */, 'F24', 0 /* KeyCode.Unknown */, empty, 0, 'VK_F24', empty, empty],
+        [0, 1, 122 /* ScanCode.Open */, 'Open', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [0, 1, 123 /* ScanCode.Help */, 'Help', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [0, 1, 124 /* ScanCode.Select */, 'Select', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [0, 1, 125 /* ScanCode.Again */, 'Again', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [0, 1, 126 /* ScanCode.Undo */, 'Undo', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [0, 1, 127 /* ScanCode.Cut */, 'Cut', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [0, 1, 128 /* ScanCode.Copy */, 'Copy', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [0, 1, 129 /* ScanCode.Paste */, 'Paste', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [0, 1, 130 /* ScanCode.Find */, 'Find', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [0, 1, 131 /* ScanCode.AudioVolumeMute */, 'AudioVolumeMute', 112 /* KeyCode.AudioVolumeMute */, 'AudioVolumeMute', 173, 'VK_VOLUME_MUTE', empty, empty],
+        [0, 1, 132 /* ScanCode.AudioVolumeUp */, 'AudioVolumeUp', 113 /* KeyCode.AudioVolumeUp */, 'AudioVolumeUp', 175, 'VK_VOLUME_UP', empty, empty],
+        [0, 1, 133 /* ScanCode.AudioVolumeDown */, 'AudioVolumeDown', 114 /* KeyCode.AudioVolumeDown */, 'AudioVolumeDown', 174, 'VK_VOLUME_DOWN', empty, empty],
+        [105, 1, 134 /* ScanCode.NumpadComma */, 'NumpadComma', 105 /* KeyCode.NUMPAD_SEPARATOR */, 'NumPad_Separator', 108, 'VK_SEPARATOR', empty, empty],
+        [110, 0, 135 /* ScanCode.IntlRo */, 'IntlRo', 110 /* KeyCode.ABNT_C1 */, 'ABNT_C1', 193, 'VK_ABNT_C1', empty, empty],
+        [0, 1, 136 /* ScanCode.KanaMode */, 'KanaMode', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [0, 0, 137 /* ScanCode.IntlYen */, 'IntlYen', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [0, 1, 138 /* ScanCode.Convert */, 'Convert', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [0, 1, 139 /* ScanCode.NonConvert */, 'NonConvert', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [0, 1, 140 /* ScanCode.Lang1 */, 'Lang1', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [0, 1, 141 /* ScanCode.Lang2 */, 'Lang2', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [0, 1, 142 /* ScanCode.Lang3 */, 'Lang3', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [0, 1, 143 /* ScanCode.Lang4 */, 'Lang4', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [0, 1, 144 /* ScanCode.Lang5 */, 'Lang5', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [0, 1, 145 /* ScanCode.Abort */, 'Abort', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [0, 1, 146 /* ScanCode.Props */, 'Props', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [0, 1, 147 /* ScanCode.NumpadParenLeft */, 'NumpadParenLeft', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [0, 1, 148 /* ScanCode.NumpadParenRight */, 'NumpadParenRight', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [0, 1, 149 /* ScanCode.NumpadBackspace */, 'NumpadBackspace', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [0, 1, 150 /* ScanCode.NumpadMemoryStore */, 'NumpadMemoryStore', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [0, 1, 151 /* ScanCode.NumpadMemoryRecall */, 'NumpadMemoryRecall', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [0, 1, 152 /* ScanCode.NumpadMemoryClear */, 'NumpadMemoryClear', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [0, 1, 153 /* ScanCode.NumpadMemoryAdd */, 'NumpadMemoryAdd', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [0, 1, 154 /* ScanCode.NumpadMemorySubtract */, 'NumpadMemorySubtract', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [0, 1, 155 /* ScanCode.NumpadClear */, 'NumpadClear', 126 /* KeyCode.Clear */, 'Clear', 12, 'VK_CLEAR', empty, empty],
+        [0, 1, 156 /* ScanCode.NumpadClearEntry */, 'NumpadClearEntry', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [5, 1, 0 /* ScanCode.None */, empty, 5 /* KeyCode.Ctrl */, 'Ctrl', 17, 'VK_CONTROL', empty, empty],
+        [4, 1, 0 /* ScanCode.None */, empty, 4 /* KeyCode.Shift */, 'Shift', 16, 'VK_SHIFT', empty, empty],
+        [6, 1, 0 /* ScanCode.None */, empty, 6 /* KeyCode.Alt */, 'Alt', 18, 'VK_MENU', empty, empty],
+        [57, 1, 0 /* ScanCode.None */, empty, 57 /* KeyCode.Meta */, 'Meta', 0, 'VK_COMMAND', empty, empty],
+        [5, 1, 157 /* ScanCode.ControlLeft */, 'ControlLeft', 5 /* KeyCode.Ctrl */, empty, 0, 'VK_LCONTROL', empty, empty],
+        [4, 1, 158 /* ScanCode.ShiftLeft */, 'ShiftLeft', 4 /* KeyCode.Shift */, empty, 0, 'VK_LSHIFT', empty, empty],
+        [6, 1, 159 /* ScanCode.AltLeft */, 'AltLeft', 6 /* KeyCode.Alt */, empty, 0, 'VK_LMENU', empty, empty],
+        [57, 1, 160 /* ScanCode.MetaLeft */, 'MetaLeft', 57 /* KeyCode.Meta */, empty, 0, 'VK_LWIN', empty, empty],
+        [5, 1, 161 /* ScanCode.ControlRight */, 'ControlRight', 5 /* KeyCode.Ctrl */, empty, 0, 'VK_RCONTROL', empty, empty],
+        [4, 1, 162 /* ScanCode.ShiftRight */, 'ShiftRight', 4 /* KeyCode.Shift */, empty, 0, 'VK_RSHIFT', empty, empty],
+        [6, 1, 163 /* ScanCode.AltRight */, 'AltRight', 6 /* KeyCode.Alt */, empty, 0, 'VK_RMENU', empty, empty],
+        [57, 1, 164 /* ScanCode.MetaRight */, 'MetaRight', 57 /* KeyCode.Meta */, empty, 0, 'VK_RWIN', empty, empty],
+        [0, 1, 165 /* ScanCode.BrightnessUp */, 'BrightnessUp', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [0, 1, 166 /* ScanCode.BrightnessDown */, 'BrightnessDown', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [0, 1, 167 /* ScanCode.MediaPlay */, 'MediaPlay', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [0, 1, 168 /* ScanCode.MediaRecord */, 'MediaRecord', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [0, 1, 169 /* ScanCode.MediaFastForward */, 'MediaFastForward', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [0, 1, 170 /* ScanCode.MediaRewind */, 'MediaRewind', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [114, 1, 171 /* ScanCode.MediaTrackNext */, 'MediaTrackNext', 119 /* KeyCode.MediaTrackNext */, 'MediaTrackNext', 176, 'VK_MEDIA_NEXT_TRACK', empty, empty],
+        [115, 1, 172 /* ScanCode.MediaTrackPrevious */, 'MediaTrackPrevious', 120 /* KeyCode.MediaTrackPrevious */, 'MediaTrackPrevious', 177, 'VK_MEDIA_PREV_TRACK', empty, empty],
+        [116, 1, 173 /* ScanCode.MediaStop */, 'MediaStop', 121 /* KeyCode.MediaStop */, 'MediaStop', 178, 'VK_MEDIA_STOP', empty, empty],
+        [0, 1, 174 /* ScanCode.Eject */, 'Eject', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [117, 1, 175 /* ScanCode.MediaPlayPause */, 'MediaPlayPause', 122 /* KeyCode.MediaPlayPause */, 'MediaPlayPause', 179, 'VK_MEDIA_PLAY_PAUSE', empty, empty],
+        [0, 1, 176 /* ScanCode.MediaSelect */, 'MediaSelect', 123 /* KeyCode.LaunchMediaPlayer */, 'LaunchMediaPlayer', 181, 'VK_MEDIA_LAUNCH_MEDIA_SELECT', empty, empty],
+        [0, 1, 177 /* ScanCode.LaunchMail */, 'LaunchMail', 124 /* KeyCode.LaunchMail */, 'LaunchMail', 180, 'VK_MEDIA_LAUNCH_MAIL', empty, empty],
+        [0, 1, 178 /* ScanCode.LaunchApp2 */, 'LaunchApp2', 125 /* KeyCode.LaunchApp2 */, 'LaunchApp2', 183, 'VK_MEDIA_LAUNCH_APP2', empty, empty],
+        [0, 1, 179 /* ScanCode.LaunchApp1 */, 'LaunchApp1', 0 /* KeyCode.Unknown */, empty, 0, 'VK_MEDIA_LAUNCH_APP1', empty, empty],
+        [0, 1, 180 /* ScanCode.SelectTask */, 'SelectTask', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [0, 1, 181 /* ScanCode.LaunchScreenSaver */, 'LaunchScreenSaver', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [0, 1, 182 /* ScanCode.BrowserSearch */, 'BrowserSearch', 115 /* KeyCode.BrowserSearch */, 'BrowserSearch', 170, 'VK_BROWSER_SEARCH', empty, empty],
+        [0, 1, 183 /* ScanCode.BrowserHome */, 'BrowserHome', 116 /* KeyCode.BrowserHome */, 'BrowserHome', 172, 'VK_BROWSER_HOME', empty, empty],
+        [112, 1, 184 /* ScanCode.BrowserBack */, 'BrowserBack', 117 /* KeyCode.BrowserBack */, 'BrowserBack', 166, 'VK_BROWSER_BACK', empty, empty],
+        [113, 1, 185 /* ScanCode.BrowserForward */, 'BrowserForward', 118 /* KeyCode.BrowserForward */, 'BrowserForward', 167, 'VK_BROWSER_FORWARD', empty, empty],
+        [0, 1, 186 /* ScanCode.BrowserStop */, 'BrowserStop', 0 /* KeyCode.Unknown */, empty, 0, 'VK_BROWSER_STOP', empty, empty],
+        [0, 1, 187 /* ScanCode.BrowserRefresh */, 'BrowserRefresh', 0 /* KeyCode.Unknown */, empty, 0, 'VK_BROWSER_REFRESH', empty, empty],
+        [0, 1, 188 /* ScanCode.BrowserFavorites */, 'BrowserFavorites', 0 /* KeyCode.Unknown */, empty, 0, 'VK_BROWSER_FAVORITES', empty, empty],
+        [0, 1, 189 /* ScanCode.ZoomToggle */, 'ZoomToggle', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [0, 1, 190 /* ScanCode.MailReply */, 'MailReply', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [0, 1, 191 /* ScanCode.MailForward */, 'MailForward', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [0, 1, 192 /* ScanCode.MailSend */, 'MailSend', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
         // See https://lists.w3.org/Archives/Public/www-dom/2010JulSep/att-0182/keyCode-spec.html
         // If an Input Method Editor is processing key input and the event is keydown, return 229.
-        [109, 1, 0 /* None */, empty, 109 /* KEY_IN_COMPOSITION */, 'KeyInComposition', 229, empty, empty, empty],
-        [111, 1, 0 /* None */, empty, 111 /* ABNT_C2 */, 'ABNT_C2', 194, 'VK_ABNT_C2', empty, empty],
-        [91, 1, 0 /* None */, empty, 91 /* OEM_8 */, 'OEM_8', 223, 'VK_OEM_8', empty, empty],
-        [0, 1, 0 /* None */, empty, 0 /* Unknown */, empty, 0, 'VK_KANA', empty, empty],
-        [0, 1, 0 /* None */, empty, 0 /* Unknown */, empty, 0, 'VK_HANGUL', empty, empty],
-        [0, 1, 0 /* None */, empty, 0 /* Unknown */, empty, 0, 'VK_JUNJA', empty, empty],
-        [0, 1, 0 /* None */, empty, 0 /* Unknown */, empty, 0, 'VK_FINAL', empty, empty],
-        [0, 1, 0 /* None */, empty, 0 /* Unknown */, empty, 0, 'VK_HANJA', empty, empty],
-        [0, 1, 0 /* None */, empty, 0 /* Unknown */, empty, 0, 'VK_KANJI', empty, empty],
-        [0, 1, 0 /* None */, empty, 0 /* Unknown */, empty, 0, 'VK_CONVERT', empty, empty],
-        [0, 1, 0 /* None */, empty, 0 /* Unknown */, empty, 0, 'VK_NONCONVERT', empty, empty],
-        [0, 1, 0 /* None */, empty, 0 /* Unknown */, empty, 0, 'VK_ACCEPT', empty, empty],
-        [0, 1, 0 /* None */, empty, 0 /* Unknown */, empty, 0, 'VK_MODECHANGE', empty, empty],
-        [0, 1, 0 /* None */, empty, 0 /* Unknown */, empty, 0, 'VK_SELECT', empty, empty],
-        [0, 1, 0 /* None */, empty, 0 /* Unknown */, empty, 0, 'VK_PRINT', empty, empty],
-        [0, 1, 0 /* None */, empty, 0 /* Unknown */, empty, 0, 'VK_EXECUTE', empty, empty],
-        [0, 1, 0 /* None */, empty, 0 /* Unknown */, empty, 0, 'VK_SNAPSHOT', empty, empty],
-        [0, 1, 0 /* None */, empty, 0 /* Unknown */, empty, 0, 'VK_HELP', empty, empty],
-        [0, 1, 0 /* None */, empty, 0 /* Unknown */, empty, 0, 'VK_APPS', empty, empty],
-        [0, 1, 0 /* None */, empty, 0 /* Unknown */, empty, 0, 'VK_PROCESSKEY', empty, empty],
-        [0, 1, 0 /* None */, empty, 0 /* Unknown */, empty, 0, 'VK_PACKET', empty, empty],
-        [0, 1, 0 /* None */, empty, 0 /* Unknown */, empty, 0, 'VK_DBE_SBCSCHAR', empty, empty],
-        [0, 1, 0 /* None */, empty, 0 /* Unknown */, empty, 0, 'VK_DBE_DBCSCHAR', empty, empty],
-        [0, 1, 0 /* None */, empty, 0 /* Unknown */, empty, 0, 'VK_ATTN', empty, empty],
-        [0, 1, 0 /* None */, empty, 0 /* Unknown */, empty, 0, 'VK_CRSEL', empty, empty],
-        [0, 1, 0 /* None */, empty, 0 /* Unknown */, empty, 0, 'VK_EXSEL', empty, empty],
-        [0, 1, 0 /* None */, empty, 0 /* Unknown */, empty, 0, 'VK_EREOF', empty, empty],
-        [0, 1, 0 /* None */, empty, 0 /* Unknown */, empty, 0, 'VK_PLAY', empty, empty],
-        [0, 1, 0 /* None */, empty, 0 /* Unknown */, empty, 0, 'VK_ZOOM', empty, empty],
-        [0, 1, 0 /* None */, empty, 0 /* Unknown */, empty, 0, 'VK_NONAME', empty, empty],
-        [0, 1, 0 /* None */, empty, 0 /* Unknown */, empty, 0, 'VK_PA1', empty, empty],
-        [0, 1, 0 /* None */, empty, 0 /* Unknown */, empty, 0, 'VK_OEM_CLEAR', empty, empty],
+        [109, 1, 0 /* ScanCode.None */, empty, 109 /* KeyCode.KEY_IN_COMPOSITION */, 'KeyInComposition', 229, empty, empty, empty],
+        [111, 1, 0 /* ScanCode.None */, empty, 111 /* KeyCode.ABNT_C2 */, 'ABNT_C2', 194, 'VK_ABNT_C2', empty, empty],
+        [91, 1, 0 /* ScanCode.None */, empty, 91 /* KeyCode.OEM_8 */, 'OEM_8', 223, 'VK_OEM_8', empty, empty],
+        [0, 1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_KANA', empty, empty],
+        [0, 1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_HANGUL', empty, empty],
+        [0, 1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_JUNJA', empty, empty],
+        [0, 1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_FINAL', empty, empty],
+        [0, 1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_HANJA', empty, empty],
+        [0, 1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_KANJI', empty, empty],
+        [0, 1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_CONVERT', empty, empty],
+        [0, 1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_NONCONVERT', empty, empty],
+        [0, 1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_ACCEPT', empty, empty],
+        [0, 1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_MODECHANGE', empty, empty],
+        [0, 1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_SELECT', empty, empty],
+        [0, 1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_PRINT', empty, empty],
+        [0, 1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_EXECUTE', empty, empty],
+        [0, 1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_SNAPSHOT', empty, empty],
+        [0, 1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_HELP', empty, empty],
+        [0, 1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_APPS', empty, empty],
+        [0, 1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_PROCESSKEY', empty, empty],
+        [0, 1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_PACKET', empty, empty],
+        [0, 1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_DBE_SBCSCHAR', empty, empty],
+        [0, 1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_DBE_DBCSCHAR', empty, empty],
+        [0, 1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_ATTN', empty, empty],
+        [0, 1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_CRSEL', empty, empty],
+        [0, 1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_EXSEL', empty, empty],
+        [0, 1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_EREOF', empty, empty],
+        [0, 1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_PLAY', empty, empty],
+        [0, 1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_ZOOM', empty, empty],
+        [0, 1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_NONAME', empty, empty],
+        [0, 1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_PA1', empty, empty],
+        [0, 1, 0 /* ScanCode.None */, empty, 0 /* KeyCode.Unknown */, empty, 0, 'VK_OEM_CLEAR', empty, empty],
     ];
-    let seenKeyCode = [];
-    let seenScanCode = [];
+    const seenKeyCode = [];
+    const seenScanCode = [];
     for (const mapping of mappings) {
         const [_keyCodeOrd, immutable, scanCode, scanCodeStr, keyCode, keyCodeStr, eventKeyCode, vkey, usUserSettingsLabel, generalUserSettingsLabel] = mapping;
         if (!seenScanCode[scanCode]) {
@@ -3765,12 +4002,12 @@ for (let i = 0; i <= 127 /* MAX_VALUE */; i++) {
             scanCodeLowerCaseStrToInt[scanCodeStr.toLowerCase()] = scanCode;
             if (immutable) {
                 IMMUTABLE_CODE_TO_KEY_CODE[scanCode] = keyCode;
-                if ((keyCode !== 0 /* Unknown */)
-                    && (keyCode !== 3 /* Enter */)
-                    && (keyCode !== 5 /* Ctrl */)
-                    && (keyCode !== 4 /* Shift */)
-                    && (keyCode !== 6 /* Alt */)
-                    && (keyCode !== 57 /* Meta */)) {
+                if ((keyCode !== 0 /* KeyCode.Unknown */)
+                    && (keyCode !== 3 /* KeyCode.Enter */)
+                    && (keyCode !== 5 /* KeyCode.Ctrl */)
+                    && (keyCode !== 4 /* KeyCode.Shift */)
+                    && (keyCode !== 6 /* KeyCode.Alt */)
+                    && (keyCode !== 57 /* KeyCode.Meta */)) {
                     IMMUTABLE_KEY_CODE_TO_CODE[keyCode] = scanCode;
                 }
             }
@@ -3792,7 +4029,7 @@ for (let i = 0; i <= 127 /* MAX_VALUE */; i++) {
         }
     }
     // Manually added due to the exclusion above (due to duplication with NumpadEnter)
-    IMMUTABLE_KEY_CODE_TO_CODE[3 /* Enter */] = 46 /* Enter */;
+    IMMUTABLE_KEY_CODE_TO_CODE[3 /* KeyCode.Enter */] = 46 /* ScanCode.Enter */;
 })();
 var KeyCodeUtils;
 (function (KeyCodeUtils) {
@@ -3817,7 +4054,7 @@ var KeyCodeUtils;
     }
     KeyCodeUtils.fromUserSettings = fromUserSettings;
     function toElectronAccelerator(keyCode) {
-        if (keyCode >= 93 /* Numpad0 */ && keyCode <= 108 /* NumpadDivide */) {
+        if (keyCode >= 93 /* KeyCode.Numpad0 */ && keyCode <= 108 /* KeyCode.NumpadDivide */) {
             // [Electron Accelerators] Electron is able to parse numpad keys, but unfortunately it
             // renders them just as regular keys in menus. For example, num0 is rendered as "0",
             // numdiv is rendered as "/", numsub is rendered as "-".
@@ -3829,13 +4066,13 @@ var KeyCodeUtils;
             return null;
         }
         switch (keyCode) {
-            case 16 /* UpArrow */:
+            case 16 /* KeyCode.UpArrow */:
                 return 'Up';
-            case 18 /* DownArrow */:
+            case 18 /* KeyCode.DownArrow */:
                 return 'Down';
-            case 15 /* LeftArrow */:
+            case 15 /* KeyCode.LeftArrow */:
                 return 'Left';
-            case 17 /* RightArrow */:
+            case 17 /* KeyCode.RightArrow */:
                 return 'Right';
         }
         return uiMap.keyCodeToStr(keyCode);
@@ -3869,6 +4106,10 @@ class Lazy {
         this.executor = executor;
         this._didRun = false;
     }
+    /**
+     * True if the lazy value has been resolved.
+     */
+    hasValue() { return this._didRun; }
     /**
      * Get the wrapped value.
      *
@@ -3914,6 +4155,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "ImmortalReference": () => (/* binding */ ImmortalReference),
 /* harmony export */   "MultiDisposeError": () => (/* binding */ MultiDisposeError),
 /* harmony export */   "MutableDisposable": () => (/* binding */ MutableDisposable),
+/* harmony export */   "RefCountedDisposable": () => (/* binding */ RefCountedDisposable),
 /* harmony export */   "SafeDisposable": () => (/* binding */ SafeDisposable),
 /* harmony export */   "combinedDisposable": () => (/* binding */ combinedDisposable),
 /* harmony export */   "dispose": () => (/* binding */ dispose),
@@ -4012,7 +4254,7 @@ function isDisposable(thing) {
 }
 function dispose(arg) {
     if (_iterator_js__WEBPACK_IMPORTED_MODULE_1__.Iterable.is(arg)) {
-        let errors = [];
+        const errors = [];
         for (const d of arg) {
             if (d) {
                 try {
@@ -4170,6 +4412,22 @@ class MutableDisposable {
             setParentOfDisposable(oldValue, null);
         }
         return oldValue;
+    }
+}
+class RefCountedDisposable {
+    constructor(_disposable) {
+        this._disposable = _disposable;
+        this._counter = 1;
+    }
+    acquire() {
+        this._counter++;
+        return this;
+    }
+    release() {
+        if (--this._counter === 0) {
+            this._disposable.dispose();
+        }
+        return this;
     }
 }
 /**
@@ -4357,7 +4615,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "deepClone": () => (/* binding */ deepClone),
 /* harmony export */   "deepFreeze": () => (/* binding */ deepFreeze),
 /* harmony export */   "equals": () => (/* binding */ equals),
-/* harmony export */   "getOrDefault": () => (/* binding */ getOrDefault),
 /* harmony export */   "mixin": () => (/* binding */ mixin)
 /* harmony export */ });
 /* harmony import */ var _types_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./types.js */ "./node_modules/monaco-editor/esm/vs/base/common/types.js");
@@ -4396,7 +4653,7 @@ function deepFreeze(obj) {
         for (const key in obj) {
             if (_hasOwnProperty.call(obj, key)) {
                 const prop = obj[key];
-                if (typeof prop === 'object' && !Object.isFrozen(prop)) {
+                if (typeof prop === 'object' && !Object.isFrozen(prop) && !(0,_types_js__WEBPACK_IMPORTED_MODULE_0__.isTypedArray)(prop)) {
                     stack.push(prop);
                 }
             }
@@ -4429,7 +4686,7 @@ function _cloneAndChange(obj, changer, seen) {
         }
         seen.add(obj);
         const r2 = {};
-        for (let i2 in obj) {
+        for (const i2 in obj) {
             if (_hasOwnProperty.call(obj, i2)) {
                 r2[i2] = _cloneAndChange(obj[i2], changer, seen);
             }
@@ -4515,10 +4772,6 @@ function equals(one, other) {
         }
     }
     return true;
-}
-function getOrDefault(obj, fn, defaultValue) {
-    const result = fn(obj);
-    return typeof result === 'undefined' ? defaultValue : result;
 }
 
 
@@ -5951,13 +6204,16 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "isWindows": () => (/* binding */ isWindows),
 /* harmony export */   "language": () => (/* binding */ language),
 /* harmony export */   "setTimeout0": () => (/* binding */ setTimeout0),
+/* harmony export */   "setTimeout0IsFaster": () => (/* binding */ setTimeout0IsFaster),
 /* harmony export */   "userAgent": () => (/* binding */ userAgent)
 /* harmony export */ });
+/* harmony import */ var _nls_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../nls.js */ "./node_modules/monaco-editor/esm/vs/nls.js");
+var _a;
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-var _a;
+
 const LANGUAGE_DEFAULT = 'en';
 let _isWindows = false;
 let _isMacintosh = false;
@@ -5992,7 +6248,13 @@ if (typeof navigator === 'object' && !isElectronRenderer) {
     _isIOS = (_userAgent.indexOf('Macintosh') >= 0 || _userAgent.indexOf('iPad') >= 0 || _userAgent.indexOf('iPhone') >= 0) && !!navigator.maxTouchPoints && navigator.maxTouchPoints > 0;
     _isLinux = _userAgent.indexOf('Linux') >= 0;
     _isWeb = true;
-    _locale = navigator.language;
+    const configuredLocale = _nls_js__WEBPACK_IMPORTED_MODULE_0__.getConfiguredDefaultLocale(
+    // This call _must_ be done in the file that calls `nls.getConfiguredDefaultLocale`
+    // to ensure that the NLS AMD Loader plugin has been loaded and configured.
+    // This is because the loader plugin decides what the default locale is based on
+    // how it's able to resolve the strings.
+    _nls_js__WEBPACK_IMPORTED_MODULE_0__.localize({ key: 'ensureLoaderPluginIsLoaded', comment: ['{Locked}'] }, '_'));
+    _locale = configuredLocale || LANGUAGE_DEFAULT;
     _language = _locale;
 }
 // Native environment
@@ -6024,15 +6286,15 @@ else if (typeof nodeProcess === 'object') {
 else {
     console.error('Unable to resolve platform.');
 }
-let _platform = 0 /* Web */;
+let _platform = 0 /* Platform.Web */;
 if (_isMacintosh) {
-    _platform = 1 /* Mac */;
+    _platform = 1 /* Platform.Mac */;
 }
 else if (_isWindows) {
-    _platform = 3 /* Windows */;
+    _platform = 3 /* Platform.Windows */;
 }
 else if (_isLinux) {
-    _platform = 2 /* Linux */;
+    _platform = 2 /* Platform.Linux */;
 }
 const isWindows = _isWindows;
 const isMacintosh = _isMacintosh;
@@ -6048,6 +6310,7 @@ const userAgent = _userAgent;
  * Chinese)
  */
 const language = _language;
+const setTimeout0IsFaster = (typeof globals.postMessage === 'function' && !globals.importScripts);
 /**
  * See https://html.spec.whatwg.org/multipage/timers-and-user-prompts.html#:~:text=than%204%2C%20then-,set%20timeout%20to%204,-.
  *
@@ -6055,8 +6318,8 @@ const language = _language;
  * that browsers set when the nesting level is > 5.
  */
 const setTimeout0 = (() => {
-    if (typeof globals.postMessage === 'function' && !globals.importScripts) {
-        let pending = [];
+    if (setTimeout0IsFaster) {
+        const pending = [];
         globals.addEventListener('message', (e) => {
             if (e.data && e.data.vscodeScheduleAsyncWork) {
                 for (let i = 0, len = pending.length; i < len; i++) {
@@ -6081,7 +6344,7 @@ const setTimeout0 = (() => {
     }
     return (callback) => setTimeout(callback);
 })();
-const OS = (_isMacintosh || _isIOS ? 2 /* Macintosh */ : (_isWindows ? 1 /* Windows */ : 3 /* Linux */));
+const OS = (_isMacintosh || _isIOS ? 2 /* OperatingSystem.Macintosh */ : (_isWindows ? 1 /* OperatingSystem.Windows */ : 3 /* OperatingSystem.Linux */));
 let _isLittleEndian = true;
 let _isLittleEndianComputed = false;
 function isLittleEndian() {
@@ -6254,6 +6517,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "getLeadingWhitespace": () => (/* binding */ getLeadingWhitespace),
 /* harmony export */   "getLeftDeleteOffset": () => (/* binding */ getLeftDeleteOffset),
 /* harmony export */   "getNextCodePoint": () => (/* binding */ getNextCodePoint),
+/* harmony export */   "isAsciiDigit": () => (/* binding */ isAsciiDigit),
 /* harmony export */   "isBasicASCII": () => (/* binding */ isBasicASCII),
 /* harmony export */   "isEmojiImprecise": () => (/* binding */ isEmojiImprecise),
 /* harmony export */   "isFalsyOrWhitespace": () => (/* binding */ isFalsyOrWhitespace),
@@ -6447,7 +6711,7 @@ function splitLines(str) {
 function firstNonWhitespaceIndex(str) {
     for (let i = 0, len = str.length; i < len; i++) {
         const chCode = str.charCodeAt(i);
-        if (chCode !== 32 /* Space */ && chCode !== 9 /* Tab */) {
+        if (chCode !== 32 /* CharCode.Space */ && chCode !== 9 /* CharCode.Tab */) {
             return i;
         }
     }
@@ -6460,7 +6724,7 @@ function firstNonWhitespaceIndex(str) {
 function getLeadingWhitespace(str, start = 0, end = str.length) {
     for (let i = start; i < end; i++) {
         const chCode = str.charCodeAt(i);
-        if (chCode !== 32 /* Space */ && chCode !== 9 /* Tab */) {
+        if (chCode !== 32 /* CharCode.Space */ && chCode !== 9 /* CharCode.Tab */) {
             return str.substring(start, i);
         }
     }
@@ -6473,7 +6737,7 @@ function getLeadingWhitespace(str, start = 0, end = str.length) {
 function lastNonWhitespaceIndex(str, startIndex = str.length - 1) {
     for (let i = startIndex; i >= 0; i--) {
         const chCode = str.charCodeAt(i);
-        if (chCode !== 32 /* Space */ && chCode !== 9 /* Tab */) {
+        if (chCode !== 32 /* CharCode.Space */ && chCode !== 9 /* CharCode.Tab */) {
             return i;
         }
     }
@@ -6492,8 +6756,8 @@ function compare(a, b) {
 }
 function compareSubstring(a, b, aStart = 0, aEnd = a.length, bStart = 0, bEnd = b.length) {
     for (; aStart < aEnd && bStart < bEnd; aStart++, bStart++) {
-        let codeA = a.charCodeAt(aStart);
-        let codeB = b.charCodeAt(bStart);
+        const codeA = a.charCodeAt(aStart);
+        const codeB = b.charCodeAt(bStart);
         if (codeA < codeB) {
             return -1;
         }
@@ -6551,11 +6815,14 @@ function compareSubstringIgnoreCase(a, b, aStart = 0, aEnd = a.length, bStart = 
     }
     return 0;
 }
+function isAsciiDigit(code) {
+    return code >= 48 /* CharCode.Digit0 */ && code <= 57 /* CharCode.Digit9 */;
+}
 function isLowerAsciiLetter(code) {
-    return code >= 97 /* a */ && code <= 122 /* z */;
+    return code >= 97 /* CharCode.a */ && code <= 122 /* CharCode.z */;
 }
 function isUpperAsciiLetter(code) {
-    return code >= 65 /* A */ && code <= 90 /* Z */;
+    return code >= 65 /* CharCode.A */ && code <= 90 /* CharCode.Z */;
 }
 function equalsIgnoreCase(a, b) {
     return a.length === b.length && compareSubstringIgnoreCase(a, b) === 0;
@@ -6571,7 +6838,8 @@ function startsWithIgnoreCase(str, candidate) {
  * @returns the length of the common prefix of the two strings.
  */
 function commonPrefixLength(a, b) {
-    let i, len = Math.min(a.length, b.length);
+    const len = Math.min(a.length, b.length);
+    let i;
     for (i = 0; i < len; i++) {
         if (a.charCodeAt(i) !== b.charCodeAt(i)) {
             return i;
@@ -6583,7 +6851,8 @@ function commonPrefixLength(a, b) {
  * @returns the length of the common suffix of the two strings.
  */
 function commonSuffixLength(a, b) {
-    let i, len = Math.min(a.length, b.length);
+    const len = Math.min(a.length, b.length);
+    let i;
     const aLastIndex = a.length - 1;
     const bLastIndex = b.length - 1;
     for (i = 0; i < len; i++) {
@@ -6651,12 +6920,12 @@ class CodePointIterator {
     }
     prevCodePoint() {
         const codePoint = getPrevCodePoint(this._str, this._offset);
-        this._offset -= (codePoint >= 65536 /* UNICODE_SUPPLEMENTARY_PLANE_BEGIN */ ? 2 : 1);
+        this._offset -= (codePoint >= 65536 /* Constants.UNICODE_SUPPLEMENTARY_PLANE_BEGIN */ ? 2 : 1);
         return codePoint;
     }
     nextCodePoint() {
         const codePoint = getNextCodePoint(this._str, this._len, this._offset);
-        this._offset += (codePoint >= 65536 /* UNICODE_SUPPLEMENTARY_PLANE_BEGIN */ ? 2 : 1);
+        this._offset += (codePoint >= 65536 /* Constants.UNICODE_SUPPLEMENTARY_PLANE_BEGIN */ ? 2 : 1);
         return codePoint;
     }
     eol() {
@@ -6803,9 +7072,9 @@ function isEmojiImprecise(x) {
         || (x >= 129648 && x <= 129782));
 }
 // -- UTF-8 BOM
-const UTF8_BOM_CHARACTER = String.fromCharCode(65279 /* UTF8_BOM */);
+const UTF8_BOM_CHARACTER = String.fromCharCode(65279 /* CharCode.UTF8_BOM */);
 function startsWithUTF8BOM(str) {
-    return !!(str && str.length > 0 && str.charCodeAt(0) === 65279 /* UTF8_BOM */);
+    return !!(str && str.length > 0 && str.charCodeAt(0) === 65279 /* CharCode.UTF8_BOM */);
 }
 function containsUppercaseCharacter(target, ignoreEscapedChars = false) {
     if (!target) {
@@ -6820,78 +7089,78 @@ function containsUppercaseCharacter(target, ignoreEscapedChars = false) {
  * Produces 'a'-'z', followed by 'A'-'Z'... followed by 'a'-'z', etc.
  */
 function singleLetterHash(n) {
-    const LETTERS_CNT = (90 /* Z */ - 65 /* A */ + 1);
+    const LETTERS_CNT = (90 /* CharCode.Z */ - 65 /* CharCode.A */ + 1);
     n = n % (2 * LETTERS_CNT);
     if (n < LETTERS_CNT) {
-        return String.fromCharCode(97 /* a */ + n);
+        return String.fromCharCode(97 /* CharCode.a */ + n);
     }
-    return String.fromCharCode(65 /* A */ + n - LETTERS_CNT);
+    return String.fromCharCode(65 /* CharCode.A */ + n - LETTERS_CNT);
 }
 function breakBetweenGraphemeBreakType(breakTypeA, breakTypeB) {
     // http://www.unicode.org/reports/tr29/#Grapheme_Cluster_Boundary_Rules
     // !!! Let's make the common case a bit faster
-    if (breakTypeA === 0 /* Other */) {
+    if (breakTypeA === 0 /* GraphemeBreakType.Other */) {
         // see https://www.unicode.org/Public/13.0.0/ucd/auxiliary/GraphemeBreakTest-13.0.0d10.html#table
-        return (breakTypeB !== 5 /* Extend */ && breakTypeB !== 7 /* SpacingMark */);
+        return (breakTypeB !== 5 /* GraphemeBreakType.Extend */ && breakTypeB !== 7 /* GraphemeBreakType.SpacingMark */);
     }
     // Do not break between a CR and LF. Otherwise, break before and after controls.
     // GB3                                        CR × LF
     // GB4                       (Control | CR | LF) ÷
     // GB5                                           ÷ (Control | CR | LF)
-    if (breakTypeA === 2 /* CR */) {
-        if (breakTypeB === 3 /* LF */) {
+    if (breakTypeA === 2 /* GraphemeBreakType.CR */) {
+        if (breakTypeB === 3 /* GraphemeBreakType.LF */) {
             return false; // GB3
         }
     }
-    if (breakTypeA === 4 /* Control */ || breakTypeA === 2 /* CR */ || breakTypeA === 3 /* LF */) {
+    if (breakTypeA === 4 /* GraphemeBreakType.Control */ || breakTypeA === 2 /* GraphemeBreakType.CR */ || breakTypeA === 3 /* GraphemeBreakType.LF */) {
         return true; // GB4
     }
-    if (breakTypeB === 4 /* Control */ || breakTypeB === 2 /* CR */ || breakTypeB === 3 /* LF */) {
+    if (breakTypeB === 4 /* GraphemeBreakType.Control */ || breakTypeB === 2 /* GraphemeBreakType.CR */ || breakTypeB === 3 /* GraphemeBreakType.LF */) {
         return true; // GB5
     }
     // Do not break Hangul syllable sequences.
     // GB6                                         L × (L | V | LV | LVT)
     // GB7                                  (LV | V) × (V | T)
     // GB8                                 (LVT | T) × T
-    if (breakTypeA === 8 /* L */) {
-        if (breakTypeB === 8 /* L */ || breakTypeB === 9 /* V */ || breakTypeB === 11 /* LV */ || breakTypeB === 12 /* LVT */) {
+    if (breakTypeA === 8 /* GraphemeBreakType.L */) {
+        if (breakTypeB === 8 /* GraphemeBreakType.L */ || breakTypeB === 9 /* GraphemeBreakType.V */ || breakTypeB === 11 /* GraphemeBreakType.LV */ || breakTypeB === 12 /* GraphemeBreakType.LVT */) {
             return false; // GB6
         }
     }
-    if (breakTypeA === 11 /* LV */ || breakTypeA === 9 /* V */) {
-        if (breakTypeB === 9 /* V */ || breakTypeB === 10 /* T */) {
+    if (breakTypeA === 11 /* GraphemeBreakType.LV */ || breakTypeA === 9 /* GraphemeBreakType.V */) {
+        if (breakTypeB === 9 /* GraphemeBreakType.V */ || breakTypeB === 10 /* GraphemeBreakType.T */) {
             return false; // GB7
         }
     }
-    if (breakTypeA === 12 /* LVT */ || breakTypeA === 10 /* T */) {
-        if (breakTypeB === 10 /* T */) {
+    if (breakTypeA === 12 /* GraphemeBreakType.LVT */ || breakTypeA === 10 /* GraphemeBreakType.T */) {
+        if (breakTypeB === 10 /* GraphemeBreakType.T */) {
             return false; // GB8
         }
     }
     // Do not break before extending characters or ZWJ.
     // GB9                                           × (Extend | ZWJ)
-    if (breakTypeB === 5 /* Extend */ || breakTypeB === 13 /* ZWJ */) {
+    if (breakTypeB === 5 /* GraphemeBreakType.Extend */ || breakTypeB === 13 /* GraphemeBreakType.ZWJ */) {
         return false; // GB9
     }
     // The GB9a and GB9b rules only apply to extended grapheme clusters:
     // Do not break before SpacingMarks, or after Prepend characters.
     // GB9a                                          × SpacingMark
     // GB9b                                  Prepend ×
-    if (breakTypeB === 7 /* SpacingMark */) {
+    if (breakTypeB === 7 /* GraphemeBreakType.SpacingMark */) {
         return false; // GB9a
     }
-    if (breakTypeA === 1 /* Prepend */) {
+    if (breakTypeA === 1 /* GraphemeBreakType.Prepend */) {
         return false; // GB9b
     }
     // Do not break within emoji modifier sequences or emoji zwj sequences.
     // GB11    \p{Extended_Pictographic} Extend* ZWJ × \p{Extended_Pictographic}
-    if (breakTypeA === 13 /* ZWJ */ && breakTypeB === 14 /* Extended_Pictographic */) {
+    if (breakTypeA === 13 /* GraphemeBreakType.ZWJ */ && breakTypeB === 14 /* GraphemeBreakType.Extended_Pictographic */) {
         // Note: we are not implementing the rule entirely here to avoid introducing states
         return false; // GB11
     }
     // GB12                          sot (RI RI)* RI × RI
     // GB13                        [^RI] (RI RI)* RI × RI
-    if (breakTypeA === 6 /* Regional_Indicator */ && breakTypeB === 6 /* Regional_Indicator */) {
+    if (breakTypeA === 6 /* GraphemeBreakType.Regional_Indicator */ && breakTypeB === 6 /* GraphemeBreakType.Regional_Indicator */) {
         // Note: we are not implementing the rule entirely here to avoid introducing states
         return false; // GB12 & GB13
     }
@@ -6911,17 +7180,17 @@ class GraphemeBreakTree {
     getGraphemeBreakType(codePoint) {
         // !!! Let's make 7bit ASCII a bit faster: 0..31
         if (codePoint < 32) {
-            if (codePoint === 10 /* LineFeed */) {
-                return 3 /* LF */;
+            if (codePoint === 10 /* CharCode.LineFeed */) {
+                return 3 /* GraphemeBreakType.LF */;
             }
-            if (codePoint === 13 /* CarriageReturn */) {
-                return 2 /* CR */;
+            if (codePoint === 13 /* CharCode.CarriageReturn */) {
+                return 2 /* GraphemeBreakType.CR */;
             }
-            return 4 /* Control */;
+            return 4 /* GraphemeBreakType.Control */;
         }
         // !!! Let's make 7bit ASCII a bit faster: 32..126
         if (codePoint < 127) {
-            return 0 /* Other */;
+            return 0 /* GraphemeBreakType.Other */;
         }
         const data = this._data;
         const nodeCount = data.length / 3;
@@ -6940,7 +7209,7 @@ class GraphemeBreakTree {
                 return data[3 * nodeIndex + 2];
             }
         }
-        return 0 /* Other */;
+        return 0 /* GraphemeBreakType.Other */;
     }
 }
 GraphemeBreakTree._INSTANCE = null;
@@ -6973,7 +7242,7 @@ function getOffsetBeforeLastEmojiComponent(initialOffset, str) {
     const iterator = new CodePointIterator(str, initialOffset);
     let codePoint = iterator.prevCodePoint();
     // Skip modifiers
-    while ((isEmojiModifier(codePoint) || codePoint === 65039 /* emojiVariantSelector */ || codePoint === 8419 /* enclosingKeyCap */)) {
+    while ((isEmojiModifier(codePoint) || codePoint === 65039 /* CodePoint.emojiVariantSelector */ || codePoint === 8419 /* CodePoint.enclosingKeyCap */)) {
         if (iterator.offset === 0) {
             // Cannot skip modifier, no preceding emoji base.
             return undefined;
@@ -6991,7 +7260,7 @@ function getOffsetBeforeLastEmojiComponent(initialOffset, str) {
         // In theory, we should check if that ZWJ actually combines multiple emojis
         // to prevent deleting ZWJs in situations we didn't account for.
         const optionalZwjCodePoint = iterator.prevCodePoint();
-        if (optionalZwjCodePoint === 8205 /* zwj */) {
+        if (optionalZwjCodePoint === 8205 /* CodePoint.zwj */) {
             resultOffset = iterator.offset;
         }
     }
@@ -7031,7 +7300,7 @@ AmbiguousCharacters.ambiguousCharacterData = new _lazy_js__WEBPACK_IMPORTED_MODU
     // Stored as key1, value1, key2, value2, ...
     return JSON.parse('{\"_common\":[8232,32,8233,32,5760,32,8192,32,8193,32,8194,32,8195,32,8196,32,8197,32,8198,32,8200,32,8201,32,8202,32,8287,32,8199,32,8239,32,2042,95,65101,95,65102,95,65103,95,8208,45,8209,45,8210,45,65112,45,1748,45,8259,45,727,45,8722,45,10134,45,11450,45,1549,44,1643,44,8218,44,184,44,42233,44,894,59,2307,58,2691,58,1417,58,1795,58,1796,58,5868,58,65072,58,6147,58,6153,58,8282,58,1475,58,760,58,42889,58,8758,58,720,58,42237,58,451,33,11601,33,660,63,577,63,2429,63,5038,63,42731,63,119149,46,8228,46,1793,46,1794,46,42510,46,68176,46,1632,46,1776,46,42232,46,1373,96,65287,96,8219,96,8242,96,1370,96,1523,96,8175,96,65344,96,900,96,8189,96,8125,96,8127,96,8190,96,697,96,884,96,712,96,714,96,715,96,756,96,699,96,701,96,700,96,702,96,42892,96,1497,96,2036,96,2037,96,5194,96,5836,96,94033,96,94034,96,65339,91,10088,40,10098,40,12308,40,64830,40,65341,93,10089,41,10099,41,12309,41,64831,41,10100,123,119060,123,10101,125,65342,94,8270,42,1645,42,8727,42,66335,42,5941,47,8257,47,8725,47,8260,47,9585,47,10187,47,10744,47,119354,47,12755,47,12339,47,11462,47,20031,47,12035,47,65340,92,65128,92,8726,92,10189,92,10741,92,10745,92,119311,92,119355,92,12756,92,20022,92,12034,92,42872,38,708,94,710,94,5869,43,10133,43,66203,43,8249,60,10094,60,706,60,119350,60,5176,60,5810,60,5120,61,11840,61,12448,61,42239,61,8250,62,10095,62,707,62,119351,62,5171,62,94015,62,8275,126,732,126,8128,126,8764,126,65372,124,65293,45,120784,50,120794,50,120804,50,120814,50,120824,50,130034,50,42842,50,423,50,1000,50,42564,50,5311,50,42735,50,119302,51,120785,51,120795,51,120805,51,120815,51,120825,51,130035,51,42923,51,540,51,439,51,42858,51,11468,51,1248,51,94011,51,71882,51,120786,52,120796,52,120806,52,120816,52,120826,52,130036,52,5070,52,71855,52,120787,53,120797,53,120807,53,120817,53,120827,53,130037,53,444,53,71867,53,120788,54,120798,54,120808,54,120818,54,120828,54,130038,54,11474,54,5102,54,71893,54,119314,55,120789,55,120799,55,120809,55,120819,55,120829,55,130039,55,66770,55,71878,55,2819,56,2538,56,2666,56,125131,56,120790,56,120800,56,120810,56,120820,56,120830,56,130040,56,547,56,546,56,66330,56,2663,57,2920,57,2541,57,3437,57,120791,57,120801,57,120811,57,120821,57,120831,57,130041,57,42862,57,11466,57,71884,57,71852,57,71894,57,9082,97,65345,97,119834,97,119886,97,119938,97,119990,97,120042,97,120094,97,120146,97,120198,97,120250,97,120302,97,120354,97,120406,97,120458,97,593,97,945,97,120514,97,120572,97,120630,97,120688,97,120746,97,65313,65,119808,65,119860,65,119912,65,119964,65,120016,65,120068,65,120120,65,120172,65,120224,65,120276,65,120328,65,120380,65,120432,65,913,65,120488,65,120546,65,120604,65,120662,65,120720,65,5034,65,5573,65,42222,65,94016,65,66208,65,119835,98,119887,98,119939,98,119991,98,120043,98,120095,98,120147,98,120199,98,120251,98,120303,98,120355,98,120407,98,120459,98,388,98,5071,98,5234,98,5551,98,65314,66,8492,66,119809,66,119861,66,119913,66,120017,66,120069,66,120121,66,120173,66,120225,66,120277,66,120329,66,120381,66,120433,66,42932,66,914,66,120489,66,120547,66,120605,66,120663,66,120721,66,5108,66,5623,66,42192,66,66178,66,66209,66,66305,66,65347,99,8573,99,119836,99,119888,99,119940,99,119992,99,120044,99,120096,99,120148,99,120200,99,120252,99,120304,99,120356,99,120408,99,120460,99,7428,99,1010,99,11429,99,43951,99,66621,99,128844,67,71922,67,71913,67,65315,67,8557,67,8450,67,8493,67,119810,67,119862,67,119914,67,119966,67,120018,67,120174,67,120226,67,120278,67,120330,67,120382,67,120434,67,1017,67,11428,67,5087,67,42202,67,66210,67,66306,67,66581,67,66844,67,8574,100,8518,100,119837,100,119889,100,119941,100,119993,100,120045,100,120097,100,120149,100,120201,100,120253,100,120305,100,120357,100,120409,100,120461,100,1281,100,5095,100,5231,100,42194,100,8558,68,8517,68,119811,68,119863,68,119915,68,119967,68,120019,68,120071,68,120123,68,120175,68,120227,68,120279,68,120331,68,120383,68,120435,68,5024,68,5598,68,5610,68,42195,68,8494,101,65349,101,8495,101,8519,101,119838,101,119890,101,119942,101,120046,101,120098,101,120150,101,120202,101,120254,101,120306,101,120358,101,120410,101,120462,101,43826,101,1213,101,8959,69,65317,69,8496,69,119812,69,119864,69,119916,69,120020,69,120072,69,120124,69,120176,69,120228,69,120280,69,120332,69,120384,69,120436,69,917,69,120492,69,120550,69,120608,69,120666,69,120724,69,11577,69,5036,69,42224,69,71846,69,71854,69,66182,69,119839,102,119891,102,119943,102,119995,102,120047,102,120099,102,120151,102,120203,102,120255,102,120307,102,120359,102,120411,102,120463,102,43829,102,42905,102,383,102,7837,102,1412,102,119315,70,8497,70,119813,70,119865,70,119917,70,120021,70,120073,70,120125,70,120177,70,120229,70,120281,70,120333,70,120385,70,120437,70,42904,70,988,70,120778,70,5556,70,42205,70,71874,70,71842,70,66183,70,66213,70,66853,70,65351,103,8458,103,119840,103,119892,103,119944,103,120048,103,120100,103,120152,103,120204,103,120256,103,120308,103,120360,103,120412,103,120464,103,609,103,7555,103,397,103,1409,103,119814,71,119866,71,119918,71,119970,71,120022,71,120074,71,120126,71,120178,71,120230,71,120282,71,120334,71,120386,71,120438,71,1292,71,5056,71,5107,71,42198,71,65352,104,8462,104,119841,104,119945,104,119997,104,120049,104,120101,104,120153,104,120205,104,120257,104,120309,104,120361,104,120413,104,120465,104,1211,104,1392,104,5058,104,65320,72,8459,72,8460,72,8461,72,119815,72,119867,72,119919,72,120023,72,120179,72,120231,72,120283,72,120335,72,120387,72,120439,72,919,72,120494,72,120552,72,120610,72,120668,72,120726,72,11406,72,5051,72,5500,72,42215,72,66255,72,731,105,9075,105,65353,105,8560,105,8505,105,8520,105,119842,105,119894,105,119946,105,119998,105,120050,105,120102,105,120154,105,120206,105,120258,105,120310,105,120362,105,120414,105,120466,105,120484,105,618,105,617,105,953,105,8126,105,890,105,120522,105,120580,105,120638,105,120696,105,120754,105,1110,105,42567,105,1231,105,43893,105,5029,105,71875,105,65354,106,8521,106,119843,106,119895,106,119947,106,119999,106,120051,106,120103,106,120155,106,120207,106,120259,106,120311,106,120363,106,120415,106,120467,106,1011,106,1112,106,65322,74,119817,74,119869,74,119921,74,119973,74,120025,74,120077,74,120129,74,120181,74,120233,74,120285,74,120337,74,120389,74,120441,74,42930,74,895,74,1032,74,5035,74,5261,74,42201,74,119844,107,119896,107,119948,107,120000,107,120052,107,120104,107,120156,107,120208,107,120260,107,120312,107,120364,107,120416,107,120468,107,8490,75,65323,75,119818,75,119870,75,119922,75,119974,75,120026,75,120078,75,120130,75,120182,75,120234,75,120286,75,120338,75,120390,75,120442,75,922,75,120497,75,120555,75,120613,75,120671,75,120729,75,11412,75,5094,75,5845,75,42199,75,66840,75,1472,108,8739,73,9213,73,65512,73,1633,108,1777,73,66336,108,125127,108,120783,73,120793,73,120803,73,120813,73,120823,73,130033,73,65321,73,8544,73,8464,73,8465,73,119816,73,119868,73,119920,73,120024,73,120128,73,120180,73,120232,73,120284,73,120336,73,120388,73,120440,73,65356,108,8572,73,8467,108,119845,108,119897,108,119949,108,120001,108,120053,108,120105,73,120157,73,120209,73,120261,73,120313,73,120365,73,120417,73,120469,73,448,73,120496,73,120554,73,120612,73,120670,73,120728,73,11410,73,1030,73,1216,73,1493,108,1503,108,1575,108,126464,108,126592,108,65166,108,65165,108,1994,108,11599,73,5825,73,42226,73,93992,73,66186,124,66313,124,119338,76,8556,76,8466,76,119819,76,119871,76,119923,76,120027,76,120079,76,120131,76,120183,76,120235,76,120287,76,120339,76,120391,76,120443,76,11472,76,5086,76,5290,76,42209,76,93974,76,71843,76,71858,76,66587,76,66854,76,65325,77,8559,77,8499,77,119820,77,119872,77,119924,77,120028,77,120080,77,120132,77,120184,77,120236,77,120288,77,120340,77,120392,77,120444,77,924,77,120499,77,120557,77,120615,77,120673,77,120731,77,1018,77,11416,77,5047,77,5616,77,5846,77,42207,77,66224,77,66321,77,119847,110,119899,110,119951,110,120003,110,120055,110,120107,110,120159,110,120211,110,120263,110,120315,110,120367,110,120419,110,120471,110,1400,110,1404,110,65326,78,8469,78,119821,78,119873,78,119925,78,119977,78,120029,78,120081,78,120185,78,120237,78,120289,78,120341,78,120393,78,120445,78,925,78,120500,78,120558,78,120616,78,120674,78,120732,78,11418,78,42208,78,66835,78,3074,111,3202,111,3330,111,3458,111,2406,111,2662,111,2790,111,3046,111,3174,111,3302,111,3430,111,3664,111,3792,111,4160,111,1637,111,1781,111,65359,111,8500,111,119848,111,119900,111,119952,111,120056,111,120108,111,120160,111,120212,111,120264,111,120316,111,120368,111,120420,111,120472,111,7439,111,7441,111,43837,111,959,111,120528,111,120586,111,120644,111,120702,111,120760,111,963,111,120532,111,120590,111,120648,111,120706,111,120764,111,11423,111,4351,111,1413,111,1505,111,1607,111,126500,111,126564,111,126596,111,65259,111,65260,111,65258,111,65257,111,1726,111,64428,111,64429,111,64427,111,64426,111,1729,111,64424,111,64425,111,64423,111,64422,111,1749,111,3360,111,4125,111,66794,111,71880,111,71895,111,66604,111,1984,79,2534,79,2918,79,12295,79,70864,79,71904,79,120782,79,120792,79,120802,79,120812,79,120822,79,130032,79,65327,79,119822,79,119874,79,119926,79,119978,79,120030,79,120082,79,120134,79,120186,79,120238,79,120290,79,120342,79,120394,79,120446,79,927,79,120502,79,120560,79,120618,79,120676,79,120734,79,11422,79,1365,79,11604,79,4816,79,2848,79,66754,79,42227,79,71861,79,66194,79,66219,79,66564,79,66838,79,9076,112,65360,112,119849,112,119901,112,119953,112,120005,112,120057,112,120109,112,120161,112,120213,112,120265,112,120317,112,120369,112,120421,112,120473,112,961,112,120530,112,120544,112,120588,112,120602,112,120646,112,120660,112,120704,112,120718,112,120762,112,120776,112,11427,112,65328,80,8473,80,119823,80,119875,80,119927,80,119979,80,120031,80,120083,80,120187,80,120239,80,120291,80,120343,80,120395,80,120447,80,929,80,120504,80,120562,80,120620,80,120678,80,120736,80,11426,80,5090,80,5229,80,42193,80,66197,80,119850,113,119902,113,119954,113,120006,113,120058,113,120110,113,120162,113,120214,113,120266,113,120318,113,120370,113,120422,113,120474,113,1307,113,1379,113,1382,113,8474,81,119824,81,119876,81,119928,81,119980,81,120032,81,120084,81,120188,81,120240,81,120292,81,120344,81,120396,81,120448,81,11605,81,119851,114,119903,114,119955,114,120007,114,120059,114,120111,114,120163,114,120215,114,120267,114,120319,114,120371,114,120423,114,120475,114,43847,114,43848,114,7462,114,11397,114,43905,114,119318,82,8475,82,8476,82,8477,82,119825,82,119877,82,119929,82,120033,82,120189,82,120241,82,120293,82,120345,82,120397,82,120449,82,422,82,5025,82,5074,82,66740,82,5511,82,42211,82,94005,82,65363,115,119852,115,119904,115,119956,115,120008,115,120060,115,120112,115,120164,115,120216,115,120268,115,120320,115,120372,115,120424,115,120476,115,42801,115,445,115,1109,115,43946,115,71873,115,66632,115,65331,83,119826,83,119878,83,119930,83,119982,83,120034,83,120086,83,120138,83,120190,83,120242,83,120294,83,120346,83,120398,83,120450,83,1029,83,1359,83,5077,83,5082,83,42210,83,94010,83,66198,83,66592,83,119853,116,119905,116,119957,116,120009,116,120061,116,120113,116,120165,116,120217,116,120269,116,120321,116,120373,116,120425,116,120477,116,8868,84,10201,84,128872,84,65332,84,119827,84,119879,84,119931,84,119983,84,120035,84,120087,84,120139,84,120191,84,120243,84,120295,84,120347,84,120399,84,120451,84,932,84,120507,84,120565,84,120623,84,120681,84,120739,84,11430,84,5026,84,42196,84,93962,84,71868,84,66199,84,66225,84,66325,84,119854,117,119906,117,119958,117,120010,117,120062,117,120114,117,120166,117,120218,117,120270,117,120322,117,120374,117,120426,117,120478,117,42911,117,7452,117,43854,117,43858,117,651,117,965,117,120534,117,120592,117,120650,117,120708,117,120766,117,1405,117,66806,117,71896,117,8746,85,8899,85,119828,85,119880,85,119932,85,119984,85,120036,85,120088,85,120140,85,120192,85,120244,85,120296,85,120348,85,120400,85,120452,85,1357,85,4608,85,66766,85,5196,85,42228,85,94018,85,71864,85,8744,118,8897,118,65366,118,8564,118,119855,118,119907,118,119959,118,120011,118,120063,118,120115,118,120167,118,120219,118,120271,118,120323,118,120375,118,120427,118,120479,118,7456,118,957,118,120526,118,120584,118,120642,118,120700,118,120758,118,1141,118,1496,118,71430,118,43945,118,71872,118,119309,86,1639,86,1783,86,8548,86,119829,86,119881,86,119933,86,119985,86,120037,86,120089,86,120141,86,120193,86,120245,86,120297,86,120349,86,120401,86,120453,86,1140,86,11576,86,5081,86,5167,86,42719,86,42214,86,93960,86,71840,86,66845,86,623,119,119856,119,119908,119,119960,119,120012,119,120064,119,120116,119,120168,119,120220,119,120272,119,120324,119,120376,119,120428,119,120480,119,7457,119,1121,119,1309,119,1377,119,71434,119,71438,119,71439,119,43907,119,71919,87,71910,87,119830,87,119882,87,119934,87,119986,87,120038,87,120090,87,120142,87,120194,87,120246,87,120298,87,120350,87,120402,87,120454,87,1308,87,5043,87,5076,87,42218,87,5742,120,10539,120,10540,120,10799,120,65368,120,8569,120,119857,120,119909,120,119961,120,120013,120,120065,120,120117,120,120169,120,120221,120,120273,120,120325,120,120377,120,120429,120,120481,120,5441,120,5501,120,5741,88,9587,88,66338,88,71916,88,65336,88,8553,88,119831,88,119883,88,119935,88,119987,88,120039,88,120091,88,120143,88,120195,88,120247,88,120299,88,120351,88,120403,88,120455,88,42931,88,935,88,120510,88,120568,88,120626,88,120684,88,120742,88,11436,88,11613,88,5815,88,42219,88,66192,88,66228,88,66327,88,66855,88,611,121,7564,121,65369,121,119858,121,119910,121,119962,121,120014,121,120066,121,120118,121,120170,121,120222,121,120274,121,120326,121,120378,121,120430,121,120482,121,655,121,7935,121,43866,121,947,121,8509,121,120516,121,120574,121,120632,121,120690,121,120748,121,1199,121,4327,121,71900,121,65337,89,119832,89,119884,89,119936,89,119988,89,120040,89,120092,89,120144,89,120196,89,120248,89,120300,89,120352,89,120404,89,120456,89,933,89,978,89,120508,89,120566,89,120624,89,120682,89,120740,89,11432,89,1198,89,5033,89,5053,89,42220,89,94019,89,71844,89,66226,89,119859,122,119911,122,119963,122,120015,122,120067,122,120119,122,120171,122,120223,122,120275,122,120327,122,120379,122,120431,122,120483,122,7458,122,43923,122,71876,122,66293,90,71909,90,65338,90,8484,90,8488,90,119833,90,119885,90,119937,90,119989,90,120041,90,120197,90,120249,90,120301,90,120353,90,120405,90,120457,90,918,90,120493,90,120551,90,120609,90,120667,90,120725,90,5059,90,42204,90,71849,90,65282,34,65284,36,65285,37,65286,38,65290,42,65291,43,65294,46,65295,47,65296,48,65297,49,65298,50,65299,51,65300,52,65301,53,65302,54,65303,55,65304,56,65305,57,65308,60,65309,61,65310,62,65312,64,65316,68,65318,70,65319,71,65324,76,65329,81,65330,82,65333,85,65334,86,65335,87,65343,95,65346,98,65348,100,65350,102,65355,107,65357,109,65358,110,65361,113,65362,114,65364,116,65365,117,65367,119,65370,122,65371,123,65373,125],\"_default\":[160,32,8211,45,65374,126,65306,58,65281,33,8216,96,8217,96,8245,96,180,96,12494,47,1047,51,1073,54,1072,97,1040,65,1068,98,1042,66,1089,99,1057,67,1077,101,1045,69,1053,72,305,105,1050,75,921,73,1052,77,1086,111,1054,79,1009,112,1088,112,1056,80,1075,114,1058,84,215,120,1093,120,1061,88,1091,121,1059,89,65283,35,65288,40,65289,41,65292,44,65307,59,65311,63],\"cs\":[65374,126,65306,58,65281,33,8216,96,8217,96,8245,96,180,96,12494,47,1047,51,1073,54,1072,97,1040,65,1068,98,1042,66,1089,99,1057,67,1077,101,1045,69,1053,72,305,105,1050,75,921,73,1052,77,1086,111,1054,79,1009,112,1088,112,1056,80,1075,114,1058,84,1093,120,1061,88,1091,121,1059,89,65283,35,65288,40,65289,41,65292,44,65307,59,65311,63],\"de\":[65374,126,65306,58,65281,33,8216,96,8217,96,8245,96,180,96,12494,47,1047,51,1073,54,1072,97,1040,65,1068,98,1042,66,1089,99,1057,67,1077,101,1045,69,1053,72,305,105,1050,75,921,73,1052,77,1086,111,1054,79,1009,112,1088,112,1056,80,1075,114,1058,84,1093,120,1061,88,1091,121,1059,89,65283,35,65288,40,65289,41,65292,44,65307,59,65311,63],\"es\":[8211,45,65374,126,65306,58,65281,33,8245,96,180,96,12494,47,1047,51,1073,54,1072,97,1040,65,1068,98,1042,66,1089,99,1057,67,1077,101,1045,69,1053,72,305,105,1050,75,1052,77,1086,111,1054,79,1009,112,1088,112,1056,80,1075,114,1058,84,215,120,1093,120,1061,88,1091,121,1059,89,65283,35,65288,40,65289,41,65292,44,65307,59,65311,63],\"fr\":[65374,126,65306,58,65281,33,8216,96,8245,96,12494,47,1047,51,1073,54,1072,97,1040,65,1068,98,1042,66,1089,99,1057,67,1077,101,1045,69,1053,72,305,105,1050,75,921,73,1052,77,1086,111,1054,79,1009,112,1088,112,1056,80,1075,114,1058,84,215,120,1093,120,1061,88,1091,121,1059,89,65283,35,65288,40,65289,41,65292,44,65307,59,65311,63],\"it\":[160,32,8211,45,65374,126,65306,58,65281,33,8216,96,8245,96,180,96,12494,47,1047,51,1073,54,1072,97,1040,65,1068,98,1042,66,1089,99,1057,67,1077,101,1045,69,1053,72,305,105,1050,75,921,73,1052,77,1086,111,1054,79,1009,112,1088,112,1056,80,1075,114,1058,84,215,120,1093,120,1061,88,1091,121,1059,89,65283,35,65288,40,65289,41,65292,44,65307,59,65311,63],\"ja\":[8211,45,65306,58,65281,33,8216,96,8217,96,8245,96,180,96,1047,51,1073,54,1072,97,1040,65,1068,98,1042,66,1089,99,1057,67,1077,101,1045,69,1053,72,305,105,1050,75,921,73,1052,77,1086,111,1054,79,1009,112,1088,112,1056,80,1075,114,1058,84,215,120,1093,120,1061,88,1091,121,1059,89,65283,35,65292,44,65307,59],\"ko\":[8211,45,65374,126,65306,58,65281,33,8245,96,180,96,12494,47,1047,51,1073,54,1072,97,1040,65,1068,98,1042,66,1089,99,1057,67,1077,101,1045,69,1053,72,305,105,1050,75,921,73,1052,77,1086,111,1054,79,1009,112,1088,112,1056,80,1075,114,1058,84,215,120,1093,120,1061,88,1091,121,1059,89,65283,35,65288,40,65289,41,65292,44,65307,59,65311,63],\"pl\":[65374,126,65306,58,65281,33,8216,96,8217,96,8245,96,180,96,12494,47,1047,51,1073,54,1072,97,1040,65,1068,98,1042,66,1089,99,1057,67,1077,101,1045,69,1053,72,305,105,1050,75,921,73,1052,77,1086,111,1054,79,1009,112,1088,112,1056,80,1075,114,1058,84,215,120,1093,120,1061,88,1091,121,1059,89,65283,35,65288,40,65289,41,65292,44,65307,59,65311,63],\"pt-BR\":[65374,126,65306,58,65281,33,8216,96,8217,96,8245,96,180,96,12494,47,1047,51,1073,54,1072,97,1040,65,1068,98,1042,66,1089,99,1057,67,1077,101,1045,69,1053,72,305,105,1050,75,921,73,1052,77,1086,111,1054,79,1009,112,1088,112,1056,80,1075,114,1058,84,215,120,1093,120,1061,88,1091,121,1059,89,65283,35,65288,40,65289,41,65292,44,65307,59,65311,63],\"qps-ploc\":[160,32,8211,45,65374,126,65306,58,65281,33,8216,96,8217,96,8245,96,180,96,12494,47,1047,51,1073,54,1072,97,1040,65,1068,98,1042,66,1089,99,1057,67,1077,101,1045,69,1053,72,305,105,1050,75,921,73,1052,77,1086,111,1054,79,1088,112,1056,80,1075,114,1058,84,215,120,1093,120,1061,88,1091,121,1059,89,65283,35,65288,40,65289,41,65292,44,65307,59,65311,63],\"ru\":[65374,126,65306,58,65281,33,8216,96,8217,96,8245,96,180,96,12494,47,305,105,921,73,1009,112,215,120,65283,35,65288,40,65289,41,65292,44,65307,59,65311,63],\"tr\":[160,32,8211,45,65374,126,65306,58,65281,33,8245,96,180,96,12494,47,1047,51,1073,54,1072,97,1040,65,1068,98,1042,66,1089,99,1057,67,1077,101,1045,69,1053,72,1050,75,921,73,1052,77,1086,111,1054,79,1009,112,1088,112,1056,80,1075,114,1058,84,215,120,1093,120,1061,88,1091,121,1059,89,65283,35,65288,40,65289,41,65292,44,65307,59,65311,63],\"zh-hans\":[65374,126,65306,58,65281,33,8245,96,180,96,12494,47,1047,51,1073,54,1072,97,1040,65,1068,98,1042,66,1089,99,1057,67,1077,101,1045,69,1053,72,305,105,1050,75,921,73,1052,77,1086,111,1054,79,1009,112,1088,112,1056,80,1075,114,1058,84,215,120,1093,120,1061,88,1091,121,1059,89,65288,40,65289,41],\"zh-hant\":[8211,45,65374,126,180,96,12494,47,1047,51,1073,54,1072,97,1040,65,1068,98,1042,66,1089,99,1057,67,1077,101,1045,69,1053,72,305,105,1050,75,921,73,1052,77,1086,111,1054,79,1009,112,1088,112,1056,80,1075,114,1058,84,215,120,1093,120,1061,88,1091,121,1059,89,65283,35,65307,59]}');
 });
-AmbiguousCharacters.cache = new _cache_js__WEBPACK_IMPORTED_MODULE_0__.LRUCachedComputed((locales) => {
+AmbiguousCharacters.cache = new _cache_js__WEBPACK_IMPORTED_MODULE_0__.LRUCachedFunction((locales) => {
     function arrayToMap(arr) {
         const result = new Map();
         for (let i = 0; i < arr.length; i += 2) {
@@ -7118,6 +7387,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "isNumber": () => (/* binding */ isNumber),
 /* harmony export */   "isObject": () => (/* binding */ isObject),
 /* harmony export */   "isString": () => (/* binding */ isString),
+/* harmony export */   "isTypedArray": () => (/* binding */ isTypedArray),
 /* harmony export */   "isUndefined": () => (/* binding */ isUndefined),
 /* harmony export */   "isUndefinedOrNull": () => (/* binding */ isUndefinedOrNull),
 /* harmony export */   "validateConstraint": () => (/* binding */ validateConstraint),
@@ -7150,6 +7420,15 @@ function isObject(obj) {
         && !Array.isArray(obj)
         && !(obj instanceof RegExp)
         && !(obj instanceof Date);
+}
+/**
+ *
+ * @returns whether the provided parameter is of type `Buffer` or Uint8Array dervived type
+ */
+function isTypedArray(obj) {
+    const TypedArray = Object.getPrototypeOf(Uint8Array);
+    return typeof obj === 'object'
+        && obj instanceof TypedArray;
 }
 /**
  * In **contrast** to just checking `typeof` this will return `false` for `NaN`.
@@ -7263,7 +7542,7 @@ function createProxyObject(methodNames, invoke) {
             return invoke(method, args);
         };
     };
-    let result = {};
+    const result = {};
     for (const methodName of methodNames) {
         result[methodName] = createProxyMethod(methodName);
     }
@@ -7301,8 +7580,8 @@ function toUint8(v) {
     if (v < 0) {
         return 0;
     }
-    if (v > 255 /* MAX_UINT_8 */) {
-        return 255 /* MAX_UINT_8 */;
+    if (v > 255 /* Constants.MAX_UINT_8 */) {
+        return 255 /* Constants.MAX_UINT_8 */;
     }
     return v | 0;
 }
@@ -7310,8 +7589,8 @@ function toUint32(v) {
     if (v < 0) {
         return 0;
     }
-    if (v > 4294967295 /* MAX_UINT_32 */) {
-        return 4294967295 /* MAX_UINT_32 */;
+    if (v > 4294967295 /* Constants.MAX_UINT_32 */) {
+        return 4294967295 /* Constants.MAX_UINT_32 */;
     }
     return v | 0;
 }
@@ -7678,7 +7957,7 @@ class Uri extends URI {
     }
     toJSON() {
         const res = {
-            $mid: 1 /* Uri */
+            $mid: 1 /* MarshalledId.Uri */
         };
         // cached state
         if (this._fsPath) {
@@ -7709,25 +7988,25 @@ class Uri extends URI {
 }
 // reserved characters: https://tools.ietf.org/html/rfc3986#section-2.2
 const encodeTable = {
-    [58 /* Colon */]: '%3A',
-    [47 /* Slash */]: '%2F',
-    [63 /* QuestionMark */]: '%3F',
-    [35 /* Hash */]: '%23',
-    [91 /* OpenSquareBracket */]: '%5B',
-    [93 /* CloseSquareBracket */]: '%5D',
-    [64 /* AtSign */]: '%40',
-    [33 /* ExclamationMark */]: '%21',
-    [36 /* DollarSign */]: '%24',
-    [38 /* Ampersand */]: '%26',
-    [39 /* SingleQuote */]: '%27',
-    [40 /* OpenParen */]: '%28',
-    [41 /* CloseParen */]: '%29',
-    [42 /* Asterisk */]: '%2A',
-    [43 /* Plus */]: '%2B',
-    [44 /* Comma */]: '%2C',
-    [59 /* Semicolon */]: '%3B',
-    [61 /* Equals */]: '%3D',
-    [32 /* Space */]: '%20',
+    [58 /* CharCode.Colon */]: '%3A',
+    [47 /* CharCode.Slash */]: '%2F',
+    [63 /* CharCode.QuestionMark */]: '%3F',
+    [35 /* CharCode.Hash */]: '%23',
+    [91 /* CharCode.OpenSquareBracket */]: '%5B',
+    [93 /* CharCode.CloseSquareBracket */]: '%5D',
+    [64 /* CharCode.AtSign */]: '%40',
+    [33 /* CharCode.ExclamationMark */]: '%21',
+    [36 /* CharCode.DollarSign */]: '%24',
+    [38 /* CharCode.Ampersand */]: '%26',
+    [39 /* CharCode.SingleQuote */]: '%27',
+    [40 /* CharCode.OpenParen */]: '%28',
+    [41 /* CharCode.CloseParen */]: '%29',
+    [42 /* CharCode.Asterisk */]: '%2A',
+    [43 /* CharCode.Plus */]: '%2B',
+    [44 /* CharCode.Comma */]: '%2C',
+    [59 /* CharCode.Semicolon */]: '%3B',
+    [61 /* CharCode.Equals */]: '%3D',
+    [32 /* CharCode.Space */]: '%20',
 };
 function encodeURIComponentFast(uriComponent, allowSlash) {
     let res = undefined;
@@ -7735,14 +8014,14 @@ function encodeURIComponentFast(uriComponent, allowSlash) {
     for (let pos = 0; pos < uriComponent.length; pos++) {
         const code = uriComponent.charCodeAt(pos);
         // unreserved characters: https://tools.ietf.org/html/rfc3986#section-2.3
-        if ((code >= 97 /* a */ && code <= 122 /* z */)
-            || (code >= 65 /* A */ && code <= 90 /* Z */)
-            || (code >= 48 /* Digit0 */ && code <= 57 /* Digit9 */)
-            || code === 45 /* Dash */
-            || code === 46 /* Period */
-            || code === 95 /* Underline */
-            || code === 126 /* Tilde */
-            || (allowSlash && code === 47 /* Slash */)) {
+        if ((code >= 97 /* CharCode.a */ && code <= 122 /* CharCode.z */)
+            || (code >= 65 /* CharCode.A */ && code <= 90 /* CharCode.Z */)
+            || (code >= 48 /* CharCode.Digit0 */ && code <= 57 /* CharCode.Digit9 */)
+            || code === 45 /* CharCode.Dash */
+            || code === 46 /* CharCode.Period */
+            || code === 95 /* CharCode.Underline */
+            || code === 126 /* CharCode.Tilde */
+            || (allowSlash && code === 47 /* CharCode.Slash */)) {
             // check if we are delaying native encode
             if (nativeEncodePos !== -1) {
                 res += encodeURIComponent(uriComponent.substring(nativeEncodePos, pos));
@@ -7784,7 +8063,7 @@ function encodeURIComponentMinimal(path) {
     let res = undefined;
     for (let pos = 0; pos < path.length; pos++) {
         const code = path.charCodeAt(pos);
-        if (code === 35 /* Hash */ || code === 63 /* QuestionMark */) {
+        if (code === 35 /* CharCode.Hash */ || code === 63 /* CharCode.QuestionMark */) {
             if (res === undefined) {
                 res = path.substr(0, pos);
             }
@@ -7807,9 +8086,9 @@ function uriToFsPath(uri, keepDriveLetterCasing) {
         // unc path: file://shares/c$/far/boo
         value = `//${uri.authority}${uri.path}`;
     }
-    else if (uri.path.charCodeAt(0) === 47 /* Slash */
-        && (uri.path.charCodeAt(1) >= 65 /* A */ && uri.path.charCodeAt(1) <= 90 /* Z */ || uri.path.charCodeAt(1) >= 97 /* a */ && uri.path.charCodeAt(1) <= 122 /* z */)
-        && uri.path.charCodeAt(2) === 58 /* Colon */) {
+    else if (uri.path.charCodeAt(0) === 47 /* CharCode.Slash */
+        && (uri.path.charCodeAt(1) >= 65 /* CharCode.A */ && uri.path.charCodeAt(1) <= 90 /* CharCode.Z */ || uri.path.charCodeAt(1) >= 97 /* CharCode.a */ && uri.path.charCodeAt(1) <= 122 /* CharCode.z */)
+        && uri.path.charCodeAt(2) === 58 /* CharCode.Colon */) {
         if (!keepDriveLetterCasing) {
             // windows drive letter: file:///c:/far/boo
             value = uri.path[1].toLowerCase() + uri.path.substr(2);
@@ -7875,15 +8154,15 @@ function _asFormatted(uri, skipEncoding) {
     }
     if (path) {
         // lower-case windows drive letters in /C:/fff or C:/fff
-        if (path.length >= 3 && path.charCodeAt(0) === 47 /* Slash */ && path.charCodeAt(2) === 58 /* Colon */) {
+        if (path.length >= 3 && path.charCodeAt(0) === 47 /* CharCode.Slash */ && path.charCodeAt(2) === 58 /* CharCode.Colon */) {
             const code = path.charCodeAt(1);
-            if (code >= 65 /* A */ && code <= 90 /* Z */) {
+            if (code >= 65 /* CharCode.A */ && code <= 90 /* CharCode.Z */) {
                 path = `/${String.fromCharCode(code + 32)}:${path.substr(3)}`; // "/c:".length === 3
             }
         }
-        else if (path.length >= 2 && path.charCodeAt(1) === 58 /* Colon */) {
+        else if (path.length >= 2 && path.charCodeAt(1) === 58 /* CharCode.Colon */) {
             const code = path.charCodeAt(0);
-            if (code >= 65 /* A */ && code <= 90 /* Z */) {
+            if (code >= 65 /* CharCode.A */ && code <= 90 /* CharCode.Z */) {
                 path = `${String.fromCharCode(code + 32)}:${path.substr(2)}`; // "/c:".length === 3
             }
         }
@@ -7973,7 +8252,7 @@ class RequestMessage {
         this.req = req;
         this.method = method;
         this.args = args;
-        this.type = 0 /* Request */;
+        this.type = 0 /* MessageType.Request */;
     }
 }
 class ReplyMessage {
@@ -7982,7 +8261,7 @@ class ReplyMessage {
         this.seq = seq;
         this.res = res;
         this.err = err;
-        this.type = 1 /* Reply */;
+        this.type = 1 /* MessageType.Reply */;
     }
 }
 class SubscribeEventMessage {
@@ -7991,7 +8270,7 @@ class SubscribeEventMessage {
         this.req = req;
         this.eventName = eventName;
         this.arg = arg;
-        this.type = 2 /* SubscribeEvent */;
+        this.type = 2 /* MessageType.SubscribeEvent */;
     }
 }
 class EventMessage {
@@ -7999,14 +8278,14 @@ class EventMessage {
         this.vsWorker = vsWorker;
         this.req = req;
         this.event = event;
-        this.type = 3 /* Event */;
+        this.type = 3 /* MessageType.Event */;
     }
 }
 class UnsubscribeEventMessage {
     constructor(vsWorker, req) {
         this.vsWorker = vsWorker;
         this.req = req;
-        this.type = 4 /* UnsubscribeEvent */;
+        this.type = 4 /* MessageType.UnsubscribeEvent */;
     }
 }
 class SimpleWorkerProtocol {
@@ -8058,15 +8337,15 @@ class SimpleWorkerProtocol {
     }
     _handleMessage(msg) {
         switch (msg.type) {
-            case 1 /* Reply */:
+            case 1 /* MessageType.Reply */:
                 return this._handleReplyMessage(msg);
-            case 0 /* Request */:
+            case 0 /* MessageType.Request */:
                 return this._handleRequestMessage(msg);
-            case 2 /* SubscribeEvent */:
+            case 2 /* MessageType.SubscribeEvent */:
                 return this._handleSubscribeEventMessage(msg);
-            case 3 /* Event */:
+            case 3 /* MessageType.Event */:
                 return this._handleEventMessage(msg);
-            case 4 /* UnsubscribeEvent */:
+            case 4 /* MessageType.UnsubscribeEvent */:
                 return this._handleUnsubscribeEventMessage(msg);
         }
     }
@@ -8075,7 +8354,7 @@ class SimpleWorkerProtocol {
             console.warn('Got reply to unknown seq');
             return;
         }
-        let reply = this._pendingReplies[replyMessage.seq];
+        const reply = this._pendingReplies[replyMessage.seq];
         delete this._pendingReplies[replyMessage.seq];
         if (replyMessage.err) {
             let err = replyMessage.err;
@@ -8091,8 +8370,8 @@ class SimpleWorkerProtocol {
         reply.resolve(replyMessage.res);
     }
     _handleRequestMessage(requestMessage) {
-        let req = requestMessage.req;
-        let result = this._handler.handleMessage(requestMessage.method, requestMessage.args);
+        const req = requestMessage.req;
+        const result = this._handler.handleMessage(requestMessage.method, requestMessage.args);
         result.then((r) => {
             this._send(new ReplyMessage(this._workerId, req, r, undefined));
         }, (e) => {
@@ -8126,15 +8405,15 @@ class SimpleWorkerProtocol {
         this._pendingEvents.delete(msg.req);
     }
     _send(msg) {
-        let transfer = [];
-        if (msg.type === 0 /* Request */) {
+        const transfer = [];
+        if (msg.type === 0 /* MessageType.Request */) {
             for (let i = 0; i < msg.args.length; i++) {
                 if (msg.args[i] instanceof ArrayBuffer) {
                     transfer.push(msg.args[i]);
                 }
             }
         }
-        else if (msg.type === 1 /* Reply */) {
+        else if (msg.type === 1 /* MessageType.Reply */) {
             if (msg.res instanceof ArrayBuffer) {
                 transfer.push(msg.res);
             }
@@ -8154,9 +8433,7 @@ class SimpleWorkerClient extends _lifecycle_js__WEBPACK_IMPORTED_MODULE_2__.Disp
         }, (err) => {
             // in Firefox, web workers fail lazily :(
             // we will reject the proxy
-            if (lazyProxyReject) {
-                lazyProxyReject(err);
-            }
+            lazyProxyReject === null || lazyProxyReject === void 0 ? void 0 : lazyProxyReject(err);
         }));
         this._protocol = new SimpleWorkerProtocol({
             sendMessage: (msg, transfer) => {
@@ -8262,7 +8539,7 @@ function createProxyObject(methodNames, invoke, proxyListen) {
             return proxyListen(eventName, arg);
         };
     };
-    let result = {};
+    const result = {};
     for (const methodName of methodNames) {
         if (propertyIsDynamicEvent(methodName)) {
             result[methodName] = createProxyDynamicEvent(methodName);
@@ -8443,13 +8720,13 @@ class CharacterClassifier {
 }
 class CharacterSet {
     constructor() {
-        this._actual = new CharacterClassifier(0 /* False */);
+        this._actual = new CharacterClassifier(0 /* Boolean.False */);
     }
     add(charCode) {
-        this._actual.set(charCode, 1 /* True */);
+        this._actual.set(charCode, 1 /* Boolean.True */);
     }
     has(charCode) {
-        return (this._actual.get(charCode) === 1 /* True */);
+        return (this._actual.get(charCode) === 1 /* Boolean.True */);
     }
 }
 
@@ -8791,10 +9068,10 @@ class Range {
         let resultStartColumn = a.startColumn;
         let resultEndLineNumber = a.endLineNumber;
         let resultEndColumn = a.endColumn;
-        let otherStartLineNumber = b.startLineNumber;
-        let otherStartColumn = b.startColumn;
-        let otherEndLineNumber = b.endLineNumber;
-        let otherEndColumn = b.endColumn;
+        const otherStartLineNumber = b.startLineNumber;
+        const otherStartColumn = b.startColumn;
+        const otherEndLineNumber = b.endLineNumber;
+        const otherEndColumn = b.endColumn;
         if (resultStartLineNumber < otherStartLineNumber) {
             resultStartLineNumber = otherStartLineNumber;
             resultStartColumn = otherStartColumn;
@@ -9054,15 +9331,15 @@ class Selection extends _range_js__WEBPACK_IMPORTED_MODULE_1__.Range {
      */
     getDirection() {
         if (this.selectionStartLineNumber === this.startLineNumber && this.selectionStartColumn === this.startColumn) {
-            return 0 /* LTR */;
+            return 0 /* SelectionDirection.LTR */;
         }
-        return 1 /* RTL */;
+        return 1 /* SelectionDirection.RTL */;
     }
     /**
      * Create a new selection with a different `positionLineNumber` and `positionColumn`.
      */
     setEndPosition(endLineNumber, endColumn) {
-        if (this.getDirection() === 0 /* LTR */) {
+        if (this.getDirection() === 0 /* SelectionDirection.LTR */) {
             return new Selection(this.startLineNumber, this.startColumn, endLineNumber, endColumn);
         }
         return new Selection(endLineNumber, endColumn, this.startLineNumber, this.startColumn);
@@ -9083,7 +9360,7 @@ class Selection extends _range_js__WEBPACK_IMPORTED_MODULE_1__.Range {
      * Create a new selection with a different `selectionStartLineNumber` and `selectionStartColumn`.
      */
     setStartPosition(startLineNumber, startColumn) {
-        if (this.getDirection() === 0 /* LTR */) {
+        if (this.getDirection() === 0 /* SelectionDirection.LTR */) {
             return new Selection(startLineNumber, startColumn, this.endLineNumber, this.endColumn);
         }
         return new Selection(this.endLineNumber, this.endColumn, startLineNumber, startColumn);
@@ -9099,7 +9376,7 @@ class Selection extends _range_js__WEBPACK_IMPORTED_MODULE_1__.Range {
      * Creates a `Selection` from a range, given a direction.
      */
     static fromRange(range, direction) {
-        if (direction === 0 /* LTR */) {
+        if (direction === 0 /* SelectionDirection.LTR */) {
             return new Selection(range.startLineNumber, range.startColumn, range.endLineNumber, range.endColumn);
         }
         else {
@@ -9146,7 +9423,7 @@ class Selection extends _range_js__WEBPACK_IMPORTED_MODULE_1__.Range {
      * Create with a direction.
      */
     static createWithDirection(startLineNumber, startColumn, endLineNumber, endColumn, direction) {
-        if (direction === 0 /* LTR */) {
+        if (direction === 0 /* SelectionDirection.LTR */) {
             return new Selection(startLineNumber, startColumn, endLineNumber, endColumn);
         }
         return new Selection(endLineNumber, endColumn, startLineNumber, startColumn);
@@ -9175,12 +9452,12 @@ __webpack_require__.r(__webpack_exports__);
 
 class WordCharacterClassifier extends _characterClassifier_js__WEBPACK_IMPORTED_MODULE_0__.CharacterClassifier {
     constructor(wordSeparators) {
-        super(0 /* Regular */);
+        super(0 /* WordCharacterClass.Regular */);
         for (let i = 0, len = wordSeparators.length; i < len; i++) {
-            this.set(wordSeparators.charCodeAt(i), 2 /* WordSeparator */);
+            this.set(wordSeparators.charCodeAt(i), 2 /* WordCharacterClass.WordSeparator */);
         }
-        this.set(32 /* Space */, 1 /* Whitespace */);
-        this.set(9 /* Tab */, 1 /* Whitespace */);
+        this.set(32 /* CharCode.Space */, 1 /* WordCharacterClass.Whitespace */);
+        this.set(9 /* CharCode.Tab */, 1 /* WordCharacterClass.Whitespace */);
     }
 }
 function once(computeFn) {
@@ -9210,10 +9487,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "ensureValidWordDefinition": () => (/* binding */ ensureValidWordDefinition),
 /* harmony export */   "getWordAtText": () => (/* binding */ getWordAtText)
 /* harmony export */ });
+/* harmony import */ var _base_common_iterator_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../base/common/iterator.js */ "./node_modules/monaco-editor/esm/vs/base/common/iterator.js");
+/* harmony import */ var _base_common_linkedList_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../base/common/linkedList.js */ "./node_modules/monaco-editor/esm/vs/base/common/linkedList.js");
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
+
+
 const USUAL_WORD_SEPARATORS = '`~!@#$%^&*()-=+[{]}\\|;:\'",.<>/?';
 /**
  * Create a word definition regular expression based on default word separators.
@@ -9258,12 +9539,16 @@ function ensureValidWordDefinition(wordDefinition) {
     result.lastIndex = 0;
     return result;
 }
-const _defaultConfig = {
+const _defaultConfig = new _base_common_linkedList_js__WEBPACK_IMPORTED_MODULE_1__.LinkedList();
+_defaultConfig.unshift({
     maxLen: 1000,
     windowSize: 15,
     timeBudget: 150
-};
-function getWordAtText(column, wordDefinition, text, textOffset, config = _defaultConfig) {
+});
+function getWordAtText(column, wordDefinition, text, textOffset, config) {
+    if (!config) {
+        config = _base_common_iterator_js__WEBPACK_IMPORTED_MODULE_0__.Iterable.first(_defaultConfig);
+    }
     if (text.length > config.maxLen) {
         // don't throw strings that long at the regexp
         // but use a sub-string in which a word must occur
@@ -9396,6 +9681,13 @@ class LineSequence {
                 columns[len] = col;
                 len++;
             }
+            if (!shouldIgnoreTrimWhitespace && index < endIndex) {
+                // Add \n if trim whitespace is not ignored
+                charCodes[len] = 10 /* CharCode.LineFeed */;
+                lineNumbers[len] = index + 1;
+                columns[len] = lineContent.length + 1;
+                len++;
+            }
         }
         return new CharSequence(charCodes, lineNumbers, columns);
     }
@@ -9406,19 +9698,57 @@ class CharSequence {
         this._lineNumbers = lineNumbers;
         this._columns = columns;
     }
+    toString() {
+        return ('[' + this._charCodes.map((s, idx) => (s === 10 /* CharCode.LineFeed */ ? '\\n' : String.fromCharCode(s)) + `-(${this._lineNumbers[idx]},${this._columns[idx]})`).join(', ') + ']');
+    }
+    _assertIndex(index, arr) {
+        if (index < 0 || index >= arr.length) {
+            throw new Error(`Illegal index`);
+        }
+    }
     getElements() {
         return this._charCodes;
     }
     getStartLineNumber(i) {
+        if (i > 0 && i === this._lineNumbers.length) {
+            // the start line number of the element after the last element
+            // is the end line number of the last element
+            return this.getEndLineNumber(i - 1);
+        }
+        this._assertIndex(i, this._lineNumbers);
+        return this._lineNumbers[i];
+    }
+    getEndLineNumber(i) {
+        if (i === -1) {
+            // the end line number of the element before the first element
+            // is the start line number of the first element
+            return this.getStartLineNumber(i + 1);
+        }
+        this._assertIndex(i, this._lineNumbers);
+        if (this._charCodes[i] === 10 /* CharCode.LineFeed */) {
+            return this._lineNumbers[i] + 1;
+        }
         return this._lineNumbers[i];
     }
     getStartColumn(i) {
+        if (i > 0 && i === this._columns.length) {
+            // the start column of the element after the last element
+            // is the end column of the last element
+            return this.getEndColumn(i - 1);
+        }
+        this._assertIndex(i, this._columns);
         return this._columns[i];
     }
-    getEndLineNumber(i) {
-        return this._lineNumbers[i];
-    }
     getEndColumn(i) {
+        if (i === -1) {
+            // the end column of the element before the first element
+            // is the start column of the first element
+            return this.getStartColumn(i + 1);
+        }
+        this._assertIndex(i, this._columns);
+        if (this._charCodes[i] === 10 /* CharCode.LineFeed */) {
+            return 1;
+        }
         return this._columns[i] + 1;
     }
 }
@@ -9434,38 +9764,14 @@ class CharChange {
         this.modifiedEndColumn = modifiedEndColumn;
     }
     static createFromDiffChange(diffChange, originalCharSequence, modifiedCharSequence) {
-        let originalStartLineNumber;
-        let originalStartColumn;
-        let originalEndLineNumber;
-        let originalEndColumn;
-        let modifiedStartLineNumber;
-        let modifiedStartColumn;
-        let modifiedEndLineNumber;
-        let modifiedEndColumn;
-        if (diffChange.originalLength === 0) {
-            originalStartLineNumber = 0;
-            originalStartColumn = 0;
-            originalEndLineNumber = 0;
-            originalEndColumn = 0;
-        }
-        else {
-            originalStartLineNumber = originalCharSequence.getStartLineNumber(diffChange.originalStart);
-            originalStartColumn = originalCharSequence.getStartColumn(diffChange.originalStart);
-            originalEndLineNumber = originalCharSequence.getEndLineNumber(diffChange.originalStart + diffChange.originalLength - 1);
-            originalEndColumn = originalCharSequence.getEndColumn(diffChange.originalStart + diffChange.originalLength - 1);
-        }
-        if (diffChange.modifiedLength === 0) {
-            modifiedStartLineNumber = 0;
-            modifiedStartColumn = 0;
-            modifiedEndLineNumber = 0;
-            modifiedEndColumn = 0;
-        }
-        else {
-            modifiedStartLineNumber = modifiedCharSequence.getStartLineNumber(diffChange.modifiedStart);
-            modifiedStartColumn = modifiedCharSequence.getStartColumn(diffChange.modifiedStart);
-            modifiedEndLineNumber = modifiedCharSequence.getEndLineNumber(diffChange.modifiedStart + diffChange.modifiedLength - 1);
-            modifiedEndColumn = modifiedCharSequence.getEndColumn(diffChange.modifiedStart + diffChange.modifiedLength - 1);
-        }
+        const originalStartLineNumber = originalCharSequence.getStartLineNumber(diffChange.originalStart);
+        const originalStartColumn = originalCharSequence.getStartColumn(diffChange.originalStart);
+        const originalEndLineNumber = originalCharSequence.getEndLineNumber(diffChange.originalStart + diffChange.originalLength - 1);
+        const originalEndColumn = originalCharSequence.getEndColumn(diffChange.originalStart + diffChange.originalLength - 1);
+        const modifiedStartLineNumber = modifiedCharSequence.getStartLineNumber(diffChange.modifiedStart);
+        const modifiedStartColumn = modifiedCharSequence.getStartColumn(diffChange.modifiedStart);
+        const modifiedEndLineNumber = modifiedCharSequence.getEndLineNumber(diffChange.modifiedStart + diffChange.modifiedLength - 1);
+        const modifiedEndColumn = modifiedCharSequence.getEndColumn(diffChange.modifiedStart + diffChange.modifiedLength - 1);
         return new CharChange(originalStartLineNumber, originalStartColumn, originalEndLineNumber, originalEndColumn, modifiedStartLineNumber, modifiedStartColumn, modifiedEndLineNumber, modifiedEndColumn);
     }
 }
@@ -9528,13 +9834,15 @@ class LineChange {
             // Compute character changes for diff chunks of at most 20 lines...
             const originalCharSequence = originalLineSequence.createCharSequence(shouldIgnoreTrimWhitespace, diffChange.originalStart, diffChange.originalStart + diffChange.originalLength - 1);
             const modifiedCharSequence = modifiedLineSequence.createCharSequence(shouldIgnoreTrimWhitespace, diffChange.modifiedStart, diffChange.modifiedStart + diffChange.modifiedLength - 1);
-            let rawChanges = computeDiff(originalCharSequence, modifiedCharSequence, continueCharDiff, true).changes;
-            if (shouldPostProcessCharChanges) {
-                rawChanges = postProcessCharChanges(rawChanges);
-            }
-            charChanges = [];
-            for (let i = 0, length = rawChanges.length; i < length; i++) {
-                charChanges.push(CharChange.createFromDiffChange(rawChanges[i], originalCharSequence, modifiedCharSequence));
+            if (originalCharSequence.getElements().length > 0 && modifiedCharSequence.getElements().length > 0) {
+                let rawChanges = computeDiff(originalCharSequence, modifiedCharSequence, continueCharDiff, true).changes;
+                if (shouldPostProcessCharChanges) {
+                    rawChanges = postProcessCharChanges(rawChanges);
+                }
+                charChanges = [];
+                for (let i = 0, length = rawChanges.length; i < length; i++) {
+                    charChanges.push(CharChange.createFromDiffChange(rawChanges[i], originalCharSequence, modifiedCharSequence));
+                }
             }
         }
         return new LineChange(originalStartLineNumber, originalEndLineNumber, modifiedStartLineNumber, modifiedEndLineNumber, charChanges);
@@ -9762,15 +10070,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "SignatureHelpTriggerKind": () => (/* binding */ SignatureHelpTriggerKind),
 /* harmony export */   "SymbolKinds": () => (/* binding */ SymbolKinds),
 /* harmony export */   "Token": () => (/* binding */ Token),
-/* harmony export */   "TokenMetadata": () => (/* binding */ TokenMetadata),
 /* harmony export */   "TokenizationRegistry": () => (/* binding */ TokenizationRegistry),
 /* harmony export */   "TokenizationResult": () => (/* binding */ TokenizationResult),
 /* harmony export */   "isLocationLink": () => (/* binding */ isLocationLink)
 /* harmony export */ });
-/* harmony import */ var _base_common_uri_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../base/common/uri.js */ "./node_modules/monaco-editor/esm/vs/base/common/uri.js");
-/* harmony import */ var _core_range_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./core/range.js */ "./node_modules/monaco-editor/esm/vs/editor/common/core/range.js");
-/* harmony import */ var _tokenizationRegistry_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./tokenizationRegistry.js */ "./node_modules/monaco-editor/esm/vs/editor/common/tokenizationRegistry.js");
-/* harmony import */ var _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../base/common/codicons.js */ "./node_modules/monaco-editor/esm/vs/base/common/codicons.js");
+/* harmony import */ var _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../base/common/codicons.js */ "./node_modules/monaco-editor/esm/vs/base/common/codicons.js");
+/* harmony import */ var _base_common_uri_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../base/common/uri.js */ "./node_modules/monaco-editor/esm/vs/base/common/uri.js");
+/* harmony import */ var _core_range_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./core/range.js */ "./node_modules/monaco-editor/esm/vs/editor/common/core/range.js");
+/* harmony import */ var _tokenizationRegistry_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./tokenizationRegistry.js */ "./node_modules/monaco-editor/esm/vs/editor/common/tokenizationRegistry.js");
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
@@ -9779,77 +10086,6 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-/**
- * @internal
- */
-class TokenMetadata {
-    static getLanguageId(metadata) {
-        return (metadata & 255 /* LANGUAGEID_MASK */) >>> 0 /* LANGUAGEID_OFFSET */;
-    }
-    static getTokenType(metadata) {
-        return (metadata & 768 /* TOKEN_TYPE_MASK */) >>> 8 /* TOKEN_TYPE_OFFSET */;
-    }
-    static getFontStyle(metadata) {
-        return (metadata & 15360 /* FONT_STYLE_MASK */) >>> 10 /* FONT_STYLE_OFFSET */;
-    }
-    static getForeground(metadata) {
-        return (metadata & 8372224 /* FOREGROUND_MASK */) >>> 14 /* FOREGROUND_OFFSET */;
-    }
-    static getBackground(metadata) {
-        return (metadata & 4286578688 /* BACKGROUND_MASK */) >>> 23 /* BACKGROUND_OFFSET */;
-    }
-    static getClassNameFromMetadata(metadata) {
-        const foreground = this.getForeground(metadata);
-        let className = 'mtk' + foreground;
-        const fontStyle = this.getFontStyle(metadata);
-        if (fontStyle & 1 /* Italic */) {
-            className += ' mtki';
-        }
-        if (fontStyle & 2 /* Bold */) {
-            className += ' mtkb';
-        }
-        if (fontStyle & 4 /* Underline */) {
-            className += ' mtku';
-        }
-        if (fontStyle & 8 /* Strikethrough */) {
-            className += ' mtks';
-        }
-        return className;
-    }
-    static getInlineStyleFromMetadata(metadata, colorMap) {
-        const foreground = this.getForeground(metadata);
-        const fontStyle = this.getFontStyle(metadata);
-        let result = `color: ${colorMap[foreground]};`;
-        if (fontStyle & 1 /* Italic */) {
-            result += 'font-style: italic;';
-        }
-        if (fontStyle & 2 /* Bold */) {
-            result += 'font-weight: bold;';
-        }
-        let textDecoration = '';
-        if (fontStyle & 4 /* Underline */) {
-            textDecoration += ' underline';
-        }
-        if (fontStyle & 8 /* Strikethrough */) {
-            textDecoration += ' line-through';
-        }
-        if (textDecoration) {
-            result += `text-decoration:${textDecoration};`;
-        }
-        return result;
-    }
-    static getPresentationFromMetadata(metadata) {
-        const foreground = this.getForeground(metadata);
-        const fontStyle = this.getFontStyle(metadata);
-        return {
-            foreground: foreground,
-            italic: Boolean(fontStyle & 1 /* Italic */),
-            bold: Boolean(fontStyle & 2 /* Bold */),
-            underline: Boolean(fontStyle & 4 /* Underline */),
-            strikethrough: Boolean(fontStyle & 8 /* Strikethrough */),
-        };
-    }
-}
 class Token {
     constructor(offset, type, language) {
         this._tokenBrand = undefined;
@@ -9887,35 +10123,35 @@ class EncodedTokenizationResult {
 var CompletionItemKinds;
 (function (CompletionItemKinds) {
     const byKind = new Map();
-    byKind.set(0 /* Method */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_3__.Codicon.symbolMethod);
-    byKind.set(1 /* Function */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_3__.Codicon.symbolFunction);
-    byKind.set(2 /* Constructor */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_3__.Codicon.symbolConstructor);
-    byKind.set(3 /* Field */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_3__.Codicon.symbolField);
-    byKind.set(4 /* Variable */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_3__.Codicon.symbolVariable);
-    byKind.set(5 /* Class */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_3__.Codicon.symbolClass);
-    byKind.set(6 /* Struct */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_3__.Codicon.symbolStruct);
-    byKind.set(7 /* Interface */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_3__.Codicon.symbolInterface);
-    byKind.set(8 /* Module */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_3__.Codicon.symbolModule);
-    byKind.set(9 /* Property */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_3__.Codicon.symbolProperty);
-    byKind.set(10 /* Event */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_3__.Codicon.symbolEvent);
-    byKind.set(11 /* Operator */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_3__.Codicon.symbolOperator);
-    byKind.set(12 /* Unit */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_3__.Codicon.symbolUnit);
-    byKind.set(13 /* Value */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_3__.Codicon.symbolValue);
-    byKind.set(15 /* Enum */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_3__.Codicon.symbolEnum);
-    byKind.set(14 /* Constant */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_3__.Codicon.symbolConstant);
-    byKind.set(15 /* Enum */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_3__.Codicon.symbolEnum);
-    byKind.set(16 /* EnumMember */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_3__.Codicon.symbolEnumMember);
-    byKind.set(17 /* Keyword */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_3__.Codicon.symbolKeyword);
-    byKind.set(27 /* Snippet */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_3__.Codicon.symbolSnippet);
-    byKind.set(18 /* Text */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_3__.Codicon.symbolText);
-    byKind.set(19 /* Color */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_3__.Codicon.symbolColor);
-    byKind.set(20 /* File */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_3__.Codicon.symbolFile);
-    byKind.set(21 /* Reference */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_3__.Codicon.symbolReference);
-    byKind.set(22 /* Customcolor */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_3__.Codicon.symbolCustomColor);
-    byKind.set(23 /* Folder */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_3__.Codicon.symbolFolder);
-    byKind.set(24 /* TypeParameter */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_3__.Codicon.symbolTypeParameter);
-    byKind.set(25 /* User */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_3__.Codicon.account);
-    byKind.set(26 /* Issue */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_3__.Codicon.issues);
+    byKind.set(0 /* CompletionItemKind.Method */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_0__.Codicon.symbolMethod);
+    byKind.set(1 /* CompletionItemKind.Function */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_0__.Codicon.symbolFunction);
+    byKind.set(2 /* CompletionItemKind.Constructor */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_0__.Codicon.symbolConstructor);
+    byKind.set(3 /* CompletionItemKind.Field */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_0__.Codicon.symbolField);
+    byKind.set(4 /* CompletionItemKind.Variable */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_0__.Codicon.symbolVariable);
+    byKind.set(5 /* CompletionItemKind.Class */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_0__.Codicon.symbolClass);
+    byKind.set(6 /* CompletionItemKind.Struct */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_0__.Codicon.symbolStruct);
+    byKind.set(7 /* CompletionItemKind.Interface */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_0__.Codicon.symbolInterface);
+    byKind.set(8 /* CompletionItemKind.Module */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_0__.Codicon.symbolModule);
+    byKind.set(9 /* CompletionItemKind.Property */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_0__.Codicon.symbolProperty);
+    byKind.set(10 /* CompletionItemKind.Event */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_0__.Codicon.symbolEvent);
+    byKind.set(11 /* CompletionItemKind.Operator */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_0__.Codicon.symbolOperator);
+    byKind.set(12 /* CompletionItemKind.Unit */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_0__.Codicon.symbolUnit);
+    byKind.set(13 /* CompletionItemKind.Value */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_0__.Codicon.symbolValue);
+    byKind.set(15 /* CompletionItemKind.Enum */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_0__.Codicon.symbolEnum);
+    byKind.set(14 /* CompletionItemKind.Constant */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_0__.Codicon.symbolConstant);
+    byKind.set(15 /* CompletionItemKind.Enum */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_0__.Codicon.symbolEnum);
+    byKind.set(16 /* CompletionItemKind.EnumMember */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_0__.Codicon.symbolEnumMember);
+    byKind.set(17 /* CompletionItemKind.Keyword */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_0__.Codicon.symbolKeyword);
+    byKind.set(27 /* CompletionItemKind.Snippet */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_0__.Codicon.symbolSnippet);
+    byKind.set(18 /* CompletionItemKind.Text */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_0__.Codicon.symbolText);
+    byKind.set(19 /* CompletionItemKind.Color */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_0__.Codicon.symbolColor);
+    byKind.set(20 /* CompletionItemKind.File */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_0__.Codicon.symbolFile);
+    byKind.set(21 /* CompletionItemKind.Reference */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_0__.Codicon.symbolReference);
+    byKind.set(22 /* CompletionItemKind.Customcolor */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_0__.Codicon.symbolCustomColor);
+    byKind.set(23 /* CompletionItemKind.Folder */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_0__.Codicon.symbolFolder);
+    byKind.set(24 /* CompletionItemKind.TypeParameter */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_0__.Codicon.symbolTypeParameter);
+    byKind.set(25 /* CompletionItemKind.User */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_0__.Codicon.account);
+    byKind.set(26 /* CompletionItemKind.Issue */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_0__.Codicon.issues);
     /**
      * @internal
      */
@@ -9923,49 +10159,49 @@ var CompletionItemKinds;
         let codicon = byKind.get(kind);
         if (!codicon) {
             console.info('No codicon found for CompletionItemKind ' + kind);
-            codicon = _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_3__.Codicon.symbolProperty;
+            codicon = _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_0__.Codicon.symbolProperty;
         }
         return codicon;
     }
     CompletionItemKinds.toIcon = toIcon;
     const data = new Map();
-    data.set('method', 0 /* Method */);
-    data.set('function', 1 /* Function */);
-    data.set('constructor', 2 /* Constructor */);
-    data.set('field', 3 /* Field */);
-    data.set('variable', 4 /* Variable */);
-    data.set('class', 5 /* Class */);
-    data.set('struct', 6 /* Struct */);
-    data.set('interface', 7 /* Interface */);
-    data.set('module', 8 /* Module */);
-    data.set('property', 9 /* Property */);
-    data.set('event', 10 /* Event */);
-    data.set('operator', 11 /* Operator */);
-    data.set('unit', 12 /* Unit */);
-    data.set('value', 13 /* Value */);
-    data.set('constant', 14 /* Constant */);
-    data.set('enum', 15 /* Enum */);
-    data.set('enum-member', 16 /* EnumMember */);
-    data.set('enumMember', 16 /* EnumMember */);
-    data.set('keyword', 17 /* Keyword */);
-    data.set('snippet', 27 /* Snippet */);
-    data.set('text', 18 /* Text */);
-    data.set('color', 19 /* Color */);
-    data.set('file', 20 /* File */);
-    data.set('reference', 21 /* Reference */);
-    data.set('customcolor', 22 /* Customcolor */);
-    data.set('folder', 23 /* Folder */);
-    data.set('type-parameter', 24 /* TypeParameter */);
-    data.set('typeParameter', 24 /* TypeParameter */);
-    data.set('account', 25 /* User */);
-    data.set('issue', 26 /* Issue */);
+    data.set('method', 0 /* CompletionItemKind.Method */);
+    data.set('function', 1 /* CompletionItemKind.Function */);
+    data.set('constructor', 2 /* CompletionItemKind.Constructor */);
+    data.set('field', 3 /* CompletionItemKind.Field */);
+    data.set('variable', 4 /* CompletionItemKind.Variable */);
+    data.set('class', 5 /* CompletionItemKind.Class */);
+    data.set('struct', 6 /* CompletionItemKind.Struct */);
+    data.set('interface', 7 /* CompletionItemKind.Interface */);
+    data.set('module', 8 /* CompletionItemKind.Module */);
+    data.set('property', 9 /* CompletionItemKind.Property */);
+    data.set('event', 10 /* CompletionItemKind.Event */);
+    data.set('operator', 11 /* CompletionItemKind.Operator */);
+    data.set('unit', 12 /* CompletionItemKind.Unit */);
+    data.set('value', 13 /* CompletionItemKind.Value */);
+    data.set('constant', 14 /* CompletionItemKind.Constant */);
+    data.set('enum', 15 /* CompletionItemKind.Enum */);
+    data.set('enum-member', 16 /* CompletionItemKind.EnumMember */);
+    data.set('enumMember', 16 /* CompletionItemKind.EnumMember */);
+    data.set('keyword', 17 /* CompletionItemKind.Keyword */);
+    data.set('snippet', 27 /* CompletionItemKind.Snippet */);
+    data.set('text', 18 /* CompletionItemKind.Text */);
+    data.set('color', 19 /* CompletionItemKind.Color */);
+    data.set('file', 20 /* CompletionItemKind.File */);
+    data.set('reference', 21 /* CompletionItemKind.Reference */);
+    data.set('customcolor', 22 /* CompletionItemKind.Customcolor */);
+    data.set('folder', 23 /* CompletionItemKind.Folder */);
+    data.set('type-parameter', 24 /* CompletionItemKind.TypeParameter */);
+    data.set('typeParameter', 24 /* CompletionItemKind.TypeParameter */);
+    data.set('account', 25 /* CompletionItemKind.User */);
+    data.set('issue', 26 /* CompletionItemKind.Issue */);
     /**
      * @internal
      */
     function fromString(value, strict) {
         let res = data.get(value);
         if (typeof res === 'undefined' && !strict) {
-            res = 9 /* Property */;
+            res = 9 /* CompletionItemKind.Property */;
         }
         return res;
     }
@@ -10016,9 +10252,9 @@ var DocumentHighlightKind;
  */
 function isLocationLink(thing) {
     return thing
-        && _base_common_uri_js__WEBPACK_IMPORTED_MODULE_0__.URI.isUri(thing.uri)
-        && _core_range_js__WEBPACK_IMPORTED_MODULE_1__.Range.isIRange(thing.range)
-        && (_core_range_js__WEBPACK_IMPORTED_MODULE_1__.Range.isIRange(thing.originSelectionRange) || _core_range_js__WEBPACK_IMPORTED_MODULE_1__.Range.isIRange(thing.targetSelectionRange));
+        && _base_common_uri_js__WEBPACK_IMPORTED_MODULE_1__.URI.isUri(thing.uri)
+        && _core_range_js__WEBPACK_IMPORTED_MODULE_2__.Range.isIRange(thing.range)
+        && (_core_range_js__WEBPACK_IMPORTED_MODULE_2__.Range.isIRange(thing.originSelectionRange) || _core_range_js__WEBPACK_IMPORTED_MODULE_2__.Range.isIRange(thing.targetSelectionRange));
 }
 /**
  * @internal
@@ -10026,32 +10262,32 @@ function isLocationLink(thing) {
 var SymbolKinds;
 (function (SymbolKinds) {
     const byKind = new Map();
-    byKind.set(0 /* File */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_3__.Codicon.symbolFile);
-    byKind.set(1 /* Module */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_3__.Codicon.symbolModule);
-    byKind.set(2 /* Namespace */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_3__.Codicon.symbolNamespace);
-    byKind.set(3 /* Package */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_3__.Codicon.symbolPackage);
-    byKind.set(4 /* Class */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_3__.Codicon.symbolClass);
-    byKind.set(5 /* Method */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_3__.Codicon.symbolMethod);
-    byKind.set(6 /* Property */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_3__.Codicon.symbolProperty);
-    byKind.set(7 /* Field */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_3__.Codicon.symbolField);
-    byKind.set(8 /* Constructor */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_3__.Codicon.symbolConstructor);
-    byKind.set(9 /* Enum */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_3__.Codicon.symbolEnum);
-    byKind.set(10 /* Interface */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_3__.Codicon.symbolInterface);
-    byKind.set(11 /* Function */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_3__.Codicon.symbolFunction);
-    byKind.set(12 /* Variable */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_3__.Codicon.symbolVariable);
-    byKind.set(13 /* Constant */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_3__.Codicon.symbolConstant);
-    byKind.set(14 /* String */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_3__.Codicon.symbolString);
-    byKind.set(15 /* Number */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_3__.Codicon.symbolNumber);
-    byKind.set(16 /* Boolean */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_3__.Codicon.symbolBoolean);
-    byKind.set(17 /* Array */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_3__.Codicon.symbolArray);
-    byKind.set(18 /* Object */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_3__.Codicon.symbolObject);
-    byKind.set(19 /* Key */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_3__.Codicon.symbolKey);
-    byKind.set(20 /* Null */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_3__.Codicon.symbolNull);
-    byKind.set(21 /* EnumMember */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_3__.Codicon.symbolEnumMember);
-    byKind.set(22 /* Struct */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_3__.Codicon.symbolStruct);
-    byKind.set(23 /* Event */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_3__.Codicon.symbolEvent);
-    byKind.set(24 /* Operator */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_3__.Codicon.symbolOperator);
-    byKind.set(25 /* TypeParameter */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_3__.Codicon.symbolTypeParameter);
+    byKind.set(0 /* SymbolKind.File */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_0__.Codicon.symbolFile);
+    byKind.set(1 /* SymbolKind.Module */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_0__.Codicon.symbolModule);
+    byKind.set(2 /* SymbolKind.Namespace */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_0__.Codicon.symbolNamespace);
+    byKind.set(3 /* SymbolKind.Package */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_0__.Codicon.symbolPackage);
+    byKind.set(4 /* SymbolKind.Class */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_0__.Codicon.symbolClass);
+    byKind.set(5 /* SymbolKind.Method */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_0__.Codicon.symbolMethod);
+    byKind.set(6 /* SymbolKind.Property */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_0__.Codicon.symbolProperty);
+    byKind.set(7 /* SymbolKind.Field */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_0__.Codicon.symbolField);
+    byKind.set(8 /* SymbolKind.Constructor */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_0__.Codicon.symbolConstructor);
+    byKind.set(9 /* SymbolKind.Enum */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_0__.Codicon.symbolEnum);
+    byKind.set(10 /* SymbolKind.Interface */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_0__.Codicon.symbolInterface);
+    byKind.set(11 /* SymbolKind.Function */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_0__.Codicon.symbolFunction);
+    byKind.set(12 /* SymbolKind.Variable */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_0__.Codicon.symbolVariable);
+    byKind.set(13 /* SymbolKind.Constant */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_0__.Codicon.symbolConstant);
+    byKind.set(14 /* SymbolKind.String */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_0__.Codicon.symbolString);
+    byKind.set(15 /* SymbolKind.Number */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_0__.Codicon.symbolNumber);
+    byKind.set(16 /* SymbolKind.Boolean */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_0__.Codicon.symbolBoolean);
+    byKind.set(17 /* SymbolKind.Array */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_0__.Codicon.symbolArray);
+    byKind.set(18 /* SymbolKind.Object */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_0__.Codicon.symbolObject);
+    byKind.set(19 /* SymbolKind.Key */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_0__.Codicon.symbolKey);
+    byKind.set(20 /* SymbolKind.Null */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_0__.Codicon.symbolNull);
+    byKind.set(21 /* SymbolKind.EnumMember */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_0__.Codicon.symbolEnumMember);
+    byKind.set(22 /* SymbolKind.Struct */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_0__.Codicon.symbolStruct);
+    byKind.set(23 /* SymbolKind.Event */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_0__.Codicon.symbolEvent);
+    byKind.set(24 /* SymbolKind.Operator */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_0__.Codicon.symbolOperator);
+    byKind.set(25 /* SymbolKind.TypeParameter */, _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_0__.Codicon.symbolTypeParameter);
     /**
      * @internal
      */
@@ -10059,7 +10295,7 @@ var SymbolKinds;
         let icon = byKind.get(kind);
         if (!icon) {
             console.info('No codicon found for SymbolKind ' + kind);
-            icon = _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_3__.Codicon.symbolProperty;
+            icon = _base_common_codicons_js__WEBPACK_IMPORTED_MODULE_0__.Codicon.symbolProperty;
         }
         return icon;
     }
@@ -10113,7 +10349,7 @@ var InlayHintKind;
 /**
  * @internal
  */
-const TokenizationRegistry = new _tokenizationRegistry_js__WEBPACK_IMPORTED_MODULE_2__.TokenizationRegistry();
+const TokenizationRegistry = new _tokenizationRegistry_js__WEBPACK_IMPORTED_MODULE_3__.TokenizationRegistry();
 
 
 /***/ }),
@@ -10157,7 +10393,7 @@ class Uint8Matrix {
 class StateMachine {
     constructor(edges) {
         let maxCharCode = 0;
-        let maxState = 0 /* Invalid */;
+        let maxState = 0 /* State.Invalid */;
         for (let i = 0, len = edges.length; i < len; i++) {
             const [from, chCode, to] = edges[i];
             if (chCode > maxCharCode) {
@@ -10172,7 +10408,7 @@ class StateMachine {
         }
         maxCharCode++;
         maxState++;
-        const states = new Uint8Matrix(maxState, maxCharCode, 0 /* Invalid */);
+        const states = new Uint8Matrix(maxState, maxCharCode, 0 /* State.Invalid */);
         for (let i = 0, len = edges.length; i < len; i++) {
             const [from, chCode, to] = edges[i];
             states.set(from, chCode, to);
@@ -10182,7 +10418,7 @@ class StateMachine {
     }
     nextState(currentState, chCode) {
         if (chCode < 0 || chCode >= this._maxCharCode) {
-            return 0 /* Invalid */;
+            return 0 /* State.Invalid */;
         }
         return this._states.get(currentState, chCode);
     }
@@ -10192,28 +10428,28 @@ let _stateMachine = null;
 function getStateMachine() {
     if (_stateMachine === null) {
         _stateMachine = new StateMachine([
-            [1 /* Start */, 104 /* h */, 2 /* H */],
-            [1 /* Start */, 72 /* H */, 2 /* H */],
-            [1 /* Start */, 102 /* f */, 6 /* F */],
-            [1 /* Start */, 70 /* F */, 6 /* F */],
-            [2 /* H */, 116 /* t */, 3 /* HT */],
-            [2 /* H */, 84 /* T */, 3 /* HT */],
-            [3 /* HT */, 116 /* t */, 4 /* HTT */],
-            [3 /* HT */, 84 /* T */, 4 /* HTT */],
-            [4 /* HTT */, 112 /* p */, 5 /* HTTP */],
-            [4 /* HTT */, 80 /* P */, 5 /* HTTP */],
-            [5 /* HTTP */, 115 /* s */, 9 /* BeforeColon */],
-            [5 /* HTTP */, 83 /* S */, 9 /* BeforeColon */],
-            [5 /* HTTP */, 58 /* Colon */, 10 /* AfterColon */],
-            [6 /* F */, 105 /* i */, 7 /* FI */],
-            [6 /* F */, 73 /* I */, 7 /* FI */],
-            [7 /* FI */, 108 /* l */, 8 /* FIL */],
-            [7 /* FI */, 76 /* L */, 8 /* FIL */],
-            [8 /* FIL */, 101 /* e */, 9 /* BeforeColon */],
-            [8 /* FIL */, 69 /* E */, 9 /* BeforeColon */],
-            [9 /* BeforeColon */, 58 /* Colon */, 10 /* AfterColon */],
-            [10 /* AfterColon */, 47 /* Slash */, 11 /* AlmostThere */],
-            [11 /* AlmostThere */, 47 /* Slash */, 12 /* End */],
+            [1 /* State.Start */, 104 /* CharCode.h */, 2 /* State.H */],
+            [1 /* State.Start */, 72 /* CharCode.H */, 2 /* State.H */],
+            [1 /* State.Start */, 102 /* CharCode.f */, 6 /* State.F */],
+            [1 /* State.Start */, 70 /* CharCode.F */, 6 /* State.F */],
+            [2 /* State.H */, 116 /* CharCode.t */, 3 /* State.HT */],
+            [2 /* State.H */, 84 /* CharCode.T */, 3 /* State.HT */],
+            [3 /* State.HT */, 116 /* CharCode.t */, 4 /* State.HTT */],
+            [3 /* State.HT */, 84 /* CharCode.T */, 4 /* State.HTT */],
+            [4 /* State.HTT */, 112 /* CharCode.p */, 5 /* State.HTTP */],
+            [4 /* State.HTT */, 80 /* CharCode.P */, 5 /* State.HTTP */],
+            [5 /* State.HTTP */, 115 /* CharCode.s */, 9 /* State.BeforeColon */],
+            [5 /* State.HTTP */, 83 /* CharCode.S */, 9 /* State.BeforeColon */],
+            [5 /* State.HTTP */, 58 /* CharCode.Colon */, 10 /* State.AfterColon */],
+            [6 /* State.F */, 105 /* CharCode.i */, 7 /* State.FI */],
+            [6 /* State.F */, 73 /* CharCode.I */, 7 /* State.FI */],
+            [7 /* State.FI */, 108 /* CharCode.l */, 8 /* State.FIL */],
+            [7 /* State.FI */, 76 /* CharCode.L */, 8 /* State.FIL */],
+            [8 /* State.FIL */, 101 /* CharCode.e */, 9 /* State.BeforeColon */],
+            [8 /* State.FIL */, 69 /* CharCode.E */, 9 /* State.BeforeColon */],
+            [9 /* State.BeforeColon */, 58 /* CharCode.Colon */, 10 /* State.AfterColon */],
+            [10 /* State.AfterColon */, 47 /* CharCode.Slash */, 11 /* State.AlmostThere */],
+            [11 /* State.AlmostThere */, 47 /* CharCode.Slash */, 12 /* State.End */],
         ]);
     }
     return _stateMachine;
@@ -10221,15 +10457,15 @@ function getStateMachine() {
 let _classifier = null;
 function getClassifier() {
     if (_classifier === null) {
-        _classifier = new _core_characterClassifier_js__WEBPACK_IMPORTED_MODULE_0__.CharacterClassifier(0 /* None */);
+        _classifier = new _core_characterClassifier_js__WEBPACK_IMPORTED_MODULE_0__.CharacterClassifier(0 /* CharacterClass.None */);
         // allow-any-unicode-next-line
         const FORCE_TERMINATION_CHARACTERS = ' \t<>\'\"、。｡､，．：；‘〈「『〔（［｛｢｣｝］）〕』」〉’｀～…';
         for (let i = 0; i < FORCE_TERMINATION_CHARACTERS.length; i++) {
-            _classifier.set(FORCE_TERMINATION_CHARACTERS.charCodeAt(i), 1 /* ForceTermination */);
+            _classifier.set(FORCE_TERMINATION_CHARACTERS.charCodeAt(i), 1 /* CharacterClass.ForceTermination */);
         }
-        const CANNOT_END_WITH_CHARACTERS = '.,;';
+        const CANNOT_END_WITH_CHARACTERS = '.,;:';
         for (let i = 0; i < CANNOT_END_WITH_CHARACTERS.length; i++) {
-            _classifier.set(CANNOT_END_WITH_CHARACTERS.charCodeAt(i), 2 /* CannotEndIn */);
+            _classifier.set(CANNOT_END_WITH_CHARACTERS.charCodeAt(i), 2 /* CharacterClass.CannotEndIn */);
         }
     }
     return _classifier;
@@ -10241,7 +10477,7 @@ class LinkComputer {
         do {
             const chCode = line.charCodeAt(lastIncludedCharIndex);
             const chClass = classifier.get(chCode);
-            if (chClass !== 2 /* CannotEndIn */) {
+            if (chClass !== 2 /* CharacterClass.CannotEndIn */) {
                 break;
             }
             lastIncludedCharIndex--;
@@ -10250,9 +10486,9 @@ class LinkComputer {
         if (linkBeginIndex > 0) {
             const charCodeBeforeLink = line.charCodeAt(linkBeginIndex - 1);
             const lastCharCodeInLink = line.charCodeAt(lastIncludedCharIndex);
-            if ((charCodeBeforeLink === 40 /* OpenParen */ && lastCharCodeInLink === 41 /* CloseParen */)
-                || (charCodeBeforeLink === 91 /* OpenSquareBracket */ && lastCharCodeInLink === 93 /* CloseSquareBracket */)
-                || (charCodeBeforeLink === 123 /* OpenCurlyBrace */ && lastCharCodeInLink === 125 /* CloseCurlyBrace */)) {
+            if ((charCodeBeforeLink === 40 /* CharCode.OpenParen */ && lastCharCodeInLink === 41 /* CharCode.CloseParen */)
+                || (charCodeBeforeLink === 91 /* CharCode.OpenSquareBracket */ && lastCharCodeInLink === 93 /* CharCode.CloseSquareBracket */)
+                || (charCodeBeforeLink === 123 /* CharCode.OpenCurlyBrace */ && lastCharCodeInLink === 125 /* CharCode.CloseCurlyBrace */)) {
                 // Do not end in ) if ( is before the link start
                 // Do not end in ] if [ is before the link start
                 // Do not end in } if { is before the link start
@@ -10278,7 +10514,7 @@ class LinkComputer {
             let j = 0;
             let linkBeginIndex = 0;
             let linkBeginChCode = 0;
-            let state = 1 /* Start */;
+            let state = 1 /* State.Start */;
             let hasOpenParens = false;
             let hasOpenSquareBracket = false;
             let inSquareBrackets = false;
@@ -10286,89 +10522,89 @@ class LinkComputer {
             while (j < len) {
                 let resetStateMachine = false;
                 const chCode = line.charCodeAt(j);
-                if (state === 13 /* Accept */) {
+                if (state === 13 /* State.Accept */) {
                     let chClass;
                     switch (chCode) {
-                        case 40 /* OpenParen */:
+                        case 40 /* CharCode.OpenParen */:
                             hasOpenParens = true;
-                            chClass = 0 /* None */;
+                            chClass = 0 /* CharacterClass.None */;
                             break;
-                        case 41 /* CloseParen */:
-                            chClass = (hasOpenParens ? 0 /* None */ : 1 /* ForceTermination */);
+                        case 41 /* CharCode.CloseParen */:
+                            chClass = (hasOpenParens ? 0 /* CharacterClass.None */ : 1 /* CharacterClass.ForceTermination */);
                             break;
-                        case 91 /* OpenSquareBracket */:
+                        case 91 /* CharCode.OpenSquareBracket */:
                             inSquareBrackets = true;
                             hasOpenSquareBracket = true;
-                            chClass = 0 /* None */;
+                            chClass = 0 /* CharacterClass.None */;
                             break;
-                        case 93 /* CloseSquareBracket */:
+                        case 93 /* CharCode.CloseSquareBracket */:
                             inSquareBrackets = false;
-                            chClass = (hasOpenSquareBracket ? 0 /* None */ : 1 /* ForceTermination */);
+                            chClass = (hasOpenSquareBracket ? 0 /* CharacterClass.None */ : 1 /* CharacterClass.ForceTermination */);
                             break;
-                        case 123 /* OpenCurlyBrace */:
+                        case 123 /* CharCode.OpenCurlyBrace */:
                             hasOpenCurlyBracket = true;
-                            chClass = 0 /* None */;
+                            chClass = 0 /* CharacterClass.None */;
                             break;
-                        case 125 /* CloseCurlyBrace */:
-                            chClass = (hasOpenCurlyBracket ? 0 /* None */ : 1 /* ForceTermination */);
+                        case 125 /* CharCode.CloseCurlyBrace */:
+                            chClass = (hasOpenCurlyBracket ? 0 /* CharacterClass.None */ : 1 /* CharacterClass.ForceTermination */);
                             break;
-                        /* The following three rules make it that ' or " or ` are allowed inside links if the link began with a different one */
-                        case 39 /* SingleQuote */:
-                            chClass = (linkBeginChCode === 34 /* DoubleQuote */ || linkBeginChCode === 96 /* BackTick */) ? 0 /* None */ : 1 /* ForceTermination */;
+                        /* The following three rules make it that ' or " or ` are allowed inside links if the link didn't begin with them */
+                        case 39 /* CharCode.SingleQuote */:
+                            chClass = (linkBeginChCode === 39 /* CharCode.SingleQuote */ ? 1 /* CharacterClass.ForceTermination */ : 0 /* CharacterClass.None */);
                             break;
-                        case 34 /* DoubleQuote */:
-                            chClass = (linkBeginChCode === 39 /* SingleQuote */ || linkBeginChCode === 96 /* BackTick */) ? 0 /* None */ : 1 /* ForceTermination */;
+                        case 34 /* CharCode.DoubleQuote */:
+                            chClass = (linkBeginChCode === 34 /* CharCode.DoubleQuote */ ? 1 /* CharacterClass.ForceTermination */ : 0 /* CharacterClass.None */);
                             break;
-                        case 96 /* BackTick */:
-                            chClass = (linkBeginChCode === 39 /* SingleQuote */ || linkBeginChCode === 34 /* DoubleQuote */) ? 0 /* None */ : 1 /* ForceTermination */;
+                        case 96 /* CharCode.BackTick */:
+                            chClass = (linkBeginChCode === 96 /* CharCode.BackTick */ ? 1 /* CharacterClass.ForceTermination */ : 0 /* CharacterClass.None */);
                             break;
-                        case 42 /* Asterisk */:
+                        case 42 /* CharCode.Asterisk */:
                             // `*` terminates a link if the link began with `*`
-                            chClass = (linkBeginChCode === 42 /* Asterisk */) ? 1 /* ForceTermination */ : 0 /* None */;
+                            chClass = (linkBeginChCode === 42 /* CharCode.Asterisk */) ? 1 /* CharacterClass.ForceTermination */ : 0 /* CharacterClass.None */;
                             break;
-                        case 124 /* Pipe */:
+                        case 124 /* CharCode.Pipe */:
                             // `|` terminates a link if the link began with `|`
-                            chClass = (linkBeginChCode === 124 /* Pipe */) ? 1 /* ForceTermination */ : 0 /* None */;
+                            chClass = (linkBeginChCode === 124 /* CharCode.Pipe */) ? 1 /* CharacterClass.ForceTermination */ : 0 /* CharacterClass.None */;
                             break;
-                        case 32 /* Space */:
+                        case 32 /* CharCode.Space */:
                             // ` ` allow space in between [ and ]
-                            chClass = (inSquareBrackets ? 0 /* None */ : 1 /* ForceTermination */);
+                            chClass = (inSquareBrackets ? 0 /* CharacterClass.None */ : 1 /* CharacterClass.ForceTermination */);
                             break;
                         default:
                             chClass = classifier.get(chCode);
                     }
                     // Check if character terminates link
-                    if (chClass === 1 /* ForceTermination */) {
+                    if (chClass === 1 /* CharacterClass.ForceTermination */) {
                         result.push(LinkComputer._createLink(classifier, line, i, linkBeginIndex, j));
                         resetStateMachine = true;
                     }
                 }
-                else if (state === 12 /* End */) {
+                else if (state === 12 /* State.End */) {
                     let chClass;
-                    if (chCode === 91 /* OpenSquareBracket */) {
+                    if (chCode === 91 /* CharCode.OpenSquareBracket */) {
                         // Allow for the authority part to contain ipv6 addresses which contain [ and ]
                         hasOpenSquareBracket = true;
-                        chClass = 0 /* None */;
+                        chClass = 0 /* CharacterClass.None */;
                     }
                     else {
                         chClass = classifier.get(chCode);
                     }
                     // Check if character terminates link
-                    if (chClass === 1 /* ForceTermination */) {
+                    if (chClass === 1 /* CharacterClass.ForceTermination */) {
                         resetStateMachine = true;
                     }
                     else {
-                        state = 13 /* Accept */;
+                        state = 13 /* State.Accept */;
                     }
                 }
                 else {
                     state = stateMachine.nextState(state, chCode);
-                    if (state === 0 /* Invalid */) {
+                    if (state === 0 /* State.Invalid */) {
                         resetStateMachine = true;
                     }
                 }
                 if (resetStateMachine) {
-                    state = 1 /* Start */;
+                    state = 1 /* State.Start */;
                     hasOpenParens = false;
                     hasOpenSquareBracket = false;
                     hasOpenCurlyBracket = false;
@@ -10378,7 +10614,7 @@ class LinkComputer {
                 }
                 j++;
             }
-            if (state === 13 /* Accept */) {
+            if (state === 13 /* State.Accept */) {
                 result.push(LinkComputer._createLink(classifier, line, i, linkBeginIndex, len));
             }
         }
@@ -10455,7 +10691,7 @@ class BasicInplaceReplace {
     numberReplace(value, up) {
         const precision = Math.pow(10, value.length - (value.lastIndexOf('.') + 1));
         let n1 = Number(value);
-        let n2 = parseFloat(value);
+        const n2 = parseFloat(value);
         if (!isNaN(n1) && !isNaN(n2) && n1 === n2) {
             if (n1 === 0 && !up) {
                 return null; // don't do negative
@@ -10516,6 +10752,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "SearchData": () => (/* binding */ SearchData),
 /* harmony export */   "TextModelResolvedOptions": () => (/* binding */ TextModelResolvedOptions),
 /* harmony export */   "ValidAnnotatedEditOperation": () => (/* binding */ ValidAnnotatedEditOperation),
+/* harmony export */   "isITextSnapshot": () => (/* binding */ isITextSnapshot),
 /* harmony export */   "shouldSynchronizeModel": () => (/* binding */ shouldSynchronizeModel)
 /* harmony export */ });
 /* harmony import */ var _base_common_objects_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../base/common/objects.js */ "./node_modules/monaco-editor/esm/vs/base/common/objects.js");
@@ -10594,6 +10831,12 @@ class FindMatch {
         this.range = range;
         this.matches = matches;
     }
+}
+/**
+ * @internal
+ */
+function isITextSnapshot(obj) {
+    return (obj && typeof obj.read === 'function');
 }
 /**
  * @internal
@@ -11089,7 +11332,10 @@ function isMultilineRegexSource(searchString) {
     }
     for (let i = 0, len = searchString.length; i < len; i++) {
         const chCode = searchString.charCodeAt(i);
-        if (chCode === 92 /* Backslash */) {
+        if (chCode === 10 /* CharCode.LineFeed */) {
+            return true;
+        }
+        if (chCode === 92 /* CharCode.Backslash */) {
             // move to next char
             i++;
             if (i >= len) {
@@ -11097,7 +11343,7 @@ function isMultilineRegexSource(searchString) {
                 break;
             }
             const nextChCode = searchString.charCodeAt(i);
-            if (nextChCode === 110 /* n */ || nextChCode === 114 /* r */ || nextChCode === 87 /* W */) {
+            if (nextChCode === 110 /* CharCode.n */ || nextChCode === 114 /* CharCode.r */ || nextChCode === 87 /* CharCode.W */) {
                 return true;
             }
         }
@@ -11119,7 +11365,7 @@ class LineFeedCounter {
         const lineFeedsOffsets = [];
         let lineFeedsOffsetsLen = 0;
         for (let i = 0, textLen = text.length; i < textLen; i++) {
-            if (text.charCodeAt(i) === 10 /* LineFeed */) {
+            if (text.charCodeAt(i) === 10 /* CharCode.LineFeed */) {
                 lineFeedsOffsets[lineFeedsOffsetsLen++] = i;
             }
         }
@@ -11199,7 +11445,7 @@ class TextModelSearch {
         // We always execute multiline search over the lines joined with \n
         // This makes it that \n will match the EOL for both CRLF and LF models
         // We compensate for offset errors in `_getMultilineMatchRange`
-        const text = model.getValueInRange(searchRange, 1 /* LF */);
+        const text = model.getValueInRange(searchRange, 1 /* EndOfLinePreference.LF */);
         const lfCounter = (model.getEOL() === '\r\n' ? new LineFeedCounter(text) : null);
         const result = [];
         let counter = 0;
@@ -11286,10 +11532,10 @@ class TextModelSearch {
         // We always execute multiline search over the lines joined with \n
         // This makes it that \n will match the EOL for both CRLF and LF models
         // We compensate for offset errors in `_getMultilineMatchRange`
-        const text = model.getValueInRange(new _core_range_js__WEBPACK_IMPORTED_MODULE_3__.Range(searchTextStart.lineNumber, searchTextStart.column, lineCount, model.getLineMaxColumn(lineCount)), 1 /* LF */);
+        const text = model.getValueInRange(new _core_range_js__WEBPACK_IMPORTED_MODULE_3__.Range(searchTextStart.lineNumber, searchTextStart.column, lineCount, model.getLineMaxColumn(lineCount)), 1 /* EndOfLinePreference.LF */);
         const lfCounter = (model.getEOL() === '\r\n' ? new LineFeedCounter(text) : null);
         searcher.reset(searchStart.column - 1);
-        let m = searcher.next(text);
+        const m = searcher.next(text);
         if (m) {
             return createFindMatch(this._getMultilineMatchRange(model, deltaOffset, text, lfCounter, m.index, m[0]), m, captureMatches);
         }
@@ -11385,17 +11631,17 @@ function leftIsWordBounday(wordSeparators, text, textLength, matchStartIndex, ma
         return true;
     }
     const charBefore = text.charCodeAt(matchStartIndex - 1);
-    if (wordSeparators.get(charBefore) !== 0 /* Regular */) {
+    if (wordSeparators.get(charBefore) !== 0 /* WordCharacterClass.Regular */) {
         // The character before the match is a word separator
         return true;
     }
-    if (charBefore === 13 /* CarriageReturn */ || charBefore === 10 /* LineFeed */) {
+    if (charBefore === 13 /* CharCode.CarriageReturn */ || charBefore === 10 /* CharCode.LineFeed */) {
         // The character before the match is line break or carriage return.
         return true;
     }
     if (matchLength > 0) {
         const firstCharInMatch = text.charCodeAt(matchStartIndex);
-        if (wordSeparators.get(firstCharInMatch) !== 0 /* Regular */) {
+        if (wordSeparators.get(firstCharInMatch) !== 0 /* WordCharacterClass.Regular */) {
             // The first character inside the match is a word separator
             return true;
         }
@@ -11408,17 +11654,17 @@ function rightIsWordBounday(wordSeparators, text, textLength, matchStartIndex, m
         return true;
     }
     const charAfter = text.charCodeAt(matchStartIndex + matchLength);
-    if (wordSeparators.get(charAfter) !== 0 /* Regular */) {
+    if (wordSeparators.get(charAfter) !== 0 /* WordCharacterClass.Regular */) {
         // The character after the match is a word separator
         return true;
     }
-    if (charAfter === 13 /* CarriageReturn */ || charAfter === 10 /* LineFeed */) {
+    if (charAfter === 13 /* CharCode.CarriageReturn */ || charAfter === 10 /* CharCode.LineFeed */) {
         // The character after the match is line break or carriage return.
         return true;
     }
     if (matchLength > 0) {
         const lastCharInMatch = text.charCodeAt(matchStartIndex + matchLength - 1);
-        if (wordSeparators.get(lastCharInMatch) !== 0 /* Regular */) {
+        if (wordSeparators.get(lastCharInMatch) !== 0 /* WordCharacterClass.Regular */) {
             // The last character in the match is a word separator
             return true;
         }
@@ -11521,10 +11767,10 @@ class KeyMod {
         return (0,_base_common_keyCodes_js__WEBPACK_IMPORTED_MODULE_2__.KeyChord)(firstPart, secondPart);
     }
 }
-KeyMod.CtrlCmd = 2048 /* CtrlCmd */;
-KeyMod.Shift = 1024 /* Shift */;
-KeyMod.Alt = 512 /* Alt */;
-KeyMod.WinCtrl = 256 /* WinCtrl */;
+KeyMod.CtrlCmd = 2048 /* ConstKeyMod.CtrlCmd */;
+KeyMod.Shift = 1024 /* ConstKeyMod.Shift */;
+KeyMod.Alt = 512 /* ConstKeyMod.Alt */;
+KeyMod.WinCtrl = 256 /* ConstKeyMod.WinCtrl */;
 function createMonacoBaseAPI() {
     return {
         editor: undefined,
@@ -11823,25 +12069,28 @@ class EditorSimpleWorker {
             if (!original || !modified) {
                 return null;
             }
-            const originalLines = original.getLinesContent();
-            const modifiedLines = modified.getLinesContent();
-            const diffComputer = new _diff_diffComputer_js__WEBPACK_IMPORTED_MODULE_5__.DiffComputer(originalLines, modifiedLines, {
-                shouldComputeCharChanges: true,
-                shouldPostProcessCharChanges: true,
-                shouldIgnoreTrimWhitespace: ignoreTrimWhitespace,
-                shouldMakePrettyDiff: true,
-                maxComputationTime: maxComputationTime
-            });
-            const diffResult = diffComputer.computeDiff();
-            const identical = (diffResult.changes.length > 0 ? false : this._modelsAreIdentical(original, modified));
-            return {
-                quitEarly: diffResult.quitEarly,
-                identical: identical,
-                changes: diffResult.changes
-            };
+            return EditorSimpleWorker.computeDiff(original, modified, ignoreTrimWhitespace, maxComputationTime);
         });
     }
-    _modelsAreIdentical(original, modified) {
+    static computeDiff(originalTextModel, modifiedTextModel, ignoreTrimWhitespace, maxComputationTime) {
+        const originalLines = originalTextModel.getLinesContent();
+        const modifiedLines = modifiedTextModel.getLinesContent();
+        const diffComputer = new _diff_diffComputer_js__WEBPACK_IMPORTED_MODULE_5__.DiffComputer(originalLines, modifiedLines, {
+            shouldComputeCharChanges: true,
+            shouldPostProcessCharChanges: true,
+            shouldIgnoreTrimWhitespace: ignoreTrimWhitespace,
+            shouldMakePrettyDiff: true,
+            maxComputationTime: maxComputationTime
+        });
+        const diffResult = diffComputer.computeDiff();
+        const identical = (diffResult.changes.length > 0 ? false : this._modelsAreIdentical(originalTextModel, modifiedTextModel));
+        return {
+            quitEarly: diffResult.quitEarly,
+            identical: identical,
+            changes: diffResult.changes
+        };
+    }
+    static _modelsAreIdentical(original, modified) {
         const originalLineCount = original.getLineCount();
         const modifiedLineCount = modified.getLineCount();
         if (originalLineCount !== modifiedLineCount) {
@@ -11928,12 +12177,12 @@ class EditorSimpleWorker {
             const sw = new _base_common_stopwatch_js__WEBPACK_IMPORTED_MODULE_12__.StopWatch(true);
             const wordDefRegExp = new RegExp(wordDef, wordDefFlags);
             const seen = new Set();
-            outer: for (let url of modelUrls) {
+            outer: for (const url of modelUrls) {
                 const model = this._getModel(url);
                 if (!model) {
                     continue;
                 }
-                for (let word of model.words(wordDefRegExp)) {
+                for (const word of model.words(wordDefRegExp)) {
                     if (word === leadingWord || !isNaN(Number(word))) {
                         continue;
                     }
@@ -12138,14 +12387,14 @@ class UnicodeTextModelHighlighter {
                     const str = lineContent.substring(startIndex, endIndex);
                     const word = (0,_core_wordHelper_js__WEBPACK_IMPORTED_MODULE_4__.getWordAtText)(startIndex + 1, _core_wordHelper_js__WEBPACK_IMPORTED_MODULE_4__.DEFAULT_WORD_REGEXP, lineContent, 0);
                     const highlightReason = codePointHighlighter.shouldHighlightNonBasicASCII(str, word ? word.word : null);
-                    if (highlightReason !== 0 /* None */) {
-                        if (highlightReason === 3 /* Ambiguous */) {
+                    if (highlightReason !== 0 /* SimpleHighlightReason.None */) {
+                        if (highlightReason === 3 /* SimpleHighlightReason.Ambiguous */) {
                             ambiguousCharacterCount++;
                         }
-                        else if (highlightReason === 2 /* Invisible */) {
+                        else if (highlightReason === 2 /* SimpleHighlightReason.Invisible */) {
                             invisibleCharacterCount++;
                         }
-                        else if (highlightReason === 1 /* NonBasicASCII */) {
+                        else if (highlightReason === 1 /* SimpleHighlightReason.NonBasicASCII */) {
                             nonBasicAsciiCharacterCount++;
                         }
                         else {
@@ -12173,18 +12422,18 @@ class UnicodeTextModelHighlighter {
         const codePointHighlighter = new CodePointHighlighter(options);
         const reason = codePointHighlighter.shouldHighlightNonBasicASCII(char, null);
         switch (reason) {
-            case 0 /* None */:
+            case 0 /* SimpleHighlightReason.None */:
                 return null;
-            case 2 /* Invisible */:
-                return { kind: 1 /* Invisible */ };
-            case 3 /* Ambiguous */: {
+            case 2 /* SimpleHighlightReason.Invisible */:
+                return { kind: 1 /* UnicodeHighlighterReasonKind.Invisible */ };
+            case 3 /* SimpleHighlightReason.Ambiguous */: {
                 const codePoint = char.codePointAt(0);
                 const primaryConfusable = codePointHighlighter.ambiguousCharacters.getPrimaryConfusable(codePoint);
                 const notAmbiguousInLocales = _base_common_strings_js__WEBPACK_IMPORTED_MODULE_2__.AmbiguousCharacters.getLocales().filter((l) => !_base_common_strings_js__WEBPACK_IMPORTED_MODULE_2__.AmbiguousCharacters.getInstance(new Set([...options.allowedLocales, l])).isAmbiguous(codePoint));
-                return { kind: 0 /* Ambiguous */, confusableWith: String.fromCodePoint(primaryConfusable), notAmbiguousInLocales };
+                return { kind: 0 /* UnicodeHighlighterReasonKind.Ambiguous */, confusableWith: String.fromCodePoint(primaryConfusable), notAmbiguousInLocales };
             }
-            case 1 /* NonBasicASCII */:
-                return { kind: 2 /* NonBasicAscii */ };
+            case 1 /* SimpleHighlightReason.NonBasicASCII */:
+                return { kind: 2 /* UnicodeHighlighterReasonKind.NonBasicAscii */ };
         }
     }
 }
@@ -12223,15 +12472,15 @@ class CodePointHighlighter {
     shouldHighlightNonBasicASCII(character, wordContext) {
         const codePoint = character.codePointAt(0);
         if (this.allowedCodePoints.has(codePoint)) {
-            return 0 /* None */;
+            return 0 /* SimpleHighlightReason.None */;
         }
         if (this.options.nonBasicASCII) {
-            return 1 /* NonBasicASCII */;
+            return 1 /* SimpleHighlightReason.NonBasicASCII */;
         }
         let hasBasicASCIICharacters = false;
         let hasNonConfusableNonBasicAsciiCharacter = false;
         if (wordContext) {
-            for (let char of wordContext) {
+            for (const char of wordContext) {
                 const codePoint = char.codePointAt(0);
                 const isBasicASCII = _base_common_strings_js__WEBPACK_IMPORTED_MODULE_2__.isBasicASCII(char);
                 hasBasicASCIICharacters = hasBasicASCIICharacters || isBasicASCII;
@@ -12245,20 +12494,20 @@ class CodePointHighlighter {
         if (
         /* Don't allow mixing weird looking characters with ASCII */ !hasBasicASCIICharacters &&
             /* Is there an obviously weird looking character? */ hasNonConfusableNonBasicAsciiCharacter) {
-            return 0 /* None */;
+            return 0 /* SimpleHighlightReason.None */;
         }
         if (this.options.invisibleCharacters) {
             // TODO check for emojis
             if (!isAllowedInvisibleCharacter(character) && _base_common_strings_js__WEBPACK_IMPORTED_MODULE_2__.InvisibleCharacters.isInvisibleCharacter(codePoint)) {
-                return 2 /* Invisible */;
+                return 2 /* SimpleHighlightReason.Invisible */;
             }
         }
         if (this.options.ambiguousCharacters) {
             if (this.ambiguousCharacters.isAmbiguous(codePoint)) {
-                return 3 /* Ambiguous */;
+                return 3 /* SimpleHighlightReason.Ambiguous */;
             }
         }
-        return 0 /* None */;
+        return 0 /* SimpleHighlightReason.None */;
     }
 }
 function isAllowedInvisibleCharacter(character) {
@@ -12277,6 +12526,7 @@ function isAllowedInvisibleCharacter(character) {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "AccessibilitySupport": () => (/* binding */ AccessibilitySupport),
+/* harmony export */   "CodeActionTriggerType": () => (/* binding */ CodeActionTriggerType),
 /* harmony export */   "CompletionItemInsertTextRule": () => (/* binding */ CompletionItemInsertTextRule),
 /* harmony export */   "CompletionItemKind": () => (/* binding */ CompletionItemKind),
 /* harmony export */   "CompletionItemTag": () => (/* binding */ CompletionItemTag),
@@ -12328,6 +12578,11 @@ var AccessibilitySupport;
     AccessibilitySupport[AccessibilitySupport["Disabled"] = 1] = "Disabled";
     AccessibilitySupport[AccessibilitySupport["Enabled"] = 2] = "Enabled";
 })(AccessibilitySupport || (AccessibilitySupport = {}));
+var CodeActionTriggerType;
+(function (CodeActionTriggerType) {
+    CodeActionTriggerType[CodeActionTriggerType["Invoke"] = 1] = "Invoke";
+    CodeActionTriggerType[CodeActionTriggerType["Auto"] = 2] = "Auto";
+})(CodeActionTriggerType || (CodeActionTriggerType = {}));
 var CompletionItemInsertTextRule;
 (function (CompletionItemInsertTextRule) {
     /**
@@ -12513,107 +12768,109 @@ var EditorOption;
     EditorOption[EditorOption["disableMonospaceOptimizations"] = 29] = "disableMonospaceOptimizations";
     EditorOption[EditorOption["domReadOnly"] = 30] = "domReadOnly";
     EditorOption[EditorOption["dragAndDrop"] = 31] = "dragAndDrop";
-    EditorOption[EditorOption["emptySelectionClipboard"] = 32] = "emptySelectionClipboard";
-    EditorOption[EditorOption["extraEditorClassName"] = 33] = "extraEditorClassName";
-    EditorOption[EditorOption["fastScrollSensitivity"] = 34] = "fastScrollSensitivity";
-    EditorOption[EditorOption["find"] = 35] = "find";
-    EditorOption[EditorOption["fixedOverflowWidgets"] = 36] = "fixedOverflowWidgets";
-    EditorOption[EditorOption["folding"] = 37] = "folding";
-    EditorOption[EditorOption["foldingStrategy"] = 38] = "foldingStrategy";
-    EditorOption[EditorOption["foldingHighlight"] = 39] = "foldingHighlight";
-    EditorOption[EditorOption["foldingImportsByDefault"] = 40] = "foldingImportsByDefault";
-    EditorOption[EditorOption["foldingMaximumRegions"] = 41] = "foldingMaximumRegions";
-    EditorOption[EditorOption["unfoldOnClickAfterEndOfLine"] = 42] = "unfoldOnClickAfterEndOfLine";
-    EditorOption[EditorOption["fontFamily"] = 43] = "fontFamily";
-    EditorOption[EditorOption["fontInfo"] = 44] = "fontInfo";
-    EditorOption[EditorOption["fontLigatures"] = 45] = "fontLigatures";
-    EditorOption[EditorOption["fontSize"] = 46] = "fontSize";
-    EditorOption[EditorOption["fontWeight"] = 47] = "fontWeight";
-    EditorOption[EditorOption["formatOnPaste"] = 48] = "formatOnPaste";
-    EditorOption[EditorOption["formatOnType"] = 49] = "formatOnType";
-    EditorOption[EditorOption["glyphMargin"] = 50] = "glyphMargin";
-    EditorOption[EditorOption["gotoLocation"] = 51] = "gotoLocation";
-    EditorOption[EditorOption["hideCursorInOverviewRuler"] = 52] = "hideCursorInOverviewRuler";
-    EditorOption[EditorOption["hover"] = 53] = "hover";
-    EditorOption[EditorOption["inDiffEditor"] = 54] = "inDiffEditor";
-    EditorOption[EditorOption["inlineSuggest"] = 55] = "inlineSuggest";
-    EditorOption[EditorOption["letterSpacing"] = 56] = "letterSpacing";
-    EditorOption[EditorOption["lightbulb"] = 57] = "lightbulb";
-    EditorOption[EditorOption["lineDecorationsWidth"] = 58] = "lineDecorationsWidth";
-    EditorOption[EditorOption["lineHeight"] = 59] = "lineHeight";
-    EditorOption[EditorOption["lineNumbers"] = 60] = "lineNumbers";
-    EditorOption[EditorOption["lineNumbersMinChars"] = 61] = "lineNumbersMinChars";
-    EditorOption[EditorOption["linkedEditing"] = 62] = "linkedEditing";
-    EditorOption[EditorOption["links"] = 63] = "links";
-    EditorOption[EditorOption["matchBrackets"] = 64] = "matchBrackets";
-    EditorOption[EditorOption["minimap"] = 65] = "minimap";
-    EditorOption[EditorOption["mouseStyle"] = 66] = "mouseStyle";
-    EditorOption[EditorOption["mouseWheelScrollSensitivity"] = 67] = "mouseWheelScrollSensitivity";
-    EditorOption[EditorOption["mouseWheelZoom"] = 68] = "mouseWheelZoom";
-    EditorOption[EditorOption["multiCursorMergeOverlapping"] = 69] = "multiCursorMergeOverlapping";
-    EditorOption[EditorOption["multiCursorModifier"] = 70] = "multiCursorModifier";
-    EditorOption[EditorOption["multiCursorPaste"] = 71] = "multiCursorPaste";
-    EditorOption[EditorOption["occurrencesHighlight"] = 72] = "occurrencesHighlight";
-    EditorOption[EditorOption["overviewRulerBorder"] = 73] = "overviewRulerBorder";
-    EditorOption[EditorOption["overviewRulerLanes"] = 74] = "overviewRulerLanes";
-    EditorOption[EditorOption["padding"] = 75] = "padding";
-    EditorOption[EditorOption["parameterHints"] = 76] = "parameterHints";
-    EditorOption[EditorOption["peekWidgetDefaultFocus"] = 77] = "peekWidgetDefaultFocus";
-    EditorOption[EditorOption["definitionLinkOpensInPeek"] = 78] = "definitionLinkOpensInPeek";
-    EditorOption[EditorOption["quickSuggestions"] = 79] = "quickSuggestions";
-    EditorOption[EditorOption["quickSuggestionsDelay"] = 80] = "quickSuggestionsDelay";
-    EditorOption[EditorOption["readOnly"] = 81] = "readOnly";
-    EditorOption[EditorOption["renameOnType"] = 82] = "renameOnType";
-    EditorOption[EditorOption["renderControlCharacters"] = 83] = "renderControlCharacters";
-    EditorOption[EditorOption["renderFinalNewline"] = 84] = "renderFinalNewline";
-    EditorOption[EditorOption["renderLineHighlight"] = 85] = "renderLineHighlight";
-    EditorOption[EditorOption["renderLineHighlightOnlyWhenFocus"] = 86] = "renderLineHighlightOnlyWhenFocus";
-    EditorOption[EditorOption["renderValidationDecorations"] = 87] = "renderValidationDecorations";
-    EditorOption[EditorOption["renderWhitespace"] = 88] = "renderWhitespace";
-    EditorOption[EditorOption["revealHorizontalRightPadding"] = 89] = "revealHorizontalRightPadding";
-    EditorOption[EditorOption["roundedSelection"] = 90] = "roundedSelection";
-    EditorOption[EditorOption["rulers"] = 91] = "rulers";
-    EditorOption[EditorOption["scrollbar"] = 92] = "scrollbar";
-    EditorOption[EditorOption["scrollBeyondLastColumn"] = 93] = "scrollBeyondLastColumn";
-    EditorOption[EditorOption["scrollBeyondLastLine"] = 94] = "scrollBeyondLastLine";
-    EditorOption[EditorOption["scrollPredominantAxis"] = 95] = "scrollPredominantAxis";
-    EditorOption[EditorOption["selectionClipboard"] = 96] = "selectionClipboard";
-    EditorOption[EditorOption["selectionHighlight"] = 97] = "selectionHighlight";
-    EditorOption[EditorOption["selectOnLineNumbers"] = 98] = "selectOnLineNumbers";
-    EditorOption[EditorOption["showFoldingControls"] = 99] = "showFoldingControls";
-    EditorOption[EditorOption["showUnused"] = 100] = "showUnused";
-    EditorOption[EditorOption["snippetSuggestions"] = 101] = "snippetSuggestions";
-    EditorOption[EditorOption["smartSelect"] = 102] = "smartSelect";
-    EditorOption[EditorOption["smoothScrolling"] = 103] = "smoothScrolling";
-    EditorOption[EditorOption["stickyTabStops"] = 104] = "stickyTabStops";
-    EditorOption[EditorOption["stopRenderingLineAfter"] = 105] = "stopRenderingLineAfter";
-    EditorOption[EditorOption["suggest"] = 106] = "suggest";
-    EditorOption[EditorOption["suggestFontSize"] = 107] = "suggestFontSize";
-    EditorOption[EditorOption["suggestLineHeight"] = 108] = "suggestLineHeight";
-    EditorOption[EditorOption["suggestOnTriggerCharacters"] = 109] = "suggestOnTriggerCharacters";
-    EditorOption[EditorOption["suggestSelection"] = 110] = "suggestSelection";
-    EditorOption[EditorOption["tabCompletion"] = 111] = "tabCompletion";
-    EditorOption[EditorOption["tabIndex"] = 112] = "tabIndex";
-    EditorOption[EditorOption["unicodeHighlighting"] = 113] = "unicodeHighlighting";
-    EditorOption[EditorOption["unusualLineTerminators"] = 114] = "unusualLineTerminators";
-    EditorOption[EditorOption["useShadowDOM"] = 115] = "useShadowDOM";
-    EditorOption[EditorOption["useTabStops"] = 116] = "useTabStops";
-    EditorOption[EditorOption["wordSeparators"] = 117] = "wordSeparators";
-    EditorOption[EditorOption["wordWrap"] = 118] = "wordWrap";
-    EditorOption[EditorOption["wordWrapBreakAfterCharacters"] = 119] = "wordWrapBreakAfterCharacters";
-    EditorOption[EditorOption["wordWrapBreakBeforeCharacters"] = 120] = "wordWrapBreakBeforeCharacters";
-    EditorOption[EditorOption["wordWrapColumn"] = 121] = "wordWrapColumn";
-    EditorOption[EditorOption["wordWrapOverride1"] = 122] = "wordWrapOverride1";
-    EditorOption[EditorOption["wordWrapOverride2"] = 123] = "wordWrapOverride2";
-    EditorOption[EditorOption["wrappingIndent"] = 124] = "wrappingIndent";
-    EditorOption[EditorOption["wrappingStrategy"] = 125] = "wrappingStrategy";
-    EditorOption[EditorOption["showDeprecated"] = 126] = "showDeprecated";
-    EditorOption[EditorOption["inlayHints"] = 127] = "inlayHints";
-    EditorOption[EditorOption["editorClassName"] = 128] = "editorClassName";
-    EditorOption[EditorOption["pixelRatio"] = 129] = "pixelRatio";
-    EditorOption[EditorOption["tabFocusMode"] = 130] = "tabFocusMode";
-    EditorOption[EditorOption["layoutInfo"] = 131] = "layoutInfo";
-    EditorOption[EditorOption["wrappingInfo"] = 132] = "wrappingInfo";
+    EditorOption[EditorOption["dropIntoEditor"] = 32] = "dropIntoEditor";
+    EditorOption[EditorOption["emptySelectionClipboard"] = 33] = "emptySelectionClipboard";
+    EditorOption[EditorOption["experimental"] = 34] = "experimental";
+    EditorOption[EditorOption["extraEditorClassName"] = 35] = "extraEditorClassName";
+    EditorOption[EditorOption["fastScrollSensitivity"] = 36] = "fastScrollSensitivity";
+    EditorOption[EditorOption["find"] = 37] = "find";
+    EditorOption[EditorOption["fixedOverflowWidgets"] = 38] = "fixedOverflowWidgets";
+    EditorOption[EditorOption["folding"] = 39] = "folding";
+    EditorOption[EditorOption["foldingStrategy"] = 40] = "foldingStrategy";
+    EditorOption[EditorOption["foldingHighlight"] = 41] = "foldingHighlight";
+    EditorOption[EditorOption["foldingImportsByDefault"] = 42] = "foldingImportsByDefault";
+    EditorOption[EditorOption["foldingMaximumRegions"] = 43] = "foldingMaximumRegions";
+    EditorOption[EditorOption["unfoldOnClickAfterEndOfLine"] = 44] = "unfoldOnClickAfterEndOfLine";
+    EditorOption[EditorOption["fontFamily"] = 45] = "fontFamily";
+    EditorOption[EditorOption["fontInfo"] = 46] = "fontInfo";
+    EditorOption[EditorOption["fontLigatures"] = 47] = "fontLigatures";
+    EditorOption[EditorOption["fontSize"] = 48] = "fontSize";
+    EditorOption[EditorOption["fontWeight"] = 49] = "fontWeight";
+    EditorOption[EditorOption["formatOnPaste"] = 50] = "formatOnPaste";
+    EditorOption[EditorOption["formatOnType"] = 51] = "formatOnType";
+    EditorOption[EditorOption["glyphMargin"] = 52] = "glyphMargin";
+    EditorOption[EditorOption["gotoLocation"] = 53] = "gotoLocation";
+    EditorOption[EditorOption["hideCursorInOverviewRuler"] = 54] = "hideCursorInOverviewRuler";
+    EditorOption[EditorOption["hover"] = 55] = "hover";
+    EditorOption[EditorOption["inDiffEditor"] = 56] = "inDiffEditor";
+    EditorOption[EditorOption["inlineSuggest"] = 57] = "inlineSuggest";
+    EditorOption[EditorOption["letterSpacing"] = 58] = "letterSpacing";
+    EditorOption[EditorOption["lightbulb"] = 59] = "lightbulb";
+    EditorOption[EditorOption["lineDecorationsWidth"] = 60] = "lineDecorationsWidth";
+    EditorOption[EditorOption["lineHeight"] = 61] = "lineHeight";
+    EditorOption[EditorOption["lineNumbers"] = 62] = "lineNumbers";
+    EditorOption[EditorOption["lineNumbersMinChars"] = 63] = "lineNumbersMinChars";
+    EditorOption[EditorOption["linkedEditing"] = 64] = "linkedEditing";
+    EditorOption[EditorOption["links"] = 65] = "links";
+    EditorOption[EditorOption["matchBrackets"] = 66] = "matchBrackets";
+    EditorOption[EditorOption["minimap"] = 67] = "minimap";
+    EditorOption[EditorOption["mouseStyle"] = 68] = "mouseStyle";
+    EditorOption[EditorOption["mouseWheelScrollSensitivity"] = 69] = "mouseWheelScrollSensitivity";
+    EditorOption[EditorOption["mouseWheelZoom"] = 70] = "mouseWheelZoom";
+    EditorOption[EditorOption["multiCursorMergeOverlapping"] = 71] = "multiCursorMergeOverlapping";
+    EditorOption[EditorOption["multiCursorModifier"] = 72] = "multiCursorModifier";
+    EditorOption[EditorOption["multiCursorPaste"] = 73] = "multiCursorPaste";
+    EditorOption[EditorOption["occurrencesHighlight"] = 74] = "occurrencesHighlight";
+    EditorOption[EditorOption["overviewRulerBorder"] = 75] = "overviewRulerBorder";
+    EditorOption[EditorOption["overviewRulerLanes"] = 76] = "overviewRulerLanes";
+    EditorOption[EditorOption["padding"] = 77] = "padding";
+    EditorOption[EditorOption["parameterHints"] = 78] = "parameterHints";
+    EditorOption[EditorOption["peekWidgetDefaultFocus"] = 79] = "peekWidgetDefaultFocus";
+    EditorOption[EditorOption["definitionLinkOpensInPeek"] = 80] = "definitionLinkOpensInPeek";
+    EditorOption[EditorOption["quickSuggestions"] = 81] = "quickSuggestions";
+    EditorOption[EditorOption["quickSuggestionsDelay"] = 82] = "quickSuggestionsDelay";
+    EditorOption[EditorOption["readOnly"] = 83] = "readOnly";
+    EditorOption[EditorOption["renameOnType"] = 84] = "renameOnType";
+    EditorOption[EditorOption["renderControlCharacters"] = 85] = "renderControlCharacters";
+    EditorOption[EditorOption["renderFinalNewline"] = 86] = "renderFinalNewline";
+    EditorOption[EditorOption["renderLineHighlight"] = 87] = "renderLineHighlight";
+    EditorOption[EditorOption["renderLineHighlightOnlyWhenFocus"] = 88] = "renderLineHighlightOnlyWhenFocus";
+    EditorOption[EditorOption["renderValidationDecorations"] = 89] = "renderValidationDecorations";
+    EditorOption[EditorOption["renderWhitespace"] = 90] = "renderWhitespace";
+    EditorOption[EditorOption["revealHorizontalRightPadding"] = 91] = "revealHorizontalRightPadding";
+    EditorOption[EditorOption["roundedSelection"] = 92] = "roundedSelection";
+    EditorOption[EditorOption["rulers"] = 93] = "rulers";
+    EditorOption[EditorOption["scrollbar"] = 94] = "scrollbar";
+    EditorOption[EditorOption["scrollBeyondLastColumn"] = 95] = "scrollBeyondLastColumn";
+    EditorOption[EditorOption["scrollBeyondLastLine"] = 96] = "scrollBeyondLastLine";
+    EditorOption[EditorOption["scrollPredominantAxis"] = 97] = "scrollPredominantAxis";
+    EditorOption[EditorOption["selectionClipboard"] = 98] = "selectionClipboard";
+    EditorOption[EditorOption["selectionHighlight"] = 99] = "selectionHighlight";
+    EditorOption[EditorOption["selectOnLineNumbers"] = 100] = "selectOnLineNumbers";
+    EditorOption[EditorOption["showFoldingControls"] = 101] = "showFoldingControls";
+    EditorOption[EditorOption["showUnused"] = 102] = "showUnused";
+    EditorOption[EditorOption["snippetSuggestions"] = 103] = "snippetSuggestions";
+    EditorOption[EditorOption["smartSelect"] = 104] = "smartSelect";
+    EditorOption[EditorOption["smoothScrolling"] = 105] = "smoothScrolling";
+    EditorOption[EditorOption["stickyTabStops"] = 106] = "stickyTabStops";
+    EditorOption[EditorOption["stopRenderingLineAfter"] = 107] = "stopRenderingLineAfter";
+    EditorOption[EditorOption["suggest"] = 108] = "suggest";
+    EditorOption[EditorOption["suggestFontSize"] = 109] = "suggestFontSize";
+    EditorOption[EditorOption["suggestLineHeight"] = 110] = "suggestLineHeight";
+    EditorOption[EditorOption["suggestOnTriggerCharacters"] = 111] = "suggestOnTriggerCharacters";
+    EditorOption[EditorOption["suggestSelection"] = 112] = "suggestSelection";
+    EditorOption[EditorOption["tabCompletion"] = 113] = "tabCompletion";
+    EditorOption[EditorOption["tabIndex"] = 114] = "tabIndex";
+    EditorOption[EditorOption["unicodeHighlighting"] = 115] = "unicodeHighlighting";
+    EditorOption[EditorOption["unusualLineTerminators"] = 116] = "unusualLineTerminators";
+    EditorOption[EditorOption["useShadowDOM"] = 117] = "useShadowDOM";
+    EditorOption[EditorOption["useTabStops"] = 118] = "useTabStops";
+    EditorOption[EditorOption["wordSeparators"] = 119] = "wordSeparators";
+    EditorOption[EditorOption["wordWrap"] = 120] = "wordWrap";
+    EditorOption[EditorOption["wordWrapBreakAfterCharacters"] = 121] = "wordWrapBreakAfterCharacters";
+    EditorOption[EditorOption["wordWrapBreakBeforeCharacters"] = 122] = "wordWrapBreakBeforeCharacters";
+    EditorOption[EditorOption["wordWrapColumn"] = 123] = "wordWrapColumn";
+    EditorOption[EditorOption["wordWrapOverride1"] = 124] = "wordWrapOverride1";
+    EditorOption[EditorOption["wordWrapOverride2"] = 125] = "wordWrapOverride2";
+    EditorOption[EditorOption["wrappingIndent"] = 126] = "wrappingIndent";
+    EditorOption[EditorOption["wrappingStrategy"] = 127] = "wrappingStrategy";
+    EditorOption[EditorOption["showDeprecated"] = 128] = "showDeprecated";
+    EditorOption[EditorOption["inlayHints"] = 129] = "inlayHints";
+    EditorOption[EditorOption["editorClassName"] = 130] = "editorClassName";
+    EditorOption[EditorOption["pixelRatio"] = 131] = "pixelRatio";
+    EditorOption[EditorOption["tabFocusMode"] = 132] = "tabFocusMode";
+    EditorOption[EditorOption["layoutInfo"] = 133] = "layoutInfo";
+    EditorOption[EditorOption["wrappingInfo"] = 134] = "wrappingInfo";
 })(EditorOption || (EditorOption = {}));
 /**
  * End of line character preference.
@@ -13023,6 +13280,14 @@ var PositionAffinity;
      * No preference.
     */
     PositionAffinity[PositionAffinity["None"] = 2] = "None";
+    /**
+     * If the given position is on injected text, prefers the position left of it.
+    */
+    PositionAffinity[PositionAffinity["LeftOfInjectedText"] = 3] = "LeftOfInjectedText";
+    /**
+     * If the given position is on injected text, prefers the position right of it.
+    */
+    PositionAffinity[PositionAffinity["RightOfInjectedText"] = 4] = "RightOfInjectedText";
 })(PositionAffinity || (PositionAffinity = {}));
 var RenderLineNumbersType;
 (function (RenderLineNumbersType) {
@@ -13309,8 +13574,8 @@ class TokenizationRegistry {
         return this._colorMap;
     }
     getDefaultBackground() {
-        if (this._colorMap && this._colorMap.length > 2 /* DefaultBackground */) {
-            return this._colorMap[2 /* DefaultBackground */];
+        if (this._colorMap && this._colorMap.length > 2 /* ColorId.DefaultBackground */) {
+            return this._colorMap[2 /* ColorId.DefaultBackground */];
         }
         return null;
     }
@@ -13347,6 +13612,200 @@ class TokenizationSupportFactoryData extends _base_common_lifecycle_js__WEBPACK_
             if (value && !this._isDisposed) {
                 this._register(this._registry.register(this._languageId, value));
             }
+        });
+    }
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/monaco-editor/esm/vs/nls.js":
+/*!**************************************************!*\
+  !*** ./node_modules/monaco-editor/esm/vs/nls.js ***!
+  \**************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "create": () => (/* binding */ create),
+/* harmony export */   "getConfiguredDefaultLocale": () => (/* binding */ getConfiguredDefaultLocale),
+/* harmony export */   "load": () => (/* binding */ load),
+/* harmony export */   "localize": () => (/* binding */ localize),
+/* harmony export */   "setPseudoTranslation": () => (/* binding */ setPseudoTranslation)
+/* harmony export */ });
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+let isPseudo = (typeof document !== 'undefined' && document.location && document.location.hash.indexOf('pseudo=true') >= 0);
+const DEFAULT_TAG = 'i-default';
+function _format(message, args) {
+    let result;
+    if (args.length === 0) {
+        result = message;
+    }
+    else {
+        result = message.replace(/\{(\d+)\}/g, (match, rest) => {
+            const index = rest[0];
+            const arg = args[index];
+            let result = match;
+            if (typeof arg === 'string') {
+                result = arg;
+            }
+            else if (typeof arg === 'number' || typeof arg === 'boolean' || arg === void 0 || arg === null) {
+                result = String(arg);
+            }
+            return result;
+        });
+    }
+    if (isPseudo) {
+        // FF3B and FF3D is the Unicode zenkaku representation for [ and ]
+        result = '\uFF3B' + result.replace(/[aouei]/g, '$&$&') + '\uFF3D';
+    }
+    return result;
+}
+function findLanguageForModule(config, name) {
+    let result = config[name];
+    if (result) {
+        return result;
+    }
+    result = config['*'];
+    if (result) {
+        return result;
+    }
+    return null;
+}
+function endWithSlash(path) {
+    if (path.charAt(path.length - 1) === '/') {
+        return path;
+    }
+    return path + '/';
+}
+function getMessagesFromTranslationsService(translationServiceUrl, language, name) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const url = endWithSlash(translationServiceUrl) + endWithSlash(language) + 'vscode/' + endWithSlash(name);
+        const res = yield fetch(url);
+        if (res.ok) {
+            const messages = yield res.json();
+            return messages;
+        }
+        throw new Error(`${res.status} - ${res.statusText}`);
+    });
+}
+function createScopedLocalize(scope) {
+    return function (idx, defaultValue) {
+        const restArgs = Array.prototype.slice.call(arguments, 2);
+        return _format(scope[idx], restArgs);
+    };
+}
+function localize(data, message, ...args) {
+    return _format(message, args);
+}
+function getConfiguredDefaultLocale(_) {
+    // This returns undefined because this implementation isn't used and is overwritten by the loader
+    // when loaded.
+    return undefined;
+}
+function setPseudoTranslation(value) {
+    isPseudo = value;
+}
+/**
+ * Invoked in a built product at run-time
+ */
+function create(key, data) {
+    var _a;
+    return {
+        localize: createScopedLocalize(data[key]),
+        getConfiguredDefaultLocale: (_a = data.getConfiguredDefaultLocale) !== null && _a !== void 0 ? _a : ((_) => undefined)
+    };
+}
+/**
+ * Invoked by the loader at run-time
+ */
+function load(name, req, load, config) {
+    var _a;
+    const pluginConfig = (_a = config['vs/nls']) !== null && _a !== void 0 ? _a : {};
+    if (!name || name.length === 0) {
+        return load({
+            localize: localize,
+            getConfiguredDefaultLocale: () => { var _a; return (_a = pluginConfig.availableLanguages) === null || _a === void 0 ? void 0 : _a['*']; }
+        });
+    }
+    const language = pluginConfig.availableLanguages ? findLanguageForModule(pluginConfig.availableLanguages, name) : null;
+    const useDefaultLanguage = language === null || language === DEFAULT_TAG;
+    let suffix = '.nls';
+    if (!useDefaultLanguage) {
+        suffix = suffix + '.' + language;
+    }
+    const messagesLoaded = (messages) => {
+        if (Array.isArray(messages)) {
+            messages.localize = createScopedLocalize(messages);
+        }
+        else {
+            messages.localize = createScopedLocalize(messages[name]);
+        }
+        messages.getConfiguredDefaultLocale = () => { var _a; return (_a = pluginConfig.availableLanguages) === null || _a === void 0 ? void 0 : _a['*']; };
+        load(messages);
+    };
+    if (typeof pluginConfig.loadBundle === 'function') {
+        pluginConfig.loadBundle(name, language, (err, messages) => {
+            // We have an error. Load the English default strings to not fail
+            if (err) {
+                req([name + '.nls'], messagesLoaded);
+            }
+            else {
+                messagesLoaded(messages);
+            }
+        });
+    }
+    else if (pluginConfig.translationServiceUrl && !useDefaultLanguage) {
+        (() => __awaiter(this, void 0, void 0, function* () {
+            var _b;
+            try {
+                const messages = yield getMessagesFromTranslationsService(pluginConfig.translationServiceUrl, language, name);
+                return messagesLoaded(messages);
+            }
+            catch (err) {
+                // Language is already as generic as it gets, so require default messages
+                if (!language.includes('-')) {
+                    console.error(err);
+                    return req([name + '.nls'], messagesLoaded);
+                }
+                try {
+                    // Since there is a dash, the language configured is a specific sub-language of the same generic language.
+                    // Since we were unable to load the specific language, try to load the generic language. Ex. we failed to find a
+                    // Swiss German (de-CH), so try to load the generic German (de) messages instead.
+                    const genericLanguage = language.split('-')[0];
+                    const messages = yield getMessagesFromTranslationsService(pluginConfig.translationServiceUrl, genericLanguage, name);
+                    // We got some messages, so we configure the configuration to use the generic language for this session.
+                    (_b = pluginConfig.availableLanguages) !== null && _b !== void 0 ? _b : (pluginConfig.availableLanguages = {});
+                    pluginConfig.availableLanguages['*'] = genericLanguage;
+                    return messagesLoaded(messages);
+                }
+                catch (err) {
+                    console.error(err);
+                    return req([name + '.nls'], messagesLoaded);
+                }
+            }
+        }))();
+    }
+    else {
+        req([name + suffix], messagesLoaded, (err) => {
+            if (suffix === '.nls') {
+                console.error('Failed trying to load default language strings', err);
+                return;
+            }
+            console.error(`Failed to load message bundle for language ${language}. Falling back to the default language:`, err);
+            req([name + '.nls'], messagesLoaded);
         });
     }
 }
