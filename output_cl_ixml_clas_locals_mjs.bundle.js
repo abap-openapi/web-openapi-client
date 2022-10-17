@@ -86,8 +86,8 @@ class lcl_named_node_map {
     let name = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.name) {name.set(INPUT.name);}
     let li_node = new abap.types.ABAPObject({qualifiedName: "IF_IXML_NODE"});
-    for await (const unique85 of abap.statements.loop(this.mt_list)) {
-      li_node.set(unique85);
+    for await (const unique87 of abap.statements.loop(this.mt_list)) {
+      li_node.set(unique87);
       if (abap.compare.eq((await li_node.get().if_ixml_node$get_name()), name)) {
         val.set(li_node);
         return val;
@@ -267,13 +267,13 @@ class lcl_node {
     let lt_nodes = new abap.types.Table(new abap.types.ABAPObject({qualifiedName: "IF_IXML_NODE"}), {"withHeader":false,"type":"STANDARD","isUnique":false,"keyFields":[]}, "");
     let li_top = new abap.types.ABAPObject({qualifiedName: "IF_IXML_NODE"});
     abap.statements.append({source: this.me, target: lt_nodes});
-    for await (const unique86 of abap.statements.loop(lt_nodes)) {
-      li_top.set(unique86);
+    for await (const unique88 of abap.statements.loop(lt_nodes)) {
+      li_top.set(unique88);
       li_children.set((await li_top.get().if_ixml_node$get_children()));
       li_iterator.set((await li_children.get().if_ixml_node_list$create_iterator()));
-      let unique87 = 1;
+      let unique89 = 1;
       while (true) {
-        abap.builtin.sy.get().index.set(unique87++);
+        abap.builtin.sy.get().index.set(unique89++);
         li_node.set((await li_iterator.get().if_ixml_node_iterator$get_next()));
         if (abap.compare.initial(li_node)) {
           break;
@@ -375,9 +375,9 @@ class lcl_node {
     let lv_attributes = new abap.types.String({qualifiedName: "STRING"});
     let lv_ns = new abap.types.String({qualifiedName: "STRING"});
     li_iterator.set((await this.mi_attributes.get().if_ixml_named_node_map$create_iterator()));
-    let unique88 = 1;
+    let unique90 = 1;
     while (true) {
-      abap.builtin.sy.get().index.set(unique88++);
+      abap.builtin.sy.get().index.set(unique90++);
       li_node.set((await li_iterator.get().if_ixml_node_iterator$get_next()));
       if (abap.compare.initial(li_node)) {
         break;
@@ -392,9 +392,9 @@ class lcl_node {
       await ostream.get().if_ixml_ostream$write_string({string: new abap.types.Character({length: 1}).set('>')});
     }
     li_iterator.set((await (await this.if_ixml_node$get_children()).get().if_ixml_node_list$create_iterator()));
-    let unique89 = 1;
+    let unique91 = 1;
     while (true) {
-      abap.builtin.sy.get().index.set(unique89++);
+      abap.builtin.sy.get().index.set(unique91++);
       await abap.statements.cast(li_element, (await li_iterator.get().if_ixml_node_iterator$get_next()));
       if (abap.compare.initial(li_element)) {
         break;
@@ -505,9 +505,9 @@ class lcl_node {
       val.set(constant_0);
     } else {
       li_iterator.set((await this.mo_children.get().if_ixml_node_list$create_iterator()));
-      let unique90 = 1;
+      let unique92 = 1;
       while (true) {
-        abap.builtin.sy.get().index.set(unique90++);
+        abap.builtin.sy.get().index.set(unique92++);
         li_node.set((await li_iterator.get().if_ixml_node_iterator$get_next()));
         if (abap.compare.initial(li_node)) {
           break;
@@ -539,9 +539,9 @@ class lcl_node {
       val.set(this.mv_value);
     } else {
       li_iterator.set((await this.mo_children.get().if_ixml_node_list$create_iterator()));
-      let unique91 = 1;
+      let unique93 = 1;
       while (true) {
-        abap.builtin.sy.get().index.set(unique91++);
+        abap.builtin.sy.get().index.set(unique93++);
         li_node.set((await li_iterator.get().if_ixml_node_iterator$get_next()));
         if (abap.compare.initial(li_node)) {
           break;
@@ -886,9 +886,9 @@ class lcl_renderer {
     li_root.set((await this.mi_document.get().if_ixml_document$get_root_element()));
     li_children.set((await li_root.get().if_ixml_element$get_children()));
     li_iterator.set((await li_children.get().if_ixml_node_list$create_iterator()));
-    let unique92 = 1;
+    let unique94 = 1;
     while (true) {
-      abap.builtin.sy.get().index.set(unique92++);
+      abap.builtin.sy.get().index.set(unique94++);
       await abap.statements.cast(li_element, (await li_iterator.get().if_ixml_node_iterator$get_next()));
       if (abap.compare.initial(li_element)) {
         break;
@@ -1017,7 +1017,9 @@ class lcl_parser {
     await abap.statements.cast(lo_parent, (await this.mi_document.get().if_ixml_document$get_root()));
     lv_xml.set(this.mi_istream.get().mv_xml);
     abap.statements.replace({target:lv_xml, all:true, with: new abap.types.String().set(``),of: new abap.types.String().set(`\n`)});
+    let unique95 = 1;
     while (abap.compare.initial(lv_xml) === false) {
+      abap.builtin.sy.get().index.set(unique95++);
       abap.statements.clear(lo_node);
       if (abap.compare.cp(lv_xml, new abap.types.Character({length: 7}).set('<?xml *'))) {
         abap.statements.find(lv_xml, {find: new abap.types.Character({length: 2}).set('?>'), first: true, offset: lv_offset});
@@ -1072,9 +1074,9 @@ class lcl_parser {
       return;
     }
     lv_xml.set(iv_xml.getOffset({length: is_match.get().length}));
-    let unique93 = 1;
+    let unique96 = 1;
     while (true) {
-      abap.builtin.sy.get().index.set(unique93++);
+      abap.builtin.sy.get().index.set(unique96++);
       abap.statements.find(lv_xml, {regex: lcl_parser.lc_regex_attr, first: true, offset: lv_offset, length: lv_length, submatches: [lv_name,lv_value]});
       if (abap.compare.ne(abap.builtin.sy.get().subrc, constant_0)) {
         return;
