@@ -14,13 +14,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 const {cx_root} = await Promise.resolve(/*! import() */).then(__webpack_require__.bind(__webpack_require__, /*! ./cx_root.clas.mjs */ "../output/cx_root.clas.mjs"));
 // cl_abap_zip.clas.locals_imp.abap
-const constant_0 = new abap.types.Integer().set(0);
-const constant_1 = new abap.types.Integer().set(1);
-const constant_2 = new abap.types.Integer().set(2);
-const constant_256 = new abap.types.Integer().set(256);
-const constant_3 = new abap.types.Integer().set(3);
-const constant_4 = new abap.types.Integer().set(4);
-const constant_8 = new abap.types.Integer().set(8);
 class lcl_stream {
   static INTERNAL_TYPE = 'CLAS';
   static IMPLEMENTED_INTERFACES = [];
@@ -86,38 +79,44 @@ class lcl_stream {
     crc.set(mffffffff);
     let x4 = new abap.types.Hex({length: 4});
     let idx = new abap.types.Hex({length: 4});
-    if (abap.compare.eq(abap.builtin.xstrlen({val: lcl_stream.crc32_map}), constant_0)) {
-      const unique69 = constant_256.get();
+    if (abap.compare.eq(abap.builtin.xstrlen({val: lcl_stream.crc32_map}), new abap.types.Integer().set(0))) {
+      const indexBackup1 = abap.builtin.sy.get().index.get();
+      const unique69 = new abap.types.Integer().set(256).get();
       for (let unique70 = 0; unique70 < unique69; unique70++) {
         abap.builtin.sy.get().index.set(unique70 + 1);
-        cindex.set(abap.operators.minus(abap.builtin.sy.get().index,constant_1));
-        const unique71 = constant_8.get();
+        cindex.set(abap.operators.minus(abap.builtin.sy.get().index,new abap.types.Integer().set(1)));
+        const indexBackup2 = abap.builtin.sy.get().index.get();
+        const unique71 = new abap.types.Integer().set(8).get();
         for (let unique72 = 0; unique72 < unique71; unique72++) {
           abap.builtin.sy.get().index.set(unique72 + 1);
-          low_bit.set(new abap.types.Character({length: 8}).set('00000001'));
+          low_bit.set(new abap.types.Character(8).set('00000001'));
           low_bit.set(abap.operators.bitand(cindex,low_bit));
-          cindex.set(abap.operators.div(cindex,constant_2));
+          cindex.set(abap.operators.div(cindex,new abap.types.Integer().set(2)));
           cindex.set(abap.operators.bitand(cindex,m7fffffff));
           if (abap.compare.initial(low_bit) === false) {
             cindex.set(abap.operators.bitxor(cindex,magic_nr));
           }
         }
+        abap.builtin.sy.get().index.set(indexBackup2);
         abap.statements.concatenate({source: [lcl_stream.crc32_map, cindex], target: lcl_stream.crc32_map});
       }
+      abap.builtin.sy.get().index.set(indexBackup1);
     }
     len.set(abap.builtin.xstrlen({val: iv_xstring}));
+    const indexBackup3 = abap.builtin.sy.get().index.get();
     const unique73 = len.get();
     for (let unique74 = 0; unique74 < unique73; unique74++) {
       abap.builtin.sy.get().index.set(unique74 + 1);
-      nindex.set(abap.operators.minus(abap.builtin.sy.get().index,constant_1));
+      nindex.set(abap.operators.minus(abap.builtin.sy.get().index,new abap.types.Integer().set(1)));
       abap.statements.concatenate({source: [m000000, iv_xstring.getOffset({offset: nindex, length: 1})], target: idx});
       idx.set(abap.operators.bitand(abap.operators.bitxor(crc,idx),m000000ff));
-      idx.set(abap.operators.multiply(idx,constant_4));
+      idx.set(abap.operators.multiply(idx,new abap.types.Integer().set(4)));
       x4.set(lcl_stream.crc32_map.getOffset({offset: idx, length: 4}));
-      crc.set(abap.operators.div(crc,constant_256));
+      crc.set(abap.operators.div(crc,new abap.types.Integer().set(256)));
       crc.set(abap.operators.bitand(crc,m00ffffff));
       crc.set(abap.operators.bitxor(x4,crc));
     }
+    abap.builtin.sy.get().index.set(indexBackup3);
     crc.set(abap.operators.bitxor(crc,mffffffff));
     rv_crc.set(crc);
     await this.append({iv_xstr: rv_crc});

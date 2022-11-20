@@ -16,7 +16,6 @@ __webpack_require__.r(__webpack_exports__);
 /* provided dependency */ var Buffer = __webpack_require__(/*! buffer */ "./node_modules/buffer/index.js")["Buffer"];
 const {cx_root} = await Promise.resolve(/*! import() */).then(__webpack_require__.bind(__webpack_require__, /*! ./cx_root.clas.mjs */ "../output/cx_root.clas.mjs"));
 // cl_apc_tcp_client_manager.clas.locals_imp.abap
-const constant_1 = new abap.types.Integer().set(1);
 class lcl_message {
   static INTERNAL_TYPE = 'CLAS';
   static IMPLEMENTED_INTERFACES = ["IF_APC_WSP_MESSAGE"];
@@ -33,7 +32,7 @@ class lcl_message {
   }
   async if_apc_wsp_message$get_text() {
     let r_message = new abap.types.String({qualifiedName: "STRING"});
-    abap.statements.assert(abap.compare.eq(constant_1, new abap.types.Character({length: 4}).set('todo')));
+    abap.statements.assert(abap.compare.eq(new abap.types.Integer().set(1), new abap.types.Character(4).set('todo')));
     return r_message;
   }
   async if_apc_wsp_message$set_binary(INPUT) {
