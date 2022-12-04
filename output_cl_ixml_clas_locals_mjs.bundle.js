@@ -12,6 +12,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "lcl_document": () => (/* binding */ lcl_document),
 /* harmony export */   "lcl_encoding": () => (/* binding */ lcl_encoding),
+/* harmony export */   "lcl_escape": () => (/* binding */ lcl_escape),
 /* harmony export */   "lcl_istream": () => (/* binding */ lcl_istream),
 /* harmony export */   "lcl_named_node_map": () => (/* binding */ lcl_named_node_map),
 /* harmony export */   "lcl_node": () => (/* binding */ lcl_node),
@@ -24,6 +25,46 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 const {cx_root} = await Promise.resolve(/*! import() */).then(__webpack_require__.bind(__webpack_require__, /*! ./cx_root.clas.mjs */ "../output/cx_root.clas.mjs"));
 // cl_ixml.clas.locals_imp.abap
+class lcl_escape {
+  static INTERNAL_TYPE = 'CLAS';
+  static IMPLEMENTED_INTERFACES = [];
+  async constructor_(INPUT) {
+    this.me = new abap.types.ABAPObject();
+    this.me.set(this);
+    return this;
+  }
+  async unescape_value(INPUT) {
+    return lcl_escape.unescape_value(INPUT);
+  }
+  static async unescape_value(INPUT) {
+    let rv_value = new abap.types.String({qualifiedName: "STRING"});
+    let iv_value = new abap.types.String({qualifiedName: "STRING"});
+    if (INPUT && INPUT.iv_value) {iv_value.set(INPUT.iv_value);}
+    rv_value.set(iv_value);
+    abap.statements.replace({target: rv_value, all: true, with: new abap.types.Character(1).set('&'), of: new abap.types.Character(5).set('&amp;')});
+    abap.statements.replace({target: rv_value, all: true, with: new abap.types.Character(1).set('<'), of: new abap.types.Character(4).set('&lt;')});
+    abap.statements.replace({target: rv_value, all: true, with: new abap.types.Character(1).set('>'), of: new abap.types.Character(4).set('&gt;')});
+    abap.statements.replace({target: rv_value, all: true, with: new abap.types.Character(1).set('"'), of: new abap.types.Character(6).set('&quot;')});
+    abap.statements.replace({target: rv_value, all: true, with: new abap.types.String().set(`'`), of: new abap.types.Character(6).set('&apos;')});
+    return rv_value;
+  }
+  async escape_value(INPUT) {
+    return lcl_escape.escape_value(INPUT);
+  }
+  static async escape_value(INPUT) {
+    let rv_value = new abap.types.String({qualifiedName: "STRING"});
+    let iv_value = new abap.types.String({qualifiedName: "STRING"});
+    if (INPUT && INPUT.iv_value) {iv_value.set(INPUT.iv_value);}
+    rv_value.set(iv_value);
+    abap.statements.replace({target: rv_value, all: true, with: new abap.types.Character(5).set('&amp;'), of: new abap.types.Character(1).set('&')});
+    abap.statements.replace({target: rv_value, all: true, with: new abap.types.Character(4).set('&lt;'), of: new abap.types.Character(1).set('<')});
+    abap.statements.replace({target: rv_value, all: true, with: new abap.types.Character(4).set('&gt;'), of: new abap.types.Character(1).set('>')});
+    abap.statements.replace({target: rv_value, all: true, with: new abap.types.Character(6).set('&quot;'), of: new abap.types.Character(1).set('"')});
+    abap.statements.replace({target: rv_value, all: true, with: new abap.types.Character(6).set('&apos;'), of: new abap.types.String().set(`'`)});
+    return rv_value;
+  }
+}
+abap.Classes['CLAS-CL_IXML-LCL_ESCAPE'] = lcl_escape;
 class lcl_node_iterator {
   static INTERNAL_TYPE = 'CLAS';
   static IMPLEMENTED_INTERFACES = ["IF_IXML_NODE_ITERATOR"];
@@ -407,7 +448,7 @@ class lcl_node {
     }
     abap.builtin.sy.get().index.set(indexBackup2);
     if (abap.compare.gt((await (await this.if_ixml_node$get_children()).get().if_ixml_node_list$get_length()), new abap.types.Integer().set(0)) || abap.compare.initial(this.mv_value) === false) {
-      await ostream.get().if_ixml_ostream$write_string({string: abap.operators.concat(this.mv_value,abap.operators.concat(new abap.types.Character(2).set('</'),abap.operators.concat(lv_ns,abap.operators.concat(this.mv_name,new abap.types.Character(1).set('>')))))});
+      await ostream.get().if_ixml_ostream$write_string({string: abap.operators.concat((await abap.Classes['CLAS-CL_IXML-LCL_ESCAPE'].escape_value({iv_value: this.mv_value})),abap.operators.concat(new abap.types.Character(2).set('</'),abap.operators.concat(lv_ns,abap.operators.concat(this.mv_name,new abap.types.Character(1).set('>')))))});
     } else {
       await ostream.get().if_ixml_ostream$write_string({string: new abap.types.Character(2).set('/>')});
     }
@@ -1027,7 +1068,7 @@ class lcl_parser {
     let lo_node = new abap.types.ABAPObject({qualifiedName: "LCL_NODE"});
     await abap.statements.cast(lo_parent, (await this.mi_document.get().if_ixml_document$get_root()));
     lv_xml.set(this.mi_istream.get().mv_xml);
-    abap.statements.replace({target:lv_xml, all:true, with: new abap.types.String().set(``),of: new abap.types.String().set(`\n`)});
+    abap.statements.replace({target: lv_xml, all: true, with: new abap.types.String().set(``), of: new abap.types.String().set(`\n`)});
     const indexBackup1 = abap.builtin.sy.get().index.get();
     let unique95 = 1;
     while (abap.compare.initial(lv_xml) === false) {
@@ -1061,7 +1102,7 @@ class lcl_parser {
         lv_value.set(lv_xml.getOffset({length: lv_offset}));
         lo_node.set(await (new abap.Classes['CLAS-CL_IXML-LCL_NODE']()).constructor_({ii_parent: lo_parent}));
         await lo_node.get().if_ixml_node$set_name({name: new abap.types.Character(5).set('#text')});
-        await lo_node.get().if_ixml_node$set_value({value: lv_value});
+        await lo_node.get().if_ixml_node$set_value({value: (await abap.Classes['CLAS-CL_IXML-LCL_ESCAPE'].unescape_value({iv_value: lv_value}))});
       }
       lv_xml.set(lv_xml.getOffset({offset: lv_offset}));
       abap.statements.condense(lv_xml, {nogaps: false});
