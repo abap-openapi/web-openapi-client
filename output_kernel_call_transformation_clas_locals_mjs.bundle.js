@@ -17,6 +17,7 @@ const {cx_root} = await Promise.resolve(/*! import() */).then(__webpack_require_
 class lcl_data_to_xml {
   static INTERNAL_TYPE = 'CLAS';
   static IMPLEMENTED_INTERFACES = [];
+  static ATTRIBUTES = {};
   async constructor_(INPUT) {
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
@@ -28,35 +29,35 @@ class lcl_data_to_xml {
   static async run(INPUT) {
     let rv_xml = new abap.types.String({qualifiedName: "STRING"});
     let iv_ref = new abap.types.DataReference(new abap.types.Character(4));
-    if (INPUT && INPUT.iv_ref) {iv_ref = INPUT.iv_ref;}
+    if (INPUT && INPUT.iv_ref) {iv_ref.set(INPUT.iv_ref);}
     let lo_type = new abap.types.ABAPObject({qualifiedName: "CL_ABAP_TYPEDESCR"});
     let lo_struc = new abap.types.ABAPObject({qualifiedName: "CL_ABAP_STRUCTDESCR"});
-    let lt_comps = new abap.types.Table(new abap.types.Structure({"name": new abap.types.String({qualifiedName: "NAME"}), "type": new abap.types.ABAPObject({qualifiedName: "CL_ABAP_DATADESCR"}), "as_include": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}), "suffix": new abap.types.String({qualifiedName: "SUFFIX"})}, "abap_componentdescr"), {"withHeader":false,"primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "abap_component_tab");
+    let lt_comps = abap.types.TableFactory.construct(new abap.types.Structure({"name": new abap.types.String({qualifiedName: "NAME"}), "type": new abap.types.ABAPObject({qualifiedName: "CL_ABAP_DATADESCR"}), "as_include": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}), "suffix": new abap.types.String({qualifiedName: "SUFFIX"})}, "abap_componentdescr"), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "abap_component_tab");
     let ls_compo = new abap.types.Structure({"name": new abap.types.String({qualifiedName: "NAME"}), "type": new abap.types.ABAPObject({qualifiedName: "CL_ABAP_DATADESCR"}), "as_include": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}), "suffix": new abap.types.String({qualifiedName: "SUFFIX"})}, "abap_componentdescr");
     let lv_ref = new abap.types.DataReference(new abap.types.Character(4));
     let fs_any_ = new abap.types.FieldSymbol(new abap.types.Character(4));
-    let fs_table_ = new abap.types.FieldSymbol(new abap.types.Table(new abap.types.Character(4), {"withHeader":false}));
+    let fs_table_ = new abap.types.FieldSymbol(abap.types.TableFactory.construct(new abap.types.Character(4), {"withHeader":false,"keyType":"DEFAULT"}));
     let fs_field_ = new abap.types.FieldSymbol(new abap.types.Character(4));
     lo_type.set((await abap.Classes['CL_ABAP_TYPEDESCR'].describe_by_data({p_data: (iv_ref).dereference()})));
-    let unique117 = lo_type.get().kind;
-    if (abap.compare.eq(unique117, abap.Classes['CL_ABAP_TYPEDESCR'].kind_struct)) {
+    let unique118 = lo_type.get().kind;
+    if (abap.compare.eq(unique118, abap.Classes['CL_ABAP_TYPEDESCR'].kind_struct)) {
       await abap.statements.cast(lo_struc, lo_type);
       lt_comps.set((await lo_struc.get().get_components()));
       abap.statements.assign({target: fs_any_, source: (iv_ref).dereference()});
-      for await (const unique118 of abap.statements.loop(lt_comps)) {
-        ls_compo.set(unique118);
+      for await (const unique119 of abap.statements.loop(lt_comps)) {
+        ls_compo.set(unique119);
         abap.statements.assign({component: ls_compo.get().name, target: fs_field_, source: fs_any_});
         lv_ref.assign(fs_field_.getPointer());
         rv_xml.set(abap.operators.concat(rv_xml,new abap.types.String().set(`<${abap.templateFormatting(abap.builtin.to_upper({val: ls_compo.get().name}))}>`)));
         rv_xml.set(abap.operators.concat(rv_xml,(await this.run({iv_ref: lv_ref}))));
         rv_xml.set(abap.operators.concat(rv_xml,new abap.types.String().set(`</${abap.templateFormatting(abap.builtin.to_upper({val: ls_compo.get().name}))}>`)));
       }
-    } else if (abap.compare.eq(unique117, abap.Classes['CL_ABAP_TYPEDESCR'].kind_elem)) {
+    } else if (abap.compare.eq(unique118, abap.Classes['CL_ABAP_TYPEDESCR'].kind_elem)) {
       rv_xml.set(abap.operators.concat(rv_xml,(iv_ref).dereference()));
-    } else if (abap.compare.eq(unique117, abap.Classes['CL_ABAP_TYPEDESCR'].kind_table)) {
+    } else if (abap.compare.eq(unique118, abap.Classes['CL_ABAP_TYPEDESCR'].kind_table)) {
       abap.statements.assign({target: fs_table_, source: (iv_ref).dereference()});
-      for await (const unique119 of abap.statements.loop(fs_table_)) {
-        fs_any_.assign(unique119);
+      for await (const unique120 of abap.statements.loop(fs_table_)) {
+        fs_any_.assign(unique120);
         lv_ref.assign(fs_any_.getPointer());
         rv_xml.set(abap.operators.concat(rv_xml,new abap.types.String().set(`<item>`)));
         rv_xml.set(abap.operators.concat(rv_xml,(await this.run({iv_ref: lv_ref}))));

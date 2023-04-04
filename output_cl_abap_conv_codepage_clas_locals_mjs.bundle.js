@@ -18,6 +18,7 @@ const {cx_root} = await Promise.resolve(/*! import() */).then(__webpack_require_
 class lcl_in {
   static INTERNAL_TYPE = 'CLAS';
   static IMPLEMENTED_INTERFACES = ["IF_ABAP_CONV_IN"];
+  static ATTRIBUTES = {};
   async constructor_(INPUT) {
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
@@ -37,6 +38,7 @@ abap.Classes['CLAS-CL_ABAP_CONV_CODEPAGE-LCL_IN'] = lcl_in;
 class lcl_out {
   static INTERNAL_TYPE = 'CLAS';
   static IMPLEMENTED_INTERFACES = ["IF_ABAP_CONV_OUT"];
+  static ATTRIBUTES = {};
   async constructor_(INPUT) {
     this.me = new abap.types.ABAPObject();
     this.me.set(this);

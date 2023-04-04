@@ -19,6 +19,7 @@ const {cx_root} = await Promise.resolve(/*! import() */).then(__webpack_require_
 class lcl_message {
   static INTERNAL_TYPE = 'CLAS';
   static IMPLEMENTED_INTERFACES = ["IF_APC_WSP_MESSAGE"];
+  static ATTRIBUTES = {"MV_DATA": {"type": () => {return new abap.types.XString({qualifiedName: "XSTRING"});}, "visibility": "U", "is_constant": " "}};
   async constructor_(INPUT) {
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
@@ -45,6 +46,9 @@ abap.Classes['CLAS-CL_APC_TCP_CLIENT_MANAGER-LCL_MESSAGE'] = lcl_message;
 class lcl_client {
   static INTERNAL_TYPE = 'CLAS';
   static IMPLEMENTED_INTERFACES = ["IF_APC_WSP_CLIENT","IF_APC_WSP_MESSAGE_MANAGER"];
+  static ATTRIBUTES = {"MV_HOST": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "visibility": "U", "is_constant": " "},
+  "MV_PORT": {"type": () => {return new abap.types.Integer({qualifiedName: "I"});}, "visibility": "U", "is_constant": " "},
+  "MO_HANDLER": {"type": () => {return new abap.types.ABAPObject({qualifiedName: "IF_APC_WSP_EVENT_HANDLER"});}, "visibility": "U", "is_constant": " "}};
   async constructor_(INPUT) {
     this.me = new abap.types.ABAPObject();
     this.me.set(this);

@@ -2579,7 +2579,7 @@ var Event;
      * @param disposable A disposable store to add the new EventEmitter to.
      */
     function defer(event, disposable) {
-        return debounce(event, () => void 0, 0, undefined, undefined, disposable);
+        return debounce(event, () => void 0, 0, undefined, true, undefined, disposable);
     }
     Event.defer = defer;
     /**
@@ -2681,11 +2681,12 @@ var Event;
         disposable === null || disposable === void 0 ? void 0 : disposable.add(emitter);
         return emitter.event;
     }
-    function debounce(event, merge, delay = 100, leading = false, leakWarningThreshold, disposable) {
+    function debounce(event, merge, delay = 100, leading = false, flushOnListenerRemove = false, leakWarningThreshold, disposable) {
         let subscription;
         let output = undefined;
         let handle = undefined;
         let numDebouncedCalls = 0;
+        let doFire;
         const options = {
             leakWarningThreshold,
             onWillAddFirstListener() {
@@ -2696,7 +2697,7 @@ var Event;
                         emitter.fire(output);
                         output = undefined;
                     }
-                    const doFire = () => {
+                    doFire = () => {
                         const _output = output;
                         output = undefined;
                         handle = undefined;
@@ -2717,7 +2718,13 @@ var Event;
                     }
                 });
             },
+            onWillRemoveListener() {
+                if (flushOnListenerRemove && numDebouncedCalls > 0) {
+                    doFire === null || doFire === void 0 ? void 0 : doFire();
+                }
+            },
             onDidRemoveLastListener() {
+                doFire = undefined;
                 subscription.dispose();
             }
         };
@@ -2743,7 +2750,7 @@ var Event;
             }
             last.push(e);
             return last;
-        }, delay, undefined, undefined, disposable);
+        }, delay, undefined, true, undefined, disposable);
     }
     Event.accumulate = accumulate;
     /**
@@ -2851,8 +2858,8 @@ var Event;
         latch() {
             return new ChainableEvent(latch(this.event, undefined, this.disposables));
         }
-        debounce(merge, delay = 100, leading = false, leakWarningThreshold) {
-            return new ChainableEvent(debounce(this.event, merge, delay, leading, leakWarningThreshold, this.disposables));
+        debounce(merge, delay = 100, leading = false, flushOnListenerRemove = false, leakWarningThreshold) {
+            return new ChainableEvent(debounce(this.event, merge, delay, leading, flushOnListenerRemove, leakWarningThreshold, this.disposables));
         }
         on(listener, thisArgs, disposables) {
             return this.event(listener, thisArgs, disposables);
@@ -3145,8 +3152,10 @@ class Emitter {
                     this._options.onDidAddListener(this, callback, thisArgs);
                 }
                 const result = listener.subscription.set(() => {
+                    var _a, _b;
                     removeMonitor === null || removeMonitor === void 0 ? void 0 : removeMonitor();
                     if (!this._disposed) {
+                        (_b = (_a = this._options) === null || _a === void 0 ? void 0 : _a.onWillRemoveListener) === null || _b === void 0 ? void 0 : _b.call(_a, this);
                         removeListener();
                         if (this._options && this._options.onDidRemoveLastListener) {
                             const hasListeners = (this._listeners && !this._listeners.isEmpty());
@@ -6655,8 +6664,8 @@ const isIOS = _isIOS;
 const isMobile = _isMobile;
 const userAgent = _userAgent;
 /**
- * The language used for the user interface. The format of
- * the string is all lower case (e.g. zh-tw for Traditional
+ * The language used for the user interface. or the locale specified by --locale
+ * The format of the string is all lower case (e.g. zh-tw for Traditional
  * Chinese)
  */
 const language = _language;
@@ -11381,10 +11390,10 @@ __webpack_require__.r(__webpack_exports__);
 
 class Token {
     constructor(offset, type, language) {
-        this._tokenBrand = undefined;
         this.offset = offset;
         this.type = type;
         this.language = language;
+        this._tokenBrand = undefined;
     }
     toString() {
         return '(' + this.offset + ', ' + this.type + ')';
@@ -11395,19 +11404,26 @@ class Token {
  */
 class TokenizationResult {
     constructor(tokens, endState) {
-        this._tokenizationResultBrand = undefined;
         this.tokens = tokens;
         this.endState = endState;
+        this._tokenizationResultBrand = undefined;
     }
 }
 /**
  * @internal
  */
 class EncodedTokenizationResult {
-    constructor(tokens, endState) {
-        this._encodedTokenizationResultBrand = undefined;
+    constructor(
+    /**
+     * The tokens in binary format. Each token occupies two array indices. For token i:
+     *  - at offset 2*i => startIndex
+     *  - at offset 2*i + 1 => metadata
+     *
+     */
+    tokens, endState) {
         this.tokens = tokens;
         this.endState = endState;
+        this._encodedTokenizationResultBrand = undefined;
     }
 }
 /**
@@ -11596,6 +11612,19 @@ var SymbolKinds;
 })(SymbolKinds || (SymbolKinds = {}));
 class FoldingRangeKind {
     /**
+     * Returns a {@link FoldingRangeKind} for the given value.
+     *
+     * @param value of the kind.
+     */
+    static fromValue(value) {
+        switch (value) {
+            case 'comment': return FoldingRangeKind.Comment;
+            case 'imports': return FoldingRangeKind.Imports;
+            case 'region': return FoldingRangeKind.Region;
+        }
+        return new FoldingRangeKind(value);
+    }
+    /**
      * Creates a new {@link FoldingRangeKind}.
      *
      * @param value of the kind.
@@ -11752,11 +11781,11 @@ function getClassifier() {
     if (_classifier === null) {
         _classifier = new _core_characterClassifier_js__WEBPACK_IMPORTED_MODULE_0__.CharacterClassifier(0 /* CharacterClass.None */);
         // allow-any-unicode-next-line
-        const FORCE_TERMINATION_CHARACTERS = ', \t<>\'\"、。｡､，．：；‘〈「『〔（［｛｢｣｝］）〕』」〉’｀～…';
+        const FORCE_TERMINATION_CHARACTERS = ' \t<>\'\"、。｡､，．：；‘〈「『〔（［｛｢｣｝］）〕』」〉’｀～…';
         for (let i = 0; i < FORCE_TERMINATION_CHARACTERS.length; i++) {
             _classifier.set(FORCE_TERMINATION_CHARACTERS.charCodeAt(i), 1 /* CharacterClass.ForceTermination */);
         }
-        const CANNOT_END_WITH_CHARACTERS = '.;:';
+        const CANNOT_END_WITH_CHARACTERS = '.,;:';
         for (let i = 0; i < CANNOT_END_WITH_CHARACTERS.length; i++) {
             _classifier.set(CANNOT_END_WITH_CHARACTERS.charCodeAt(i), 2 /* CharacterClass.CannotEndIn */);
         }
@@ -15259,7 +15288,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _editor_editor_worker_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../editor/editor.worker.js */ "./node_modules/monaco-editor/esm/vs/editor/editor.worker.js");
 /*!-----------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
- * Version: 0.35.0(71ac097e6155a405f6be52b0b368a04508c31e31)
+ * Version: 0.36.1(6c56744c3419458f0dd48864520b759d1a3a1ca8)
  * Released under the MIT license
  * https://github.com/microsoft/monaco-editor/blob/main/LICENSE.txt
  *-----------------------------------------------------------------------------*/
