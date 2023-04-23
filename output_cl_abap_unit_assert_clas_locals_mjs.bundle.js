@@ -16,11 +16,15 @@ const {cx_root} = await Promise.resolve(/*! import() */).then(__webpack_require_
 // cl_abap_unit_assert.clas.locals_imp.abap
 class lcl_dump {
   static INTERNAL_TYPE = 'CLAS';
+  static INTERNAL_NAME = 'CLAS-CL_ABAP_UNIT_ASSERT-LCL_DUMP';
   static IMPLEMENTED_INTERFACES = [];
   static ATTRIBUTES = {};
-  async constructor_(INPUT) {
+  constructor() {
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
+  }
+  async constructor_(INPUT) {
+    if (super.constructor_) { await super.constructor_(INPUT); }
     return this;
   }
   async to_string(INPUT) {
@@ -32,10 +36,10 @@ class lcl_dump {
     if (INPUT && INPUT.iv_val) {iv_val = INPUT.iv_val;}
     let lv_type = new abap.types.Character(1, {});
     abap.statements.describe({field: iv_val, type: lv_type});
-    let unique168 = lv_type;
-    if (abap.compare.eq(unique168, new abap.types.Character(1).set('u')) || abap.compare.eq(unique168, new abap.types.Character(1).set('v'))) {
+    let unique175 = lv_type;
+    if (abap.compare.eq(unique175, new abap.types.Character(1).set('u')) || abap.compare.eq(unique175, new abap.types.Character(1).set('v'))) {
       rv_str.set((await this.dump_structure({iv_val: iv_val})));
-    } else if (abap.compare.eq(unique168, new abap.types.Character(1).set('h'))) {
+    } else if (abap.compare.eq(unique175, new abap.types.Character(1).set('h'))) {
       rv_str.set(new abap.types.String().set(`[itab]`));
     } else {
       rv_str.set(new abap.types.String().set(`${abap.templateFormatting(iv_val)}`));
@@ -54,9 +58,9 @@ class lcl_dump {
     let lv_str = new abap.types.String({qualifiedName: "STRING"});
     let fs_fs_ = new abap.types.FieldSymbol(new abap.types.Character(4));
     Object.keys(iv_val.get()).forEach((name) => lt_components.append(new abap.types.String().set(name)));
-    for await (const unique169 of abap.statements.loop(lt_components)) {
-      lv_name.set(unique169);
-      if (abap.compare.ne(rv_str, new abap.types.Character(0).set(''))) {
+    for await (const unique176 of abap.statements.loop(lt_components)) {
+      lv_name.set(unique176);
+      if (abap.compare.ne(rv_str, new abap.types.Character(1).set(''))) {
         rv_str.set(abap.operators.concat(rv_str,new abap.types.String().set(`, `)));
       }
       abap.statements.assign({component: lv_name, target: fs_fs_, source: iv_val});

@@ -18,12 +18,16 @@ const {cx_root} = await Promise.resolve(/*! import() */).then(__webpack_require_
 // cl_apc_tcp_client_manager.clas.locals_imp.abap
 class lcl_message {
   static INTERNAL_TYPE = 'CLAS';
+  static INTERNAL_NAME = 'CLAS-CL_APC_TCP_CLIENT_MANAGER-LCL_MESSAGE';
   static IMPLEMENTED_INTERFACES = ["IF_APC_WSP_MESSAGE"];
-  static ATTRIBUTES = {"MV_DATA": {"type": () => {return new abap.types.XString({qualifiedName: "XSTRING"});}, "visibility": "U", "is_constant": " "}};
-  async constructor_(INPUT) {
+  static ATTRIBUTES = {"MV_DATA": {"type": () => {return new abap.types.XString({qualifiedName: "XSTRING"});}, "visibility": "I", "is_constant": " "}};
+  constructor() {
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
     this.mv_data = new abap.types.XString({qualifiedName: "XSTRING"});
+  }
+  async constructor_(INPUT) {
+    if (super.constructor_) { await super.constructor_(INPUT); }
     return this;
   }
   async if_apc_wsp_message$get_binary() {
@@ -45,21 +49,24 @@ class lcl_message {
 abap.Classes['CLAS-CL_APC_TCP_CLIENT_MANAGER-LCL_MESSAGE'] = lcl_message;
 class lcl_client {
   static INTERNAL_TYPE = 'CLAS';
+  static INTERNAL_NAME = 'CLAS-CL_APC_TCP_CLIENT_MANAGER-LCL_CLIENT';
   static IMPLEMENTED_INTERFACES = ["IF_APC_WSP_CLIENT","IF_APC_WSP_MESSAGE_MANAGER"];
-  static ATTRIBUTES = {"MV_HOST": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "visibility": "U", "is_constant": " "},
-  "MV_PORT": {"type": () => {return new abap.types.Integer({qualifiedName: "I"});}, "visibility": "U", "is_constant": " "},
-  "MO_HANDLER": {"type": () => {return new abap.types.ABAPObject({qualifiedName: "IF_APC_WSP_EVENT_HANDLER"});}, "visibility": "U", "is_constant": " "}};
-  async constructor_(INPUT) {
+  static ATTRIBUTES = {"MV_HOST": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "visibility": "I", "is_constant": " "},
+  "MV_PORT": {"type": () => {return new abap.types.Integer({qualifiedName: "I"});}, "visibility": "I", "is_constant": " "},
+  "MO_HANDLER": {"type": () => {return new abap.types.ABAPObject({qualifiedName: "IF_APC_WSP_EVENT_HANDLER", RTTIName: "\\INTERFACE=IF_APC_WSP_EVENT_HANDLER"});}, "visibility": "I", "is_constant": " "}};
+  constructor() {
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
     this.mv_host = new abap.types.String({qualifiedName: "STRING"});
     this.mv_port = new abap.types.Integer({qualifiedName: "I"});
-    this.mo_handler = new abap.types.ABAPObject({qualifiedName: "IF_APC_WSP_EVENT_HANDLER"});
+    this.mo_handler = new abap.types.ABAPObject({qualifiedName: "IF_APC_WSP_EVENT_HANDLER", RTTIName: "\\INTERFACE=IF_APC_WSP_EVENT_HANDLER"});
+  }
+  async constructor_(INPUT) {
     let iv_host = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.iv_host) {iv_host.set(INPUT.iv_host);}
     let iv_port = new abap.types.Integer({qualifiedName: "I"});
     if (INPUT && INPUT.iv_port) {iv_port.set(INPUT.iv_port);}
-    let io_handler = new abap.types.ABAPObject({qualifiedName: "IF_APC_WSP_EVENT_HANDLER"});
+    let io_handler = new abap.types.ABAPObject({qualifiedName: "IF_APC_WSP_EVENT_HANDLER", RTTIName: "\\INTERFACE=IF_APC_WSP_EVENT_HANDLER"});
     if (INPUT && INPUT.io_handler) {io_handler.set(INPUT.io_handler);}
     abap.statements.assert(abap.compare.initial(iv_host) === false);
     abap.statements.assert(abap.compare.initial(iv_port) === false);
@@ -85,17 +92,17 @@ class lcl_client {
     this.client.destroy();
   }
   async if_apc_wsp_client$get_message_manager() {
-    let ri_manager = new abap.types.ABAPObject({qualifiedName: "IF_APC_WSP_MESSAGE_MANAGER"});
+    let ri_manager = new abap.types.ABAPObject({qualifiedName: "IF_APC_WSP_MESSAGE_MANAGER", RTTIName: "\\INTERFACE=IF_APC_WSP_MESSAGE_MANAGER"});
     ri_manager.set(this.me);
     return ri_manager;
   }
   async if_apc_wsp_message_manager$create_message() {
-    let ri_message = new abap.types.ABAPObject({qualifiedName: "IF_APC_WSP_MESSAGE"});
+    let ri_message = new abap.types.ABAPObject({qualifiedName: "IF_APC_WSP_MESSAGE", RTTIName: "\\INTERFACE=IF_APC_WSP_MESSAGE"});
     ri_message.set(await (new abap.Classes['CLAS-CL_APC_TCP_CLIENT_MANAGER-LCL_MESSAGE']()).constructor_());
     return ri_message;
   }
   async if_apc_wsp_message_manager$send(INPUT) {
-    let ii_message = new abap.types.ABAPObject({qualifiedName: "IF_APC_WSP_MESSAGE"});
+    let ii_message = new abap.types.ABAPObject({qualifiedName: "IF_APC_WSP_MESSAGE", RTTIName: "\\INTERFACE=IF_APC_WSP_MESSAGE"});
     if (INPUT && INPUT.ii_message) {ii_message.set(INPUT.ii_message);}
     const val = await ii_message.get().if_apc_wsp_message$get_binary();
     this.client.write(Buffer.from(val.get(), "hex"), "binary");

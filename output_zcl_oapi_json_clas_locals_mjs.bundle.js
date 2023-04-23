@@ -18,12 +18,16 @@ const {cx_root} = await Promise.resolve(/*! import() */).then(__webpack_require_
 // zcl_oapi_json.clas.locals_imp.abap
 class lcl_stack {
   static INTERNAL_TYPE = 'CLAS';
+  static INTERNAL_NAME = 'CLAS-ZCL_OAPI_JSON-LCL_STACK';
   static IMPLEMENTED_INTERFACES = [];
-  static ATTRIBUTES = {"MT_DATA": {"type": () => {return abap.types.TableFactory.construct(new abap.types.Structure({"name": new abap.types.String({qualifiedName: "LCL_STACK=>TY_DATA-NAME"}), "is_array": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}), "array_index": new abap.types.Integer({qualifiedName: "LCL_STACK=>TY_DATA-ARRAY_INDEX"})}, "lcl_stack=>ty_data"), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "");}, "visibility": "U", "is_constant": " "}};
-  async constructor_(INPUT) {
+  static ATTRIBUTES = {"MT_DATA": {"type": () => {return abap.types.TableFactory.construct(new abap.types.Structure({"name": new abap.types.String({qualifiedName: "LCL_STACK=>TY_DATA-NAME"}), "is_array": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}), "array_index": new abap.types.Integer({qualifiedName: "LCL_STACK=>TY_DATA-ARRAY_INDEX"})}, "lcl_stack=>ty_data"), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "");}, "visibility": "I", "is_constant": " "}};
+  constructor() {
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
     this.mt_data = abap.types.TableFactory.construct(new abap.types.Structure({"name": new abap.types.String({qualifiedName: "LCL_STACK=>TY_DATA-NAME"}), "is_array": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}), "array_index": new abap.types.Integer({qualifiedName: "LCL_STACK=>TY_DATA-ARRAY_INDEX"})}, "lcl_stack=>ty_data"), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "");
+  }
+  async constructor_(INPUT) {
+    if (super.constructor_) { await super.constructor_(INPUT); }
     return this;
   }
   async push(INPUT) {
@@ -87,31 +91,35 @@ abap.Classes['CLAS-ZCL_OAPI_JSON-LCL_STACK'] = lcl_stack;
 lcl_stack.ty_data = new abap.types.Structure({"name": new abap.types.String({qualifiedName: "LCL_STACK=>TY_DATA-NAME"}), "is_array": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}), "array_index": new abap.types.Integer({qualifiedName: "LCL_STACK=>TY_DATA-ARRAY_INDEX"})}, "lcl_stack=>ty_data");
 class lcl_parser {
   static INTERNAL_TYPE = 'CLAS';
+  static INTERNAL_NAME = 'CLAS-ZCL_OAPI_JSON-LCL_PARSER';
   static IMPLEMENTED_INTERFACES = [];
   static ATTRIBUTES = {};
-  async constructor_(INPUT) {
+  constructor() {
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
+  }
+  async constructor_(INPUT) {
+    if (super.constructor_) { await super.constructor_(INPUT); }
     return this;
   }
   async parse(INPUT) {
     let rt_data = abap.types.TableFactory.construct(new abap.types.Structure({"parent": new abap.types.String({qualifiedName: "TY_DATA-PARENT"}), "name": new abap.types.String({qualifiedName: "TY_DATA-NAME"}), "full_name": new abap.types.String({qualifiedName: "TY_DATA-FULL_NAME"}), "value": new abap.types.String({qualifiedName: "TY_DATA-VALUE"})}, "ty_data"), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "ty_data_tt");
     let iv_json = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.iv_json) {iv_json.set(INPUT.iv_json);}
-    let li_node = new abap.types.ABAPObject({qualifiedName: "IF_SXML_NODE"});
-    let li_next = new abap.types.ABAPObject({qualifiedName: "IF_SXML_NODE"});
-    let li_reader = new abap.types.ABAPObject({qualifiedName: "IF_SXML_READER"});
-    let li_close = new abap.types.ABAPObject({qualifiedName: "IF_SXML_CLOSE_ELEMENT"});
-    let li_open = new abap.types.ABAPObject({qualifiedName: "IF_SXML_OPEN_ELEMENT"});
-    let lt_attributes = abap.types.TableFactory.construct(new abap.types.ABAPObject({qualifiedName: "IF_SXML_ATTRIBUTE"}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "if_sxml_attribute=>attributes");
-    let li_attribute = new abap.types.ABAPObject({qualifiedName: "IF_SXML_ATTRIBUTE"});
-    let li_value = new abap.types.ABAPObject({qualifiedName: "IF_SXML_VALUE_NODE"});
+    let li_node = new abap.types.ABAPObject({qualifiedName: "IF_SXML_NODE", RTTIName: "\\INTERFACE=IF_SXML_NODE"});
+    let li_next = new abap.types.ABAPObject({qualifiedName: "IF_SXML_NODE", RTTIName: "\\INTERFACE=IF_SXML_NODE"});
+    let li_reader = new abap.types.ABAPObject({qualifiedName: "IF_SXML_READER", RTTIName: "\\INTERFACE=IF_SXML_READER"});
+    let li_close = new abap.types.ABAPObject({qualifiedName: "IF_SXML_CLOSE_ELEMENT", RTTIName: "\\INTERFACE=IF_SXML_CLOSE_ELEMENT"});
+    let li_open = new abap.types.ABAPObject({qualifiedName: "IF_SXML_OPEN_ELEMENT", RTTIName: "\\INTERFACE=IF_SXML_OPEN_ELEMENT"});
+    let lt_attributes = abap.types.TableFactory.construct(new abap.types.ABAPObject({qualifiedName: "IF_SXML_ATTRIBUTE", RTTIName: "\\INTERFACE=IF_SXML_ATTRIBUTE"}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "if_sxml_attribute=>attributes");
+    let li_attribute = new abap.types.ABAPObject({qualifiedName: "IF_SXML_ATTRIBUTE", RTTIName: "\\INTERFACE=IF_SXML_ATTRIBUTE"});
+    let li_value = new abap.types.ABAPObject({qualifiedName: "IF_SXML_VALUE_NODE", RTTIName: "\\INTERFACE=IF_SXML_VALUE_NODE"});
     let lv_push = new abap.types.String({qualifiedName: "STRING"});
     let lv_name = new abap.types.String({qualifiedName: "STRING"});
-    let lo_stack = new abap.types.ABAPObject({qualifiedName: "LCL_STACK"});
+    let lo_stack = new abap.types.ABAPObject({qualifiedName: "LCL_STACK", RTTIName: "\\CLASS-POOL=ZCL_OAPI_JSON\\CLASS=LCL_STACK"});
     let ls_data = new abap.types.Structure({"parent": new abap.types.String({qualifiedName: "TY_DATA-PARENT"}), "name": new abap.types.String({qualifiedName: "TY_DATA-NAME"}), "full_name": new abap.types.String({qualifiedName: "TY_DATA-FULL_NAME"}), "value": new abap.types.String({qualifiedName: "TY_DATA-VALUE"})}, "ty_data");
     let lv_index = new abap.types.Integer({qualifiedName: "I"});
-    let lt_nodes = abap.types.TableFactory.construct(new abap.types.ABAPObject({qualifiedName: "IF_SXML_NODE"}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "");
+    let lt_nodes = abap.types.TableFactory.construct(new abap.types.ABAPObject({qualifiedName: "IF_SXML_NODE", RTTIName: "\\INTERFACE=IF_SXML_NODE"}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "");
     lo_stack.set(await (new abap.Classes['CLAS-ZCL_OAPI_JSON-LCL_STACK']()).constructor_());
     li_reader.set((await abap.Classes['CL_SXML_STRING_READER'].create({data: (await abap.Classes['CL_ABAP_CODEPAGE'].convert_to({source: iv_json}))})));
     const indexBackup1 = abap.builtin.sy.get().index.get();

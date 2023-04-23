@@ -17,18 +17,22 @@ const {cx_root} = await Promise.resolve(/*! import() */).then(__webpack_require_
 // cl_abap_conv_codepage.clas.locals_imp.abap
 class lcl_in {
   static INTERNAL_TYPE = 'CLAS';
+  static INTERNAL_NAME = 'CLAS-CL_ABAP_CONV_CODEPAGE-LCL_IN';
   static IMPLEMENTED_INTERFACES = ["IF_ABAP_CONV_IN"];
   static ATTRIBUTES = {};
-  async constructor_(INPUT) {
+  constructor() {
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
+  }
+  async constructor_(INPUT) {
+    if (super.constructor_) { await super.constructor_(INPUT); }
     return this;
   }
   async if_abap_conv_in$convert(INPUT) {
     let result = new abap.types.String({qualifiedName: "STRING"});
     let source = new abap.types.XString({qualifiedName: "XSTRING"});
     if (INPUT && INPUT.source) {source.set(INPUT.source);}
-    let conv = new abap.types.ABAPObject({qualifiedName: "CL_ABAP_CONV_IN_CE"});
+    let conv = new abap.types.ABAPObject({qualifiedName: "CL_ABAP_CONV_IN_CE", RTTIName: "\\CLASS=CL_ABAP_CONV_IN_CE"});
     conv.set((await abap.Classes['CL_ABAP_CONV_IN_CE'].create({encoding: new abap.types.Character(5).set('UTF-8')})));
     await conv.get().convert({input: source, data: result});
     return result;
@@ -37,18 +41,22 @@ class lcl_in {
 abap.Classes['CLAS-CL_ABAP_CONV_CODEPAGE-LCL_IN'] = lcl_in;
 class lcl_out {
   static INTERNAL_TYPE = 'CLAS';
+  static INTERNAL_NAME = 'CLAS-CL_ABAP_CONV_CODEPAGE-LCL_OUT';
   static IMPLEMENTED_INTERFACES = ["IF_ABAP_CONV_OUT"];
   static ATTRIBUTES = {};
-  async constructor_(INPUT) {
+  constructor() {
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
+  }
+  async constructor_(INPUT) {
+    if (super.constructor_) { await super.constructor_(INPUT); }
     return this;
   }
   async if_abap_conv_out$convert(INPUT) {
     let result = new abap.types.XString({qualifiedName: "XSTRING"});
     let source = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.source) {source.set(INPUT.source);}
-    let conv = new abap.types.ABAPObject({qualifiedName: "CL_ABAP_CONV_OUT_CE"});
+    let conv = new abap.types.ABAPObject({qualifiedName: "CL_ABAP_CONV_OUT_CE", RTTIName: "\\CLASS=CL_ABAP_CONV_OUT_CE"});
     conv.set((await abap.Classes['CL_ABAP_CONV_OUT_CE'].create({encoding: new abap.types.Character(5).set('UTF-8')})));
     await conv.get().convert({data: source, buffer: result});
     return result;

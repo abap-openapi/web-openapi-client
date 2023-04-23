@@ -16,13 +16,17 @@ const {cx_root} = await Promise.resolve(/*! import() */).then(__webpack_require_
 // cl_abap_zip.clas.locals_imp.abap
 class lcl_stream {
   static INTERNAL_TYPE = 'CLAS';
+  static INTERNAL_NAME = 'CLAS-CL_ABAP_ZIP-LCL_STREAM';
   static IMPLEMENTED_INTERFACES = [];
-  static ATTRIBUTES = {"CRC32_MAP": {"type": () => {return new abap.types.XString({qualifiedName: "XSTRING"});}, "visibility": "U", "is_constant": " "},
-  "MV_XSTR": {"type": () => {return new abap.types.XString({qualifiedName: "XSTRING"});}, "visibility": "U", "is_constant": " "}};
-  async constructor_(INPUT) {
+  static ATTRIBUTES = {"CRC32_MAP": {"type": () => {return new abap.types.XString({qualifiedName: "XSTRING"});}, "visibility": "I", "is_constant": " "},
+  "MV_XSTR": {"type": () => {return new abap.types.XString({qualifiedName: "XSTRING"});}, "visibility": "I", "is_constant": " "}};
+  constructor() {
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
     this.mv_xstr = new abap.types.XString({qualifiedName: "XSTRING"});
+  }
+  async constructor_(INPUT) {
+    if (super.constructor_) { await super.constructor_(INPUT); }
     return this;
   }
   async append(INPUT) {
