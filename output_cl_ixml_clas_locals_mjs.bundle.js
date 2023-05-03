@@ -74,8 +74,8 @@ class lcl_node_iterator {
   static INTERNAL_TYPE = 'CLAS';
   static INTERNAL_NAME = 'CLAS-CL_IXML-LCL_NODE_ITERATOR';
   static IMPLEMENTED_INTERFACES = ["IF_IXML_NODE_ITERATOR"];
-  static ATTRIBUTES = {"MV_POINTER": {"type": () => {return new abap.types.Integer({qualifiedName: "I"});}, "visibility": "I", "is_constant": " "},
-  "MT_LIST": {"type": () => {return abap.types.TableFactory.construct(new abap.types.ABAPObject({qualifiedName: "IF_IXML_NODE", RTTIName: "\\INTERFACE=IF_IXML_NODE"}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "lcl_node_iterator=>ty_list");}, "visibility": "I", "is_constant": " "}};
+  static ATTRIBUTES = {"MV_POINTER": {"type": () => {return new abap.types.Integer({qualifiedName: "I"});}, "visibility": "I", "is_constant": " ", "is_class": " "},
+  "MT_LIST": {"type": () => {return abap.types.TableFactory.construct(new abap.types.ABAPObject({qualifiedName: "IF_IXML_NODE", RTTIName: "\\INTERFACE=IF_IXML_NODE"}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "lcl_node_iterator=>ty_list");}, "visibility": "I", "is_constant": " ", "is_class": " "}};
   constructor() {
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
@@ -106,7 +106,7 @@ class lcl_encoding {
   static INTERNAL_TYPE = 'CLAS';
   static INTERNAL_NAME = 'CLAS-CL_IXML-LCL_ENCODING';
   static IMPLEMENTED_INTERFACES = ["IF_IXML_ENCODING"];
-  static ATTRIBUTES = {};
+  static ATTRIBUTES = {"IF_IXML_ENCODING~CO_PLATFORM_ENDIAN": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "visibility": "U", "is_constant": "X", "is_class": "X"}};
   constructor() {
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
@@ -124,7 +124,7 @@ class lcl_named_node_map {
   static INTERNAL_TYPE = 'CLAS';
   static INTERNAL_NAME = 'CLAS-CL_IXML-LCL_NAMED_NODE_MAP';
   static IMPLEMENTED_INTERFACES = ["IF_IXML_NAMED_NODE_MAP"];
-  static ATTRIBUTES = {"MT_LIST": {"type": () => {return abap.types.TableFactory.construct(new abap.types.ABAPObject({qualifiedName: "IF_IXML_NODE", RTTIName: "\\INTERFACE=IF_IXML_NODE"}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "");}, "visibility": "I", "is_constant": " "}};
+  static ATTRIBUTES = {"MT_LIST": {"type": () => {return abap.types.TableFactory.construct(new abap.types.ABAPObject({qualifiedName: "IF_IXML_NODE", RTTIName: "\\INTERFACE=IF_IXML_NODE"}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "");}, "visibility": "I", "is_constant": " ", "is_class": " "}};
   constructor() {
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
@@ -149,8 +149,8 @@ class lcl_named_node_map {
     let name = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.name) {name.set(INPUT.name);}
     let li_node = new abap.types.ABAPObject({qualifiedName: "IF_IXML_NODE", RTTIName: "\\INTERFACE=IF_IXML_NODE"});
-    for await (const unique95 of abap.statements.loop(this.mt_list)) {
-      li_node.set(unique95);
+    for await (const unique97 of abap.statements.loop(this.mt_list)) {
+      li_node.set(unique97);
       if (abap.compare.eq((await li_node.get().if_ixml_node$get_name()), name)) {
         val.set(li_node);
         return val;
@@ -181,7 +181,7 @@ class lcl_node_list {
   static INTERNAL_TYPE = 'CLAS';
   static INTERNAL_NAME = 'CLAS-CL_IXML-LCL_NODE_LIST';
   static IMPLEMENTED_INTERFACES = ["IF_IXML_NODE_LIST"];
-  static ATTRIBUTES = {"MT_LIST": {"type": () => {return abap.types.TableFactory.construct(new abap.types.ABAPObject({qualifiedName: "IF_IXML_NODE", RTTIName: "\\INTERFACE=IF_IXML_NODE"}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "");}, "visibility": "I", "is_constant": " "}};
+  static ATTRIBUTES = {"MT_LIST": {"type": () => {return abap.types.TableFactory.construct(new abap.types.ABAPObject({qualifiedName: "IF_IXML_NODE", RTTIName: "\\INTERFACE=IF_IXML_NODE"}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "");}, "visibility": "I", "is_constant": " ", "is_class": " "}};
   constructor() {
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
@@ -239,12 +239,14 @@ class lcl_node {
   static INTERNAL_TYPE = 'CLAS';
   static INTERNAL_NAME = 'CLAS-CL_IXML-LCL_NODE';
   static IMPLEMENTED_INTERFACES = ["IF_IXML_ELEMENT","IF_IXML_NODE"];
-  static ATTRIBUTES = {"MV_NAME": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "visibility": "I", "is_constant": " "},
-  "MV_NAMESPACE": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "visibility": "I", "is_constant": " "},
-  "MV_VALUE": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "visibility": "I", "is_constant": " "},
-  "MO_CHILDREN": {"type": () => {return new abap.types.ABAPObject({qualifiedName: "LCL_NODE_LIST", RTTIName: "\\CLASS-POOL=CL_IXML\\CLASS=LCL_NODE_LIST"});}, "visibility": "I", "is_constant": " "},
-  "MI_PARENT": {"type": () => {return new abap.types.ABAPObject({qualifiedName: "IF_IXML_NODE", RTTIName: "\\INTERFACE=IF_IXML_NODE"});}, "visibility": "I", "is_constant": " "},
-  "MI_ATTRIBUTES": {"type": () => {return new abap.types.ABAPObject({qualifiedName: "IF_IXML_NAMED_NODE_MAP", RTTIName: "\\INTERFACE=IF_IXML_NAMED_NODE_MAP"});}, "visibility": "I", "is_constant": " "}};
+  static ATTRIBUTES = {"MV_NAME": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "visibility": "I", "is_constant": " ", "is_class": " "},
+  "MV_NAMESPACE": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "visibility": "I", "is_constant": " ", "is_class": " "},
+  "MV_VALUE": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "visibility": "I", "is_constant": " ", "is_class": " "},
+  "MO_CHILDREN": {"type": () => {return new abap.types.ABAPObject({qualifiedName: "LCL_NODE_LIST", RTTIName: "\\CLASS-POOL=CL_IXML\\CLASS=LCL_NODE_LIST"});}, "visibility": "I", "is_constant": " ", "is_class": " "},
+  "MI_PARENT": {"type": () => {return new abap.types.ABAPObject({qualifiedName: "IF_IXML_NODE", RTTIName: "\\INTERFACE=IF_IXML_NODE"});}, "visibility": "I", "is_constant": " ", "is_class": " "},
+  "MI_ATTRIBUTES": {"type": () => {return new abap.types.ABAPObject({qualifiedName: "IF_IXML_NAMED_NODE_MAP", RTTIName: "\\INTERFACE=IF_IXML_NAMED_NODE_MAP"});}, "visibility": "I", "is_constant": " ", "is_class": " "},
+  "IF_IXML_NODE~CO_NODE_ELEMENT": {"type": () => {return new abap.types.Integer({qualifiedName: "I"});}, "visibility": "U", "is_constant": "X", "is_class": "X"},
+  "IF_IXML_NODE~CO_NODE_TEXT": {"type": () => {return new abap.types.Integer({qualifiedName: "I"});}, "visibility": "U", "is_constant": "X", "is_class": "X"}};
   constructor() {
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
@@ -355,14 +357,14 @@ class lcl_node {
     let lt_nodes = abap.types.TableFactory.construct(new abap.types.ABAPObject({qualifiedName: "IF_IXML_NODE", RTTIName: "\\INTERFACE=IF_IXML_NODE"}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "");
     let li_top = new abap.types.ABAPObject({qualifiedName: "IF_IXML_NODE", RTTIName: "\\INTERFACE=IF_IXML_NODE"});
     abap.statements.append({source: this.me, target: lt_nodes});
-    for await (const unique96 of abap.statements.loop(lt_nodes)) {
-      li_top.set(unique96);
+    for await (const unique98 of abap.statements.loop(lt_nodes)) {
+      li_top.set(unique98);
       li_children.set((await li_top.get().if_ixml_node$get_children()));
       li_iterator.set((await li_children.get().if_ixml_node_list$create_iterator()));
       const indexBackup1 = abap.builtin.sy.get().index.get();
-      let unique97 = 1;
+      let unique99 = 1;
       while (true) {
-        abap.builtin.sy.get().index.set(unique97++);
+        abap.builtin.sy.get().index.set(unique99++);
         li_node.set((await li_iterator.get().if_ixml_node_iterator$get_next()));
         if (abap.compare.initial(li_node)) {
           break;
@@ -467,9 +469,9 @@ class lcl_node {
     let lv_ns = new abap.types.String({qualifiedName: "STRING"});
     li_iterator.set((await this.mi_attributes.get().if_ixml_named_node_map$create_iterator()));
     const indexBackup1 = abap.builtin.sy.get().index.get();
-    let unique98 = 1;
+    let unique100 = 1;
     while (true) {
-      abap.builtin.sy.get().index.set(unique98++);
+      abap.builtin.sy.get().index.set(unique100++);
       li_node.set((await li_iterator.get().if_ixml_node_iterator$get_next()));
       if (abap.compare.initial(li_node)) {
         break;
@@ -488,9 +490,9 @@ class lcl_node {
     }
     li_iterator.set((await (await this.if_ixml_node$get_children()).get().if_ixml_node_list$create_iterator()));
     const indexBackup2 = abap.builtin.sy.get().index.get();
-    let unique99 = 1;
+    let unique101 = 1;
     while (true) {
-      abap.builtin.sy.get().index.set(unique99++);
+      abap.builtin.sy.get().index.set(unique101++);
       await abap.statements.cast(li_element, (await li_iterator.get().if_ixml_node_iterator$get_next()));
       if (abap.compare.initial(li_element)) {
         break;
@@ -513,6 +515,7 @@ class lcl_node {
     abap.statements.assert(abap.compare.eq(new abap.types.Integer().set(1), new abap.types.Character(4).set('todo')));
   }
   async if_ixml_element$set_attribute(INPUT) {
+    let rval = new abap.types.Integer({qualifiedName: "I"});
     let name = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.name) {name.set(INPUT.name);}
     let namespace = new abap.types.String({qualifiedName: "STRING"});
@@ -520,6 +523,7 @@ class lcl_node {
     let value = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.value) {value.set(INPUT.value);}
     await this.if_ixml_element$set_attribute_ns({name: name, value: value});
+    return rval;
   }
   async if_ixml_element$set_attribute_ns(INPUT) {
     let name = new abap.types.String({qualifiedName: "STRING"});
@@ -606,9 +610,9 @@ class lcl_node {
     } else {
       li_iterator.set((await this.mo_children.get().if_ixml_node_list$create_iterator()));
       const indexBackup1 = abap.builtin.sy.get().index.get();
-      let unique100 = 1;
+      let unique102 = 1;
       while (true) {
-        abap.builtin.sy.get().index.set(unique100++);
+        abap.builtin.sy.get().index.set(unique102++);
         li_node.set((await li_iterator.get().if_ixml_node_iterator$get_next()));
         if (abap.compare.initial(li_node)) {
           break;
@@ -642,9 +646,9 @@ class lcl_node {
     } else {
       li_iterator.set((await this.mo_children.get().if_ixml_node_list$create_iterator()));
       const indexBackup1 = abap.builtin.sy.get().index.get();
-      let unique101 = 1;
+      let unique103 = 1;
       while (true) {
-        abap.builtin.sy.get().index.set(unique101++);
+        abap.builtin.sy.get().index.set(unique103++);
         li_node.set((await li_iterator.get().if_ixml_node_iterator$get_next()));
         if (abap.compare.initial(li_node)) {
           break;
@@ -685,7 +689,9 @@ class lcl_document {
   static INTERNAL_TYPE = 'CLAS';
   static INTERNAL_NAME = 'CLAS-CL_IXML-LCL_DOCUMENT';
   static IMPLEMENTED_INTERFACES = ["IF_IXML_DOCUMENT","IF_IXML_NODE"];
-  static ATTRIBUTES = {"MI_NODE": {"type": () => {return new abap.types.ABAPObject({qualifiedName: "LCL_NODE", RTTIName: "\\CLASS-POOL=CL_IXML\\CLASS=LCL_NODE"});}, "visibility": "I", "is_constant": " "}};
+  static ATTRIBUTES = {"MI_NODE": {"type": () => {return new abap.types.ABAPObject({qualifiedName: "LCL_NODE", RTTIName: "\\CLASS-POOL=CL_IXML\\CLASS=LCL_NODE"});}, "visibility": "I", "is_constant": " ", "is_class": " "},
+  "IF_IXML_NODE~CO_NODE_ELEMENT": {"type": () => {return new abap.types.Integer({qualifiedName: "I"});}, "visibility": "U", "is_constant": "X", "is_class": "X"},
+  "IF_IXML_NODE~CO_NODE_TEXT": {"type": () => {return new abap.types.Integer({qualifiedName: "I"});}, "visibility": "U", "is_constant": "X", "is_class": "X"}};
   constructor() {
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
@@ -916,8 +922,11 @@ class lcl_document {
     if (INPUT && INPUT.name) {name.set(INPUT.name);}
     let parent = new abap.types.ABAPObject({qualifiedName: "IF_IXML_NODE", RTTIName: "\\INTERFACE=IF_IXML_NODE"});
     if (INPUT && INPUT.parent) {parent.set(INPUT.parent);}
+    let value = new abap.types.String({qualifiedName: "STRING"});
+    if (INPUT && INPUT.value) {value.set(INPUT.value);}
     val.set(await (new abap.Classes['CLAS-CL_IXML-LCL_NODE']()).constructor_({ii_parent: parent}));
     await val.get().if_ixml_node$set_name({name: name});
+    await val.get().if_ixml_node$set_value({value: value});
     return val;
   }
   async if_ixml_document$find_from_name(INPUT) {
@@ -989,8 +998,8 @@ class lcl_renderer {
   static INTERNAL_TYPE = 'CLAS';
   static INTERNAL_NAME = 'CLAS-CL_IXML-LCL_RENDERER';
   static IMPLEMENTED_INTERFACES = ["IF_IXML_RENDERER"];
-  static ATTRIBUTES = {"MI_OSTREAM": {"type": () => {return new abap.types.ABAPObject({qualifiedName: "IF_IXML_OSTREAM", RTTIName: "\\INTERFACE=IF_IXML_OSTREAM"});}, "visibility": "I", "is_constant": " "},
-  "MI_DOCUMENT": {"type": () => {return new abap.types.ABAPObject({qualifiedName: "IF_IXML_DOCUMENT", RTTIName: "\\INTERFACE=IF_IXML_DOCUMENT"});}, "visibility": "I", "is_constant": " "}};
+  static ATTRIBUTES = {"MI_OSTREAM": {"type": () => {return new abap.types.ABAPObject({qualifiedName: "IF_IXML_OSTREAM", RTTIName: "\\INTERFACE=IF_IXML_OSTREAM"});}, "visibility": "I", "is_constant": " ", "is_class": " "},
+  "MI_DOCUMENT": {"type": () => {return new abap.types.ABAPObject({qualifiedName: "IF_IXML_DOCUMENT", RTTIName: "\\INTERFACE=IF_IXML_DOCUMENT"});}, "visibility": "I", "is_constant": " ", "is_class": " "}};
   constructor() {
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
@@ -1015,9 +1024,9 @@ class lcl_renderer {
     li_children.set((await li_root.get().if_ixml_element$get_children()));
     li_iterator.set((await li_children.get().if_ixml_node_list$create_iterator()));
     const indexBackup1 = abap.builtin.sy.get().index.get();
-    let unique102 = 1;
+    let unique104 = 1;
     while (true) {
-      abap.builtin.sy.get().index.set(unique102++);
+      abap.builtin.sy.get().index.set(unique104++);
       await abap.statements.cast(li_element, (await li_iterator.get().if_ixml_node_iterator$get_next()));
       if (abap.compare.initial(li_element)) {
         break;
@@ -1037,7 +1046,7 @@ class lcl_ostream {
   static INTERNAL_TYPE = 'CLAS';
   static INTERNAL_NAME = 'CLAS-CL_IXML-LCL_OSTREAM';
   static IMPLEMENTED_INTERFACES = ["IF_IXML_OSTREAM"];
-  static ATTRIBUTES = {"MV_STRING": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "visibility": "U", "is_constant": " "}};
+  static ATTRIBUTES = {"MV_STRING": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "visibility": "U", "is_constant": " ", "is_class": " "}};
   constructor() {
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
@@ -1060,7 +1069,7 @@ class lcl_istream {
   static INTERNAL_TYPE = 'CLAS';
   static INTERNAL_NAME = 'CLAS-CL_IXML-LCL_ISTREAM';
   static IMPLEMENTED_INTERFACES = ["IF_IXML_ISTREAM"];
-  static ATTRIBUTES = {"MV_XML": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "visibility": "I", "is_constant": " "}};
+  static ATTRIBUTES = {"MV_XML": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "visibility": "I", "is_constant": " ", "is_class": " "}};
   constructor() {
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
@@ -1126,10 +1135,11 @@ class lcl_parser {
   static INTERNAL_TYPE = 'CLAS';
   static INTERNAL_NAME = 'CLAS-CL_IXML-LCL_PARSER';
   static IMPLEMENTED_INTERFACES = ["IF_IXML_PARSER"];
-  static ATTRIBUTES = {"MI_ISTREAM": {"type": () => {return new abap.types.ABAPObject({qualifiedName: "IF_IXML_ISTREAM", RTTIName: "\\INTERFACE=IF_IXML_ISTREAM"});}, "visibility": "I", "is_constant": " "},
-  "MI_DOCUMENT": {"type": () => {return new abap.types.ABAPObject({qualifiedName: "IF_IXML_DOCUMENT", RTTIName: "\\INTERFACE=IF_IXML_DOCUMENT"});}, "visibility": "I", "is_constant": " "},
-  "LC_REGEX_TAG": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "visibility": "I", "is_constant": "X"},
-  "LC_REGEX_ATTR": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "visibility": "I", "is_constant": "X"}};
+  static ATTRIBUTES = {"MI_ISTREAM": {"type": () => {return new abap.types.ABAPObject({qualifiedName: "IF_IXML_ISTREAM", RTTIName: "\\INTERFACE=IF_IXML_ISTREAM"});}, "visibility": "I", "is_constant": " ", "is_class": " "},
+  "MI_DOCUMENT": {"type": () => {return new abap.types.ABAPObject({qualifiedName: "IF_IXML_DOCUMENT", RTTIName: "\\INTERFACE=IF_IXML_DOCUMENT"});}, "visibility": "I", "is_constant": " ", "is_class": " "},
+  "LC_REGEX_TAG": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "visibility": "I", "is_constant": "X", "is_class": "X"},
+  "LC_REGEX_ATTR": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "visibility": "I", "is_constant": "X", "is_class": "X"},
+  "IF_IXML_PARSER~CO_NO_VALIDATION": {"type": () => {return new abap.types.Integer({qualifiedName: "I"});}, "visibility": "U", "is_constant": "X", "is_class": "X"}};
   constructor() {
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
@@ -1171,9 +1181,9 @@ class lcl_parser {
     lv_xml.set(this.mi_istream.get().mv_xml);
     abap.statements.replace({target: lv_xml, all: true, with: new abap.types.String().set(``), of: new abap.types.String().set(`\n`)});
     const indexBackup1 = abap.builtin.sy.get().index.get();
-    let unique103 = 1;
+    let unique105 = 1;
     while (abap.compare.initial(lv_xml) === false) {
-      abap.builtin.sy.get().index.set(unique103++);
+      abap.builtin.sy.get().index.set(unique105++);
       abap.statements.clear(lo_node);
       if (abap.compare.cp(lv_xml, new abap.types.Character(7).set('<?xml *'))) {
         abap.statements.find(lv_xml, {find: new abap.types.Character(2).set('?>'), first: true, offset: lv_offset});
@@ -1234,9 +1244,9 @@ class lcl_parser {
     }
     lv_xml.set(iv_xml.getOffset({length: is_match.get().length}));
     const indexBackup1 = abap.builtin.sy.get().index.get();
-    let unique104 = 1;
+    let unique106 = 1;
     while (true) {
-      abap.builtin.sy.get().index.set(unique104++);
+      abap.builtin.sy.get().index.set(unique106++);
       abap.statements.find(lv_xml, {regex: lcl_parser.lc_regex_attr, first: true, offset: lv_offset, length: lv_length, submatches: [lv_name,lv_value]});
       if (abap.compare.ne(abap.builtin.sy.get().subrc, new abap.types.Integer().set(0))) {
         abap.builtin.sy.get().index.set(indexBackup1);
@@ -1274,9 +1284,9 @@ class lcl_parser {
 }
 abap.Classes['CLAS-CL_IXML-LCL_PARSER'] = lcl_parser;
 lcl_parser.lc_regex_tag = new abap.types.String({qualifiedName: "STRING"});
-lcl_parser.lc_regex_tag.set('<\\/?([\\w:\\.]+)( [\\w:]+="[\\w\\.:\\-\\/#]+")*/?>');
+lcl_parser.lc_regex_tag.set('<\\/?([\\w:\\.]+)( [\\w:]+="[\\w\\.,:\\-\\/#; %\\(\\){}&]+")* */?>');
 lcl_parser.lc_regex_attr = new abap.types.String({qualifiedName: "STRING"});
-lcl_parser.lc_regex_attr.set('([\\w:]+)="([\\w\\.:\\-\\/#]+)"');
+lcl_parser.lc_regex_attr.set('([\\w:]+)="([\\w\\.,:\\-\\/#; %\\(\\){}&]+)"');
 lcl_parser.if_ixml_parser$co_no_validation = new abap.types.Integer({qualifiedName: "I"});
 lcl_parser.if_ixml_parser$co_no_validation.set(0);
 

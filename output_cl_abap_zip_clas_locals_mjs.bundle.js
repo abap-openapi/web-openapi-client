@@ -18,8 +18,8 @@ class lcl_stream {
   static INTERNAL_TYPE = 'CLAS';
   static INTERNAL_NAME = 'CLAS-CL_ABAP_ZIP-LCL_STREAM';
   static IMPLEMENTED_INTERFACES = [];
-  static ATTRIBUTES = {"CRC32_MAP": {"type": () => {return new abap.types.XString({qualifiedName: "XSTRING"});}, "visibility": "I", "is_constant": " "},
-  "MV_XSTR": {"type": () => {return new abap.types.XString({qualifiedName: "XSTRING"});}, "visibility": "I", "is_constant": " "}};
+  static ATTRIBUTES = {"CRC32_MAP": {"type": () => {return new abap.types.XString({qualifiedName: "XSTRING"});}, "visibility": "I", "is_constant": " ", "is_class": "X"},
+  "MV_XSTR": {"type": () => {return new abap.types.XString({qualifiedName: "XSTRING"});}, "visibility": "I", "is_constant": " ", "is_class": " "}};
   constructor() {
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
