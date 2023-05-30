@@ -10,7 +10,7 @@
 __webpack_require__.a(__webpack_module__, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "lcl_dump": () => (/* binding */ lcl_dump)
+/* harmony export */   lcl_dump: () => (/* binding */ lcl_dump)
 /* harmony export */ });
 const {cx_root} = await Promise.resolve(/*! import() */).then(__webpack_require__.bind(__webpack_require__, /*! ./cx_root.clas.mjs */ "../output/cx_root.clas.mjs"));
 // cl_abap_unit_assert.clas.locals_imp.abap
@@ -19,6 +19,8 @@ class lcl_dump {
   static INTERNAL_NAME = 'CLAS-CL_ABAP_UNIT_ASSERT-LCL_DUMP';
   static IMPLEMENTED_INTERFACES = [];
   static ATTRIBUTES = {};
+  static METHODS = {"DUMP_STRUCTURE": {"visibility": "I", "parameters": {"RV_STR": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " "}, "IV_VAL": {"type": () => {return new abap.types.Character(4);}, "is_optional": " "}}},
+  "TO_STRING": {"visibility": "U", "parameters": {"RV_STR": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " "}, "IV_VAL": {"type": () => {return new abap.types.Character(4);}, "is_optional": " "}}}};
   constructor() {
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
@@ -36,10 +38,10 @@ class lcl_dump {
     if (INPUT && INPUT.iv_val) {iv_val = INPUT.iv_val;}
     let lv_type = new abap.types.Character(1, {});
     abap.statements.describe({field: iv_val, type: lv_type});
-    let unique188 = lv_type;
-    if (abap.compare.eq(unique188, new abap.types.Character(1).set('u')) || abap.compare.eq(unique188, new abap.types.Character(1).set('v'))) {
+    let unique190 = lv_type;
+    if (abap.compare.eq(unique190, new abap.types.Character(1).set('u')) || abap.compare.eq(unique190, new abap.types.Character(1).set('v'))) {
       rv_str.set((await this.dump_structure({iv_val: iv_val})));
-    } else if (abap.compare.eq(unique188, new abap.types.Character(1).set('h'))) {
+    } else if (abap.compare.eq(unique190, new abap.types.Character(1).set('h'))) {
       rv_str.set(new abap.types.String().set(`[itab]`));
     } else {
       rv_str.set(new abap.types.String().set(`${abap.templateFormatting(iv_val)}`));
@@ -58,8 +60,8 @@ class lcl_dump {
     let lv_str = new abap.types.String({qualifiedName: "STRING"});
     let fs_fs_ = new abap.types.FieldSymbol(new abap.types.Character(4));
     Object.keys(iv_val.get()).forEach((name) => lt_components.append(new abap.types.String().set(name)));
-    for await (const unique189 of abap.statements.loop(lt_components)) {
-      lv_name.set(unique189);
+    for await (const unique191 of abap.statements.loop(lt_components)) {
+      lv_name.set(unique191);
       if (abap.compare.ne(rv_str, new abap.types.Character(1).set(''))) {
         rv_str.set(abap.operators.concat(rv_str,new abap.types.String().set(`, `)));
       }

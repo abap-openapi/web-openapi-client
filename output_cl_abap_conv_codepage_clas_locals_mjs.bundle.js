@@ -10,8 +10,8 @@
 __webpack_require__.a(__webpack_module__, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "lcl_in": () => (/* binding */ lcl_in),
-/* harmony export */   "lcl_out": () => (/* binding */ lcl_out)
+/* harmony export */   lcl_in: () => (/* binding */ lcl_in),
+/* harmony export */   lcl_out: () => (/* binding */ lcl_out)
 /* harmony export */ });
 const {cx_root} = await Promise.resolve(/*! import() */).then(__webpack_require__.bind(__webpack_require__, /*! ./cx_root.clas.mjs */ "../output/cx_root.clas.mjs"));
 // cl_abap_conv_codepage.clas.locals_imp.abap
@@ -20,6 +20,7 @@ class lcl_in {
   static INTERNAL_NAME = 'CLAS-CL_ABAP_CONV_CODEPAGE-LCL_IN';
   static IMPLEMENTED_INTERFACES = ["IF_ABAP_CONV_IN"];
   static ATTRIBUTES = {};
+  static METHODS = {};
   constructor() {
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
@@ -44,6 +45,7 @@ class lcl_out {
   static INTERNAL_NAME = 'CLAS-CL_ABAP_CONV_CODEPAGE-LCL_OUT';
   static IMPLEMENTED_INTERFACES = ["IF_ABAP_CONV_OUT"];
   static ATTRIBUTES = {};
+  static METHODS = {};
   constructor() {
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
