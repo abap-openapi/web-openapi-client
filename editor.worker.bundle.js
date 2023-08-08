@@ -2993,7 +2993,7 @@ class BugIndicatingError extends Error {
         // Because we know for sure only buggy code throws this,
         // we definitely want to break here and fix the bug.
         // eslint-disable-next-line no-debugger
-        debugger;
+        // debugger;
     }
 }
 
@@ -3012,12 +3012,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   Emitter: () => (/* binding */ Emitter),
 /* harmony export */   Event: () => (/* binding */ Event),
 /* harmony export */   EventBufferer: () => (/* binding */ EventBufferer),
-/* harmony export */   EventDeliveryQueue: () => (/* binding */ EventDeliveryQueue),
 /* harmony export */   EventMultiplexer: () => (/* binding */ EventMultiplexer),
 /* harmony export */   EventProfiling: () => (/* binding */ EventProfiling),
 /* harmony export */   MicrotaskEmitter: () => (/* binding */ MicrotaskEmitter),
 /* harmony export */   PauseableEmitter: () => (/* binding */ PauseableEmitter),
-/* harmony export */   Relay: () => (/* binding */ Relay)
+/* harmony export */   Relay: () => (/* binding */ Relay),
+/* harmony export */   createEventDeliveryQueue: () => (/* binding */ createEventDeliveryQueue)
 /* harmony export */ });
 /* harmony import */ var _errors_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./errors.js */ "./node_modules/monaco-editor/esm/vs/base/common/errors.js");
 /* harmony import */ var _functional_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./functional.js */ "./node_modules/monaco-editor/esm/vs/base/common/functional.js");
@@ -3592,7 +3592,7 @@ class EventProfiling {
         EventProfiling.all.add(this);
     }
     start(listenerCount) {
-        this._stopWatch = new _stopwatch_js__WEBPACK_IMPORTED_MODULE_4__.StopWatch(true);
+        this._stopWatch = new _stopwatch_js__WEBPACK_IMPORTED_MODULE_4__.StopWatch();
         this.listenerCount = listenerCount;
     }
     stop() {
@@ -3663,17 +3663,25 @@ class Stacktrace {
         console.warn(this.value.split('\n').slice(2).join('\n'));
     }
 }
-class Listener {
-    constructor(callback, callbackThis, stack) {
-        this.callback = callback;
-        this.callbackThis = callbackThis;
-        this.stack = stack;
-        this.subscription = new _lifecycle_js__WEBPACK_IMPORTED_MODULE_2__.SafeDisposable();
-    }
-    invoke(e) {
-        this.callback.call(this.callbackThis, e);
+class UniqueContainer {
+    constructor(value) {
+        this.value = value;
     }
 }
+const compactionThreshold = 2;
+const forEachListener = (listeners, fn) => {
+    if (listeners instanceof UniqueContainer) {
+        fn(listeners);
+    }
+    else {
+        for (let i = 0; i < listeners.length; i++) {
+            const l = listeners[i];
+            if (l) {
+                fn(l);
+            }
+        }
+    }
+};
 /**
  * The Emitter can be used to expose an Event to the public
  * to fire it from the insides.
@@ -3698,7 +3706,7 @@ class Listener {
 class Emitter {
     constructor(options) {
         var _a, _b, _c, _d, _e;
-        this._disposed = false;
+        this._size = 0;
         this._options = options;
         this._leakageMon = _globalLeakWarningThreshold > 0 || ((_a = this._options) === null || _a === void 0 ? void 0 : _a.leakWarningThreshold) ? new LeakageMonitor((_c = (_b = this._options) === null || _b === void 0 ? void 0 : _b.leakWarningThreshold) !== null && _c !== void 0 ? _c : _globalLeakWarningThreshold) : undefined;
         this._perfMon = ((_d = this._options) === null || _d === void 0 ? void 0 : _d._profName) ? new EventProfiling(this._options._profName) : undefined;
@@ -3717,22 +3725,19 @@ class Emitter {
             // this._disposables.add(someModel.onDidChange(() => { ... }); // (2) subscribe and register model-event listener
             // ...later...
             // this._disposables.dispose(); disposes (1) then (2): don't warn after (1) but after the "overall dispose" is done
+            if (((_a = this._deliveryQueue) === null || _a === void 0 ? void 0 : _a.current) === this) {
+                this._deliveryQueue.reset();
+            }
             if (this._listeners) {
                 if (_enableDisposeWithListenerWarning) {
-                    const listeners = Array.from(this._listeners);
+                    const listeners = this._listeners;
                     queueMicrotask(() => {
-                        var _a;
-                        for (const listener of listeners) {
-                            if (listener.subscription.isset()) {
-                                listener.subscription.unset();
-                                (_a = listener.stack) === null || _a === void 0 ? void 0 : _a.print();
-                            }
-                        }
+                        forEachListener(listeners, l => { var _a; return (_a = l.stack) === null || _a === void 0 ? void 0 : _a.print(); });
                     });
                 }
-                this._listeners.clear();
+                this._listeners = undefined;
+                this._size = 0;
             }
-            (_a = this._deliveryQueue) === null || _a === void 0 ? void 0 : _a.clear(this);
             (_c = (_b = this._options) === null || _b === void 0 ? void 0 : _b.onDidRemoveLastListener) === null || _c === void 0 ? void 0 : _c.call(_b);
             (_d = this._leakageMon) === null || _d === void 0 ? void 0 : _d.dispose();
         }
@@ -3742,139 +3747,171 @@ class Emitter {
      * to events from this Emitter
      */
     get event() {
-        if (!this._event) {
-            this._event = (callback, thisArgs, disposables) => {
-                var _a, _b, _c;
-                if (!this._listeners) {
-                    this._listeners = new _linkedList_js__WEBPACK_IMPORTED_MODULE_3__.LinkedList();
-                }
-                if (this._leakageMon && this._listeners.size > this._leakageMon.threshold * 3) {
-                    console.warn(`[${this._leakageMon.name}] REFUSES to accept new listeners because it exceeded its threshold by far`);
-                    return _lifecycle_js__WEBPACK_IMPORTED_MODULE_2__.Disposable.None;
-                }
-                const firstListener = this._listeners.isEmpty();
-                if (firstListener && ((_a = this._options) === null || _a === void 0 ? void 0 : _a.onWillAddFirstListener)) {
-                    this._options.onWillAddFirstListener(this);
-                }
-                let removeMonitor;
-                let stack;
-                if (this._leakageMon && this._listeners.size >= Math.ceil(this._leakageMon.threshold * 0.2)) {
-                    // check and record this emitter for potential leakage
-                    stack = Stacktrace.create();
-                    removeMonitor = this._leakageMon.check(stack, this._listeners.size + 1);
-                }
-                if (_enableDisposeWithListenerWarning) {
-                    stack = stack !== null && stack !== void 0 ? stack : Stacktrace.create();
-                }
-                const listener = new Listener(callback, thisArgs, stack);
-                const removeListener = this._listeners.push(listener);
-                if (firstListener && ((_b = this._options) === null || _b === void 0 ? void 0 : _b.onDidAddFirstListener)) {
-                    this._options.onDidAddFirstListener(this);
-                }
-                if ((_c = this._options) === null || _c === void 0 ? void 0 : _c.onDidAddListener) {
-                    this._options.onDidAddListener(this, callback, thisArgs);
-                }
-                const result = listener.subscription.set(() => {
-                    var _a, _b;
-                    removeMonitor === null || removeMonitor === void 0 ? void 0 : removeMonitor();
-                    if (!this._disposed) {
-                        (_b = (_a = this._options) === null || _a === void 0 ? void 0 : _a.onWillRemoveListener) === null || _b === void 0 ? void 0 : _b.call(_a, this);
-                        removeListener();
-                        if (this._options && this._options.onDidRemoveLastListener) {
-                            const hasListeners = (this._listeners && !this._listeners.isEmpty());
-                            if (!hasListeners) {
-                                this._options.onDidRemoveLastListener(this);
-                            }
-                        }
-                    }
-                });
-                if (disposables instanceof _lifecycle_js__WEBPACK_IMPORTED_MODULE_2__.DisposableStore) {
-                    disposables.add(result);
-                }
-                else if (Array.isArray(disposables)) {
-                    disposables.push(result);
-                }
-                return result;
-            };
-        }
+        var _a;
+        (_a = this._event) !== null && _a !== void 0 ? _a : (this._event = (callback, thisArgs, disposables) => {
+            var _a, _b, _c, _d, _e;
+            if (this._leakageMon && this._size > this._leakageMon.threshold * 3) {
+                console.warn(`[${this._leakageMon.name}] REFUSES to accept new listeners because it exceeded its threshold by far`);
+                return _lifecycle_js__WEBPACK_IMPORTED_MODULE_2__.Disposable.None;
+            }
+            if (this._disposed) {
+                // todo: should we warn if a listener is added to a disposed emitter? This happens often
+                return _lifecycle_js__WEBPACK_IMPORTED_MODULE_2__.Disposable.None;
+            }
+            if (thisArgs) {
+                callback = callback.bind(thisArgs);
+            }
+            const contained = new UniqueContainer(callback);
+            let removeMonitor;
+            let stack;
+            if (this._leakageMon && this._size >= Math.ceil(this._leakageMon.threshold * 0.2)) {
+                // check and record this emitter for potential leakage
+                contained.stack = Stacktrace.create();
+                removeMonitor = this._leakageMon.check(contained.stack, this._size + 1);
+            }
+            if (_enableDisposeWithListenerWarning) {
+                contained.stack = stack !== null && stack !== void 0 ? stack : Stacktrace.create();
+            }
+            if (!this._listeners) {
+                (_b = (_a = this._options) === null || _a === void 0 ? void 0 : _a.onWillAddFirstListener) === null || _b === void 0 ? void 0 : _b.call(_a, this);
+                this._listeners = contained;
+                (_d = (_c = this._options) === null || _c === void 0 ? void 0 : _c.onDidAddFirstListener) === null || _d === void 0 ? void 0 : _d.call(_c, this);
+            }
+            else if (this._listeners instanceof UniqueContainer) {
+                (_e = this._deliveryQueue) !== null && _e !== void 0 ? _e : (this._deliveryQueue = new EventDeliveryQueuePrivate());
+                this._listeners = [this._listeners, contained];
+            }
+            else {
+                this._listeners.push(contained);
+            }
+            this._size++;
+            const result = (0,_lifecycle_js__WEBPACK_IMPORTED_MODULE_2__.toDisposable)(() => { removeMonitor === null || removeMonitor === void 0 ? void 0 : removeMonitor(); this._removeListener(contained); });
+            if (disposables instanceof _lifecycle_js__WEBPACK_IMPORTED_MODULE_2__.DisposableStore) {
+                disposables.add(result);
+            }
+            else if (Array.isArray(disposables)) {
+                disposables.push(result);
+            }
+            return result;
+        });
         return this._event;
+    }
+    _removeListener(listener) {
+        var _a, _b, _c, _d;
+        (_b = (_a = this._options) === null || _a === void 0 ? void 0 : _a.onWillRemoveListener) === null || _b === void 0 ? void 0 : _b.call(_a, this);
+        if (!this._listeners) {
+            return; // expected if a listener gets disposed
+        }
+        if (this._size === 1) {
+            this._listeners = undefined;
+            (_d = (_c = this._options) === null || _c === void 0 ? void 0 : _c.onDidRemoveLastListener) === null || _d === void 0 ? void 0 : _d.call(_c, this);
+            this._size = 0;
+            return;
+        }
+        // size > 1 which requires that listeners be a list:
+        const listeners = this._listeners;
+        const index = listeners.indexOf(listener);
+        if (index === -1) {
+            console.log('disposed?', this._disposed);
+            console.log('size?', this._size);
+            console.log('arr?', JSON.stringify(this._listeners));
+            throw new Error('Attempted to dispose unknown listener');
+        }
+        this._size--;
+        listeners[index] = undefined;
+        const adjustDeliveryQueue = this._deliveryQueue.current === this;
+        if (this._size * compactionThreshold <= listeners.length) {
+            let n = 0;
+            for (let i = 0; i < listeners.length; i++) {
+                if (listeners[i]) {
+                    listeners[n++] = listeners[i];
+                }
+                else if (adjustDeliveryQueue) {
+                    this._deliveryQueue.end--;
+                    if (n < this._deliveryQueue.i) {
+                        this._deliveryQueue.i--;
+                    }
+                }
+            }
+            listeners.length = n;
+        }
+    }
+    _deliver(listener, value) {
+        var _a;
+        if (!listener) {
+            return;
+        }
+        const errorHandler = ((_a = this._options) === null || _a === void 0 ? void 0 : _a.onListenerError) || _errors_js__WEBPACK_IMPORTED_MODULE_0__.onUnexpectedError;
+        if (!errorHandler) {
+            listener.value(value);
+            return;
+        }
+        try {
+            listener.value(value);
+        }
+        catch (e) {
+            errorHandler(e);
+        }
+    }
+    /** Delivers items in the queue. Assumes the queue is ready to go. */
+    _deliverQueue(dq) {
+        const listeners = dq.current._listeners;
+        while (dq.i < dq.end) {
+            // important: dq.i is incremented before calling deliver() because it might reenter deliverQueue()
+            this._deliver(listeners[dq.i++], dq.value);
+        }
+        dq.reset();
     }
     /**
      * To be kept private to fire an event to
      * subscribers
      */
     fire(event) {
-        var _a, _b, _c;
-        if (this._listeners) {
-            // put all [listener,event]-pairs into delivery queue
-            // then emit all event. an inner/nested event might be
-            // the driver of this
-            if (!this._deliveryQueue) {
-                this._deliveryQueue = new PrivateEventDeliveryQueue((_a = this._options) === null || _a === void 0 ? void 0 : _a.onListenerError);
-            }
-            for (const listener of this._listeners) {
-                this._deliveryQueue.push(this, listener, event);
-            }
-            // start/stop performance insight collection
-            (_b = this._perfMon) === null || _b === void 0 ? void 0 : _b.start(this._deliveryQueue.size);
-            this._deliveryQueue.deliver();
-            (_c = this._perfMon) === null || _c === void 0 ? void 0 : _c.stop();
+        var _a, _b, _c, _d;
+        if ((_a = this._deliveryQueue) === null || _a === void 0 ? void 0 : _a.current) {
+            this._deliverQueue(this._deliveryQueue);
+            (_b = this._perfMon) === null || _b === void 0 ? void 0 : _b.stop(); // last fire() will have starting perfmon, stop it before starting the next dispatch
         }
+        (_c = this._perfMon) === null || _c === void 0 ? void 0 : _c.start(this._size);
+        if (!this._listeners) {
+            // no-op
+        }
+        else if (this._listeners instanceof UniqueContainer) {
+            this._deliver(this._listeners, event);
+        }
+        else {
+            const dq = this._deliveryQueue;
+            dq.enqueue(this, event, this._listeners.length);
+            this._deliverQueue(dq);
+        }
+        (_d = this._perfMon) === null || _d === void 0 ? void 0 : _d.stop();
     }
     hasListeners() {
-        if (!this._listeners) {
-            return false;
-        }
-        return !this._listeners.isEmpty();
+        return this._size > 0;
     }
 }
-class EventDeliveryQueue {
-    constructor(_onListenerError = _errors_js__WEBPACK_IMPORTED_MODULE_0__.onUnexpectedError) {
-        this._onListenerError = _onListenerError;
-        this._queue = new _linkedList_js__WEBPACK_IMPORTED_MODULE_3__.LinkedList();
+const createEventDeliveryQueue = () => new EventDeliveryQueuePrivate();
+class EventDeliveryQueuePrivate {
+    constructor() {
+        /**
+         * Index in current's listener list.
+         */
+        this.i = -1;
+        /**
+         * The last index in the listener's list to deliver.
+         */
+        this.end = 0;
     }
-    get size() {
-        return this._queue.size;
+    enqueue(emitter, value, end) {
+        this.i = 0;
+        this.end = end;
+        this.current = emitter;
+        this.value = value;
     }
-    push(emitter, listener, event) {
-        this._queue.push(new EventDeliveryQueueElement(emitter, listener, event));
-    }
-    clear(emitter) {
-        const newQueue = new _linkedList_js__WEBPACK_IMPORTED_MODULE_3__.LinkedList();
-        for (const element of this._queue) {
-            if (element.emitter !== emitter) {
-                newQueue.push(element);
-            }
-        }
-        this._queue = newQueue;
-    }
-    deliver() {
-        while (this._queue.size > 0) {
-            const element = this._queue.shift();
-            try {
-                element.listener.invoke(element.event);
-            }
-            catch (e) {
-                this._onListenerError(e);
-            }
-        }
-    }
-}
-/**
- * An `EventDeliveryQueue` that is guaranteed to be used by a single `Emitter`.
- */
-class PrivateEventDeliveryQueue extends EventDeliveryQueue {
-    clear(emitter) {
-        // Here we can just clear the entire linked list because
-        // all elements are guaranteed to belong to this emitter
-        this._queue.clear();
-    }
-}
-class EventDeliveryQueueElement {
-    constructor(emitter, listener, event) {
-        this.emitter = emitter;
-        this.listener = listener;
-        this.event = event;
+    reset() {
+        this.i = this.end; // force any current emission loop to stop, mainly for during dispose
+        this.current = undefined;
+        this.value = undefined;
     }
 }
 class PauseableEmitter extends Emitter {
@@ -3908,7 +3945,7 @@ class PauseableEmitter extends Emitter {
         }
     }
     fire(event) {
-        if (this._listeners) {
+        if (this._size) {
             if (this._isPaused !== 0) {
                 this._eventQueue.push(event);
             }
@@ -4606,7 +4643,7 @@ for (let i = 0; i <= 132 /* KeyCode.MAX_VALUE */; i++) {
 }
 (function () {
     // See https://msdn.microsoft.com/en-us/library/windows/desktop/dd375731(v=vs.85).aspx
-    // See https://github.com/microsoft/node-native-keymap/blob/master/deps/chromium/keyboard_codes_win.h
+    // See https://github.com/microsoft/node-native-keymap/blob/88c0b0e5/deps/chromium/keyboard_codes_win.h
     const empty = '';
     const mappings = [
         // immutable, scanCode, scanCodeStr, keyCode, keyCodeStr, eventKeyCode, vkey, usUserSettingsLabel, generalUserSettingsLabel
@@ -4727,11 +4764,11 @@ for (let i = 0; i <= 132 /* KeyCode.MAX_VALUE */; i++) {
         [1, 114 /* ScanCode.F17 */, 'F17', 75 /* KeyCode.F17 */, 'F17', 128, 'VK_F17', empty, empty],
         [1, 115 /* ScanCode.F18 */, 'F18', 76 /* KeyCode.F18 */, 'F18', 129, 'VK_F18', empty, empty],
         [1, 116 /* ScanCode.F19 */, 'F19', 77 /* KeyCode.F19 */, 'F19', 130, 'VK_F19', empty, empty],
-        [1, 117 /* ScanCode.F20 */, 'F20', 78 /* KeyCode.F20 */, 'F20', 0, 'VK_F20', empty, empty],
-        [1, 118 /* ScanCode.F21 */, 'F21', 79 /* KeyCode.F21 */, 'F21', 0, 'VK_F21', empty, empty],
-        [1, 119 /* ScanCode.F22 */, 'F22', 80 /* KeyCode.F22 */, 'F22', 0, 'VK_F22', empty, empty],
-        [1, 120 /* ScanCode.F23 */, 'F23', 81 /* KeyCode.F23 */, 'F23', 0, 'VK_F23', empty, empty],
-        [1, 121 /* ScanCode.F24 */, 'F24', 82 /* KeyCode.F24 */, 'F24', 0, 'VK_F24', empty, empty],
+        [1, 117 /* ScanCode.F20 */, 'F20', 78 /* KeyCode.F20 */, 'F20', 131, 'VK_F20', empty, empty],
+        [1, 118 /* ScanCode.F21 */, 'F21', 79 /* KeyCode.F21 */, 'F21', 132, 'VK_F21', empty, empty],
+        [1, 119 /* ScanCode.F22 */, 'F22', 80 /* KeyCode.F22 */, 'F22', 133, 'VK_F22', empty, empty],
+        [1, 120 /* ScanCode.F23 */, 'F23', 81 /* KeyCode.F23 */, 'F23', 134, 'VK_F23', empty, empty],
+        [1, 121 /* ScanCode.F24 */, 'F24', 82 /* KeyCode.F24 */, 'F24', 135, 'VK_F24', empty, empty],
         [1, 122 /* ScanCode.Open */, 'Open', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
         [1, 123 /* ScanCode.Help */, 'Help', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
         [1, 124 /* ScanCode.Select */, 'Select', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
@@ -5003,7 +5040,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   ImmortalReference: () => (/* binding */ ImmortalReference),
 /* harmony export */   MutableDisposable: () => (/* binding */ MutableDisposable),
 /* harmony export */   RefCountedDisposable: () => (/* binding */ RefCountedDisposable),
-/* harmony export */   SafeDisposable: () => (/* binding */ SafeDisposable),
 /* harmony export */   combinedDisposable: () => (/* binding */ combinedDisposable),
 /* harmony export */   dispose: () => (/* binding */ dispose),
 /* harmony export */   isDisposable: () => (/* binding */ isDisposable),
@@ -5133,6 +5169,8 @@ function combinedDisposable(...disposables) {
 }
 /**
  * Turn a function that implements dispose into an {@link IDisposable}.
+ *
+ * @param fn Clean up function, guaranteed to be called only **once**.
  */
 function toDisposable(fn) {
     const self = trackDisposable({
@@ -5295,31 +5333,6 @@ class RefCountedDisposable {
         if (--this._counter === 0) {
             this._disposable.dispose();
         }
-        return this;
-    }
-}
-/**
- * A safe disposable can be `unset` so that a leaked reference (listener)
- * can be cut-off.
- */
-class SafeDisposable {
-    constructor() {
-        this.dispose = () => { };
-        this.unset = () => { };
-        this.isset = () => false;
-        trackDisposable(this);
-    }
-    set(fn) {
-        let callback = fn;
-        this.unset = () => callback = undefined;
-        this.isset = () => callback !== undefined;
-        this.dispose = () => {
-            if (callback) {
-                callback();
-                callback = undefined;
-                markAsDisposed(this);
-            }
-        };
         return this;
     }
 }
@@ -7400,6 +7413,8 @@ else {
  * environments.
  *
  * Note: in web, this property is hardcoded to be `/`.
+ *
+ * @skipMangle
  */
 const cwd = safeProcess.cwd;
 /**
@@ -7428,19 +7443,17 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   StopWatch: () => (/* binding */ StopWatch)
 /* harmony export */ });
-/* harmony import */ var _platform_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./platform.js */ "./node_modules/monaco-editor/esm/vs/base/common/platform.js");
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-
-const hasPerformanceNow = (_platform_js__WEBPACK_IMPORTED_MODULE_0__.globals.performance && typeof _platform_js__WEBPACK_IMPORTED_MODULE_0__.globals.performance.now === 'function');
+const hasPerformanceNow = (globalThis.performance && typeof globalThis.performance.now === 'function');
 class StopWatch {
-    static create(highResolution = true) {
+    static create(highResolution) {
         return new StopWatch(highResolution);
     }
     constructor(highResolution) {
-        this._highResolution = hasPerformanceNow && highResolution;
+        this._now = hasPerformanceNow && highResolution === false ? Date.now : globalThis.performance.now.bind(globalThis.performance);
         this._startTime = this._now();
         this._stopTime = -1;
     }
@@ -7452,9 +7465,6 @@ class StopWatch {
             return this._stopTime - this._startTime;
         }
         return this._now() - this._startTime;
-    }
-    _now() {
-        return this._highResolution ? _platform_js__WEBPACK_IMPORTED_MODULE_0__.globals.performance.now() : Date.now();
     }
 }
 
@@ -8818,9 +8828,15 @@ class URI {
         }
         return new Uri('file', authority, path, _empty, _empty);
     }
-    static from(components) {
-        const result = new Uri(components.scheme, components.authority, components.path, components.query, components.fragment);
-        _validateUri(result, true);
+    /**
+     * Creates new URI from uri components.
+     *
+     * Unless `strict` is `true` the scheme is defaults to be `file`. This function performs
+     * validation and should be used for untrusted uri components retrieved from storage,
+     * user input, command arguments etc
+     */
+    static from(components, strict) {
+        const result = new Uri(components.scheme, components.authority, components.path, components.query, components.fragment, strict);
         return result;
     }
     /**
@@ -8862,6 +8878,7 @@ class URI {
         return this;
     }
     static revive(data) {
+        var _a, _b;
         if (!data) {
             return data;
         }
@@ -8870,8 +8887,8 @@ class URI {
         }
         else {
             const result = new Uri(data);
-            result._formatted = data.external;
-            result._fsPath = data._sep === _pathSepMarker ? data.fsPath : null;
+            result._formatted = (_a = data.external) !== null && _a !== void 0 ? _a : null;
+            result._fsPath = data._sep === _pathSepMarker ? (_b = data.fsPath) !== null && _b !== void 0 ? _b : null : null;
             return result;
         }
     }
@@ -8914,10 +8931,14 @@ class Uri extends URI {
         if (this._formatted) {
             res.external = this._formatted;
         }
-        // uri components
+        //--- uri components
         if (this.path) {
             res.path = this.path;
         }
+        // TODO
+        // this isn't correct and can violate the UriComponents contract but
+        // this is part of the vscode.Uri API and we shouldn't change how that
+        // works anymore
         if (this.scheme) {
             res.scheme = this.scheme;
         }
@@ -9609,6 +9630,7 @@ class SimpleWorkerServer {
 }
 /**
  * Called on the worker side
+ * @skipMangle
  */
 function create(postMessage) {
     return new SimpleWorkerServer(postMessage, null);
@@ -9700,15 +9722,40 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   LineRange: () => (/* binding */ LineRange)
 /* harmony export */ });
 /* harmony import */ var _base_common_errors_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../base/common/errors.js */ "./node_modules/monaco-editor/esm/vs/base/common/errors.js");
+/* harmony import */ var _range_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./range.js */ "./node_modules/monaco-editor/esm/vs/editor/common/core/range.js");
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+
 /**
  * A range of lines (1-based).
  */
 class LineRange {
+    static fromRange(range) {
+        return new LineRange(range.startLineNumber, range.endLineNumber);
+    }
+    static subtract(a, b) {
+        if (!b) {
+            return [a];
+        }
+        if (a.startLineNumber < b.startLineNumber && b.endLineNumberExclusive < a.endLineNumberExclusive) {
+            return [
+                new LineRange(a.startLineNumber, b.startLineNumber),
+                new LineRange(b.endLineNumberExclusive, a.endLineNumberExclusive)
+            ];
+        }
+        else if (b.startLineNumber <= a.startLineNumber && a.endLineNumberExclusive <= b.endLineNumberExclusive) {
+            return [];
+        }
+        else if (b.endLineNumberExclusive < a.endLineNumberExclusive) {
+            return [new LineRange(Math.max(b.endLineNumberExclusive, a.startLineNumber), a.endLineNumberExclusive)];
+        }
+        else {
+            return [new LineRange(a.startLineNumber, Math.min(b.startLineNumber, a.endLineNumberExclusive))];
+        }
+    }
     /**
      * @param lineRanges An array of sorted line ranges.
      */
@@ -9779,6 +9826,15 @@ class LineRange {
         }
         return result;
     }
+    static ofLength(startLineNumber, length) {
+        return new LineRange(startLineNumber, startLineNumber + length);
+    }
+    /**
+     * @internal
+     */
+    static deserialize(lineRange) {
+        return new LineRange(lineRange[0], lineRange[1]);
+    }
     constructor(startLineNumber, endLineNumberExclusive) {
         if (startLineNumber > endLineNumberExclusive) {
             throw new _base_common_errors_js__WEBPACK_IMPORTED_MODULE_0__.BugIndicatingError(`startLineNumber ${startLineNumber} cannot be after endLineNumberExclusive ${endLineNumberExclusive}`);
@@ -9831,11 +9887,39 @@ class LineRange {
         }
         return undefined;
     }
+    intersectsStrict(other) {
+        return this.startLineNumber < other.endLineNumberExclusive && other.startLineNumber < this.endLineNumberExclusive;
+    }
     overlapOrTouch(other) {
         return this.startLineNumber <= other.endLineNumberExclusive && other.startLineNumber <= this.endLineNumberExclusive;
     }
     equals(b) {
         return this.startLineNumber === b.startLineNumber && this.endLineNumberExclusive === b.endLineNumberExclusive;
+    }
+    toInclusiveRange() {
+        if (this.isEmpty) {
+            return null;
+        }
+        return new _range_js__WEBPACK_IMPORTED_MODULE_1__.Range(this.startLineNumber, 1, this.endLineNumberExclusive - 1, Number.MAX_SAFE_INTEGER);
+    }
+    toExclusiveRange() {
+        return new _range_js__WEBPACK_IMPORTED_MODULE_1__.Range(this.startLineNumber, 1, this.endLineNumberExclusive, 1);
+    }
+    mapToLineArray(f) {
+        const result = [];
+        for (let lineNumber = this.startLineNumber; lineNumber < this.endLineNumberExclusive; lineNumber++) {
+            result.push(f(lineNumber));
+        }
+        return result;
+    }
+    /**
+     * @internal
+     */
+    serialize() {
+        return [this.startLineNumber, this.endLineNumberExclusive];
+    }
+    includes(lineNumber) {
+        return this.startLineNumber <= lineNumber && lineNumber < this.endLineNumberExclusive;
     }
 }
 
@@ -10892,6 +10976,12 @@ class SequenceDiff {
     join(other) {
         return new SequenceDiff(this.seq1Range.join(other.seq1Range), this.seq2Range.join(other.seq2Range));
     }
+    delta(offset) {
+        if (offset === 0) {
+            return this;
+        }
+        return new SequenceDiff(this.seq1Range.delta(offset), this.seq2Range.delta(offset));
+    }
 }
 class InfiniteTimeout {
     isValid() {
@@ -11099,27 +11189,58 @@ function joinSequenceDiffs(sequence1, sequence2, sequenceDiffs) {
     if (sequenceDiffs.length > 0) {
         result.push(sequenceDiffs[0]);
     }
+    // First move them all to the left as much as possible and join them if possible
     for (let i = 1; i < sequenceDiffs.length; i++) {
-        const lastResult = result[result.length - 1];
-        const cur = sequenceDiffs[i];
-        if (cur.seq1Range.isEmpty) {
-            let all = true;
-            const length = cur.seq1Range.start - lastResult.seq1Range.endExclusive;
-            for (let i = 1; i <= length; i++) {
-                if (sequence2.getElement(cur.seq2Range.start - i) !== sequence2.getElement(cur.seq2Range.endExclusive - i)) {
-                    all = false;
+        const prevResult = sequenceDiffs[i - 1];
+        let cur = sequenceDiffs[i];
+        if (cur.seq1Range.isEmpty || cur.seq2Range.isEmpty) {
+            const length = cur.seq1Range.start - prevResult.seq1Range.endExclusive;
+            let d;
+            for (d = 1; d <= length; d++) {
+                if (sequence1.getElement(cur.seq1Range.start - d) !== sequence1.getElement(cur.seq1Range.endExclusive - d) ||
+                    sequence2.getElement(cur.seq2Range.start - d) !== sequence2.getElement(cur.seq2Range.endExclusive - d)) {
                     break;
                 }
             }
-            if (all) {
+            d--;
+            if (d === length) {
                 // Merge previous and current diff
-                result[result.length - 1] = new _diffAlgorithm_js__WEBPACK_IMPORTED_MODULE_1__.SequenceDiff(lastResult.seq1Range, new _core_offsetRange_js__WEBPACK_IMPORTED_MODULE_0__.OffsetRange(lastResult.seq2Range.start, cur.seq2Range.endExclusive - length));
+                result[result.length - 1] = new _diffAlgorithm_js__WEBPACK_IMPORTED_MODULE_1__.SequenceDiff(new _core_offsetRange_js__WEBPACK_IMPORTED_MODULE_0__.OffsetRange(prevResult.seq1Range.start, cur.seq1Range.endExclusive - length), new _core_offsetRange_js__WEBPACK_IMPORTED_MODULE_0__.OffsetRange(prevResult.seq2Range.start, cur.seq2Range.endExclusive - length));
                 continue;
             }
+            cur = cur.delta(-d);
         }
         result.push(cur);
     }
-    return result;
+    const result2 = [];
+    // Then move them all to the right and join them again if possible
+    for (let i = 0; i < result.length - 1; i++) {
+        const nextResult = result[i + 1];
+        let cur = result[i];
+        if (cur.seq1Range.isEmpty || cur.seq2Range.isEmpty) {
+            const length = nextResult.seq1Range.start - cur.seq1Range.endExclusive;
+            let d;
+            for (d = 0; d < length; d++) {
+                if (sequence1.getElement(cur.seq1Range.start + d) !== sequence1.getElement(cur.seq1Range.endExclusive + d) ||
+                    sequence2.getElement(cur.seq2Range.start + d) !== sequence2.getElement(cur.seq2Range.endExclusive + d)) {
+                    break;
+                }
+            }
+            if (d === length) {
+                // Merge previous and current diff, write to result!
+                result[i + 1] = new _diffAlgorithm_js__WEBPACK_IMPORTED_MODULE_1__.SequenceDiff(new _core_offsetRange_js__WEBPACK_IMPORTED_MODULE_0__.OffsetRange(cur.seq1Range.start + length, nextResult.seq1Range.endExclusive), new _core_offsetRange_js__WEBPACK_IMPORTED_MODULE_0__.OffsetRange(cur.seq2Range.start + length, nextResult.seq2Range.endExclusive));
+                continue;
+            }
+            if (d > 0) {
+                cur = cur.delta(d);
+            }
+        }
+        result2.push(cur);
+    }
+    if (result.length > 0) {
+        result2.push(result[result.length - 1]);
+    }
+    return result2;
 }
 // align character level diffs at whitespace characters
 // import { IBar } from "foo";
@@ -11139,32 +11260,34 @@ function shiftSequenceDiffs(sequence1, sequence2, sequenceDiffs) {
         return sequenceDiffs;
     }
     for (let i = 0; i < sequenceDiffs.length; i++) {
+        const prevDiff = (i > 0 ? sequenceDiffs[i - 1] : undefined);
         const diff = sequenceDiffs[i];
+        const nextDiff = (i + 1 < sequenceDiffs.length ? sequenceDiffs[i + 1] : undefined);
+        const seq1ValidRange = new _core_offsetRange_js__WEBPACK_IMPORTED_MODULE_0__.OffsetRange(prevDiff ? prevDiff.seq1Range.start + 1 : 0, nextDiff ? nextDiff.seq1Range.endExclusive - 1 : sequence1.length);
+        const seq2ValidRange = new _core_offsetRange_js__WEBPACK_IMPORTED_MODULE_0__.OffsetRange(prevDiff ? prevDiff.seq2Range.start + 1 : 0, nextDiff ? nextDiff.seq2Range.endExclusive - 1 : sequence2.length);
         if (diff.seq1Range.isEmpty) {
-            const seq2PrevEndExclusive = (i > 0 ? sequenceDiffs[i - 1].seq2Range.endExclusive : -1);
-            const seq2NextStart = (i + 1 < sequenceDiffs.length ? sequenceDiffs[i + 1].seq2Range.start : sequence2.length);
-            sequenceDiffs[i] = shiftDiffToBetterPosition(diff, sequence1, sequence2, seq2NextStart, seq2PrevEndExclusive);
+            sequenceDiffs[i] = shiftDiffToBetterPosition(diff, sequence1, sequence2, seq1ValidRange, seq2ValidRange);
         }
         else if (diff.seq2Range.isEmpty) {
-            const seq1PrevEndExclusive = (i > 0 ? sequenceDiffs[i - 1].seq1Range.endExclusive : -1);
-            const seq1NextStart = (i + 1 < sequenceDiffs.length ? sequenceDiffs[i + 1].seq1Range.start : sequence1.length);
-            sequenceDiffs[i] = shiftDiffToBetterPosition(diff.reverse(), sequence2, sequence1, seq1NextStart, seq1PrevEndExclusive).reverse();
+            sequenceDiffs[i] = shiftDiffToBetterPosition(diff.reverse(), sequence2, sequence1, seq2ValidRange, seq1ValidRange).reverse();
         }
     }
     return sequenceDiffs;
 }
-function shiftDiffToBetterPosition(diff, sequence1, sequence2, seq2NextStart, seq2PrevEndExclusive) {
-    const maxShiftLimit = 20; // To prevent performance issues
+function shiftDiffToBetterPosition(diff, sequence1, sequence2, seq1ValidRange, seq2ValidRange) {
+    const maxShiftLimit = 100; // To prevent performance issues
     // don't touch previous or next!
     let deltaBefore = 1;
-    while (diff.seq2Range.start - deltaBefore > seq2PrevEndExclusive &&
+    while (diff.seq1Range.start - deltaBefore >= seq1ValidRange.start &&
+        diff.seq2Range.start - deltaBefore >= seq2ValidRange.start &&
         sequence2.getElement(diff.seq2Range.start - deltaBefore) ===
             sequence2.getElement(diff.seq2Range.endExclusive - deltaBefore) && deltaBefore < maxShiftLimit) {
         deltaBefore++;
     }
     deltaBefore--;
     let deltaAfter = 0;
-    while (diff.seq2Range.start + deltaAfter < seq2NextStart &&
+    while (diff.seq1Range.start + deltaAfter < seq1ValidRange.endExclusive &&
+        diff.seq2Range.endExclusive + deltaAfter < seq2ValidRange.endExclusive &&
         sequence2.getElement(diff.seq2Range.start + deltaAfter) ===
             sequence2.getElement(diff.seq2Range.endExclusive + deltaAfter) && deltaAfter < maxShiftLimit) {
         deltaAfter++;
@@ -11187,10 +11310,7 @@ function shiftDiffToBetterPosition(diff, sequence1, sequence2, seq2NextStart, se
             bestDelta = delta;
         }
     }
-    if (bestDelta !== 0) {
-        return new _diffAlgorithm_js__WEBPACK_IMPORTED_MODULE_1__.SequenceDiff(diff.seq1Range.delta(bestDelta), diff.seq2Range.delta(bestDelta));
-    }
-    return diff;
+    return diff.delta(bestDelta);
 }
 
 
@@ -11242,14 +11362,23 @@ class MyersDiffAlgorithm {
         let k = 0;
         loop: while (true) {
             d++;
-            for (k = -d; k <= d; k += 2) {
-                if (!timeout.isValid()) {
-                    return _diffAlgorithm_js__WEBPACK_IMPORTED_MODULE_1__.DiffAlgorithmResult.trivialTimedOut(seq1, seq2);
-                }
-                const maxXofDLineTop = k === d ? -1 : V.get(k + 1); // We take a vertical non-diagonal
-                const maxXofDLineLeft = k === -d ? -1 : V.get(k - 1) + 1; // We take a horizontal non-diagonal (+1 x)
+            if (!timeout.isValid()) {
+                return _diffAlgorithm_js__WEBPACK_IMPORTED_MODULE_1__.DiffAlgorithmResult.trivialTimedOut(seq1, seq2);
+            }
+            // The paper has `for (k = -d; k <= d; k += 2)`, but we can ignore diagonals that cannot influence the result.
+            const lowerBound = -Math.min(d, seq2.length + (d % 2));
+            const upperBound = Math.min(d, seq1.length + (d % 2));
+            for (k = lowerBound; k <= upperBound; k += 2) {
+                // We can use the X values of (d-1)-lines to compute X value of the longest d-lines.
+                const maxXofDLineTop = k === upperBound ? -1 : V.get(k + 1); // We take a vertical non-diagonal (add a symbol in seq1)
+                const maxXofDLineLeft = k === lowerBound ? -1 : V.get(k - 1) + 1; // We take a horizontal non-diagonal (+1 x) (delete a symbol in seq1)
                 const x = Math.min(Math.max(maxXofDLineTop, maxXofDLineLeft), seq1.length);
                 const y = x - k;
+                if (x > seq1.length || y > seq2.length) {
+                    // This diagonal is irrelevant for the result.
+                    // TODO: Don't pay the cost for this in the next iteration.
+                    continue;
+                }
                 const newMaxX = getXAfterSnake(x, y);
                 V.set(k, newMaxX);
                 const lastPath = x === maxXofDLineTop ? paths.get(k + 1) : paths.get(k - 1);
@@ -11398,20 +11527,30 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   LineRangeMapping: () => (/* binding */ LineRangeMapping),
 /* harmony export */   LinesDiff: () => (/* binding */ LinesDiff),
-/* harmony export */   RangeMapping: () => (/* binding */ RangeMapping)
+/* harmony export */   MovedText: () => (/* binding */ MovedText),
+/* harmony export */   RangeMapping: () => (/* binding */ RangeMapping),
+/* harmony export */   SimpleLineRangeMapping: () => (/* binding */ SimpleLineRangeMapping)
 /* harmony export */ });
+/* harmony import */ var _core_lineRange_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../core/lineRange.js */ "./node_modules/monaco-editor/esm/vs/editor/common/core/lineRange.js");
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
+
 class LinesDiff {
     constructor(changes, 
+    /**
+     * Sorted by original line ranges.
+     * The original line ranges and the modified line ranges must be disjoint (but can be touching).
+     */
+    moves, 
     /**
      * Indicates if the time out was reached.
      * In that case, the diffs might be an approximation and the user should be asked to rerun the diff with more time.
      */
     hitTimeout) {
         this.changes = changes;
+        this.moves = moves;
         this.hitTimeout = hitTimeout;
     }
 }
@@ -11419,6 +11558,24 @@ class LinesDiff {
  * Maps a line range in the original text model to a line range in the modified text model.
  */
 class LineRangeMapping {
+    static inverse(mapping, originalLineCount, modifiedLineCount) {
+        const result = [];
+        let lastOriginalEndLineNumber = 1;
+        let lastModifiedEndLineNumber = 1;
+        for (const m of mapping) {
+            const r = new LineRangeMapping(new _core_lineRange_js__WEBPACK_IMPORTED_MODULE_0__.LineRange(lastOriginalEndLineNumber, m.originalRange.startLineNumber), new _core_lineRange_js__WEBPACK_IMPORTED_MODULE_0__.LineRange(lastModifiedEndLineNumber, m.modifiedRange.startLineNumber), undefined);
+            if (!r.modifiedRange.isEmpty) {
+                result.push(r);
+            }
+            lastOriginalEndLineNumber = m.originalRange.endLineNumberExclusive;
+            lastModifiedEndLineNumber = m.modifiedRange.endLineNumberExclusive;
+        }
+        const r = new LineRangeMapping(new _core_lineRange_js__WEBPACK_IMPORTED_MODULE_0__.LineRange(lastOriginalEndLineNumber, originalLineCount + 1), new _core_lineRange_js__WEBPACK_IMPORTED_MODULE_0__.LineRange(lastModifiedEndLineNumber, modifiedLineCount + 1), undefined);
+        if (!r.modifiedRange.isEmpty) {
+            result.push(r);
+        }
+        return result;
+    }
     constructor(originalRange, modifiedRange, innerChanges) {
         this.originalRange = originalRange;
         this.modifiedRange = modifiedRange;
@@ -11429,6 +11586,10 @@ class LineRangeMapping {
     }
     get changedLineCount() {
         return Math.max(this.originalRange.length, this.modifiedRange.length);
+    }
+    flip() {
+        var _a;
+        return new LineRangeMapping(this.modifiedRange, this.originalRange, (_a = this.innerChanges) === null || _a === void 0 ? void 0 : _a.map(c => c.flip()));
     }
 }
 /**
@@ -11441,6 +11602,30 @@ class RangeMapping {
     }
     toString() {
         return `{${this.originalRange.toString()}->${this.modifiedRange.toString()}}`;
+    }
+    flip() {
+        return new RangeMapping(this.modifiedRange, this.originalRange);
+    }
+}
+class SimpleLineRangeMapping {
+    constructor(originalRange, modifiedRange) {
+        this.originalRange = originalRange;
+        this.modifiedRange = modifiedRange;
+    }
+    toString() {
+        return `{${this.originalRange.toString()}->${this.modifiedRange.toString()}}`;
+    }
+    flip() {
+        return new SimpleLineRangeMapping(this.modifiedRange, this.originalRange);
+    }
+}
+class MovedText {
+    constructor(lineRangeMapping, changes) {
+        this.lineRangeMapping = lineRangeMapping;
+        this.changes = changes;
+    }
+    flip() {
+        return new MovedText(this.lineRangeMapping.flip(), this.changes.map(c => c.flip()));
     }
 }
 
@@ -11466,8 +11651,8 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const linesDiffComputers = {
-    legacy: new _smartLinesDiffComputer_js__WEBPACK_IMPORTED_MODULE_0__.SmartLinesDiffComputer(),
-    advanced: new _standardLinesDiffComputer_js__WEBPACK_IMPORTED_MODULE_1__.StandardLinesDiffComputer(),
+    getLegacy: () => new _smartLinesDiffComputer_js__WEBPACK_IMPORTED_MODULE_0__.SmartLinesDiffComputer(),
+    getAdvanced: () => new _standardLinesDiffComputer_js__WEBPACK_IMPORTED_MODULE_1__.StandardLinesDiffComputer(),
 };
 
 
@@ -11550,7 +11735,7 @@ class SmartLinesDiffComputer {
                 m1.originalRange.endLineNumberExclusive < m2.originalRange.startLineNumber &&
                 m1.modifiedRange.endLineNumberExclusive < m2.modifiedRange.startLineNumber);
         });
-        return new _linesDiffComputer_js__WEBPACK_IMPORTED_MODULE_1__.LinesDiff(changes, result.quitEarly);
+        return new _linesDiffComputer_js__WEBPACK_IMPORTED_MODULE_1__.LinesDiff(changes, [], result.quitEarly);
     }
 }
 function computeDiff(originalSequence, modifiedSequence, continueProcessingPredicate, pretty) {
@@ -12069,19 +12254,45 @@ class StandardLinesDiffComputer {
         }
         scanForWhitespaceChanges(originalLines.length - seq1LastStart);
         const changes = lineRangeMappingFromRangeMappings(alignments, originalLines, modifiedLines);
-        return new _linesDiffComputer_js__WEBPACK_IMPORTED_MODULE_9__.LinesDiff(changes, hitTimeout);
+        const moves = [];
+        if (options.computeMoves) {
+            const deletions = changes
+                .filter(c => c.modifiedRange.isEmpty && c.originalRange.length >= 3)
+                .map(d => new LineRangeFragment(d.originalRange, originalLines));
+            const insertions = new Set(changes
+                .filter(c => c.originalRange.isEmpty && c.modifiedRange.length >= 3)
+                .map(d => new LineRangeFragment(d.modifiedRange, modifiedLines)));
+            for (const deletion of deletions) {
+                let highestSimilarity = -1;
+                let best;
+                for (const insertion of insertions) {
+                    const similarity = deletion.computeSimilarity(insertion);
+                    if (similarity > highestSimilarity) {
+                        highestSimilarity = similarity;
+                        best = insertion;
+                    }
+                }
+                if (highestSimilarity > 0.90 && best) {
+                    const moveChanges = this.refineDiff(originalLines, modifiedLines, new _algorithms_diffAlgorithm_js__WEBPACK_IMPORTED_MODULE_5__.SequenceDiff(new _core_offsetRange_js__WEBPACK_IMPORTED_MODULE_2__.OffsetRange(deletion.range.startLineNumber - 1, deletion.range.endLineNumberExclusive - 1), new _core_offsetRange_js__WEBPACK_IMPORTED_MODULE_2__.OffsetRange(best.range.startLineNumber - 1, best.range.endLineNumberExclusive - 1)), timeout, considerWhitespaceChanges);
+                    const mappings = lineRangeMappingFromRangeMappings(moveChanges.mappings, originalLines, modifiedLines, true);
+                    insertions.delete(best);
+                    moves.push(new _linesDiffComputer_js__WEBPACK_IMPORTED_MODULE_9__.MovedText(new _linesDiffComputer_js__WEBPACK_IMPORTED_MODULE_9__.SimpleLineRangeMapping(deletion.range, best.range), mappings));
+                }
+            }
+        }
+        return new _linesDiffComputer_js__WEBPACK_IMPORTED_MODULE_9__.LinesDiff(changes, moves, hitTimeout);
     }
     refineDiff(originalLines, modifiedLines, diff, timeout, considerWhitespaceChanges) {
-        const sourceSlice = new Slice(originalLines, diff.seq1Range, considerWhitespaceChanges);
-        const targetSlice = new Slice(modifiedLines, diff.seq2Range, considerWhitespaceChanges);
-        const diffResult = sourceSlice.length + targetSlice.length < 500
-            ? this.dynamicProgrammingDiffing.compute(sourceSlice, targetSlice, timeout)
-            : this.myersDiffingAlgorithm.compute(sourceSlice, targetSlice, timeout);
+        const slice1 = new Slice(originalLines, diff.seq1Range, considerWhitespaceChanges);
+        const slice2 = new Slice(modifiedLines, diff.seq2Range, considerWhitespaceChanges);
+        const diffResult = slice1.length + slice2.length < 500
+            ? this.dynamicProgrammingDiffing.compute(slice1, slice2, timeout)
+            : this.myersDiffingAlgorithm.compute(slice1, slice2, timeout);
         let diffs = diffResult.diffs;
-        diffs = (0,_algorithms_joinSequenceDiffs_js__WEBPACK_IMPORTED_MODULE_7__.optimizeSequenceDiffs)(sourceSlice, targetSlice, diffs);
-        diffs = coverFullWords(sourceSlice, targetSlice, diffs);
-        diffs = (0,_algorithms_joinSequenceDiffs_js__WEBPACK_IMPORTED_MODULE_7__.smoothenSequenceDiffs)(sourceSlice, targetSlice, diffs);
-        const result = diffs.map((d) => new _linesDiffComputer_js__WEBPACK_IMPORTED_MODULE_9__.RangeMapping(sourceSlice.translateRange(d.seq1Range), targetSlice.translateRange(d.seq2Range)));
+        diffs = (0,_algorithms_joinSequenceDiffs_js__WEBPACK_IMPORTED_MODULE_7__.optimizeSequenceDiffs)(slice1, slice2, diffs);
+        diffs = coverFullWords(slice1, slice2, diffs);
+        diffs = (0,_algorithms_joinSequenceDiffs_js__WEBPACK_IMPORTED_MODULE_7__.smoothenSequenceDiffs)(slice1, slice2, diffs);
+        const result = diffs.map((d) => new _linesDiffComputer_js__WEBPACK_IMPORTED_MODULE_9__.RangeMapping(slice1.translateRange(d.seq1Range), slice2.translateRange(d.seq2Range)));
         // Assert: result applied on original should be the same as diff applied to original
         return {
             mappings: result,
@@ -12170,7 +12381,7 @@ function mergeSequenceDiffs(sequenceDiffs1, sequenceDiffs2) {
     }
     return result;
 }
-function lineRangeMappingFromRangeMappings(alignments, originalLines, modifiedLines) {
+function lineRangeMappingFromRangeMappings(alignments, originalLines, modifiedLines, dontAssertStartLine = false) {
     const changes = [];
     for (const g of group(alignments.map(a => getLineRangeMapping(a, originalLines, modifiedLines)), (a1, a2) => a1.originalRange.overlapOrTouch(a2.originalRange)
         || a1.modifiedRange.overlapOrTouch(a2.modifiedRange))) {
@@ -12179,6 +12390,11 @@ function lineRangeMappingFromRangeMappings(alignments, originalLines, modifiedLi
         changes.push(new _linesDiffComputer_js__WEBPACK_IMPORTED_MODULE_9__.LineRangeMapping(first.originalRange.join(last.originalRange), first.modifiedRange.join(last.modifiedRange), g.map(a => a.innerChanges[0])));
     }
     (0,_base_common_assert_js__WEBPACK_IMPORTED_MODULE_0__.assertFn)(() => {
+        if (!dontAssertStartLine) {
+            if (changes.length > 0 && changes[0].originalRange.startLineNumber !== changes[0].modifiedRange.startLineNumber) {
+                return false;
+            }
+        }
         return (0,_base_common_assert_js__WEBPACK_IMPORTED_MODULE_0__.checkAdjacentItems)(changes, (m1, m2) => m2.originalRange.startLineNumber - m1.originalRange.endLineNumberExclusive === m2.modifiedRange.startLineNumber - m1.modifiedRange.endLineNumberExclusive &&
             // There has to be an unchanged line in between (otherwise both diffs should have been joined)
             m1.originalRange.endLineNumberExclusive < m2.originalRange.startLineNumber &&
@@ -12190,18 +12406,22 @@ function getLineRangeMapping(rangeMapping, originalLines, modifiedLines) {
     let lineStartDelta = 0;
     let lineEndDelta = 0;
     // rangeMapping describes the edit that replaces `rangeMapping.originalRange` with `newText := getText(modifiedLines, rangeMapping.modifiedRange)`.
-    // original: xxx[ \n <- this line is not modified
-    // modified: xxx[ \n
-    if (rangeMapping.modifiedRange.startColumn - 1 >= modifiedLines[rangeMapping.modifiedRange.startLineNumber - 1].length
-        && rangeMapping.originalRange.startColumn - 1 >= originalLines[rangeMapping.originalRange.startLineNumber - 1].length) {
-        lineStartDelta = 1; // +1 is always possible, as startLineNumber < endLineNumber + 1
-    }
     // original: ]xxx \n <- this line is not modified
     // modified: ]xx  \n
     if (rangeMapping.modifiedRange.endColumn === 1 && rangeMapping.originalRange.endColumn === 1
         && rangeMapping.originalRange.startLineNumber + lineStartDelta <= rangeMapping.originalRange.endLineNumber
         && rangeMapping.modifiedRange.startLineNumber + lineStartDelta <= rangeMapping.modifiedRange.endLineNumber) {
-        lineEndDelta = -1; // We can only do this if the range is not empty yet
+        // We can only do this if the range is not empty yet
+        lineEndDelta = -1;
+    }
+    // original: xxx[ \n <- this line is not modified
+    // modified: xxx[ \n
+    if (rangeMapping.modifiedRange.startColumn - 1 >= modifiedLines[rangeMapping.modifiedRange.startLineNumber - 1].length
+        && rangeMapping.originalRange.startColumn - 1 >= originalLines[rangeMapping.originalRange.startLineNumber - 1].length
+        && rangeMapping.originalRange.startLineNumber <= rangeMapping.originalRange.endLineNumber + lineEndDelta
+        && rangeMapping.modifiedRange.startLineNumber <= rangeMapping.modifiedRange.endLineNumber + lineEndDelta) {
+        // We can only do this if the range is not empty yet
+        lineStartDelta = 1;
     }
     const originalLineRange = new _core_lineRange_js__WEBPACK_IMPORTED_MODULE_1__.LineRange(rangeMapping.originalRange.startLineNumber + lineStartDelta, rangeMapping.originalRange.endLineNumber + 1 + lineEndDelta);
     const modifiedLineRange = new _core_lineRange_js__WEBPACK_IMPORTED_MODULE_1__.LineRange(rangeMapping.modifiedRange.startLineNumber + lineStartDelta, rangeMapping.modifiedRange.endLineNumber + 1 + lineEndDelta);
@@ -12341,8 +12561,8 @@ class Slice {
                 i = k + 1;
             }
         }
-        const offsetOfPrevLineBreak = i === 0 ? 0 : this.firstCharOffsetByLineMinusOne[i - 1];
-        return new _core_position_js__WEBPACK_IMPORTED_MODULE_3__.Position(this.lineRange.start + i + 1, offset - offsetOfPrevLineBreak + 1 + this.offsetByLine[i]);
+        const offsetOfFirstCharInLine = i === 0 ? 0 : this.firstCharOffsetByLineMinusOne[i - 1];
+        return new _core_position_js__WEBPACK_IMPORTED_MODULE_3__.Position(this.lineRange.start + i + 1, offset - offsetOfFirstCharInLine + 1 + this.offsetByLine[i]);
     }
     translateRange(range) {
         return _core_range_js__WEBPACK_IMPORTED_MODULE_4__.Range.fromPositions(this.translateOffset(range.start), this.translateOffset(range.endExclusive));
@@ -12416,6 +12636,45 @@ function getCategory(charCode) {
 }
 function isSpace(charCode) {
     return charCode === 32 /* CharCode.Space */ || charCode === 9 /* CharCode.Tab */;
+}
+const chrKeys = new Map();
+function getKey(chr) {
+    let key = chrKeys.get(chr);
+    if (key === undefined) {
+        key = chrKeys.size;
+        chrKeys.set(chr, key);
+    }
+    return key;
+}
+class LineRangeFragment {
+    constructor(range, lines) {
+        this.range = range;
+        this.lines = lines;
+        this.histogram = [];
+        let counter = 0;
+        for (let i = range.startLineNumber - 1; i < range.endLineNumberExclusive - 1; i++) {
+            const line = lines[i];
+            for (let j = 0; j < line.length; j++) {
+                counter++;
+                const chr = line[j];
+                const key = getKey(chr);
+                this.histogram[key] = (this.histogram[key] || 0) + 1;
+            }
+            counter++;
+            const key = getKey('\n');
+            this.histogram[key] = (this.histogram[key] || 0) + 1;
+        }
+        this.totalCount = counter;
+    }
+    computeSimilarity(other) {
+        var _a, _b;
+        let sumDifferences = 0;
+        const maxLength = Math.max(this.histogram.length, other.histogram.length);
+        for (let i = 0; i < maxLength; i++) {
+            sumDifferences += Math.abs(((_a = this.histogram[i]) !== null && _a !== void 0 ? _a : 0) - ((_b = other.histogram[i]) !== null && _b !== void 0 ? _b : 0));
+        }
+        return 1 - (sumDifferences / (this.totalCount + other.totalCount));
+    }
 }
 
 
@@ -12877,7 +13136,7 @@ function _findMatches(model, regex) {
 function computeColors(model) {
     const result = [];
     // Early validation for RGB and HSL
-    const initialValidationRegex = /\b(rgb|rgba|hsl|hsla)(\([0-9\s,.\%]*\))|(#)([A-Fa-f0-9]{6})\b|(#)([A-Fa-f0-9]{8})\b/gm;
+    const initialValidationRegex = /\b(rgb|rgba|hsl|hsla)(\([0-9\s,.\%]*\))|(#)([A-Fa-f0-9]{3})\b|(#)([A-Fa-f0-9]{4})\b|(#)([A-Fa-f0-9]{6})\b|(#)([A-Fa-f0-9]{8})\b/gm;
     const initialValidationMatches = _findMatches(model, initialValidationRegex);
     // Potential colors have been found, validate the parameters
     if (initialValidationMatches.length > 0) {
@@ -14686,15 +14945,13 @@ class EditorSimpleWorker {
         });
     }
     static computeDiff(originalTextModel, modifiedTextModel, options, algorithm) {
-        const diffAlgorithm = algorithm === 'advanced' ? _diff_linesDiffComputers_js__WEBPACK_IMPORTED_MODULE_11__.linesDiffComputers.advanced : _diff_linesDiffComputers_js__WEBPACK_IMPORTED_MODULE_11__.linesDiffComputers.legacy;
+        const diffAlgorithm = algorithm === 'advanced' ? _diff_linesDiffComputers_js__WEBPACK_IMPORTED_MODULE_11__.linesDiffComputers.getAdvanced() : _diff_linesDiffComputers_js__WEBPACK_IMPORTED_MODULE_11__.linesDiffComputers.getLegacy();
         const originalLines = originalTextModel.getLinesContent();
         const modifiedLines = modifiedTextModel.getLinesContent();
         const result = diffAlgorithm.computeDiff(originalLines, modifiedLines, options);
         const identical = (result.changes.length > 0 ? false : this._modelsAreIdentical(originalTextModel, modifiedTextModel));
-        return {
-            identical,
-            quitEarly: result.hitTimeout,
-            changes: result.changes.map(m => {
+        function getLineChanges(changes) {
+            return changes.map(m => {
                 var _a;
                 return ([m.originalRange.startLineNumber, m.originalRange.endLineNumberExclusive, m.modifiedRange.startLineNumber, m.modifiedRange.endLineNumberExclusive, (_a = m.innerChanges) === null || _a === void 0 ? void 0 : _a.map(m => [
                         m.originalRange.startLineNumber,
@@ -14706,7 +14963,19 @@ class EditorSimpleWorker {
                         m.modifiedRange.endLineNumber,
                         m.modifiedRange.endColumn,
                     ])]);
-            })
+            });
+        }
+        return {
+            identical,
+            quitEarly: result.hitTimeout,
+            changes: getLineChanges(result.changes),
+            moves: result.moves.map(m => ([
+                m.lineRangeMapping.originalRange.startLineNumber,
+                m.lineRangeMapping.originalRange.endLineNumberExclusive,
+                m.lineRangeMapping.modifiedRange.startLineNumber,
+                m.lineRangeMapping.modifiedRange.endLineNumberExclusive,
+                getLineChanges(m.changes)
+            ])),
         };
     }
     static _modelsAreIdentical(original, modified) {
@@ -14803,7 +15072,7 @@ class EditorSimpleWorker {
     }
     textualSuggest(modelUrls, leadingWord, wordDef, wordDefFlags) {
         return __awaiter(this, void 0, void 0, function* () {
-            const sw = new _base_common_stopwatch_js__WEBPACK_IMPORTED_MODULE_9__.StopWatch(true);
+            const sw = new _base_common_stopwatch_js__WEBPACK_IMPORTED_MODULE_9__.StopWatch();
             const wordDefRegExp = new RegExp(wordDef, wordDefFlags);
             const seen = new Set();
             outer: for (const url of modelUrls) {
@@ -15453,66 +15722,69 @@ var EditorOption;
     EditorOption[EditorOption["overviewRulerBorder"] = 79] = "overviewRulerBorder";
     EditorOption[EditorOption["overviewRulerLanes"] = 80] = "overviewRulerLanes";
     EditorOption[EditorOption["padding"] = 81] = "padding";
-    EditorOption[EditorOption["parameterHints"] = 82] = "parameterHints";
-    EditorOption[EditorOption["peekWidgetDefaultFocus"] = 83] = "peekWidgetDefaultFocus";
-    EditorOption[EditorOption["definitionLinkOpensInPeek"] = 84] = "definitionLinkOpensInPeek";
-    EditorOption[EditorOption["quickSuggestions"] = 85] = "quickSuggestions";
-    EditorOption[EditorOption["quickSuggestionsDelay"] = 86] = "quickSuggestionsDelay";
-    EditorOption[EditorOption["readOnly"] = 87] = "readOnly";
-    EditorOption[EditorOption["renameOnType"] = 88] = "renameOnType";
-    EditorOption[EditorOption["renderControlCharacters"] = 89] = "renderControlCharacters";
-    EditorOption[EditorOption["renderFinalNewline"] = 90] = "renderFinalNewline";
-    EditorOption[EditorOption["renderLineHighlight"] = 91] = "renderLineHighlight";
-    EditorOption[EditorOption["renderLineHighlightOnlyWhenFocus"] = 92] = "renderLineHighlightOnlyWhenFocus";
-    EditorOption[EditorOption["renderValidationDecorations"] = 93] = "renderValidationDecorations";
-    EditorOption[EditorOption["renderWhitespace"] = 94] = "renderWhitespace";
-    EditorOption[EditorOption["revealHorizontalRightPadding"] = 95] = "revealHorizontalRightPadding";
-    EditorOption[EditorOption["roundedSelection"] = 96] = "roundedSelection";
-    EditorOption[EditorOption["rulers"] = 97] = "rulers";
-    EditorOption[EditorOption["scrollbar"] = 98] = "scrollbar";
-    EditorOption[EditorOption["scrollBeyondLastColumn"] = 99] = "scrollBeyondLastColumn";
-    EditorOption[EditorOption["scrollBeyondLastLine"] = 100] = "scrollBeyondLastLine";
-    EditorOption[EditorOption["scrollPredominantAxis"] = 101] = "scrollPredominantAxis";
-    EditorOption[EditorOption["selectionClipboard"] = 102] = "selectionClipboard";
-    EditorOption[EditorOption["selectionHighlight"] = 103] = "selectionHighlight";
-    EditorOption[EditorOption["selectOnLineNumbers"] = 104] = "selectOnLineNumbers";
-    EditorOption[EditorOption["showFoldingControls"] = 105] = "showFoldingControls";
-    EditorOption[EditorOption["showUnused"] = 106] = "showUnused";
-    EditorOption[EditorOption["snippetSuggestions"] = 107] = "snippetSuggestions";
-    EditorOption[EditorOption["smartSelect"] = 108] = "smartSelect";
-    EditorOption[EditorOption["smoothScrolling"] = 109] = "smoothScrolling";
-    EditorOption[EditorOption["stickyScroll"] = 110] = "stickyScroll";
-    EditorOption[EditorOption["stickyTabStops"] = 111] = "stickyTabStops";
-    EditorOption[EditorOption["stopRenderingLineAfter"] = 112] = "stopRenderingLineAfter";
-    EditorOption[EditorOption["suggest"] = 113] = "suggest";
-    EditorOption[EditorOption["suggestFontSize"] = 114] = "suggestFontSize";
-    EditorOption[EditorOption["suggestLineHeight"] = 115] = "suggestLineHeight";
-    EditorOption[EditorOption["suggestOnTriggerCharacters"] = 116] = "suggestOnTriggerCharacters";
-    EditorOption[EditorOption["suggestSelection"] = 117] = "suggestSelection";
-    EditorOption[EditorOption["tabCompletion"] = 118] = "tabCompletion";
-    EditorOption[EditorOption["tabIndex"] = 119] = "tabIndex";
-    EditorOption[EditorOption["unicodeHighlighting"] = 120] = "unicodeHighlighting";
-    EditorOption[EditorOption["unusualLineTerminators"] = 121] = "unusualLineTerminators";
-    EditorOption[EditorOption["useShadowDOM"] = 122] = "useShadowDOM";
-    EditorOption[EditorOption["useTabStops"] = 123] = "useTabStops";
-    EditorOption[EditorOption["wordBreak"] = 124] = "wordBreak";
-    EditorOption[EditorOption["wordSeparators"] = 125] = "wordSeparators";
-    EditorOption[EditorOption["wordWrap"] = 126] = "wordWrap";
-    EditorOption[EditorOption["wordWrapBreakAfterCharacters"] = 127] = "wordWrapBreakAfterCharacters";
-    EditorOption[EditorOption["wordWrapBreakBeforeCharacters"] = 128] = "wordWrapBreakBeforeCharacters";
-    EditorOption[EditorOption["wordWrapColumn"] = 129] = "wordWrapColumn";
-    EditorOption[EditorOption["wordWrapOverride1"] = 130] = "wordWrapOverride1";
-    EditorOption[EditorOption["wordWrapOverride2"] = 131] = "wordWrapOverride2";
-    EditorOption[EditorOption["wrappingIndent"] = 132] = "wrappingIndent";
-    EditorOption[EditorOption["wrappingStrategy"] = 133] = "wrappingStrategy";
-    EditorOption[EditorOption["showDeprecated"] = 134] = "showDeprecated";
-    EditorOption[EditorOption["inlayHints"] = 135] = "inlayHints";
-    EditorOption[EditorOption["editorClassName"] = 136] = "editorClassName";
-    EditorOption[EditorOption["pixelRatio"] = 137] = "pixelRatio";
-    EditorOption[EditorOption["tabFocusMode"] = 138] = "tabFocusMode";
-    EditorOption[EditorOption["layoutInfo"] = 139] = "layoutInfo";
-    EditorOption[EditorOption["wrappingInfo"] = 140] = "wrappingInfo";
-    EditorOption[EditorOption["defaultColorDecorators"] = 141] = "defaultColorDecorators";
+    EditorOption[EditorOption["pasteAs"] = 82] = "pasteAs";
+    EditorOption[EditorOption["parameterHints"] = 83] = "parameterHints";
+    EditorOption[EditorOption["peekWidgetDefaultFocus"] = 84] = "peekWidgetDefaultFocus";
+    EditorOption[EditorOption["definitionLinkOpensInPeek"] = 85] = "definitionLinkOpensInPeek";
+    EditorOption[EditorOption["quickSuggestions"] = 86] = "quickSuggestions";
+    EditorOption[EditorOption["quickSuggestionsDelay"] = 87] = "quickSuggestionsDelay";
+    EditorOption[EditorOption["readOnly"] = 88] = "readOnly";
+    EditorOption[EditorOption["readOnlyMessage"] = 89] = "readOnlyMessage";
+    EditorOption[EditorOption["renameOnType"] = 90] = "renameOnType";
+    EditorOption[EditorOption["renderControlCharacters"] = 91] = "renderControlCharacters";
+    EditorOption[EditorOption["renderFinalNewline"] = 92] = "renderFinalNewline";
+    EditorOption[EditorOption["renderLineHighlight"] = 93] = "renderLineHighlight";
+    EditorOption[EditorOption["renderLineHighlightOnlyWhenFocus"] = 94] = "renderLineHighlightOnlyWhenFocus";
+    EditorOption[EditorOption["renderValidationDecorations"] = 95] = "renderValidationDecorations";
+    EditorOption[EditorOption["renderWhitespace"] = 96] = "renderWhitespace";
+    EditorOption[EditorOption["revealHorizontalRightPadding"] = 97] = "revealHorizontalRightPadding";
+    EditorOption[EditorOption["roundedSelection"] = 98] = "roundedSelection";
+    EditorOption[EditorOption["rulers"] = 99] = "rulers";
+    EditorOption[EditorOption["scrollbar"] = 100] = "scrollbar";
+    EditorOption[EditorOption["scrollBeyondLastColumn"] = 101] = "scrollBeyondLastColumn";
+    EditorOption[EditorOption["scrollBeyondLastLine"] = 102] = "scrollBeyondLastLine";
+    EditorOption[EditorOption["scrollPredominantAxis"] = 103] = "scrollPredominantAxis";
+    EditorOption[EditorOption["selectionClipboard"] = 104] = "selectionClipboard";
+    EditorOption[EditorOption["selectionHighlight"] = 105] = "selectionHighlight";
+    EditorOption[EditorOption["selectOnLineNumbers"] = 106] = "selectOnLineNumbers";
+    EditorOption[EditorOption["showFoldingControls"] = 107] = "showFoldingControls";
+    EditorOption[EditorOption["showUnused"] = 108] = "showUnused";
+    EditorOption[EditorOption["snippetSuggestions"] = 109] = "snippetSuggestions";
+    EditorOption[EditorOption["smartSelect"] = 110] = "smartSelect";
+    EditorOption[EditorOption["smoothScrolling"] = 111] = "smoothScrolling";
+    EditorOption[EditorOption["stickyScroll"] = 112] = "stickyScroll";
+    EditorOption[EditorOption["stickyTabStops"] = 113] = "stickyTabStops";
+    EditorOption[EditorOption["stopRenderingLineAfter"] = 114] = "stopRenderingLineAfter";
+    EditorOption[EditorOption["suggest"] = 115] = "suggest";
+    EditorOption[EditorOption["suggestFontSize"] = 116] = "suggestFontSize";
+    EditorOption[EditorOption["suggestLineHeight"] = 117] = "suggestLineHeight";
+    EditorOption[EditorOption["suggestOnTriggerCharacters"] = 118] = "suggestOnTriggerCharacters";
+    EditorOption[EditorOption["suggestSelection"] = 119] = "suggestSelection";
+    EditorOption[EditorOption["tabCompletion"] = 120] = "tabCompletion";
+    EditorOption[EditorOption["tabIndex"] = 121] = "tabIndex";
+    EditorOption[EditorOption["unicodeHighlighting"] = 122] = "unicodeHighlighting";
+    EditorOption[EditorOption["unusualLineTerminators"] = 123] = "unusualLineTerminators";
+    EditorOption[EditorOption["useShadowDOM"] = 124] = "useShadowDOM";
+    EditorOption[EditorOption["useTabStops"] = 125] = "useTabStops";
+    EditorOption[EditorOption["wordBreak"] = 126] = "wordBreak";
+    EditorOption[EditorOption["wordSeparators"] = 127] = "wordSeparators";
+    EditorOption[EditorOption["wordWrap"] = 128] = "wordWrap";
+    EditorOption[EditorOption["wordWrapBreakAfterCharacters"] = 129] = "wordWrapBreakAfterCharacters";
+    EditorOption[EditorOption["wordWrapBreakBeforeCharacters"] = 130] = "wordWrapBreakBeforeCharacters";
+    EditorOption[EditorOption["wordWrapColumn"] = 131] = "wordWrapColumn";
+    EditorOption[EditorOption["wordWrapOverride1"] = 132] = "wordWrapOverride1";
+    EditorOption[EditorOption["wordWrapOverride2"] = 133] = "wordWrapOverride2";
+    EditorOption[EditorOption["wrappingIndent"] = 134] = "wrappingIndent";
+    EditorOption[EditorOption["wrappingStrategy"] = 135] = "wrappingStrategy";
+    EditorOption[EditorOption["showDeprecated"] = 136] = "showDeprecated";
+    EditorOption[EditorOption["inlayHints"] = 137] = "inlayHints";
+    EditorOption[EditorOption["editorClassName"] = 138] = "editorClassName";
+    EditorOption[EditorOption["pixelRatio"] = 139] = "pixelRatio";
+    EditorOption[EditorOption["tabFocusMode"] = 140] = "tabFocusMode";
+    EditorOption[EditorOption["layoutInfo"] = 141] = "layoutInfo";
+    EditorOption[EditorOption["wrappingInfo"] = 142] = "wrappingInfo";
+    EditorOption[EditorOption["defaultColorDecorators"] = 143] = "defaultColorDecorators";
+    EditorOption[EditorOption["colorDecoratorsActivatedOn"] = 144] = "colorDecoratorsActivatedOn";
 })(EditorOption || (EditorOption = {}));
 /**
  * End of line character preference.
@@ -16362,19 +16634,29 @@ function createScopedLocalize(scope) {
         return _format(scope[idx], restArgs);
     };
 }
+/**
+ * @skipMangle
+ */
 function localize(data, message, ...args) {
     return _format(message, args);
 }
+/**
+ * @skipMangle
+ */
 function getConfiguredDefaultLocale(_) {
     // This returns undefined because this implementation isn't used and is overwritten by the loader
     // when loaded.
     return undefined;
 }
+/**
+ * @skipMangle
+ */
 function setPseudoTranslation(value) {
     isPseudo = value;
 }
 /**
  * Invoked in a built product at run-time
+ * @skipMangle
  */
 function create(key, data) {
     var _a;
@@ -16385,11 +16667,13 @@ function create(key, data) {
 }
 /**
  * Invoked by the loader at run-time
+ * @skipMangle
  */
 function load(name, req, load, config) {
     var _a;
     const pluginConfig = (_a = config['vs/nls']) !== null && _a !== void 0 ? _a : {};
     if (!name || name.length === 0) {
+        // TODO: We need to give back the mangled names here
         return load({
             localize: localize,
             getConfiguredDefaultLocale: () => { var _a; return (_a = pluginConfig.availableLanguages) === null || _a === void 0 ? void 0 : _a['*']; }

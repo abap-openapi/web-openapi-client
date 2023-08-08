@@ -21,12 +21,12 @@ class lcl_input_arguments {
   static INTERNAL_TYPE = 'CLAS';
   static INTERNAL_NAME = 'CLAS-CL_FUNCTION_TEST_ENVIRONMENT-LCL_INPUT_ARGUMENTS';
   static IMPLEMENTED_INTERFACES = ["IF_FTD_INPUT_ARGUMENTS"];
-  static ATTRIBUTES = {"MT_IMPORTING": {"type": () => {return abap.types.TableFactory.construct(new abap.types.Structure({"name": new abap.types.Character(30, {"qualifiedName":"abap_parmname"}), "value": new abap.types.DataReference(new abap.types.Character(4))}, "lcl_input_arguments=>ty_name_value"), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "");}, "visibility": "U", "is_constant": " ", "is_class": " "}};
+  static ATTRIBUTES = {"MT_IMPORTING": {"type": () => {return abap.types.TableFactory.construct(new abap.types.Structure({"name": new abap.types.Character(30, {"qualifiedName":"abap_parmname"}), "value": new abap.types.DataReference(new abap.types.Character(4))}, "lcl_input_arguments=>ty_name_value", undefined, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "");}, "visibility": "U", "is_constant": " ", "is_class": " "}};
   static METHODS = {};
   constructor() {
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
-    this.mt_importing = abap.types.TableFactory.construct(new abap.types.Structure({"name": new abap.types.Character(30, {"qualifiedName":"abap_parmname"}), "value": new abap.types.DataReference(new abap.types.Character(4))}, "lcl_input_arguments=>ty_name_value"), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "");
+    this.mt_importing = abap.types.TableFactory.construct(new abap.types.Structure({"name": new abap.types.Character(30, {"qualifiedName":"abap_parmname"}), "value": new abap.types.DataReference(new abap.types.Character(4))}, "lcl_input_arguments=>ty_name_value", undefined, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "");
   }
   async constructor_(INPUT) {
     if (super.constructor_) { await super.constructor_(INPUT); }
@@ -36,7 +36,7 @@ class lcl_input_arguments {
     let result = new abap.types.DataReference(new abap.types.Character(4));
     let name = new abap.types.Character(30, {"qualifiedName":"abap_parmname"});
     if (INPUT && INPUT.name) {name.set(INPUT.name);}
-    let ls_row = new abap.types.Structure({"name": new abap.types.Character(30, {"qualifiedName":"abap_parmname"}), "value": new abap.types.DataReference(new abap.types.Character(4))}, "lcl_input_arguments=>ty_name_value");
+    let ls_row = new abap.types.Structure({"name": new abap.types.Character(30, {"qualifiedName":"abap_parmname"}), "value": new abap.types.DataReference(new abap.types.Character(4))}, "lcl_input_arguments=>ty_name_value", undefined, {});
     abap.statements.readTable(this.mt_importing,{into: ls_row,
       withKey: (i) => {return abap.compare.eq(i.name, name);},
       withKeyValue: [{key: (i) => {return i.name}, value: name}],
@@ -52,17 +52,17 @@ class lcl_input_arguments {
   }
 }
 abap.Classes['CLAS-CL_FUNCTION_TEST_ENVIRONMENT-LCL_INPUT_ARGUMENTS'] = lcl_input_arguments;
-lcl_input_arguments.ty_name_value = new abap.types.Structure({"name": new abap.types.Character(30, {"qualifiedName":"abap_parmname"}), "value": new abap.types.DataReference(new abap.types.Character(4))}, "lcl_input_arguments=>ty_name_value");
+lcl_input_arguments.ty_name_value = new abap.types.Structure({"name": new abap.types.Character(30, {"qualifiedName":"abap_parmname"}), "value": new abap.types.DataReference(new abap.types.Character(4))}, "lcl_input_arguments=>ty_name_value", undefined, {});
 class lcl_invocation_result {
   static INTERNAL_TYPE = 'CLAS';
   static INTERNAL_NAME = 'CLAS-CL_FUNCTION_TEST_ENVIRONMENT-LCL_INVOCATION_RESULT';
   static IMPLEMENTED_INTERFACES = ["IF_FTD_INVOCATION_RESULT","IF_FTD_OUTPUT_CONFIGURATION"];
-  static ATTRIBUTES = {"MT_EXPORTING": {"type": () => {return abap.types.TableFactory.construct(new abap.types.Structure({"name": new abap.types.Character(30, {"qualifiedName":"abap_parmname"}), "value": new abap.types.DataReference(new abap.types.Character(4))}, "lcl_invocation_result=>ty_name_value"), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "");}, "visibility": "U", "is_constant": " ", "is_class": " "}};
+  static ATTRIBUTES = {"MT_EXPORTING": {"type": () => {return abap.types.TableFactory.construct(new abap.types.Structure({"name": new abap.types.Character(30, {"qualifiedName":"abap_parmname"}), "value": new abap.types.DataReference(new abap.types.Character(4))}, "lcl_invocation_result=>ty_name_value", undefined, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "");}, "visibility": "U", "is_constant": " ", "is_class": " "}};
   static METHODS = {};
   constructor() {
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
-    this.mt_exporting = abap.types.TableFactory.construct(new abap.types.Structure({"name": new abap.types.Character(30, {"qualifiedName":"abap_parmname"}), "value": new abap.types.DataReference(new abap.types.Character(4))}, "lcl_invocation_result=>ty_name_value"), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "");
+    this.mt_exporting = abap.types.TableFactory.construct(new abap.types.Structure({"name": new abap.types.Character(30, {"qualifiedName":"abap_parmname"}), "value": new abap.types.DataReference(new abap.types.Character(4))}, "lcl_invocation_result=>ty_name_value", undefined, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "");
   }
   async constructor_(INPUT) {
     if (super.constructor_) { await super.constructor_(INPUT); }
@@ -79,7 +79,7 @@ class lcl_invocation_result {
     if (INPUT && INPUT.name) {name.set(INPUT.name);}
     let value = new abap.types.Character(4);
     if (INPUT && INPUT.value) {value = INPUT.value;}
-    let ls_row = new abap.types.Structure({"name": new abap.types.Character(30, {"qualifiedName":"abap_parmname"}), "value": new abap.types.DataReference(new abap.types.Character(4))}, "lcl_invocation_result=>ty_name_value");
+    let ls_row = new abap.types.Structure({"name": new abap.types.Character(30, {"qualifiedName":"abap_parmname"}), "value": new abap.types.DataReference(new abap.types.Character(4))}, "lcl_invocation_result=>ty_name_value", undefined, {});
     ls_row.get().name.set(name);
     ls_row.get().value.assign(value);
     abap.statements.insertInternal({data: ls_row, table: this.mt_exporting});
@@ -88,7 +88,7 @@ class lcl_invocation_result {
   }
 }
 abap.Classes['CLAS-CL_FUNCTION_TEST_ENVIRONMENT-LCL_INVOCATION_RESULT'] = lcl_invocation_result;
-lcl_invocation_result.ty_name_value = new abap.types.Structure({"name": new abap.types.Character(30, {"qualifiedName":"abap_parmname"}), "value": new abap.types.DataReference(new abap.types.Character(4))}, "lcl_invocation_result=>ty_name_value");
+lcl_invocation_result.ty_name_value = new abap.types.Structure({"name": new abap.types.Character(30, {"qualifiedName":"abap_parmname"}), "value": new abap.types.DataReference(new abap.types.Character(4))}, "lcl_invocation_result=>ty_name_value", undefined, {});
 class lcl_invoker {
   static INTERNAL_TYPE = 'CLAS';
   static INTERNAL_NAME = 'CLAS-CL_FUNCTION_TEST_ENVIRONMENT-LCL_INVOKER';
@@ -115,8 +115,8 @@ class lcl_invoker {
     let li_result = new abap.types.ABAPObject({qualifiedName: "IF_FTD_INVOCATION_RESULT", RTTIName: "\\INTERFACE=IF_FTD_INVOCATION_RESULT"});
     let lo_arguments = new abap.types.ABAPObject({qualifiedName: "LCL_INPUT_ARGUMENTS", RTTIName: "\\CLASS-POOL=CL_FUNCTION_TEST_ENVIRONMENT\\CLASS=LCL_INPUT_ARGUMENTS"});
     let li_arguments = new abap.types.ABAPObject({qualifiedName: "IF_FTD_INPUT_ARGUMENTS", RTTIName: "\\INTERFACE=IF_FTD_INPUT_ARGUMENTS"});
-    let ls_exporting = new abap.types.Structure({"name": new abap.types.Character(30, {"qualifiedName":"abap_parmname"}), "value": new abap.types.DataReference(new abap.types.Character(4))}, "lcl_invocation_result=>ty_name_value");
-    let ls_importing = new abap.types.Structure({"name": new abap.types.Character(30, {"qualifiedName":"abap_parmname"}), "value": new abap.types.DataReference(new abap.types.Character(4))}, "lcl_input_arguments=>ty_name_value");
+    let ls_exporting = new abap.types.Structure({"name": new abap.types.Character(30, {"qualifiedName":"abap_parmname"}), "value": new abap.types.DataReference(new abap.types.Character(4))}, "lcl_invocation_result=>ty_name_value", undefined, {});
+    let ls_importing = new abap.types.Structure({"name": new abap.types.Character(30, {"qualifiedName":"abap_parmname"}), "value": new abap.types.DataReference(new abap.types.Character(4))}, "lcl_input_arguments=>ty_name_value", undefined, {});
     lo_result.set(await (new abap.Classes['CLAS-CL_FUNCTION_TEST_ENVIRONMENT-LCL_INVOCATION_RESULT']()).constructor_());
     li_result.set(lo_result);
     lo_arguments.set(await (new abap.Classes['CLAS-CL_FUNCTION_TEST_ENVIRONMENT-LCL_INPUT_ARGUMENTS']()).constructor_());
