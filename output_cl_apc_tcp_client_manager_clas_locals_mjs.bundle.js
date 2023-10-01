@@ -54,14 +54,16 @@ class lcl_client {
   static IMPLEMENTED_INTERFACES = ["IF_APC_WSP_CLIENT","IF_APC_WSP_MESSAGE_MANAGER"];
   static ATTRIBUTES = {"MV_HOST": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "visibility": "I", "is_constant": " ", "is_class": " "},
   "MV_PORT": {"type": () => {return new abap.types.Integer({qualifiedName: "I"});}, "visibility": "I", "is_constant": " ", "is_class": " "},
-  "MO_HANDLER": {"type": () => {return new abap.types.ABAPObject({qualifiedName: "IF_APC_WSP_EVENT_HANDLER", RTTIName: "\\INTERFACE=IF_APC_WSP_EVENT_HANDLER"});}, "visibility": "I", "is_constant": " ", "is_class": " "}};
-  static METHODS = {"CONSTRUCTOR": {"visibility": "U", "parameters": {"IV_HOST": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " "}, "IV_PORT": {"type": () => {return new abap.types.Integer({qualifiedName: "I"});}, "is_optional": " "}, "IO_HANDLER": {"type": () => {return new abap.types.ABAPObject({qualifiedName: "IF_APC_WSP_EVENT_HANDLER", RTTIName: "\\INTERFACE=IF_APC_WSP_EVENT_HANDLER"});}, "is_optional": " "}}}};
+  "MO_HANDLER": {"type": () => {return new abap.types.ABAPObject({qualifiedName: "IF_APC_WSP_EVENT_HANDLER", RTTIName: "\\INTERFACE=IF_APC_WSP_EVENT_HANDLER"});}, "visibility": "I", "is_constant": " ", "is_class": " "},
+  "MV_PROTOCOL": {"type": () => {return new abap.types.Integer({qualifiedName: "I"});}, "visibility": "I", "is_constant": " ", "is_class": " "}};
+  static METHODS = {"CONSTRUCTOR": {"visibility": "U", "parameters": {"IV_HOST": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " "}, "IV_PORT": {"type": () => {return new abap.types.Integer({qualifiedName: "I"});}, "is_optional": " "}, "IO_HANDLER": {"type": () => {return new abap.types.ABAPObject({qualifiedName: "IF_APC_WSP_EVENT_HANDLER", RTTIName: "\\INTERFACE=IF_APC_WSP_EVENT_HANDLER"});}, "is_optional": " "}, "IV_PROTOCOL": {"type": () => {return new abap.types.Integer({qualifiedName: "I"});}, "is_optional": " "}}}};
   constructor() {
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
     this.mv_host = new abap.types.String({qualifiedName: "STRING"});
     this.mv_port = new abap.types.Integer({qualifiedName: "I"});
     this.mo_handler = new abap.types.ABAPObject({qualifiedName: "IF_APC_WSP_EVENT_HANDLER", RTTIName: "\\INTERFACE=IF_APC_WSP_EVENT_HANDLER"});
+    this.mv_protocol = new abap.types.Integer({qualifiedName: "I"});
   }
   async constructor_(INPUT) {
     let iv_host = new abap.types.String({qualifiedName: "STRING"});
@@ -70,17 +72,22 @@ class lcl_client {
     if (INPUT && INPUT.iv_port) {iv_port.set(INPUT.iv_port);}
     let io_handler = new abap.types.ABAPObject({qualifiedName: "IF_APC_WSP_EVENT_HANDLER", RTTIName: "\\INTERFACE=IF_APC_WSP_EVENT_HANDLER"});
     if (INPUT && INPUT.io_handler) {io_handler.set(INPUT.io_handler);}
+    let iv_protocol = new abap.types.Integer({qualifiedName: "I"});
+    if (INPUT && INPUT.iv_protocol) {iv_protocol.set(INPUT.iv_protocol);}
     abap.statements.assert(abap.compare.initial(iv_host) === false);
     abap.statements.assert(abap.compare.initial(iv_port) === false);
     abap.statements.assert(abap.compare.initial(io_handler) === false);
     this.mv_host.set(iv_host);
     this.mv_port.set(iv_port);
     this.mo_handler.set(io_handler);
+    this.mv_protocol.set(iv_protocol);
     return this;
   }
   async if_apc_wsp_client$connect() {
-    const net = await __webpack_require__.e(/*! import() */ "_4f35").then(__webpack_require__.t.bind(__webpack_require__, /*! net */ "?4f35", 19));
-    this.client = net.createConnection({ port: this.mv_port.get(), host: this.mv_host.get()}, () => {this.mo_handler.get().if_apc_wsp_event_handler$on_open();});
+    let lv_tls = new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"});
+    lv_tls.set(abap.builtin.boolc(abap.compare.eq(this.mv_protocol, abap.Classes['CL_APC_TCP_CLIENT_MANAGER'].co_protocol_type_tcps)));
+    const connect = lv_tls.get() === "X" ? await __webpack_require__.e(/*! import() */ "_9db4").then(__webpack_require__.t.bind(__webpack_require__, /*! tls */ "?9db4", 19)) : await __webpack_require__.e(/*! import() */ "_4f35").then(__webpack_require__.t.bind(__webpack_require__, /*! net */ "?4f35", 19));
+    this.client = connect.connect({ port: this.mv_port.get(), host: this.mv_host.get()}, () => {this.mo_handler.get().if_apc_wsp_event_handler$on_open();});
     this.client.on("data", async (data) => {
         const msg = await (new lcl_message().constructor_());
         await msg.if_apc_wsp_message$set_binary({iv_binary: data.toString("hex").toUpperCase()});

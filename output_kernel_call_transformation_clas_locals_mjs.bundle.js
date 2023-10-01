@@ -50,8 +50,8 @@ class lcl_heap {
     let lv_name = new abap.types.String({qualifiedName: "STRING"});
     let is_serializable = new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"});
     let lo_descr = new abap.types.ABAPObject({qualifiedName: "CL_ABAP_CLASSDESCR", RTTIName: "\\CLASS=CL_ABAP_CLASSDESCR"});
-    let ls_interface = new abap.types.Structure({"name": new abap.types.Character(30, {"qualifiedName":"abap_intfname"}), "is_inherited": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"})}, "abap_intfdescr", undefined, {});
-    let ls_attribute = new abap.types.Structure({"length": new abap.types.Integer({qualifiedName: "LENGTH"}), "decimals": new abap.types.Integer({qualifiedName: "DECIMALS"}), "name": new abap.types.Character(61, {"qualifiedName":"abap_attrname"}), "type_kind": new abap.types.Character(1, {"qualifiedName":"abap_typekind"}), "visibility": new abap.types.Character(1, {"qualifiedName":"abap_visibility"}), "is_interface": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}), "is_inherited": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}), "is_class": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}), "is_constant": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}), "is_virtual": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}), "is_read_only": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}), "alias_for": new abap.types.Character(61, {"qualifiedName":"abap_attrname"})}, "abap_attrdescr", undefined, {});
+    let ls_interface = new abap.types.Structure({"name": new abap.types.Character(30, {"qualifiedName":"abap_intfname"}), "is_inherited": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"})}, "abap_intfdescr", undefined, {}, {});
+    let ls_attribute = new abap.types.Structure({"length": new abap.types.Integer({qualifiedName: "LENGTH"}), "decimals": new abap.types.Integer({qualifiedName: "DECIMALS"}), "name": new abap.types.Character(61, {"qualifiedName":"abap_attrname"}), "type_kind": new abap.types.Character(1, {"qualifiedName":"abap_typekind"}), "visibility": new abap.types.Character(1, {"qualifiedName":"abap_visibility"}), "is_interface": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}), "is_inherited": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}), "is_class": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}), "is_constant": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}), "is_virtual": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}), "is_read_only": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}), "alias_for": new abap.types.Character(61, {"qualifiedName":"abap_attrname"})}, "abap_attrdescr", undefined, {}, {});
     let lo_data_to_xml = new abap.types.ABAPObject({qualifiedName: "LCL_DATA_TO_XML", RTTIName: "\\CLASS-POOL=KERNEL_CALL_TRANSFORMATION\\CLASS=LCL_DATA_TO_XML"});
     let lv_ref = new abap.types.DataReference(new abap.types.Character(4));
     let lv_internal = new abap.types.String({qualifiedName: "STRING"});
@@ -62,8 +62,8 @@ class lcl_heap {
     lv_counter.set(this.mv_counter);
     await abap.statements.cast(lo_descr, (await abap.Classes['CL_ABAP_TYPEDESCR'].describe_by_object_ref({p_object_ref: iv_ref})));
     lv_name.set(lo_descr.get().relative_name);
-    for await (const unique125 of abap.statements.loop(lo_descr.get().interfaces)) {
-      ls_interface.set(unique125);
+    for await (const unique134 of abap.statements.loop(lo_descr.get().interfaces)) {
+      ls_interface.set(unique134);
       if (abap.compare.eq(ls_interface.get().name, new abap.types.Character(22).set('IF_SERIALIZABLE_OBJECT'))) {
         is_serializable.set(abap.builtin.abap_true);
       }
@@ -72,8 +72,8 @@ class lcl_heap {
     if (abap.compare.eq(is_serializable, abap.builtin.abap_true)) {
       lo_data_to_xml.set(await (new abap.Classes['CLAS-KERNEL_CALL_TRANSFORMATION-LCL_DATA_TO_XML']()).constructor_({io_heap: this.me}));
       lv_data.set(abap.operators.concat(lv_data,abap.operators.concat(new abap.types.String().set(`<prg:${abap.templateFormatting(lv_name)} xmlns:prg="http://www.sap.com/abapxml/classes/class-pool/TODO" id="o${abap.templateFormatting(this.mv_counter)}" internalName="${abap.templateFormatting(lv_internal)}">`),new abap.types.String().set(`<local.${abap.templateFormatting(lv_name)}>`))));
-      for await (const unique126 of abap.statements.loop(lo_descr.get().attributes,{where: async (I) => {return abap.compare.eq(I.is_class, abap.builtin.abap_false);},topEquals: {"is_class": abap.builtin.abap_false}})) {
-        ls_attribute.set(unique126);
+      for await (const unique135 of abap.statements.loop(lo_descr.get().attributes,{where: async (I) => {return abap.compare.eq(I.is_class, abap.builtin.abap_false);},topEquals: {"is_class": abap.builtin.abap_false}})) {
+        ls_attribute.set(unique135);
         abap.statements.assign({target: fs_any_, dynamicName: 'iv_ref' + '->' + ls_attribute.get().name.get(), dynamicSource: (() => {
                     try { return iv_ref; } catch {}
                     try { return this.iv_ref; } catch {}
@@ -129,44 +129,44 @@ class lcl_heap {
       if (INPUT && INPUT.iv_ref) {iv_ref.set(INPUT.iv_ref);}
       let lo_type = new abap.types.ABAPObject({qualifiedName: "CL_ABAP_TYPEDESCR", RTTIName: "\\CLASS=CL_ABAP_TYPEDESCR"});
       let lo_struc = new abap.types.ABAPObject({qualifiedName: "CL_ABAP_STRUCTDESCR", RTTIName: "\\CLASS=CL_ABAP_STRUCTDESCR"});
-      let lt_comps = abap.types.TableFactory.construct(new abap.types.Structure({"name": new abap.types.String({qualifiedName: "NAME"}), "type": new abap.types.ABAPObject({qualifiedName: "CL_ABAP_DATADESCR", RTTIName: "\\CLASS=CL_ABAP_DATADESCR"}), "as_include": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}), "suffix": new abap.types.String({qualifiedName: "SUFFIX"})}, "abap_componentdescr", undefined, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "abap_component_tab");
-      let ls_compo = new abap.types.Structure({"name": new abap.types.String({qualifiedName: "NAME"}), "type": new abap.types.ABAPObject({qualifiedName: "CL_ABAP_DATADESCR", RTTIName: "\\CLASS=CL_ABAP_DATADESCR"}), "as_include": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}), "suffix": new abap.types.String({qualifiedName: "SUFFIX"})}, "abap_componentdescr", undefined, {});
+      let lt_comps = abap.types.TableFactory.construct(new abap.types.Structure({"name": new abap.types.String({qualifiedName: "NAME"}), "type": new abap.types.ABAPObject({qualifiedName: "CL_ABAP_DATADESCR", RTTIName: "\\CLASS=CL_ABAP_DATADESCR"}), "as_include": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}), "suffix": new abap.types.String({qualifiedName: "SUFFIX"})}, "abap_componentdescr", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "abap_component_tab");
+      let ls_compo = new abap.types.Structure({"name": new abap.types.String({qualifiedName: "NAME"}), "type": new abap.types.ABAPObject({qualifiedName: "CL_ABAP_DATADESCR", RTTIName: "\\CLASS=CL_ABAP_DATADESCR"}), "as_include": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}), "suffix": new abap.types.String({qualifiedName: "SUFFIX"})}, "abap_componentdescr", undefined, {}, {});
       let lv_ref = new abap.types.DataReference(new abap.types.Character(4));
       let fs_any_ = new abap.types.FieldSymbol(new abap.types.Character(4));
       let fs_table_ = new abap.types.FieldSymbol(abap.types.TableFactory.construct(new abap.types.Character(4), {"withHeader":false,"keyType":"DEFAULT"}));
       let fs_field_ = new abap.types.FieldSymbol(new abap.types.Character(4));
       lo_type.set((await abap.Classes['CL_ABAP_TYPEDESCR'].describe_by_data({p_data: (iv_ref).dereference()})));
-      let unique127 = lo_type.get().kind;
-      if (abap.compare.eq(unique127, abap.Classes['CL_ABAP_TYPEDESCR'].kind_struct)) {
+      let unique136 = lo_type.get().kind;
+      if (abap.compare.eq(unique136, abap.Classes['CL_ABAP_TYPEDESCR'].kind_struct)) {
         await abap.statements.cast(lo_struc, lo_type);
         lt_comps.set((await lo_struc.get().get_components()));
         abap.statements.assign({target: fs_any_, source: (iv_ref).dereference()});
         rv_xml.set(abap.operators.concat(rv_xml,new abap.types.String().set(`<${abap.templateFormatting(iv_name)}>`)));
-        for await (const unique128 of abap.statements.loop(lt_comps)) {
-          ls_compo.set(unique128);
+        for await (const unique137 of abap.statements.loop(lt_comps)) {
+          ls_compo.set(unique137);
           abap.statements.assign({component: ls_compo.get().name, target: fs_field_, source: fs_any_});
           lv_ref.assign(fs_field_.getPointer());
           rv_xml.set(abap.operators.concat(rv_xml,(await this.run({iv_name: abap.builtin.to_upper({val: ls_compo.get().name}), iv_ref: lv_ref}))));
         }
         rv_xml.set(abap.operators.concat(rv_xml,new abap.types.String().set(`</${abap.templateFormatting(iv_name)}>`)));
-      } else if (abap.compare.eq(unique127, abap.Classes['CL_ABAP_TYPEDESCR'].kind_elem)) {
+      } else if (abap.compare.eq(unique136, abap.Classes['CL_ABAP_TYPEDESCR'].kind_elem)) {
         if (abap.compare.eq(lo_type.get().type_kind, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_string) && abap.compare.initial((iv_ref).dereference())) {
           rv_xml.set(abap.operators.concat(rv_xml,new abap.types.String().set(`<${abap.templateFormatting(iv_name)}/>`)));
         } else {
           rv_xml.set(abap.operators.concat(rv_xml,abap.operators.concat(new abap.types.String().set(`<${abap.templateFormatting(iv_name)}>`),abap.operators.concat((iv_ref).dereference(),new abap.types.String().set(`</${abap.templateFormatting(iv_name)}>`)))));
         }
-      } else if (abap.compare.eq(unique127, abap.Classes['CL_ABAP_TYPEDESCR'].kind_table)) {
+      } else if (abap.compare.eq(unique136, abap.Classes['CL_ABAP_TYPEDESCR'].kind_table)) {
         abap.statements.assign({target: fs_table_, source: (iv_ref).dereference()});
         rv_xml.set(abap.operators.concat(rv_xml,new abap.types.String().set(`<${abap.templateFormatting(iv_name)}>`)));
-        for await (const unique129 of abap.statements.loop(fs_table_)) {
-          fs_any_.assign(unique129);
+        for await (const unique138 of abap.statements.loop(fs_table_)) {
+          fs_any_.assign(unique138);
           lv_ref.assign(fs_any_.getPointer());
           rv_xml.set(abap.operators.concat(rv_xml,(await this.run({iv_name: new abap.types.String().set(`item`), iv_ref: lv_ref}))));
         }
         rv_xml.set(abap.operators.concat(rv_xml,new abap.types.String().set(`</${abap.templateFormatting(iv_name)}>`)));
-      } else if (abap.compare.eq(unique127, abap.Classes['CL_ABAP_TYPEDESCR'].kind_ref)) {
-        let unique130 = lo_type.get().type_kind;
-        if (abap.compare.eq(unique130, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_oref)) {
+      } else if (abap.compare.eq(unique136, abap.Classes['CL_ABAP_TYPEDESCR'].kind_ref)) {
+        let unique139 = lo_type.get().type_kind;
+        if (abap.compare.eq(unique139, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_oref)) {
           if (abap.compare.initial((iv_ref).dereference())) {
             rv_xml.set(new abap.types.String().set(`<${abap.templateFormatting(iv_name)}/>`));
             return rv_xml;
