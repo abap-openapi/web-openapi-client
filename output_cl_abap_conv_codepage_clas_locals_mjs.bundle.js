@@ -31,8 +31,9 @@ class lcl_in {
   }
   async if_abap_conv_in$convert(INPUT) {
     let result = new abap.types.String({qualifiedName: "STRING"});
-    let source = new abap.types.XString({qualifiedName: "XSTRING"});
-    if (INPUT && INPUT.source) {source.set(INPUT.source);}
+    let source = INPUT?.source;
+    if (source?.getQualifiedName === undefined || source.getQualifiedName() !== "XSTRING") { source = undefined; }
+    if (source === undefined) { source = new abap.types.XString({qualifiedName: "XSTRING"}).set(INPUT.source); }
     let conv = new abap.types.ABAPObject({qualifiedName: "CL_ABAP_CONV_IN_CE", RTTIName: "\\CLASS=CL_ABAP_CONV_IN_CE"});
     conv.set((await abap.Classes['CL_ABAP_CONV_IN_CE'].create({encoding: new abap.types.Character(5).set('UTF-8')})));
     await conv.get().convert({input: source, data: result});
@@ -56,8 +57,9 @@ class lcl_out {
   }
   async if_abap_conv_out$convert(INPUT) {
     let result = new abap.types.XString({qualifiedName: "XSTRING"});
-    let source = new abap.types.String({qualifiedName: "STRING"});
-    if (INPUT && INPUT.source) {source.set(INPUT.source);}
+    let source = INPUT?.source;
+    if (source?.getQualifiedName === undefined || source.getQualifiedName() !== "STRING") { source = undefined; }
+    if (source === undefined) { source = new abap.types.String({qualifiedName: "STRING"}).set(INPUT.source); }
     let conv = new abap.types.ABAPObject({qualifiedName: "CL_ABAP_CONV_OUT_CE", RTTIName: "\\CLASS=CL_ABAP_CONV_OUT_CE"});
     conv.set((await abap.Classes['CL_ABAP_CONV_OUT_CE'].create({encoding: new abap.types.Character(5).set('UTF-8')})));
     await conv.get().convert({data: source, buffer: result});

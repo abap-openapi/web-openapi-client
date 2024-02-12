@@ -36,10 +36,12 @@ class lcl_stack {
     return this;
   }
   async push(INPUT) {
-    let iv_name = new abap.types.String({qualifiedName: "STRING"});
-    if (INPUT && INPUT.iv_name) {iv_name.set(INPUT.iv_name);}
-    let iv_type = new abap.types.String({qualifiedName: "STRING"});
-    if (INPUT && INPUT.iv_type) {iv_type.set(INPUT.iv_type);}
+    let iv_name = INPUT?.iv_name;
+    if (iv_name?.getQualifiedName === undefined || iv_name.getQualifiedName() !== "STRING") { iv_name = undefined; }
+    if (iv_name === undefined) { iv_name = new abap.types.String({qualifiedName: "STRING"}).set(INPUT.iv_name); }
+    let iv_type = INPUT?.iv_type;
+    if (iv_type?.getQualifiedName === undefined || iv_type.getQualifiedName() !== "STRING") { iv_type = undefined; }
+    if (iv_type === undefined) { iv_type = new abap.types.String({qualifiedName: "STRING"}).set(INPUT.iv_type); }
     let ls_data = new abap.types.Structure({"name": new abap.types.String({qualifiedName: "LCL_STACK=>TY_DATA-NAME"}), "is_array": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}), "array_index": new abap.types.Integer({qualifiedName: "LCL_STACK=>TY_DATA-ARRAY_INDEX"})}, "lcl_stack=>ty_data", undefined, {}, {});
     ls_data.get().name.set(iv_name);
     ls_data.get().is_array.set(abap.builtin.boolc(abap.compare.eq(iv_type, new abap.types.Character(5).set('array'))));
@@ -62,8 +64,8 @@ class lcl_stack {
     lv_index.set(abap.builtin.lines({val: this.mt_data}));
     abap.statements.readTable(this.mt_data,{index: lv_index,
       assigning: fs_ls_data_});
-    if (abap.compare.eq(abap.builtin.sy.get().subrc, new abap.types.Integer().set(0))) {
-      fs_ls_data_.get().array_index.set(abap.operators.add(fs_ls_data_.get().array_index,new abap.types.Integer().set(1)));
+    if (abap.compare.eq(abap.builtin.sy.get().subrc, abap.IntegerFactory.get(0))) {
+      fs_ls_data_.get().array_index.set(abap.operators.add(fs_ls_data_.get().array_index,abap.IntegerFactory.get(1)));
       rv_index.set(fs_ls_data_.get().array_index);
       rv_index.set(abap.builtin.condense({val: rv_index}));
     }
@@ -74,7 +76,7 @@ class lcl_stack {
     let lv_index = new abap.types.Integer({qualifiedName: "I"});
     let ls_data = new abap.types.Structure({"name": new abap.types.String({qualifiedName: "LCL_STACK=>TY_DATA-NAME"}), "is_array": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}), "array_index": new abap.types.Integer({qualifiedName: "LCL_STACK=>TY_DATA-ARRAY_INDEX"})}, "lcl_stack=>ty_data", undefined, {}, {});
     lv_index.set(abap.builtin.lines({val: this.mt_data}));
-    if (abap.compare.gt(lv_index, new abap.types.Integer().set(0))) {
+    if (abap.compare.gt(lv_index, abap.IntegerFactory.get(0))) {
       abap.statements.readTable(this.mt_data,{index: lv_index,
         into: ls_data});
       rv_name.set(ls_data.get().name);
@@ -110,8 +112,9 @@ class lcl_parser {
   }
   async parse(INPUT) {
     let rt_data = abap.types.TableFactory.construct(new abap.types.Structure({"parent": new abap.types.String({qualifiedName: "TY_DATA-PARENT"}), "name": new abap.types.String({qualifiedName: "TY_DATA-NAME"}), "full_name": new abap.types.String({qualifiedName: "TY_DATA-FULL_NAME"}), "value": new abap.types.String({qualifiedName: "TY_DATA-VALUE"})}, "ty_data", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "ty_data_tt");
-    let iv_json = new abap.types.String({qualifiedName: "STRING"});
-    if (INPUT && INPUT.iv_json) {iv_json.set(INPUT.iv_json);}
+    let iv_json = INPUT?.iv_json;
+    if (iv_json?.getQualifiedName === undefined || iv_json.getQualifiedName() !== "STRING") { iv_json = undefined; }
+    if (iv_json === undefined) { iv_json = new abap.types.String({qualifiedName: "STRING"}).set(INPUT.iv_json); }
     let li_node = new abap.types.ABAPObject({qualifiedName: "IF_SXML_NODE", RTTIName: "\\INTERFACE=IF_SXML_NODE"});
     let li_next = new abap.types.ABAPObject({qualifiedName: "IF_SXML_NODE", RTTIName: "\\INTERFACE=IF_SXML_NODE"});
     let li_reader = new abap.types.ABAPObject({qualifiedName: "IF_SXML_READER", RTTIName: "\\INTERFACE=IF_SXML_READER"});
@@ -146,9 +149,9 @@ class lcl_parser {
       if (abap.compare.eq(unique20, abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_element_open)) {
         await abap.statements.cast(li_open, li_node);
         lt_attributes.set((await li_open.get().if_sxml_open_element$get_attributes()));
-        abap.statements.readTable(lt_attributes,{index: new abap.types.Integer().set(1),
+        abap.statements.readTable(lt_attributes,{index: abap.IntegerFactory.get(1),
           into: li_attribute});
-        if (abap.compare.eq(abap.builtin.sy.get().subrc, new abap.types.Integer().set(0))) {
+        if (abap.compare.eq(abap.builtin.sy.get().subrc, abap.IntegerFactory.get(0))) {
           lv_push.set((await li_attribute.get().if_sxml_attribute$get_value()));
         } else if (abap.compare.eq((await lo_stack.get().is_array()), abap.builtin.abap_true)) {
           lv_push.set((await lo_stack.get().get_and_increase_index()));
@@ -158,10 +161,10 @@ class lcl_parser {
           ls_data.get().parent.set((await lo_stack.get().get_full_name()));
           ls_data.get().name.set(lv_push);
           ls_data.get().full_name.set(abap.operators.concat(ls_data.get().parent,ls_data.get().name));
-          lv_index.set(abap.operators.add(lv_index,new abap.types.Integer().set(1)));
+          lv_index.set(abap.operators.add(lv_index,abap.IntegerFactory.get(1)));
           abap.statements.readTable(lt_nodes,{index: lv_index,
             into: li_next});
-          if (abap.compare.eq(abap.builtin.sy.get().subrc, new abap.types.Integer().set(0)) && abap.compare.eq(li_next.get().if_sxml_node$type, abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_value)) {
+          if (abap.compare.eq(abap.builtin.sy.get().subrc, abap.IntegerFactory.get(0)) && abap.compare.eq(li_next.get().if_sxml_node$type, abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_value)) {
             await abap.statements.cast(li_value, li_next);
             ls_data.get().value.set((await li_value.get().if_sxml_value_node$get_value()));
           }
