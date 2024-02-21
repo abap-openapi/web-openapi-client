@@ -417,7 +417,7 @@ class lcl_node {
     return val;
   }
   async if_ixml_element$create_filter_node_type(INPUT) {
-    let val = new abap.types.DataReference(new abap.types.Character(4));
+    let val = new abap.types.ABAPObject({qualifiedName: "IF_IXML_NODE_FILTER", RTTIName: "\\INTERFACE=IF_IXML_NODE_FILTER"});
     let node_types = INPUT?.node_types;
     if (node_types?.getQualifiedName === undefined || node_types.getQualifiedName() !== "I") { node_types = undefined; }
     if (node_types === undefined) { node_types = new abap.types.Integer({qualifiedName: "I"}).set(INPUT.node_types); }
