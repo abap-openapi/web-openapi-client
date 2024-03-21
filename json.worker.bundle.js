@@ -23,19 +23,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   compareBy: () => (/* binding */ compareBy),
 /* harmony export */   distinct: () => (/* binding */ distinct),
 /* harmony export */   equals: () => (/* binding */ equals),
-/* harmony export */   findFirstInSorted: () => (/* binding */ findFirstInSorted),
-/* harmony export */   findLast: () => (/* binding */ findLast),
-/* harmony export */   findLastIndex: () => (/* binding */ findLastIndex),
-/* harmony export */   findLastMaxBy: () => (/* binding */ findLastMaxBy),
-/* harmony export */   findMaxBy: () => (/* binding */ findMaxBy),
-/* harmony export */   findMaxIdxBy: () => (/* binding */ findMaxIdxBy),
-/* harmony export */   findMinBy: () => (/* binding */ findMinBy),
 /* harmony export */   firstOrDefault: () => (/* binding */ firstOrDefault),
+/* harmony export */   forEachAdjacent: () => (/* binding */ forEachAdjacent),
+/* harmony export */   forEachWithNeighbors: () => (/* binding */ forEachWithNeighbors),
+/* harmony export */   groupAdjacentBy: () => (/* binding */ groupAdjacentBy),
 /* harmony export */   groupBy: () => (/* binding */ groupBy),
 /* harmony export */   insertInto: () => (/* binding */ insertInto),
 /* harmony export */   isFalsyOrEmpty: () => (/* binding */ isFalsyOrEmpty),
 /* harmony export */   isNonEmptyArray: () => (/* binding */ isNonEmptyArray),
-/* harmony export */   mapFind: () => (/* binding */ mapFind),
 /* harmony export */   numberComparator: () => (/* binding */ numberComparator),
 /* harmony export */   pushMany: () => (/* binding */ pushMany),
 /* harmony export */   pushToEnd: () => (/* binding */ pushToEnd),
@@ -137,27 +132,6 @@ function binarySearch2(length, compareToKey) {
     }
     return -(low + 1);
 }
-/**
- * Takes a sorted array and a function p. The array is sorted in such a way that all elements where p(x) is false
- * are located before all elements where p(x) is true.
- * @returns the least x for which p(x) is true or array.length if no element fullfills the given function.
- */
-function findFirstInSorted(array, p) {
-    let low = 0, high = array.length;
-    if (high === 0) {
-        return 0; // no children
-    }
-    while (low < high) {
-        const mid = Math.floor((low + high) / 2);
-        if (p(array[mid])) {
-            high = mid;
-        }
-        else {
-            low = mid + 1;
-        }
-    }
-    return low;
-}
 function quickSelect(nth, data, compare) {
     nth = nth | 0;
     if (nth >= data.length) {
@@ -204,6 +178,40 @@ function groupBy(data, compare) {
     return result;
 }
 /**
+ * Splits the given items into a list of (non-empty) groups.
+ * `shouldBeGrouped` is used to decide if two consecutive items should be in the same group.
+ * The order of the items is preserved.
+ */
+function* groupAdjacentBy(items, shouldBeGrouped) {
+    let currentGroup;
+    let last;
+    for (const item of items) {
+        if (last !== undefined && shouldBeGrouped(last, item)) {
+            currentGroup.push(item);
+        }
+        else {
+            if (currentGroup) {
+                yield currentGroup;
+            }
+            currentGroup = [item];
+        }
+        last = item;
+    }
+    if (currentGroup) {
+        yield currentGroup;
+    }
+}
+function forEachAdjacent(arr, f) {
+    for (let i = 0; i <= arr.length; i++) {
+        f(i === 0 ? undefined : arr[i - 1], i === arr.length ? undefined : arr[i]);
+    }
+}
+function forEachWithNeighbors(arr, f) {
+    for (let i = 0; i < arr.length; i++) {
+        f(i === 0 ? undefined : arr[i - 1], arr[i], i + 1 === arr.length ? undefined : arr[i + 1]);
+    }
+}
+/**
  * @returns New array with all falsy values removed. The original array IS NOT modified.
  */
 function coalesce(array) {
@@ -245,22 +253,6 @@ function distinct(array, keyFn = value => value) {
         seen.add(key);
         return true;
     });
-}
-function findLast(arr, predicate) {
-    const idx = findLastIndex(arr, predicate);
-    if (idx === -1) {
-        return undefined;
-    }
-    return arr[idx];
-}
-function findLastIndex(array, fn) {
-    for (let i = array.length - 1; i >= 0; i--) {
-        const element = array[i];
-        if (fn(element)) {
-            return i;
-        }
-    }
-    return -1;
 }
 function firstOrDefault(array, notFoundValue) {
     return array.length > 0 ? array[0] : notFoundValue;
@@ -325,18 +317,6 @@ function asArray(x) {
     return Array.isArray(x) ? x : [x];
 }
 /**
- * Returns the first mapped value of the array which is not undefined.
- */
-function mapFind(array, mapFn) {
-    for (const value of array) {
-        const mapped = mapFn(value);
-        if (mapped !== undefined) {
-            return mapped;
-        }
-    }
-    return undefined;
-}
-/**
  * Insert the new items in the array.
  * @param array The original array.
  * @param start The zero-based location in the array from which to start inserting elements.
@@ -365,7 +345,11 @@ function insertInto(array, start, newItems) {
  */
 function splice(array, start, deleteCount, newItems) {
     const index = getActualStartIndex(array, start);
-    const result = array.splice(index, deleteCount);
+    let result = array.splice(index, deleteCount);
+    if (result === undefined) {
+        // see https://bugs.webkit.org/show_bug.cgi?id=261140
+        result = [];
+    }
     insertInto(array, index, newItems);
     return result;
 }
@@ -422,57 +406,6 @@ const numberComparator = (a, b) => a - b;
 const booleanComparator = (a, b) => numberComparator(a ? 1 : 0, b ? 1 : 0);
 function reverseOrder(comparator) {
     return (a, b) => -comparator(a, b);
-}
-/**
- * Returns the first item that is equal to or greater than every other item.
-*/
-function findMaxBy(items, comparator) {
-    if (items.length === 0) {
-        return undefined;
-    }
-    let max = items[0];
-    for (let i = 1; i < items.length; i++) {
-        const item = items[i];
-        if (comparator(item, max) > 0) {
-            max = item;
-        }
-    }
-    return max;
-}
-/**
- * Returns the last item that is equal to or greater than every other item.
-*/
-function findLastMaxBy(items, comparator) {
-    if (items.length === 0) {
-        return undefined;
-    }
-    let max = items[0];
-    for (let i = 1; i < items.length; i++) {
-        const item = items[i];
-        if (comparator(item, max) >= 0) {
-            max = item;
-        }
-    }
-    return max;
-}
-/**
- * Returns the first item that is equal to or less than every other item.
-*/
-function findMinBy(items, comparator) {
-    return findMaxBy(items, (a, b) => -comparator(a, b));
-}
-function findMaxIdxBy(items, comparator) {
-    if (items.length === 0) {
-        return -1;
-    }
-    let maxIdx = 0;
-    for (let i = 1; i < items.length; i++) {
-        const item = items[i];
-        if (comparator(item, items[maxIdx]) > 0) {
-            maxIdx = i;
-        }
-    }
-    return maxIdx;
 }
 class ArrayQueue {
     /**
@@ -585,6 +518,206 @@ CallbackIterable.empty = new CallbackIterable(_callback => { });
 
 /***/ }),
 
+/***/ "./node_modules/monaco-editor/esm/vs/base/common/arraysFind.js":
+/*!*********************************************************************!*\
+  !*** ./node_modules/monaco-editor/esm/vs/base/common/arraysFind.js ***!
+  \*********************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   MonotonousArray: () => (/* binding */ MonotonousArray),
+/* harmony export */   findFirstIdxMonotonousOrArrLen: () => (/* binding */ findFirstIdxMonotonousOrArrLen),
+/* harmony export */   findFirstMaxBy: () => (/* binding */ findFirstMaxBy),
+/* harmony export */   findFirstMinBy: () => (/* binding */ findFirstMinBy),
+/* harmony export */   findFirstMonotonous: () => (/* binding */ findFirstMonotonous),
+/* harmony export */   findLast: () => (/* binding */ findLast),
+/* harmony export */   findLastIdx: () => (/* binding */ findLastIdx),
+/* harmony export */   findLastIdxMonotonous: () => (/* binding */ findLastIdxMonotonous),
+/* harmony export */   findLastMaxBy: () => (/* binding */ findLastMaxBy),
+/* harmony export */   findLastMonotonous: () => (/* binding */ findLastMonotonous),
+/* harmony export */   findMaxIdxBy: () => (/* binding */ findMaxIdxBy),
+/* harmony export */   mapFindFirst: () => (/* binding */ mapFindFirst)
+/* harmony export */ });
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+function findLast(array, predicate, fromIdx) {
+    const idx = findLastIdx(array, predicate);
+    if (idx === -1) {
+        return undefined;
+    }
+    return array[idx];
+}
+function findLastIdx(array, predicate, fromIndex = array.length - 1) {
+    for (let i = fromIndex; i >= 0; i--) {
+        const element = array[i];
+        if (predicate(element)) {
+            return i;
+        }
+    }
+    return -1;
+}
+/**
+ * Finds the last item where predicate is true using binary search.
+ * `predicate` must be monotonous, i.e. `arr.map(predicate)` must be like `[true, ..., true, false, ..., false]`!
+ *
+ * @returns `undefined` if no item matches, otherwise the last item that matches the predicate.
+ */
+function findLastMonotonous(array, predicate) {
+    const idx = findLastIdxMonotonous(array, predicate);
+    return idx === -1 ? undefined : array[idx];
+}
+/**
+ * Finds the last item where predicate is true using binary search.
+ * `predicate` must be monotonous, i.e. `arr.map(predicate)` must be like `[true, ..., true, false, ..., false]`!
+ *
+ * @returns `startIdx - 1` if predicate is false for all items, otherwise the index of the last item that matches the predicate.
+ */
+function findLastIdxMonotonous(array, predicate, startIdx = 0, endIdxEx = array.length) {
+    let i = startIdx;
+    let j = endIdxEx;
+    while (i < j) {
+        const k = Math.floor((i + j) / 2);
+        if (predicate(array[k])) {
+            i = k + 1;
+        }
+        else {
+            j = k;
+        }
+    }
+    return i - 1;
+}
+/**
+ * Finds the first item where predicate is true using binary search.
+ * `predicate` must be monotonous, i.e. `arr.map(predicate)` must be like `[false, ..., false, true, ..., true]`!
+ *
+ * @returns `undefined` if no item matches, otherwise the first item that matches the predicate.
+ */
+function findFirstMonotonous(array, predicate) {
+    const idx = findFirstIdxMonotonousOrArrLen(array, predicate);
+    return idx === array.length ? undefined : array[idx];
+}
+/**
+ * Finds the first item where predicate is true using binary search.
+ * `predicate` must be monotonous, i.e. `arr.map(predicate)` must be like `[false, ..., false, true, ..., true]`!
+ *
+ * @returns `endIdxEx` if predicate is false for all items, otherwise the index of the first item that matches the predicate.
+ */
+function findFirstIdxMonotonousOrArrLen(array, predicate, startIdx = 0, endIdxEx = array.length) {
+    let i = startIdx;
+    let j = endIdxEx;
+    while (i < j) {
+        const k = Math.floor((i + j) / 2);
+        if (predicate(array[k])) {
+            j = k;
+        }
+        else {
+            i = k + 1;
+        }
+    }
+    return i;
+}
+/**
+ * Use this when
+ * * You have a sorted array
+ * * You query this array with a monotonous predicate to find the last item that has a certain property.
+ * * You query this array multiple times with monotonous predicates that get weaker and weaker.
+ */
+class MonotonousArray {
+    constructor(_array) {
+        this._array = _array;
+        this._findLastMonotonousLastIdx = 0;
+    }
+    /**
+     * The predicate must be monotonous, i.e. `arr.map(predicate)` must be like `[true, ..., true, false, ..., false]`!
+     * For subsequent calls, current predicate must be weaker than (or equal to) the previous predicate, i.e. more entries must be `true`.
+     */
+    findLastMonotonous(predicate) {
+        if (MonotonousArray.assertInvariants) {
+            if (this._prevFindLastPredicate) {
+                for (const item of this._array) {
+                    if (this._prevFindLastPredicate(item) && !predicate(item)) {
+                        throw new Error('MonotonousArray: current predicate must be weaker than (or equal to) the previous predicate.');
+                    }
+                }
+            }
+            this._prevFindLastPredicate = predicate;
+        }
+        const idx = findLastIdxMonotonous(this._array, predicate, this._findLastMonotonousLastIdx);
+        this._findLastMonotonousLastIdx = idx + 1;
+        return idx === -1 ? undefined : this._array[idx];
+    }
+}
+MonotonousArray.assertInvariants = false;
+/**
+ * Returns the first item that is equal to or greater than every other item.
+*/
+function findFirstMaxBy(array, comparator) {
+    if (array.length === 0) {
+        return undefined;
+    }
+    let max = array[0];
+    for (let i = 1; i < array.length; i++) {
+        const item = array[i];
+        if (comparator(item, max) > 0) {
+            max = item;
+        }
+    }
+    return max;
+}
+/**
+ * Returns the last item that is equal to or greater than every other item.
+*/
+function findLastMaxBy(array, comparator) {
+    if (array.length === 0) {
+        return undefined;
+    }
+    let max = array[0];
+    for (let i = 1; i < array.length; i++) {
+        const item = array[i];
+        if (comparator(item, max) >= 0) {
+            max = item;
+        }
+    }
+    return max;
+}
+/**
+ * Returns the first item that is equal to or less than every other item.
+*/
+function findFirstMinBy(array, comparator) {
+    return findFirstMaxBy(array, (a, b) => -comparator(a, b));
+}
+function findMaxIdxBy(array, comparator) {
+    if (array.length === 0) {
+        return -1;
+    }
+    let maxIdx = 0;
+    for (let i = 1; i < array.length; i++) {
+        const item = array[i];
+        if (comparator(item, array[maxIdx]) > 0) {
+            maxIdx = i;
+        }
+    }
+    return maxIdx;
+}
+/**
+ * Returns the first mapped value of the array which is not undefined.
+ */
+function mapFindFirst(items, mapFn) {
+    for (const value of items) {
+        const mapped = mapFn(value);
+        if (mapped !== undefined) {
+            return mapped;
+        }
+    }
+    return undefined;
+}
+
+
+/***/ }),
+
 /***/ "./node_modules/monaco-editor/esm/vs/base/common/assert.js":
 /*!*****************************************************************!*\
   !*** ./node_modules/monaco-editor/esm/vs/base/common/assert.js ***!
@@ -596,7 +729,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   assertFn: () => (/* binding */ assertFn),
 /* harmony export */   assertNever: () => (/* binding */ assertNever),
 /* harmony export */   checkAdjacentItems: () => (/* binding */ checkAdjacentItems),
-/* harmony export */   ok: () => (/* binding */ ok)
+/* harmony export */   ok: () => (/* binding */ ok),
+/* harmony export */   softAssert: () => (/* binding */ softAssert)
 /* harmony export */ });
 /* harmony import */ var _errors_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./errors.js */ "./node_modules/monaco-editor/esm/vs/base/common/errors.js");
 /*---------------------------------------------------------------------------------------------
@@ -625,6 +759,14 @@ function ok(value, message) {
 }
 function assertNever(value, message = 'Unreachable') {
     throw new Error(message);
+}
+/**
+ * Like assert, but doesn't throw.
+ */
+function softAssert(condition) {
+    if (!condition) {
+        (0,_errors_js__WEBPACK_IMPORTED_MODULE_0__.onUnexpectedError)(new _errors_js__WEBPACK_IMPORTED_MODULE_0__.BugIndicatingError('Soft Assertion Failed'));
+    }
 }
 /**
  * condition must be side-effect free!
@@ -924,6 +1066,7 @@ const Codicon = {
     closeDirty: register('close-dirty', 0xea71),
     debugBreakpoint: register('debug-breakpoint', 0xea71),
     debugBreakpointDisabled: register('debug-breakpoint-disabled', 0xea71),
+    debugBreakpointPending: register('debug-breakpoint-pending', 0xebd9),
     debugHint: register('debug-hint', 0xea71),
     primitiveSquare: register('primitive-square', 0xea72),
     edit: register('edit', 0xea73),
@@ -1155,7 +1298,7 @@ const Codicon = {
     note: register('note', 0xeb26),
     octoface: register('octoface', 0xeb27),
     openPreview: register('open-preview', 0xeb28),
-    package_: register('package', 0xeb29),
+    package: register('package', 0xeb29),
     paintcan: register('paintcan', 0xeb2a),
     pin: register('pin', 0xeb2b),
     play: register('play', 0xeb2c),
@@ -1399,12 +1542,39 @@ const Codicon = {
     sparkle: register('sparkle', 0xec10),
     insert: register('insert', 0xec11),
     mic: register('mic', 0xec12),
+    thumbsDownFilled: register('thumbsdown-filled', 0xec13),
+    thumbsUpFilled: register('thumbsup-filled', 0xec14),
+    coffee: register('coffee', 0xec15),
+    snake: register('snake', 0xec16),
+    game: register('game', 0xec17),
+    vr: register('vr', 0xec18),
+    chip: register('chip', 0xec19),
+    piano: register('piano', 0xec1a),
+    music: register('music', 0xec1b),
+    micFilled: register('mic-filled', 0xec1c),
+    gitFetch: register('git-fetch', 0xec1d),
+    copilot: register('copilot', 0xec1e),
+    lightbulbSparkle: register('lightbulb-sparkle', 0xec1f),
+    lightbulbSparkleAutofix: register('lightbulb-sparkle-autofix', 0xec1f),
+    robot: register('robot', 0xec20),
+    sparkleFilled: register('sparkle-filled', 0xec21),
+    diffSingle: register('diff-single', 0xec22),
+    diffMultiple: register('diff-multiple', 0xec23),
+    surroundWith: register('surround-with', 0xec24),
+    gitStash: register('git-stash', 0xec26),
+    gitStashApply: register('git-stash-apply', 0xec27),
+    gitStashPop: register('git-stash-pop', 0xec28),
+    runAllCoverage: register('run-all-coverage', 0xec2d),
+    runCoverage: register('run-all-coverage', 0xec2c),
+    coverage: register('coverage', 0xec2e),
+    githubProject: register('github-project', 0xec2f),
     // derived icons, that could become separate icons
+    // TODO: These mappings should go in the vscode-codicons mapping file
     dialogError: register('dialog-error', 'error'),
     dialogWarning: register('dialog-warning', 'warning'),
     dialogInfo: register('dialog-info', 'info'),
     dialogClose: register('dialog-close', 'close'),
-    treeItemExpanded: register('tree-item-expanded', 'chevron-down'),
+    treeItemExpanded: register('tree-item-expanded', 'chevron-down'), // collapsed is done with rotation
     treeFilterOnTypeOn: register('tree-filter-on-type-on', 'list-filter'),
     treeFilterOnTypeOff: register('tree-filter-on-type-off', 'list-selection'),
     treeFilterClear: register('tree-filter-clear', 'close'),
@@ -1419,61 +1589,6 @@ const Codicon = {
     toolBarMore: register('toolbar-more', 'more'),
     quickInputBack: register('quick-input-back', 'arrow-left')
 };
-
-
-/***/ }),
-
-/***/ "./node_modules/monaco-editor/esm/vs/base/common/collections.js":
-/*!**********************************************************************!*\
-  !*** ./node_modules/monaco-editor/esm/vs/base/common/collections.js ***!
-  \**********************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   SetMap: () => (/* binding */ SetMap)
-/* harmony export */ });
-/*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
- *  Licensed under the MIT License. See License.txt in the project root for license information.
- *--------------------------------------------------------------------------------------------*/
-class SetMap {
-    constructor() {
-        this.map = new Map();
-    }
-    add(key, value) {
-        let values = this.map.get(key);
-        if (!values) {
-            values = new Set();
-            this.map.set(key, values);
-        }
-        values.add(value);
-    }
-    delete(key, value) {
-        const values = this.map.get(key);
-        if (!values) {
-            return;
-        }
-        values.delete(value);
-        if (values.size === 0) {
-            this.map.delete(key);
-        }
-    }
-    forEach(key, fn) {
-        const values = this.map.get(key);
-        if (!values) {
-            return;
-        }
-        values.forEach(fn);
-    }
-    get(key) {
-        const values = this.map.get(key);
-        if (!values) {
-            return new Set();
-        }
-        return values;
-    }
-}
 
 
 /***/ }),
@@ -3244,7 +3359,10 @@ var Event;
     }
     Event.signal = signal;
     function any(...events) {
-        return (listener, thisArgs = null, disposables) => (0,_lifecycle_js__WEBPACK_IMPORTED_MODULE_2__.combinedDisposable)(...events.map(event => event(e => listener.call(thisArgs, e), null, disposables)));
+        return (listener, thisArgs = null, disposables) => {
+            const disposable = (0,_lifecycle_js__WEBPACK_IMPORTED_MODULE_2__.combinedDisposable)(...events.map(event => event(e => listener.call(thisArgs, e))));
+            return addAndReturnDisposable(disposable, disposables);
+        };
     }
     Event.any = any;
     /**
@@ -3276,6 +3394,19 @@ var Event;
         const emitter = new Emitter(options);
         disposable === null || disposable === void 0 ? void 0 : disposable.add(emitter);
         return emitter.event;
+    }
+    /**
+     * Adds the IDisposable to the store if it's set, and returns it. Useful to
+     * Event function implementation.
+     */
+    function addAndReturnDisposable(d, store) {
+        if (store instanceof Array) {
+            store.push(d);
+        }
+        else if (store) {
+            store.add(d);
+        }
+        return d;
     }
     function debounce(event, merge, delay = 100, leading = false, flushOnListenerRemove = false, leakWarningThreshold, disposable) {
         let subscription;
@@ -3422,7 +3553,7 @@ var Event;
      * this.onInstallExtension = Event.buffer(service.onInstallExtension, true);
      * ```
      */
-    function buffer(event, flushAfterTimeout = false, _buffer = []) {
+    function buffer(event, flushAfterTimeout = false, _buffer = [], disposable) {
         let buffer = _buffer.slice();
         let listener = event(e => {
             if (buffer) {
@@ -3432,6 +3563,9 @@ var Event;
                 emitter.fire(e);
             }
         });
+        if (disposable) {
+            disposable.add(listener);
+        }
         const flush = () => {
             buffer === null || buffer === void 0 ? void 0 : buffer.forEach(e => emitter.fire(e));
             buffer = null;
@@ -3440,6 +3574,9 @@ var Event;
             onWillAddFirstListener() {
                 if (!listener) {
                     listener = event(e => emitter.fire(e));
+                    if (disposable) {
+                        disposable.add(listener);
+                    }
                 }
             },
             onDidAddFirstListener() {
@@ -3459,50 +3596,12 @@ var Event;
                 listener = null;
             }
         });
+        if (disposable) {
+            disposable.add(emitter);
+        }
         return emitter.event;
     }
     Event.buffer = buffer;
-    class ChainableEvent {
-        constructor(event) {
-            this.event = event;
-            this.disposables = new _lifecycle_js__WEBPACK_IMPORTED_MODULE_2__.DisposableStore();
-        }
-        /** @see {@link Event.map} */
-        map(fn) {
-            return new ChainableEvent(map(this.event, fn, this.disposables));
-        }
-        /** @see {@link Event.forEach} */
-        forEach(fn) {
-            return new ChainableEvent(forEach(this.event, fn, this.disposables));
-        }
-        filter(fn) {
-            return new ChainableEvent(filter(this.event, fn, this.disposables));
-        }
-        /** @see {@link Event.reduce} */
-        reduce(merge, initial) {
-            return new ChainableEvent(reduce(this.event, merge, initial, this.disposables));
-        }
-        /** @see {@link Event.reduce} */
-        latch() {
-            return new ChainableEvent(latch(this.event, undefined, this.disposables));
-        }
-        debounce(merge, delay = 100, leading = false, flushOnListenerRemove = false, leakWarningThreshold) {
-            return new ChainableEvent(debounce(this.event, merge, delay, leading, flushOnListenerRemove, leakWarningThreshold, this.disposables));
-        }
-        /**
-         * Attach a listener to the event.
-         */
-        on(listener, thisArgs, disposables) {
-            return this.event(listener, thisArgs, disposables);
-        }
-        /** @see {@link Event.once} */
-        once(listener, thisArgs, disposables) {
-            return once(this.event)(listener, thisArgs, disposables);
-        }
-        dispose() {
-            this.disposables.dispose();
-        }
-    }
     /**
      * Wraps the event in an {@link IChainableEvent}, allowing a more functional programming style.
      *
@@ -3515,16 +3614,74 @@ var Event;
      * ).event;
      *
      * // Using chain
-     * const onEnterPressChain = Event.chain(onKeyPress.event)
+     * const onEnterPressChain = Event.chain(onKeyPress.event, $ => $
      *   .map(e => new StandardKeyboardEvent(e))
      *   .filter(e => e.keyCode === KeyCode.Enter)
-     *   .event;
+     * );
      * ```
      */
-    function chain(event) {
-        return new ChainableEvent(event);
+    function chain(event, sythensize) {
+        const fn = (listener, thisArgs, disposables) => {
+            const cs = sythensize(new ChainableSynthesis());
+            return event(function (value) {
+                const result = cs.evaluate(value);
+                if (result !== HaltChainable) {
+                    listener.call(thisArgs, result);
+                }
+            }, undefined, disposables);
+        };
+        return fn;
     }
     Event.chain = chain;
+    const HaltChainable = Symbol('HaltChainable');
+    class ChainableSynthesis {
+        constructor() {
+            this.steps = [];
+        }
+        map(fn) {
+            this.steps.push(fn);
+            return this;
+        }
+        forEach(fn) {
+            this.steps.push(v => {
+                fn(v);
+                return v;
+            });
+            return this;
+        }
+        filter(fn) {
+            this.steps.push(v => fn(v) ? v : HaltChainable);
+            return this;
+        }
+        reduce(merge, initial) {
+            let last = initial;
+            this.steps.push(v => {
+                last = merge(last, v);
+                return last;
+            });
+            return this;
+        }
+        latch(equals = (a, b) => a === b) {
+            let firstCall = true;
+            let cache;
+            this.steps.push(value => {
+                const shouldEmit = firstCall || !equals(value, cache);
+                firstCall = false;
+                cache = value;
+                return shouldEmit ? value : HaltChainable;
+            });
+            return this;
+        }
+        evaluate(value) {
+            for (const step of this.steps) {
+                value = step(value);
+                if (value === HaltChainable) {
+                    break;
+                }
+            }
+            return value;
+        }
+    }
     /**
      * Creates an {@link Event} from a node event emitter.
      */
@@ -3570,39 +3727,11 @@ var Event;
         return result.event;
     }
     Event.fromPromise = fromPromise;
-    /**
-     * Adds a listener to an event and calls the listener immediately with undefined as the event object.
-     *
-     * @example
-     * ```
-     * // Initialize the UI and update it when dataChangeEvent fires
-     * runAndSubscribe(dataChangeEvent, () => this._updateUI());
-     * ```
-     */
-    function runAndSubscribe(event, handler) {
-        handler(undefined);
+    function runAndSubscribe(event, handler, initial) {
+        handler(initial);
         return event(e => handler(e));
     }
     Event.runAndSubscribe = runAndSubscribe;
-    /**
-     * Adds a listener to an event and calls the listener immediately with undefined as the event object. A new
-     * {@link DisposableStore} is passed to the listener which is disposed when the returned disposable is disposed.
-     */
-    function runAndSubscribeWithStore(event, handler) {
-        let store = null;
-        function run(e) {
-            store === null || store === void 0 ? void 0 : store.dispose();
-            store = new _lifecycle_js__WEBPACK_IMPORTED_MODULE_2__.DisposableStore();
-            handler(e, store);
-        }
-        run(undefined);
-        const disposable = event(e => run(e));
-        return (0,_lifecycle_js__WEBPACK_IMPORTED_MODULE_2__.toDisposable)(() => {
-            disposable.dispose();
-            store === null || store === void 0 ? void 0 : store.dispose();
-        });
-    }
-    Event.runAndSubscribeWithStore = runAndSubscribeWithStore;
     class EmitterObserver {
         constructor(_observable, store) {
             this._observable = _observable;
@@ -3660,7 +3789,7 @@ var Event;
      * Each listener is attached to the observable directly.
      */
     function fromObservableLight(observable) {
-        return (listener) => {
+        return (listener, thisArgs, disposables) => {
             let count = 0;
             let didChange = false;
             const observer = {
@@ -3673,7 +3802,7 @@ var Event;
                         observable.reportChanges();
                         if (didChange) {
                             didChange = false;
-                            listener();
+                            listener.call(thisArgs);
                         }
                     }
                 },
@@ -3686,11 +3815,18 @@ var Event;
             };
             observable.addObserver(observer);
             observable.reportChanges();
-            return {
+            const disposable = {
                 dispose() {
                     observable.removeObserver(observer);
                 }
             };
+            if (disposables instanceof _lifecycle_js__WEBPACK_IMPORTED_MODULE_2__.DisposableStore) {
+                disposables.add(disposable);
+            }
+            else if (Array.isArray(disposables)) {
+                disposables.push(disposable);
+            }
+            return disposable;
         };
     }
     Event.fromObservableLight = fromObservableLight;
@@ -4161,7 +4297,7 @@ class EventMultiplexer {
             const idx = this.events.indexOf(e);
             this.events.splice(idx, 1);
         };
-        return (0,_lifecycle_js__WEBPACK_IMPORTED_MODULE_2__.toDisposable)((0,_functional_js__WEBPACK_IMPORTED_MODULE_1__.once)(dispose));
+        return (0,_lifecycle_js__WEBPACK_IMPORTED_MODULE_2__.toDisposable)((0,_functional_js__WEBPACK_IMPORTED_MODULE_1__.createSingleCallFunction)(dispose));
     }
     onFirstListenerAdd() {
         this.hasListeners = true;
@@ -4175,13 +4311,17 @@ class EventMultiplexer {
         e.listener = e.event(r => this.emitter.fire(r));
     }
     unhook(e) {
-        if (e.listener) {
-            e.listener.dispose();
-        }
+        var _a;
+        (_a = e.listener) === null || _a === void 0 ? void 0 : _a.dispose();
         e.listener = null;
     }
     dispose() {
+        var _a;
         this.emitter.dispose();
+        for (const e of this.events) {
+            (_a = e.listener) === null || _a === void 0 ? void 0 : _a.dispose();
+        }
+        this.events = [];
     }
 }
 /**
@@ -4277,13 +4417,16 @@ class Relay {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   once: () => (/* binding */ once)
+/* harmony export */   createSingleCallFunction: () => (/* binding */ createSingleCallFunction)
 /* harmony export */ });
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-function once(fn) {
+/**
+ * Given a function, returns a function that is only calling that function once.
+ */
+function createSingleCallFunction(fn, fnDidRunCallback) {
     const _this = this;
     let didCall = false;
     let result;
@@ -4292,7 +4435,17 @@ function once(fn) {
             return result;
         }
         didCall = true;
-        result = fn.apply(_this, arguments);
+        if (fnDidRunCallback) {
+            try {
+                result = fn.apply(_this, arguments);
+            }
+            finally {
+                fnDidRunCallback();
+            }
+        }
+        else {
+            result = fn.apply(_this, arguments);
+        }
         return result;
     };
 }
@@ -4620,6 +4773,12 @@ var Iterable;
         return iterable || _empty;
     }
     Iterable.from = from;
+    function* reverse(array) {
+        for (let i = array.length - 1; i >= 0; i--) {
+            yield array[i];
+        }
+    }
+    Iterable.reverse = reverse;
     function isEmpty(iterable) {
         return !iterable || iterable[Symbol.iterator]().next().done === true;
     }
@@ -4663,9 +4822,7 @@ var Iterable;
     Iterable.map = map;
     function* concat(...iterables) {
         for (const iterable of iterables) {
-            for (const element of iterable) {
-                yield element;
-            }
+            yield* iterable;
         }
     }
     Iterable.concat = concat;
@@ -4715,6 +4872,14 @@ var Iterable;
         return [consumed, { [Symbol.iterator]() { return iterator; } }];
     }
     Iterable.consume = consume;
+    async function asyncToArray(iterable) {
+        const result = [];
+        for await (const item of iterable) {
+            result.push(item);
+        }
+        return Promise.resolve(result);
+    }
+    Iterable.asyncToArray = asyncToArray;
 })(Iterable || (Iterable = {}));
 
 
@@ -4839,7 +5004,7 @@ for (let i = 0; i <= 132 /* KeyCode.MAX_VALUE */; i++) {
         [0, 53 /* ScanCode.BracketLeft */, 'BracketLeft', 92 /* KeyCode.BracketLeft */, '[', 219, 'VK_OEM_4', '[', 'OEM_4'],
         [0, 54 /* ScanCode.BracketRight */, 'BracketRight', 94 /* KeyCode.BracketRight */, ']', 221, 'VK_OEM_6', ']', 'OEM_6'],
         [0, 55 /* ScanCode.Backslash */, 'Backslash', 93 /* KeyCode.Backslash */, '\\', 220, 'VK_OEM_5', '\\', 'OEM_5'],
-        [0, 56 /* ScanCode.IntlHash */, 'IntlHash', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty],
+        [0, 56 /* ScanCode.IntlHash */, 'IntlHash', 0 /* KeyCode.Unknown */, empty, 0, empty, empty, empty], // has been dropped from the w3c spec
         [0, 57 /* ScanCode.Semicolon */, 'Semicolon', 85 /* KeyCode.Semicolon */, ';', 186, 'VK_OEM_1', ';', 'OEM_1'],
         [0, 58 /* ScanCode.Quote */, 'Quote', 95 /* KeyCode.Quote */, '\'', 222, 'VK_OEM_7', '\'', 'OEM_7'],
         [0, 59 /* ScanCode.Backquote */, 'Backquote', 91 /* KeyCode.Backquote */, '`', 192, 'VK_OEM_3', '`', 'OEM_3'],
@@ -5179,16 +5344,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   combinedDisposable: () => (/* binding */ combinedDisposable),
 /* harmony export */   dispose: () => (/* binding */ dispose),
 /* harmony export */   isDisposable: () => (/* binding */ isDisposable),
+/* harmony export */   markAsDisposed: () => (/* binding */ markAsDisposed),
 /* harmony export */   markAsSingleton: () => (/* binding */ markAsSingleton),
 /* harmony export */   setDisposableTracker: () => (/* binding */ setDisposableTracker),
-/* harmony export */   toDisposable: () => (/* binding */ toDisposable)
+/* harmony export */   toDisposable: () => (/* binding */ toDisposable),
+/* harmony export */   trackDisposable: () => (/* binding */ trackDisposable)
 /* harmony export */ });
 /* harmony import */ var _functional_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./functional.js */ "./node_modules/monaco-editor/esm/vs/base/common/functional.js");
 /* harmony import */ var _iterator_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./iterator.js */ "./node_modules/monaco-editor/esm/vs/base/common/iterator.js");
-/*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
- *  Licensed under the MIT License. See License.txt in the project root for license information.
- *--------------------------------------------------------------------------------------------*/
 
 
 // #region Disposable Tracking
@@ -5310,7 +5473,7 @@ function combinedDisposable(...disposables) {
  */
 function toDisposable(fn) {
     const self = trackDisposable({
-        dispose: (0,_functional_js__WEBPACK_IMPORTED_MODULE_0__.once)(() => {
+        dispose: (0,_functional_js__WEBPACK_IMPORTED_MODULE_0__.createSingleCallFunction)(() => {
             markAsDisposed(self);
             fn();
         })
@@ -5383,6 +5546,18 @@ class DisposableStore {
             this._toDispose.add(o);
         }
         return o;
+    }
+    /**
+     * Deletes the value from the store, but does not dispose it.
+     */
+    deleteAndLeak(o) {
+        if (!o) {
+            return;
+        }
+        if (this._toDispose.has(o)) {
+            this._toDispose.delete(o);
+            setParentOfDisposable(o, null);
+        }
     }
 }
 DisposableStore.DISABLE_DISPOSED_WARNING = false;
@@ -5672,6 +5847,566 @@ class LinkedList {
             yield node.element;
             node = node.next;
         }
+    }
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/monaco-editor/esm/vs/base/common/map.js":
+/*!**************************************************************!*\
+  !*** ./node_modules/monaco-editor/esm/vs/base/common/map.js ***!
+  \**************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   BidirectionalMap: () => (/* binding */ BidirectionalMap),
+/* harmony export */   LRUCache: () => (/* binding */ LRUCache),
+/* harmony export */   LinkedMap: () => (/* binding */ LinkedMap),
+/* harmony export */   ResourceMap: () => (/* binding */ ResourceMap),
+/* harmony export */   SetMap: () => (/* binding */ SetMap)
+/* harmony export */ });
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+var _a, _b;
+class ResourceMapEntry {
+    constructor(uri, value) {
+        this.uri = uri;
+        this.value = value;
+    }
+}
+function isEntries(arg) {
+    return Array.isArray(arg);
+}
+class ResourceMap {
+    constructor(arg, toKey) {
+        this[_a] = 'ResourceMap';
+        if (arg instanceof ResourceMap) {
+            this.map = new Map(arg.map);
+            this.toKey = toKey !== null && toKey !== void 0 ? toKey : ResourceMap.defaultToKey;
+        }
+        else if (isEntries(arg)) {
+            this.map = new Map();
+            this.toKey = toKey !== null && toKey !== void 0 ? toKey : ResourceMap.defaultToKey;
+            for (const [resource, value] of arg) {
+                this.set(resource, value);
+            }
+        }
+        else {
+            this.map = new Map();
+            this.toKey = arg !== null && arg !== void 0 ? arg : ResourceMap.defaultToKey;
+        }
+    }
+    set(resource, value) {
+        this.map.set(this.toKey(resource), new ResourceMapEntry(resource, value));
+        return this;
+    }
+    get(resource) {
+        var _c;
+        return (_c = this.map.get(this.toKey(resource))) === null || _c === void 0 ? void 0 : _c.value;
+    }
+    has(resource) {
+        return this.map.has(this.toKey(resource));
+    }
+    get size() {
+        return this.map.size;
+    }
+    clear() {
+        this.map.clear();
+    }
+    delete(resource) {
+        return this.map.delete(this.toKey(resource));
+    }
+    forEach(clb, thisArg) {
+        if (typeof thisArg !== 'undefined') {
+            clb = clb.bind(thisArg);
+        }
+        for (const [_, entry] of this.map) {
+            clb(entry.value, entry.uri, this);
+        }
+    }
+    *values() {
+        for (const entry of this.map.values()) {
+            yield entry.value;
+        }
+    }
+    *keys() {
+        for (const entry of this.map.values()) {
+            yield entry.uri;
+        }
+    }
+    *entries() {
+        for (const entry of this.map.values()) {
+            yield [entry.uri, entry.value];
+        }
+    }
+    *[(_a = Symbol.toStringTag, Symbol.iterator)]() {
+        for (const [, entry] of this.map) {
+            yield [entry.uri, entry.value];
+        }
+    }
+}
+ResourceMap.defaultToKey = (resource) => resource.toString();
+class LinkedMap {
+    constructor() {
+        this[_b] = 'LinkedMap';
+        this._map = new Map();
+        this._head = undefined;
+        this._tail = undefined;
+        this._size = 0;
+        this._state = 0;
+    }
+    clear() {
+        this._map.clear();
+        this._head = undefined;
+        this._tail = undefined;
+        this._size = 0;
+        this._state++;
+    }
+    isEmpty() {
+        return !this._head && !this._tail;
+    }
+    get size() {
+        return this._size;
+    }
+    get first() {
+        var _c;
+        return (_c = this._head) === null || _c === void 0 ? void 0 : _c.value;
+    }
+    get last() {
+        var _c;
+        return (_c = this._tail) === null || _c === void 0 ? void 0 : _c.value;
+    }
+    has(key) {
+        return this._map.has(key);
+    }
+    get(key, touch = 0 /* Touch.None */) {
+        const item = this._map.get(key);
+        if (!item) {
+            return undefined;
+        }
+        if (touch !== 0 /* Touch.None */) {
+            this.touch(item, touch);
+        }
+        return item.value;
+    }
+    set(key, value, touch = 0 /* Touch.None */) {
+        let item = this._map.get(key);
+        if (item) {
+            item.value = value;
+            if (touch !== 0 /* Touch.None */) {
+                this.touch(item, touch);
+            }
+        }
+        else {
+            item = { key, value, next: undefined, previous: undefined };
+            switch (touch) {
+                case 0 /* Touch.None */:
+                    this.addItemLast(item);
+                    break;
+                case 1 /* Touch.AsOld */:
+                    this.addItemFirst(item);
+                    break;
+                case 2 /* Touch.AsNew */:
+                    this.addItemLast(item);
+                    break;
+                default:
+                    this.addItemLast(item);
+                    break;
+            }
+            this._map.set(key, item);
+            this._size++;
+        }
+        return this;
+    }
+    delete(key) {
+        return !!this.remove(key);
+    }
+    remove(key) {
+        const item = this._map.get(key);
+        if (!item) {
+            return undefined;
+        }
+        this._map.delete(key);
+        this.removeItem(item);
+        this._size--;
+        return item.value;
+    }
+    shift() {
+        if (!this._head && !this._tail) {
+            return undefined;
+        }
+        if (!this._head || !this._tail) {
+            throw new Error('Invalid list');
+        }
+        const item = this._head;
+        this._map.delete(item.key);
+        this.removeItem(item);
+        this._size--;
+        return item.value;
+    }
+    forEach(callbackfn, thisArg) {
+        const state = this._state;
+        let current = this._head;
+        while (current) {
+            if (thisArg) {
+                callbackfn.bind(thisArg)(current.value, current.key, this);
+            }
+            else {
+                callbackfn(current.value, current.key, this);
+            }
+            if (this._state !== state) {
+                throw new Error(`LinkedMap got modified during iteration.`);
+            }
+            current = current.next;
+        }
+    }
+    keys() {
+        const map = this;
+        const state = this._state;
+        let current = this._head;
+        const iterator = {
+            [Symbol.iterator]() {
+                return iterator;
+            },
+            next() {
+                if (map._state !== state) {
+                    throw new Error(`LinkedMap got modified during iteration.`);
+                }
+                if (current) {
+                    const result = { value: current.key, done: false };
+                    current = current.next;
+                    return result;
+                }
+                else {
+                    return { value: undefined, done: true };
+                }
+            }
+        };
+        return iterator;
+    }
+    values() {
+        const map = this;
+        const state = this._state;
+        let current = this._head;
+        const iterator = {
+            [Symbol.iterator]() {
+                return iterator;
+            },
+            next() {
+                if (map._state !== state) {
+                    throw new Error(`LinkedMap got modified during iteration.`);
+                }
+                if (current) {
+                    const result = { value: current.value, done: false };
+                    current = current.next;
+                    return result;
+                }
+                else {
+                    return { value: undefined, done: true };
+                }
+            }
+        };
+        return iterator;
+    }
+    entries() {
+        const map = this;
+        const state = this._state;
+        let current = this._head;
+        const iterator = {
+            [Symbol.iterator]() {
+                return iterator;
+            },
+            next() {
+                if (map._state !== state) {
+                    throw new Error(`LinkedMap got modified during iteration.`);
+                }
+                if (current) {
+                    const result = { value: [current.key, current.value], done: false };
+                    current = current.next;
+                    return result;
+                }
+                else {
+                    return { value: undefined, done: true };
+                }
+            }
+        };
+        return iterator;
+    }
+    [(_b = Symbol.toStringTag, Symbol.iterator)]() {
+        return this.entries();
+    }
+    trimOld(newSize) {
+        if (newSize >= this.size) {
+            return;
+        }
+        if (newSize === 0) {
+            this.clear();
+            return;
+        }
+        let current = this._head;
+        let currentSize = this.size;
+        while (current && currentSize > newSize) {
+            this._map.delete(current.key);
+            current = current.next;
+            currentSize--;
+        }
+        this._head = current;
+        this._size = currentSize;
+        if (current) {
+            current.previous = undefined;
+        }
+        this._state++;
+    }
+    addItemFirst(item) {
+        // First time Insert
+        if (!this._head && !this._tail) {
+            this._tail = item;
+        }
+        else if (!this._head) {
+            throw new Error('Invalid list');
+        }
+        else {
+            item.next = this._head;
+            this._head.previous = item;
+        }
+        this._head = item;
+        this._state++;
+    }
+    addItemLast(item) {
+        // First time Insert
+        if (!this._head && !this._tail) {
+            this._head = item;
+        }
+        else if (!this._tail) {
+            throw new Error('Invalid list');
+        }
+        else {
+            item.previous = this._tail;
+            this._tail.next = item;
+        }
+        this._tail = item;
+        this._state++;
+    }
+    removeItem(item) {
+        if (item === this._head && item === this._tail) {
+            this._head = undefined;
+            this._tail = undefined;
+        }
+        else if (item === this._head) {
+            // This can only happen if size === 1 which is handled
+            // by the case above.
+            if (!item.next) {
+                throw new Error('Invalid list');
+            }
+            item.next.previous = undefined;
+            this._head = item.next;
+        }
+        else if (item === this._tail) {
+            // This can only happen if size === 1 which is handled
+            // by the case above.
+            if (!item.previous) {
+                throw new Error('Invalid list');
+            }
+            item.previous.next = undefined;
+            this._tail = item.previous;
+        }
+        else {
+            const next = item.next;
+            const previous = item.previous;
+            if (!next || !previous) {
+                throw new Error('Invalid list');
+            }
+            next.previous = previous;
+            previous.next = next;
+        }
+        item.next = undefined;
+        item.previous = undefined;
+        this._state++;
+    }
+    touch(item, touch) {
+        if (!this._head || !this._tail) {
+            throw new Error('Invalid list');
+        }
+        if ((touch !== 1 /* Touch.AsOld */ && touch !== 2 /* Touch.AsNew */)) {
+            return;
+        }
+        if (touch === 1 /* Touch.AsOld */) {
+            if (item === this._head) {
+                return;
+            }
+            const next = item.next;
+            const previous = item.previous;
+            // Unlink the item
+            if (item === this._tail) {
+                // previous must be defined since item was not head but is tail
+                // So there are more than on item in the map
+                previous.next = undefined;
+                this._tail = previous;
+            }
+            else {
+                // Both next and previous are not undefined since item was neither head nor tail.
+                next.previous = previous;
+                previous.next = next;
+            }
+            // Insert the node at head
+            item.previous = undefined;
+            item.next = this._head;
+            this._head.previous = item;
+            this._head = item;
+            this._state++;
+        }
+        else if (touch === 2 /* Touch.AsNew */) {
+            if (item === this._tail) {
+                return;
+            }
+            const next = item.next;
+            const previous = item.previous;
+            // Unlink the item.
+            if (item === this._head) {
+                // next must be defined since item was not tail but is head
+                // So there are more than on item in the map
+                next.previous = undefined;
+                this._head = next;
+            }
+            else {
+                // Both next and previous are not undefined since item was neither head nor tail.
+                next.previous = previous;
+                previous.next = next;
+            }
+            item.next = undefined;
+            item.previous = this._tail;
+            this._tail.next = item;
+            this._tail = item;
+            this._state++;
+        }
+    }
+    toJSON() {
+        const data = [];
+        this.forEach((value, key) => {
+            data.push([key, value]);
+        });
+        return data;
+    }
+    fromJSON(data) {
+        this.clear();
+        for (const [key, value] of data) {
+            this.set(key, value);
+        }
+    }
+}
+class LRUCache extends LinkedMap {
+    constructor(limit, ratio = 1) {
+        super();
+        this._limit = limit;
+        this._ratio = Math.min(Math.max(0, ratio), 1);
+    }
+    get limit() {
+        return this._limit;
+    }
+    set limit(limit) {
+        this._limit = limit;
+        this.checkTrim();
+    }
+    get(key, touch = 2 /* Touch.AsNew */) {
+        return super.get(key, touch);
+    }
+    peek(key) {
+        return super.get(key, 0 /* Touch.None */);
+    }
+    set(key, value) {
+        super.set(key, value, 2 /* Touch.AsNew */);
+        this.checkTrim();
+        return this;
+    }
+    checkTrim() {
+        if (this.size > this._limit) {
+            this.trimOld(Math.round(this._limit * this._ratio));
+        }
+    }
+}
+/**
+ * A map that allows access both by keys and values.
+ * **NOTE**: values need to be unique.
+ */
+class BidirectionalMap {
+    constructor(entries) {
+        this._m1 = new Map();
+        this._m2 = new Map();
+        if (entries) {
+            for (const [key, value] of entries) {
+                this.set(key, value);
+            }
+        }
+    }
+    clear() {
+        this._m1.clear();
+        this._m2.clear();
+    }
+    set(key, value) {
+        this._m1.set(key, value);
+        this._m2.set(value, key);
+    }
+    get(key) {
+        return this._m1.get(key);
+    }
+    getKey(value) {
+        return this._m2.get(value);
+    }
+    delete(key) {
+        const value = this._m1.get(key);
+        if (value === undefined) {
+            return false;
+        }
+        this._m1.delete(key);
+        this._m2.delete(value);
+        return true;
+    }
+    keys() {
+        return this._m1.keys();
+    }
+    values() {
+        return this._m1.values();
+    }
+}
+class SetMap {
+    constructor() {
+        this.map = new Map();
+    }
+    add(key, value) {
+        let values = this.map.get(key);
+        if (!values) {
+            values = new Set();
+            this.map.set(key, values);
+        }
+        values.add(value);
+    }
+    delete(key, value) {
+        const values = this.map.get(key);
+        if (!values) {
+            return;
+        }
+        values.delete(value);
+        if (values.size === 0) {
+            this.map.delete(key);
+        }
+    }
+    forEach(key, fn) {
+        const values = this.map.get(key);
+        if (!values) {
+            return;
+        }
+        values.forEach(fn);
+    }
+    get(key) {
+        const values = this.map.get(key);
+        if (!values) {
+            return new Set();
+        }
+        return values;
     }
 }
 
@@ -7305,7 +8040,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   LANGUAGE_DEFAULT: () => (/* binding */ LANGUAGE_DEFAULT),
 /* harmony export */   OS: () => (/* binding */ OS),
-/* harmony export */   globals: () => (/* binding */ globals),
 /* harmony export */   isAndroid: () => (/* binding */ isAndroid),
 /* harmony export */   isChrome: () => (/* binding */ isChrome),
 /* harmony export */   isEdge: () => (/* binding */ isEdge),
@@ -7323,7 +8057,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   language: () => (/* binding */ language),
 /* harmony export */   setTimeout0: () => (/* binding */ setTimeout0),
 /* harmony export */   setTimeout0IsFaster: () => (/* binding */ setTimeout0IsFaster),
-/* harmony export */   userAgent: () => (/* binding */ userAgent)
+/* harmony export */   userAgent: () => (/* binding */ userAgent),
+/* harmony export */   webWorkerOrigin: () => (/* binding */ webWorkerOrigin)
 /* harmony export */ });
 /* harmony import */ var _nls_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../nls.js */ "./node_modules/monaco-editor/esm/vs/nls.js");
 var _a;
@@ -7348,14 +8083,11 @@ let _language = LANGUAGE_DEFAULT;
 let _platformLocale = LANGUAGE_DEFAULT;
 let _translationsConfigFile = undefined;
 let _userAgent = undefined;
-/**
- * @deprecated use `globalThis` instead
- */
-const globals = (typeof self === 'object' ? self : typeof __webpack_require__.g === 'object' ? __webpack_require__.g : {});
+const $globalThis = globalThis;
 let nodeProcess = undefined;
-if (typeof globals.vscode !== 'undefined' && typeof globals.vscode.process !== 'undefined') {
+if (typeof $globalThis.vscode !== 'undefined' && typeof $globalThis.vscode.process !== 'undefined') {
     // Native environment (sandboxed)
-    nodeProcess = globals.vscode.process;
+    nodeProcess = $globalThis.vscode.process;
 }
 else if (typeof process !== 'undefined') {
     // Native environment (non-sandboxed)
@@ -7363,27 +8095,8 @@ else if (typeof process !== 'undefined') {
 }
 const isElectronProcess = typeof ((_a = nodeProcess === null || nodeProcess === void 0 ? void 0 : nodeProcess.versions) === null || _a === void 0 ? void 0 : _a.electron) === 'string';
 const isElectronRenderer = isElectronProcess && (nodeProcess === null || nodeProcess === void 0 ? void 0 : nodeProcess.type) === 'renderer';
-// Web environment
-if (typeof navigator === 'object' && !isElectronRenderer) {
-    _userAgent = navigator.userAgent;
-    _isWindows = _userAgent.indexOf('Windows') >= 0;
-    _isMacintosh = _userAgent.indexOf('Macintosh') >= 0;
-    _isIOS = (_userAgent.indexOf('Macintosh') >= 0 || _userAgent.indexOf('iPad') >= 0 || _userAgent.indexOf('iPhone') >= 0) && !!navigator.maxTouchPoints && navigator.maxTouchPoints > 0;
-    _isLinux = _userAgent.indexOf('Linux') >= 0;
-    _isMobile = (_userAgent === null || _userAgent === void 0 ? void 0 : _userAgent.indexOf('Mobi')) >= 0;
-    _isWeb = true;
-    const configuredLocale = _nls_js__WEBPACK_IMPORTED_MODULE_0__.getConfiguredDefaultLocale(
-    // This call _must_ be done in the file that calls `nls.getConfiguredDefaultLocale`
-    // to ensure that the NLS AMD Loader plugin has been loaded and configured.
-    // This is because the loader plugin decides what the default locale is based on
-    // how it's able to resolve the strings.
-    _nls_js__WEBPACK_IMPORTED_MODULE_0__.localize({ key: 'ensureLoaderPluginIsLoaded', comment: ['{Locked}'] }, '_'));
-    _locale = configuredLocale || LANGUAGE_DEFAULT;
-    _language = _locale;
-    _platformLocale = navigator.language;
-}
 // Native environment
-else if (typeof nodeProcess === 'object') {
+if (typeof nodeProcess === 'object') {
     _isWindows = (nodeProcess.platform === 'win32');
     _isMacintosh = (nodeProcess.platform === 'darwin');
     _isLinux = (nodeProcess.platform === 'linux');
@@ -7408,6 +8121,25 @@ else if (typeof nodeProcess === 'object') {
     }
     _isNative = true;
 }
+// Web environment
+else if (typeof navigator === 'object' && !isElectronRenderer) {
+    _userAgent = navigator.userAgent;
+    _isWindows = _userAgent.indexOf('Windows') >= 0;
+    _isMacintosh = _userAgent.indexOf('Macintosh') >= 0;
+    _isIOS = (_userAgent.indexOf('Macintosh') >= 0 || _userAgent.indexOf('iPad') >= 0 || _userAgent.indexOf('iPhone') >= 0) && !!navigator.maxTouchPoints && navigator.maxTouchPoints > 0;
+    _isLinux = _userAgent.indexOf('Linux') >= 0;
+    _isMobile = (_userAgent === null || _userAgent === void 0 ? void 0 : _userAgent.indexOf('Mobi')) >= 0;
+    _isWeb = true;
+    const configuredLocale = _nls_js__WEBPACK_IMPORTED_MODULE_0__.getConfiguredDefaultLocale(
+    // This call _must_ be done in the file that calls `nls.getConfiguredDefaultLocale`
+    // to ensure that the NLS AMD Loader plugin has been loaded and configured.
+    // This is because the loader plugin decides what the default locale is based on
+    // how it's able to resolve the strings.
+    _nls_js__WEBPACK_IMPORTED_MODULE_0__.localize({ key: 'ensureLoaderPluginIsLoaded', comment: ['{Locked}'] }, '_'));
+    _locale = configuredLocale || LANGUAGE_DEFAULT;
+    _language = _locale;
+    _platformLocale = navigator.language;
+}
 // Unknown environment
 else {
     console.error('Unable to resolve platform.');
@@ -7427,7 +8159,8 @@ const isMacintosh = _isMacintosh;
 const isLinux = _isLinux;
 const isNative = _isNative;
 const isWeb = _isWeb;
-const isWebWorker = (_isWeb && typeof globals.importScripts === 'function');
+const isWebWorker = (_isWeb && typeof $globalThis.importScripts === 'function');
+const webWorkerOrigin = isWebWorker ? $globalThis.origin : undefined;
 const isIOS = _isIOS;
 const isMobile = _isMobile;
 const userAgent = _userAgent;
@@ -7437,7 +8170,7 @@ const userAgent = _userAgent;
  * Chinese)
  */
 const language = _language;
-const setTimeout0IsFaster = (typeof globals.postMessage === 'function' && !globals.importScripts);
+const setTimeout0IsFaster = (typeof $globalThis.postMessage === 'function' && !$globalThis.importScripts);
 /**
  * See https://html.spec.whatwg.org/multipage/timers-and-user-prompts.html#:~:text=than%204%2C%20then-,set%20timeout%20to%204,-.
  *
@@ -7447,7 +8180,7 @@ const setTimeout0IsFaster = (typeof globals.postMessage === 'function' && !globa
 const setTimeout0 = (() => {
     if (setTimeout0IsFaster) {
         const pending = [];
-        globals.addEventListener('message', (e) => {
+        $globalThis.addEventListener('message', (e) => {
             if (e.data && e.data.vscodeScheduleAsyncWork) {
                 for (let i = 0, len = pending.length; i < len; i++) {
                     const candidate = pending[i];
@@ -7466,7 +8199,7 @@ const setTimeout0 = (() => {
                 id: myId,
                 callback: callback
             });
-            globals.postMessage({ vscodeScheduleAsyncWork: myId }, '*');
+            $globalThis.postMessage({ vscodeScheduleAsyncWork: myId }, '*');
         };
     }
     return (callback) => setTimeout(callback);
@@ -7514,8 +8247,9 @@ __webpack_require__.r(__webpack_exports__);
 
 let safeProcess;
 // Native sandbox environment
-if (typeof _platform_js__WEBPACK_IMPORTED_MODULE_0__.globals.vscode !== 'undefined' && typeof _platform_js__WEBPACK_IMPORTED_MODULE_0__.globals.vscode.process !== 'undefined') {
-    const sandboxProcess = _platform_js__WEBPACK_IMPORTED_MODULE_0__.globals.vscode.process;
+const vscodeGlobal = globalThis.vscode;
+if (typeof vscodeGlobal !== 'undefined' && typeof vscodeGlobal.process !== 'undefined') {
+    const sandboxProcess = vscodeGlobal.process;
     safeProcess = {
         get platform() { return sandboxProcess.platform; },
         get arch() { return sandboxProcess.arch; },
@@ -7641,6 +8375,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   getLeadingWhitespace: () => (/* binding */ getLeadingWhitespace),
 /* harmony export */   getLeftDeleteOffset: () => (/* binding */ getLeftDeleteOffset),
 /* harmony export */   getNextCodePoint: () => (/* binding */ getNextCodePoint),
+/* harmony export */   htmlAttributeEncodeValue: () => (/* binding */ htmlAttributeEncodeValue),
 /* harmony export */   isAsciiDigit: () => (/* binding */ isAsciiDigit),
 /* harmony export */   isBasicASCII: () => (/* binding */ isBasicASCII),
 /* harmony export */   isEmojiImprecise: () => (/* binding */ isEmojiImprecise),
@@ -7659,6 +8394,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   rtrim: () => (/* binding */ rtrim),
 /* harmony export */   singleLetterHash: () => (/* binding */ singleLetterHash),
 /* harmony export */   splitLines: () => (/* binding */ splitLines),
+/* harmony export */   splitLinesIncludeSeparators: () => (/* binding */ splitLinesIncludeSeparators),
 /* harmony export */   startsWithIgnoreCase: () => (/* binding */ startsWithIgnoreCase),
 /* harmony export */   startsWithUTF8BOM: () => (/* binding */ startsWithUTF8BOM),
 /* harmony export */   stripWildcards: () => (/* binding */ stripWildcards),
@@ -7695,6 +8431,24 @@ function format(value, ...args) {
         return isNaN(idx) || idx < 0 || idx >= args.length ?
             match :
             args[idx];
+    });
+}
+/**
+ * Encodes the given value so that it can be used as literal value in html attributes.
+ *
+ * In other words, computes `$val`, such that `attr` in `<div attr="$val" />` has the runtime value `value`.
+ * This prevents XSS injection.
+ */
+function htmlAttributeEncodeValue(value) {
+    return value.replace(/[<>"'&]/g, ch => {
+        switch (ch) {
+            case '<': return '&lt;';
+            case '>': return '&gt;';
+            case '"': return '&quot;';
+            case '\'': return '&apos;';
+            case '&': return '&amp;';
+        }
+        return ch;
     });
 }
 /**
@@ -7820,6 +8574,15 @@ function regExpLeadsToEndlessLoop(regexp) {
 }
 function splitLines(str) {
     return str.split(/\r\n|\r|\n/);
+}
+function splitLinesIncludeSeparators(str) {
+    var _b;
+    const linesWithSeparators = [];
+    const splitLinesAndSeparators = str.split(/(\r\n|\r|\n)/);
+    for (let i = 0; i < Math.ceil(splitLinesAndSeparators.length / 2); i++) {
+        linesWithSeparators.push(splitLinesAndSeparators[2 * i] + ((_b = splitLinesAndSeparators[2 * i + 1]) !== null && _b !== void 0 ? _b : ''));
+    }
+    return linesWithSeparators;
 }
 /**
  * Returns first index of the string that is not whitespace.
@@ -9070,14 +9833,14 @@ class Uri extends URI {
 }
 // reserved characters: https://tools.ietf.org/html/rfc3986#section-2.2
 const encodeTable = {
-    [58 /* CharCode.Colon */]: '%3A',
+    [58 /* CharCode.Colon */]: '%3A', // gen-delims
     [47 /* CharCode.Slash */]: '%2F',
     [63 /* CharCode.QuestionMark */]: '%3F',
     [35 /* CharCode.Hash */]: '%23',
     [91 /* CharCode.OpenSquareBracket */]: '%5B',
     [93 /* CharCode.CloseSquareBracket */]: '%5D',
     [64 /* CharCode.AtSign */]: '%40',
-    [33 /* CharCode.ExclamationMark */]: '%21',
+    [33 /* CharCode.ExclamationMark */]: '%21', // sub-delims
     [36 /* CharCode.DollarSign */]: '%24',
     [38 /* CharCode.Ampersand */]: '%26',
     [39 /* CharCode.SingleQuote */]: '%27',
@@ -9715,7 +10478,7 @@ class SimpleWorkerServer {
                     delete loaderConfig.paths['vs'];
                 }
             }
-            if (typeof loaderConfig.trustedTypesPolicy !== undefined) {
+            if (typeof loaderConfig.trustedTypesPolicy !== 'undefined') {
                 // don't use, it has been destroyed during serialize
                 delete loaderConfig['trustedTypesPolicy'];
             }
@@ -9833,11 +10596,13 @@ class CharacterSet {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   LineRange: () => (/* binding */ LineRange)
+/* harmony export */   LineRange: () => (/* binding */ LineRange),
+/* harmony export */   LineRangeSet: () => (/* binding */ LineRangeSet)
 /* harmony export */ });
 /* harmony import */ var _base_common_errors_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../base/common/errors.js */ "./node_modules/monaco-editor/esm/vs/base/common/errors.js");
 /* harmony import */ var _offsetRange_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./offsetRange.js */ "./node_modules/monaco-editor/esm/vs/editor/common/core/offsetRange.js");
 /* harmony import */ var _range_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./range.js */ "./node_modules/monaco-editor/esm/vs/editor/common/core/range.js");
+/* harmony import */ var _base_common_arraysFind_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../../base/common/arraysFind.js */ "./node_modules/monaco-editor/esm/vs/base/common/arraysFind.js");
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
@@ -9845,32 +10610,13 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+
 /**
  * A range of lines (1-based).
  */
 class LineRange {
-    static fromRange(range) {
-        return new LineRange(range.startLineNumber, range.endLineNumber);
-    }
-    static subtract(a, b) {
-        if (!b) {
-            return [a];
-        }
-        if (a.startLineNumber < b.startLineNumber && b.endLineNumberExclusive < a.endLineNumberExclusive) {
-            return [
-                new LineRange(a.startLineNumber, b.startLineNumber),
-                new LineRange(b.endLineNumberExclusive, a.endLineNumberExclusive)
-            ];
-        }
-        else if (b.startLineNumber <= a.startLineNumber && a.endLineNumberExclusive <= b.endLineNumberExclusive) {
-            return [];
-        }
-        else if (b.endLineNumberExclusive < a.endLineNumberExclusive) {
-            return [new LineRange(Math.max(b.endLineNumberExclusive, a.startLineNumber), a.endLineNumberExclusive)];
-        }
-        else {
-            return [new LineRange(a.startLineNumber, Math.min(b.startLineNumber, a.endLineNumberExclusive))];
-        }
+    static fromRangeInclusive(range) {
+        return new LineRange(range.startLineNumber, range.endLineNumber + 1);
     }
     /**
      * @param lineRanges An array of sorted line ranges.
@@ -9879,68 +10625,11 @@ class LineRange {
         if (lineRanges.length === 0) {
             return [];
         }
-        let result = lineRanges[0];
+        let result = new LineRangeSet(lineRanges[0].slice());
         for (let i = 1; i < lineRanges.length; i++) {
-            result = this.join(result, lineRanges[i]);
+            result = result.getUnion(new LineRangeSet(lineRanges[i].slice()));
         }
-        return result;
-    }
-    /**
-     * @param lineRanges1 Must be sorted.
-     * @param lineRanges2 Must be sorted.
-     */
-    static join(lineRanges1, lineRanges2) {
-        if (lineRanges1.length === 0) {
-            return lineRanges2;
-        }
-        if (lineRanges2.length === 0) {
-            return lineRanges1;
-        }
-        const result = [];
-        let i1 = 0;
-        let i2 = 0;
-        let current = null;
-        while (i1 < lineRanges1.length || i2 < lineRanges2.length) {
-            let next = null;
-            if (i1 < lineRanges1.length && i2 < lineRanges2.length) {
-                const lineRange1 = lineRanges1[i1];
-                const lineRange2 = lineRanges2[i2];
-                if (lineRange1.startLineNumber < lineRange2.startLineNumber) {
-                    next = lineRange1;
-                    i1++;
-                }
-                else {
-                    next = lineRange2;
-                    i2++;
-                }
-            }
-            else if (i1 < lineRanges1.length) {
-                next = lineRanges1[i1];
-                i1++;
-            }
-            else {
-                next = lineRanges2[i2];
-                i2++;
-            }
-            if (current === null) {
-                current = next;
-            }
-            else {
-                if (current.endLineNumberExclusive >= next.startLineNumber) {
-                    // merge
-                    current = new LineRange(current.startLineNumber, Math.max(current.endLineNumberExclusive, next.endLineNumberExclusive));
-                }
-                else {
-                    // push
-                    result.push(current);
-                    current = next;
-                }
-            }
-        }
-        if (current !== null) {
-            result.push(current);
-        }
-        return result;
+        return result.ranges;
     }
     static ofLength(startLineNumber, length) {
         return new LineRange(startLineNumber, startLineNumber + length);
@@ -10053,6 +10742,156 @@ class LineRange {
         return new _offsetRange_js__WEBPACK_IMPORTED_MODULE_1__.OffsetRange(this.startLineNumber - 1, this.endLineNumberExclusive - 1);
     }
 }
+class LineRangeSet {
+    constructor(
+    /**
+     * Sorted by start line number.
+     * No two line ranges are touching or intersecting.
+     */
+    _normalizedRanges = []) {
+        this._normalizedRanges = _normalizedRanges;
+    }
+    get ranges() {
+        return this._normalizedRanges;
+    }
+    addRange(range) {
+        if (range.length === 0) {
+            return;
+        }
+        // Idea: Find joinRange such that:
+        // replaceRange = _normalizedRanges.replaceRange(joinRange, range.joinAll(joinRange.map(idx => this._normalizedRanges[idx])))
+        // idx of first element that touches range or that is after range
+        const joinRangeStartIdx = (0,_base_common_arraysFind_js__WEBPACK_IMPORTED_MODULE_3__.findFirstIdxMonotonousOrArrLen)(this._normalizedRanges, r => r.endLineNumberExclusive >= range.startLineNumber);
+        // idx of element after { last element that touches range or that is before range }
+        const joinRangeEndIdxExclusive = (0,_base_common_arraysFind_js__WEBPACK_IMPORTED_MODULE_3__.findLastIdxMonotonous)(this._normalizedRanges, r => r.startLineNumber <= range.endLineNumberExclusive) + 1;
+        if (joinRangeStartIdx === joinRangeEndIdxExclusive) {
+            // If there is no element that touches range, then joinRangeStartIdx === joinRangeEndIdxExclusive and that value is the index of the element after range
+            this._normalizedRanges.splice(joinRangeStartIdx, 0, range);
+        }
+        else if (joinRangeStartIdx === joinRangeEndIdxExclusive - 1) {
+            // Else, there is an element that touches range and in this case it is both the first and last element. Thus we can replace it
+            const joinRange = this._normalizedRanges[joinRangeStartIdx];
+            this._normalizedRanges[joinRangeStartIdx] = joinRange.join(range);
+        }
+        else {
+            // First and last element are different - we need to replace the entire range
+            const joinRange = this._normalizedRanges[joinRangeStartIdx].join(this._normalizedRanges[joinRangeEndIdxExclusive - 1]).join(range);
+            this._normalizedRanges.splice(joinRangeStartIdx, joinRangeEndIdxExclusive - joinRangeStartIdx, joinRange);
+        }
+    }
+    contains(lineNumber) {
+        const rangeThatStartsBeforeEnd = (0,_base_common_arraysFind_js__WEBPACK_IMPORTED_MODULE_3__.findLastMonotonous)(this._normalizedRanges, r => r.startLineNumber <= lineNumber);
+        return !!rangeThatStartsBeforeEnd && rangeThatStartsBeforeEnd.endLineNumberExclusive > lineNumber;
+    }
+    intersects(range) {
+        const rangeThatStartsBeforeEnd = (0,_base_common_arraysFind_js__WEBPACK_IMPORTED_MODULE_3__.findLastMonotonous)(this._normalizedRanges, r => r.startLineNumber < range.endLineNumberExclusive);
+        return !!rangeThatStartsBeforeEnd && rangeThatStartsBeforeEnd.endLineNumberExclusive > range.startLineNumber;
+    }
+    getUnion(other) {
+        if (this._normalizedRanges.length === 0) {
+            return other;
+        }
+        if (other._normalizedRanges.length === 0) {
+            return this;
+        }
+        const result = [];
+        let i1 = 0;
+        let i2 = 0;
+        let current = null;
+        while (i1 < this._normalizedRanges.length || i2 < other._normalizedRanges.length) {
+            let next = null;
+            if (i1 < this._normalizedRanges.length && i2 < other._normalizedRanges.length) {
+                const lineRange1 = this._normalizedRanges[i1];
+                const lineRange2 = other._normalizedRanges[i2];
+                if (lineRange1.startLineNumber < lineRange2.startLineNumber) {
+                    next = lineRange1;
+                    i1++;
+                }
+                else {
+                    next = lineRange2;
+                    i2++;
+                }
+            }
+            else if (i1 < this._normalizedRanges.length) {
+                next = this._normalizedRanges[i1];
+                i1++;
+            }
+            else {
+                next = other._normalizedRanges[i2];
+                i2++;
+            }
+            if (current === null) {
+                current = next;
+            }
+            else {
+                if (current.endLineNumberExclusive >= next.startLineNumber) {
+                    // merge
+                    current = new LineRange(current.startLineNumber, Math.max(current.endLineNumberExclusive, next.endLineNumberExclusive));
+                }
+                else {
+                    // push
+                    result.push(current);
+                    current = next;
+                }
+            }
+        }
+        if (current !== null) {
+            result.push(current);
+        }
+        return new LineRangeSet(result);
+    }
+    /**
+     * Subtracts all ranges in this set from `range` and returns the result.
+     */
+    subtractFrom(range) {
+        // idx of first element that touches range or that is after range
+        const joinRangeStartIdx = (0,_base_common_arraysFind_js__WEBPACK_IMPORTED_MODULE_3__.findFirstIdxMonotonousOrArrLen)(this._normalizedRanges, r => r.endLineNumberExclusive >= range.startLineNumber);
+        // idx of element after { last element that touches range or that is before range }
+        const joinRangeEndIdxExclusive = (0,_base_common_arraysFind_js__WEBPACK_IMPORTED_MODULE_3__.findLastIdxMonotonous)(this._normalizedRanges, r => r.startLineNumber <= range.endLineNumberExclusive) + 1;
+        if (joinRangeStartIdx === joinRangeEndIdxExclusive) {
+            return new LineRangeSet([range]);
+        }
+        const result = [];
+        let startLineNumber = range.startLineNumber;
+        for (let i = joinRangeStartIdx; i < joinRangeEndIdxExclusive; i++) {
+            const r = this._normalizedRanges[i];
+            if (r.startLineNumber > startLineNumber) {
+                result.push(new LineRange(startLineNumber, r.startLineNumber));
+            }
+            startLineNumber = r.endLineNumberExclusive;
+        }
+        if (startLineNumber < range.endLineNumberExclusive) {
+            result.push(new LineRange(startLineNumber, range.endLineNumberExclusive));
+        }
+        return new LineRangeSet(result);
+    }
+    toString() {
+        return this._normalizedRanges.map(r => r.toString()).join(', ');
+    }
+    getIntersection(other) {
+        const result = [];
+        let i1 = 0;
+        let i2 = 0;
+        while (i1 < this._normalizedRanges.length && i2 < other._normalizedRanges.length) {
+            const r1 = this._normalizedRanges[i1];
+            const r2 = other._normalizedRanges[i2];
+            const i = r1.intersect(r2);
+            if (i && !i.isEmpty) {
+                result.push(i);
+            }
+            if (r1.endLineNumberExclusive < r2.endLineNumberExclusive) {
+                i1++;
+            }
+            else {
+                i2++;
+            }
+        }
+        return new LineRangeSet(result);
+    }
+    getWithDelta(value) {
+        return new LineRangeSet(this._normalizedRanges.map(r => r.delta(value)));
+    }
+}
 
 
 /***/ }),
@@ -10096,14 +10935,11 @@ class OffsetRange {
             sortedRanges.splice(i, j - i, new OffsetRange(start, end));
         }
     }
-    static tryCreate(start, endExclusive) {
-        if (start > endExclusive) {
-            return undefined;
-        }
-        return new OffsetRange(start, endExclusive);
-    }
     static ofLength(length) {
         return new OffsetRange(0, length);
+    }
+    static ofStartAndLength(start, length) {
+        return new OffsetRange(start, start + length);
     }
     constructor(start, endExclusive) {
         this.start = start;
@@ -10130,12 +10966,6 @@ class OffsetRange {
     toString() {
         return `[${this.start}, ${this.endExclusive})`;
     }
-    equals(other) {
-        return this.start === other.start && this.endExclusive === other.endExclusive;
-    }
-    containsRange(other) {
-        return this.start <= other.start && other.endExclusive <= this.endExclusive;
-    }
     contains(offset) {
         return this.start <= offset && offset < this.endExclusive;
     }
@@ -10159,6 +10989,17 @@ class OffsetRange {
             return new OffsetRange(start, end);
         }
         return undefined;
+    }
+    intersects(other) {
+        const start = Math.max(this.start, other.start);
+        const end = Math.min(this.endExclusive, other.endExclusive);
+        return start < end;
+    }
+    isBefore(other) {
+        return this.endExclusive <= other.start;
+    }
+    isAfter(other) {
+        return this.start >= other.endExclusive;
     }
     slice(arr) {
         return arr.slice(this.start, this.endExclusive);
@@ -10190,6 +11031,11 @@ class OffsetRange {
             return this.start + ((value - this.start) % this.length);
         }
         return value;
+    }
+    forEach(f) {
+        for (let i = this.start; i < this.endExclusive; i++) {
+            f(i);
+        }
     }
 }
 class OffsetRangeSet {
@@ -10392,6 +11238,12 @@ class Position {
         return (obj
             && (typeof obj.lineNumber === 'number')
             && (typeof obj.column === 'number'));
+    }
+    toJSON() {
+        return {
+            lineNumber: this.lineNumber,
+            column: this.column
+        };
     }
 }
 
@@ -11084,6 +11936,8 @@ _defaultConfig.unshift({
     timeBudget: 150
 });
 function getWordAtText(column, wordDefinition, text, textOffset, config) {
+    // Ensure the regex has the 'g' flag, otherwise this will loop forever
+    wordDefinition = ensureValidWordDefinition(wordDefinition);
     if (!config) {
         config = _base_common_iterator_js__WEBPACK_IMPORTED_MODULE_0__.Iterable.first(_defaultConfig);
     }
@@ -11153,889 +12007,10 @@ function _findRegexMatchEnclosingPosition(wordDefinition, text, pos, stopPos) {
 
 /***/ }),
 
-/***/ "./node_modules/monaco-editor/esm/vs/editor/common/diff/advancedLinesDiffComputer.js":
-/*!*******************************************************************************************!*\
-  !*** ./node_modules/monaco-editor/esm/vs/editor/common/diff/advancedLinesDiffComputer.js ***!
-  \*******************************************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   AdvancedLinesDiffComputer: () => (/* binding */ AdvancedLinesDiffComputer),
-/* harmony export */   LineSequence: () => (/* binding */ LineSequence),
-/* harmony export */   LinesSliceCharSequence: () => (/* binding */ LinesSliceCharSequence),
-/* harmony export */   findFirstMonotonous: () => (/* binding */ findFirstMonotonous),
-/* harmony export */   findLastMonotonous: () => (/* binding */ findLastMonotonous),
-/* harmony export */   getLineRangeMapping: () => (/* binding */ getLineRangeMapping),
-/* harmony export */   lineRangeMappingFromRangeMappings: () => (/* binding */ lineRangeMappingFromRangeMappings)
-/* harmony export */ });
-/* harmony import */ var _base_common_arrays_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../base/common/arrays.js */ "./node_modules/monaco-editor/esm/vs/base/common/arrays.js");
-/* harmony import */ var _base_common_assert_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../base/common/assert.js */ "./node_modules/monaco-editor/esm/vs/base/common/assert.js");
-/* harmony import */ var _base_common_collections_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../base/common/collections.js */ "./node_modules/monaco-editor/esm/vs/base/common/collections.js");
-/* harmony import */ var _base_common_errors_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../../base/common/errors.js */ "./node_modules/monaco-editor/esm/vs/base/common/errors.js");
-/* harmony import */ var _core_lineRange_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../core/lineRange.js */ "./node_modules/monaco-editor/esm/vs/editor/common/core/lineRange.js");
-/* harmony import */ var _core_offsetRange_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../core/offsetRange.js */ "./node_modules/monaco-editor/esm/vs/editor/common/core/offsetRange.js");
-/* harmony import */ var _core_position_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../core/position.js */ "./node_modules/monaco-editor/esm/vs/editor/common/core/position.js");
-/* harmony import */ var _core_range_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../core/range.js */ "./node_modules/monaco-editor/esm/vs/editor/common/core/range.js");
-/* harmony import */ var _algorithms_diffAlgorithm_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./algorithms/diffAlgorithm.js */ "./node_modules/monaco-editor/esm/vs/editor/common/diff/algorithms/diffAlgorithm.js");
-/* harmony import */ var _algorithms_dynamicProgrammingDiffing_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./algorithms/dynamicProgrammingDiffing.js */ "./node_modules/monaco-editor/esm/vs/editor/common/diff/algorithms/dynamicProgrammingDiffing.js");
-/* harmony import */ var _algorithms_joinSequenceDiffs_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./algorithms/joinSequenceDiffs.js */ "./node_modules/monaco-editor/esm/vs/editor/common/diff/algorithms/joinSequenceDiffs.js");
-/* harmony import */ var _algorithms_myersDiffAlgorithm_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./algorithms/myersDiffAlgorithm.js */ "./node_modules/monaco-editor/esm/vs/editor/common/diff/algorithms/myersDiffAlgorithm.js");
-/* harmony import */ var _linesDiffComputer_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./linesDiffComputer.js */ "./node_modules/monaco-editor/esm/vs/editor/common/diff/linesDiffComputer.js");
-/*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
- *  Licensed under the MIT License. See License.txt in the project root for license information.
- *--------------------------------------------------------------------------------------------*/
-
-
-
-
-
-
-
-
-
-
-
-
-
-class AdvancedLinesDiffComputer {
-    constructor() {
-        this.dynamicProgrammingDiffing = new _algorithms_dynamicProgrammingDiffing_js__WEBPACK_IMPORTED_MODULE_9__.DynamicProgrammingDiffing();
-        this.myersDiffingAlgorithm = new _algorithms_myersDiffAlgorithm_js__WEBPACK_IMPORTED_MODULE_11__.MyersDiffAlgorithm();
-    }
-    computeDiff(originalLines, modifiedLines, options) {
-        if (originalLines.length <= 1 && (0,_base_common_arrays_js__WEBPACK_IMPORTED_MODULE_0__.equals)(originalLines, modifiedLines, (a, b) => a === b)) {
-            return new _linesDiffComputer_js__WEBPACK_IMPORTED_MODULE_12__.LinesDiff([], [], false);
-        }
-        if (originalLines.length === 1 && originalLines[0].length === 0 || modifiedLines.length === 1 && modifiedLines[0].length === 0) {
-            return new _linesDiffComputer_js__WEBPACK_IMPORTED_MODULE_12__.LinesDiff([
-                new _linesDiffComputer_js__WEBPACK_IMPORTED_MODULE_12__.LineRangeMapping(new _core_lineRange_js__WEBPACK_IMPORTED_MODULE_4__.LineRange(1, originalLines.length + 1), new _core_lineRange_js__WEBPACK_IMPORTED_MODULE_4__.LineRange(1, modifiedLines.length + 1), [
-                    new _linesDiffComputer_js__WEBPACK_IMPORTED_MODULE_12__.RangeMapping(new _core_range_js__WEBPACK_IMPORTED_MODULE_7__.Range(1, 1, originalLines.length, originalLines[0].length + 1), new _core_range_js__WEBPACK_IMPORTED_MODULE_7__.Range(1, 1, modifiedLines.length, modifiedLines[0].length + 1))
-                ])
-            ], [], false);
-        }
-        const timeout = options.maxComputationTimeMs === 0 ? _algorithms_diffAlgorithm_js__WEBPACK_IMPORTED_MODULE_8__.InfiniteTimeout.instance : new _algorithms_diffAlgorithm_js__WEBPACK_IMPORTED_MODULE_8__.DateTimeout(options.maxComputationTimeMs);
-        const considerWhitespaceChanges = !options.ignoreTrimWhitespace;
-        const perfectHashes = new Map();
-        function getOrCreateHash(text) {
-            let hash = perfectHashes.get(text);
-            if (hash === undefined) {
-                hash = perfectHashes.size;
-                perfectHashes.set(text, hash);
-            }
-            return hash;
-        }
-        const srcDocLines = originalLines.map((l) => getOrCreateHash(l.trim()));
-        const tgtDocLines = modifiedLines.map((l) => getOrCreateHash(l.trim()));
-        const sequence1 = new LineSequence(srcDocLines, originalLines);
-        const sequence2 = new LineSequence(tgtDocLines, modifiedLines);
-        const lineAlignmentResult = (() => {
-            if (sequence1.length + sequence2.length < 1700) {
-                // Use the improved algorithm for small files
-                return this.dynamicProgrammingDiffing.compute(sequence1, sequence2, timeout, (offset1, offset2) => originalLines[offset1] === modifiedLines[offset2]
-                    ? modifiedLines[offset2].length === 0
-                        ? 0.1
-                        : 1 + Math.log(1 + modifiedLines[offset2].length)
-                    : 0.99);
-            }
-            return this.myersDiffingAlgorithm.compute(sequence1, sequence2);
-        })();
-        let lineAlignments = lineAlignmentResult.diffs;
-        let hitTimeout = lineAlignmentResult.hitTimeout;
-        lineAlignments = (0,_algorithms_joinSequenceDiffs_js__WEBPACK_IMPORTED_MODULE_10__.optimizeSequenceDiffs)(sequence1, sequence2, lineAlignments);
-        lineAlignments = (0,_algorithms_joinSequenceDiffs_js__WEBPACK_IMPORTED_MODULE_10__.removeRandomLineMatches)(sequence1, sequence2, lineAlignments);
-        const alignments = [];
-        const scanForWhitespaceChanges = (equalLinesCount) => {
-            if (!considerWhitespaceChanges) {
-                return;
-            }
-            for (let i = 0; i < equalLinesCount; i++) {
-                const seq1Offset = seq1LastStart + i;
-                const seq2Offset = seq2LastStart + i;
-                if (originalLines[seq1Offset] !== modifiedLines[seq2Offset]) {
-                    // This is because of whitespace changes, diff these lines
-                    const characterDiffs = this.refineDiff(originalLines, modifiedLines, new _algorithms_diffAlgorithm_js__WEBPACK_IMPORTED_MODULE_8__.SequenceDiff(new _core_offsetRange_js__WEBPACK_IMPORTED_MODULE_5__.OffsetRange(seq1Offset, seq1Offset + 1), new _core_offsetRange_js__WEBPACK_IMPORTED_MODULE_5__.OffsetRange(seq2Offset, seq2Offset + 1)), timeout, considerWhitespaceChanges);
-                    for (const a of characterDiffs.mappings) {
-                        alignments.push(a);
-                    }
-                    if (characterDiffs.hitTimeout) {
-                        hitTimeout = true;
-                    }
-                }
-            }
-        };
-        let seq1LastStart = 0;
-        let seq2LastStart = 0;
-        for (const diff of lineAlignments) {
-            (0,_base_common_assert_js__WEBPACK_IMPORTED_MODULE_1__.assertFn)(() => diff.seq1Range.start - seq1LastStart === diff.seq2Range.start - seq2LastStart);
-            const equalLinesCount = diff.seq1Range.start - seq1LastStart;
-            scanForWhitespaceChanges(equalLinesCount);
-            seq1LastStart = diff.seq1Range.endExclusive;
-            seq2LastStart = diff.seq2Range.endExclusive;
-            const characterDiffs = this.refineDiff(originalLines, modifiedLines, diff, timeout, considerWhitespaceChanges);
-            if (characterDiffs.hitTimeout) {
-                hitTimeout = true;
-            }
-            for (const a of characterDiffs.mappings) {
-                alignments.push(a);
-            }
-        }
-        scanForWhitespaceChanges(originalLines.length - seq1LastStart);
-        const changes = lineRangeMappingFromRangeMappings(alignments, originalLines, modifiedLines);
-        let moves = [];
-        if (options.computeMoves) {
-            moves = this.computeMoves(changes, originalLines, modifiedLines, srcDocLines, tgtDocLines, timeout, considerWhitespaceChanges);
-        }
-        // Make sure all ranges are valid
-        (0,_base_common_assert_js__WEBPACK_IMPORTED_MODULE_1__.assertFn)(() => {
-            function validatePosition(pos, lines) {
-                if (pos.lineNumber < 1 || pos.lineNumber > lines.length) {
-                    return false;
-                }
-                const line = lines[pos.lineNumber - 1];
-                if (pos.column < 1 || pos.column > line.length + 1) {
-                    return false;
-                }
-                return true;
-            }
-            function validateRange(range, lines) {
-                if (range.startLineNumber < 1 || range.startLineNumber > lines.length + 1) {
-                    return false;
-                }
-                if (range.endLineNumberExclusive < 1 || range.endLineNumberExclusive > lines.length + 1) {
-                    return false;
-                }
-                return true;
-            }
-            for (const c of changes) {
-                if (!c.innerChanges) {
-                    return false;
-                }
-                for (const ic of c.innerChanges) {
-                    const valid = validatePosition(ic.modifiedRange.getStartPosition(), modifiedLines) && validatePosition(ic.modifiedRange.getEndPosition(), modifiedLines) &&
-                        validatePosition(ic.originalRange.getStartPosition(), originalLines) && validatePosition(ic.originalRange.getEndPosition(), originalLines);
-                    if (!valid) {
-                        return false;
-                    }
-                }
-                if (!validateRange(c.modifiedRange, modifiedLines) || !validateRange(c.originalRange, originalLines)) {
-                    return false;
-                }
-            }
-            return true;
-        });
-        return new _linesDiffComputer_js__WEBPACK_IMPORTED_MODULE_12__.LinesDiff(changes, moves, hitTimeout);
-    }
-    computeMoves(changes, originalLines, modifiedLines, hashedOriginalLines, hashedModifiedLines, timeout, considerWhitespaceChanges) {
-        const moves = [];
-        const deletions = changes
-            .filter(c => c.modifiedRange.isEmpty && c.originalRange.length >= 3)
-            .map(d => new LineRangeFragment(d.originalRange, originalLines, d));
-        const insertions = new Set(changes
-            .filter(c => c.originalRange.isEmpty && c.modifiedRange.length >= 3)
-            .map(d => new LineRangeFragment(d.modifiedRange, modifiedLines, d)));
-        const excludedChanges = new Set();
-        for (const deletion of deletions) {
-            let highestSimilarity = -1;
-            let best;
-            for (const insertion of insertions) {
-                const similarity = deletion.computeSimilarity(insertion);
-                if (similarity > highestSimilarity) {
-                    highestSimilarity = similarity;
-                    best = insertion;
-                }
-            }
-            if (highestSimilarity > 0.90 && best) {
-                insertions.delete(best);
-                moves.push(new _linesDiffComputer_js__WEBPACK_IMPORTED_MODULE_12__.SimpleLineRangeMapping(deletion.range, best.range));
-                excludedChanges.add(deletion.source);
-                excludedChanges.add(best.source);
-            }
-            if (!timeout.isValid()) {
-                return [];
-            }
-        }
-        const original3LineHashes = new _base_common_collections_js__WEBPACK_IMPORTED_MODULE_2__.SetMap();
-        for (const change of changes) {
-            if (excludedChanges.has(change)) {
-                continue;
-            }
-            for (let i = change.originalRange.startLineNumber; i < change.originalRange.endLineNumberExclusive - 2; i++) {
-                const key = `${hashedOriginalLines[i - 1]}:${hashedOriginalLines[i + 1 - 1]}:${hashedOriginalLines[i + 2 - 1]}`;
-                original3LineHashes.add(key, { range: new _core_lineRange_js__WEBPACK_IMPORTED_MODULE_4__.LineRange(i, i + 3) });
-            }
-        }
-        const possibleMappings = [];
-        changes.sort((0,_base_common_arrays_js__WEBPACK_IMPORTED_MODULE_0__.compareBy)(c => c.modifiedRange.startLineNumber, _base_common_arrays_js__WEBPACK_IMPORTED_MODULE_0__.numberComparator));
-        for (const change of changes) {
-            if (excludedChanges.has(change)) {
-                continue;
-            }
-            let lastMappings = [];
-            for (let i = change.modifiedRange.startLineNumber; i < change.modifiedRange.endLineNumberExclusive - 2; i++) {
-                const key = `${hashedModifiedLines[i - 1]}:${hashedModifiedLines[i + 1 - 1]}:${hashedModifiedLines[i + 2 - 1]}`;
-                const currentModifiedRange = new _core_lineRange_js__WEBPACK_IMPORTED_MODULE_4__.LineRange(i, i + 3);
-                const nextMappings = [];
-                original3LineHashes.forEach(key, ({ range }) => {
-                    for (const lastMapping of lastMappings) {
-                        // does this match extend some last match?
-                        if (lastMapping.originalLineRange.endLineNumberExclusive + 1 === range.endLineNumberExclusive &&
-                            lastMapping.modifiedLineRange.endLineNumberExclusive + 1 === currentModifiedRange.endLineNumberExclusive) {
-                            lastMapping.originalLineRange = new _core_lineRange_js__WEBPACK_IMPORTED_MODULE_4__.LineRange(lastMapping.originalLineRange.startLineNumber, range.endLineNumberExclusive);
-                            lastMapping.modifiedLineRange = new _core_lineRange_js__WEBPACK_IMPORTED_MODULE_4__.LineRange(lastMapping.modifiedLineRange.startLineNumber, currentModifiedRange.endLineNumberExclusive);
-                            nextMappings.push(lastMapping);
-                            return;
-                        }
-                    }
-                    const mapping = {
-                        modifiedLineRange: currentModifiedRange,
-                        originalLineRange: range,
-                    };
-                    possibleMappings.push(mapping);
-                    nextMappings.push(mapping);
-                });
-                lastMappings = nextMappings;
-            }
-            if (!timeout.isValid()) {
-                return [];
-            }
-        }
-        possibleMappings.sort((0,_base_common_arrays_js__WEBPACK_IMPORTED_MODULE_0__.reverseOrder)((0,_base_common_arrays_js__WEBPACK_IMPORTED_MODULE_0__.compareBy)(m => m.modifiedLineRange.length, _base_common_arrays_js__WEBPACK_IMPORTED_MODULE_0__.numberComparator)));
-        const modifiedSet = new LineRangeSet();
-        const originalSet = new LineRangeSet();
-        for (const mapping of possibleMappings) {
-            const diffOrigToMod = mapping.modifiedLineRange.startLineNumber - mapping.originalLineRange.startLineNumber;
-            const modifiedSections = modifiedSet.subtractFrom(mapping.modifiedLineRange);
-            const originalTranslatedSections = originalSet.subtractFrom(mapping.originalLineRange).map(r => r.delta(diffOrigToMod));
-            const modifiedIntersectedSections = intersectRanges(modifiedSections, originalTranslatedSections);
-            for (const s of modifiedIntersectedSections) {
-                if (s.length < 3) {
-                    continue;
-                }
-                const modifiedLineRange = s;
-                const originalLineRange = s.delta(-diffOrigToMod);
-                moves.push(new _linesDiffComputer_js__WEBPACK_IMPORTED_MODULE_12__.SimpleLineRangeMapping(originalLineRange, modifiedLineRange));
-                modifiedSet.addRange(modifiedLineRange);
-                originalSet.addRange(originalLineRange);
-            }
-        }
-        // join moves
-        moves.sort((0,_base_common_arrays_js__WEBPACK_IMPORTED_MODULE_0__.compareBy)(m => m.original.startLineNumber, _base_common_arrays_js__WEBPACK_IMPORTED_MODULE_0__.numberComparator));
-        if (moves.length === 0) {
-            return [];
-        }
-        let joinedMoves = [moves[0]];
-        for (let i = 1; i < moves.length; i++) {
-            const last = joinedMoves[joinedMoves.length - 1];
-            const current = moves[i];
-            const originalDist = current.original.startLineNumber - last.original.endLineNumberExclusive;
-            const modifiedDist = current.modified.startLineNumber - last.modified.endLineNumberExclusive;
-            const currentMoveAfterLast = originalDist >= 0 && modifiedDist >= 0;
-            if (currentMoveAfterLast && originalDist + modifiedDist <= 2) {
-                joinedMoves[joinedMoves.length - 1] = last.join(current);
-                continue;
-            }
-            const originalText = current.original.toOffsetRange().slice(originalLines).map(l => l.trim()).join('\n');
-            if (originalText.length <= 10) {
-                // Ignore small moves
-                continue;
-            }
-            joinedMoves.push(current);
-        }
-        // Ignore non moves
-        const originalChanges = MonotonousFinder.createOfSorted(changes, c => c.originalRange.endLineNumberExclusive, _base_common_arrays_js__WEBPACK_IMPORTED_MODULE_0__.numberComparator);
-        joinedMoves = joinedMoves.filter(m => {
-            const diffBeforeOriginalMove = originalChanges.findLastItemBeforeOrEqual(m.original.startLineNumber)
-                || new _linesDiffComputer_js__WEBPACK_IMPORTED_MODULE_12__.LineRangeMapping(new _core_lineRange_js__WEBPACK_IMPORTED_MODULE_4__.LineRange(1, 1), new _core_lineRange_js__WEBPACK_IMPORTED_MODULE_4__.LineRange(1, 1), []);
-            const modifiedDistToPrevDiff = m.modified.startLineNumber - diffBeforeOriginalMove.modifiedRange.endLineNumberExclusive;
-            const originalDistToPrevDiff = m.original.startLineNumber - diffBeforeOriginalMove.originalRange.endLineNumberExclusive;
-            const differentDistances = modifiedDistToPrevDiff !== originalDistToPrevDiff;
-            return differentDistances;
-        });
-        const fullMoves = joinedMoves.map(m => {
-            const moveChanges = this.refineDiff(originalLines, modifiedLines, new _algorithms_diffAlgorithm_js__WEBPACK_IMPORTED_MODULE_8__.SequenceDiff(m.original.toOffsetRange(), m.modified.toOffsetRange()), timeout, considerWhitespaceChanges);
-            const mappings = lineRangeMappingFromRangeMappings(moveChanges.mappings, originalLines, modifiedLines, true);
-            return new _linesDiffComputer_js__WEBPACK_IMPORTED_MODULE_12__.MovedText(m, mappings);
-        });
-        return fullMoves;
-    }
-    refineDiff(originalLines, modifiedLines, diff, timeout, considerWhitespaceChanges) {
-        const slice1 = new LinesSliceCharSequence(originalLines, diff.seq1Range, considerWhitespaceChanges);
-        const slice2 = new LinesSliceCharSequence(modifiedLines, diff.seq2Range, considerWhitespaceChanges);
-        const diffResult = slice1.length + slice2.length < 500
-            ? this.dynamicProgrammingDiffing.compute(slice1, slice2, timeout)
-            : this.myersDiffingAlgorithm.compute(slice1, slice2, timeout);
-        let diffs = diffResult.diffs;
-        diffs = (0,_algorithms_joinSequenceDiffs_js__WEBPACK_IMPORTED_MODULE_10__.optimizeSequenceDiffs)(slice1, slice2, diffs);
-        diffs = coverFullWords(slice1, slice2, diffs);
-        diffs = (0,_algorithms_joinSequenceDiffs_js__WEBPACK_IMPORTED_MODULE_10__.smoothenSequenceDiffs)(slice1, slice2, diffs);
-        diffs = (0,_algorithms_joinSequenceDiffs_js__WEBPACK_IMPORTED_MODULE_10__.removeRandomMatches)(slice1, slice2, diffs);
-        const result = diffs.map((d) => new _linesDiffComputer_js__WEBPACK_IMPORTED_MODULE_12__.RangeMapping(slice1.translateRange(d.seq1Range), slice2.translateRange(d.seq2Range)));
-        // Assert: result applied on original should be the same as diff applied to original
-        return {
-            mappings: result,
-            hitTimeout: diffResult.hitTimeout,
-        };
-    }
-}
-class MonotonousFinder {
-    static createOfSorted(items, itemToDomain, domainComparator) {
-        return new MonotonousFinder(items, itemToDomain, domainComparator);
-    }
-    constructor(_items, _itemToDomain, _domainComparator) {
-        this._items = _items;
-        this._itemToDomain = _itemToDomain;
-        this._domainComparator = _domainComparator;
-        this._currentIdx = 0; // All values with index lower than this are smaller than or equal to _lastValue and vice versa.
-        this._lastValue = undefined; // Represents a smallest value.
-        this._hasLastValue = false;
-    }
-    /**
-     * Assumes the values are monotonously increasing.
-     */
-    findLastItemBeforeOrEqual(value) {
-        if (this._hasLastValue && _base_common_arrays_js__WEBPACK_IMPORTED_MODULE_0__.CompareResult.isLessThan(this._domainComparator(value, this._lastValue))) {
-            // Values must be monotonously increasing
-            throw new _base_common_errors_js__WEBPACK_IMPORTED_MODULE_3__.BugIndicatingError();
-        }
-        this._lastValue = value;
-        this._hasLastValue = true;
-        while (this._currentIdx < this._items.length
-            && _base_common_arrays_js__WEBPACK_IMPORTED_MODULE_0__.CompareResult.isLessThanOrEqual(this._domainComparator(this._itemToDomain(this._items[this._currentIdx]), value))) {
-            this._currentIdx++;
-        }
-        return this._currentIdx === 0 ? undefined : this._items[this._currentIdx - 1];
-    }
-}
-function intersectRanges(ranges1, ranges2) {
-    const result = [];
-    let i1 = 0;
-    let i2 = 0;
-    while (i1 < ranges1.length && i2 < ranges2.length) {
-        const r1 = ranges1[i1];
-        const r2 = ranges2[i2];
-        const i = r1.intersect(r2);
-        if (i && !i.isEmpty) {
-            result.push(i);
-        }
-        if (r1.endLineNumberExclusive < r2.endLineNumberExclusive) {
-            i1++;
-        }
-        else {
-            i2++;
-        }
-    }
-    return result;
-}
-// TODO make this fast
-class LineRangeSet {
-    constructor() {
-        this._normalizedRanges = [];
-    }
-    addRange(range) {
-        // Idea: Find joinRange such that:
-        // replaceRange = _normalizedRanges.replaceRange(joinRange, range.joinAll(joinRange.map(idx => this._normalizedRanges[idx])))
-        // idx of first element that touches range or that is after range
-        const joinRangeStartIdx = mapMinusOne(this._normalizedRanges.findIndex(r => r.endLineNumberExclusive >= range.startLineNumber), this._normalizedRanges.length);
-        // idx of element after { last element that touches range or that is before range }
-        const joinRangeEndIdxExclusive = (0,_base_common_arrays_js__WEBPACK_IMPORTED_MODULE_0__.findLastIndex)(this._normalizedRanges, r => r.startLineNumber <= range.endLineNumberExclusive) + 1;
-        if (joinRangeStartIdx === joinRangeEndIdxExclusive) {
-            // If there is no element that touches range, then joinRangeStartIdx === joinRangeEndIdxExclusive and that value is the index of the element after range
-            this._normalizedRanges.splice(joinRangeStartIdx, 0, range);
-        }
-        else if (joinRangeStartIdx === joinRangeEndIdxExclusive - 1) {
-            // Else, there is an element that touches range and in this case it is both the first and last element. Thus we can replace it
-            const joinRange = this._normalizedRanges[joinRangeStartIdx];
-            this._normalizedRanges[joinRangeStartIdx] = joinRange.join(range);
-        }
-        else {
-            // First and last element are different - we need to replace the entire range
-            const joinRange = this._normalizedRanges[joinRangeStartIdx].join(this._normalizedRanges[joinRangeEndIdxExclusive - 1]).join(range);
-            this._normalizedRanges.splice(joinRangeStartIdx, joinRangeEndIdxExclusive - joinRangeStartIdx, joinRange);
-        }
-    }
-    /**
-     * Subtracts all ranges in this set from `range` and returns the result.
-     */
-    subtractFrom(range) {
-        // idx of first element that touches range or that is after range
-        const joinRangeStartIdx = mapMinusOne(this._normalizedRanges.findIndex(r => r.endLineNumberExclusive >= range.startLineNumber), this._normalizedRanges.length);
-        // idx of element after { last element that touches range or that is before range }
-        const joinRangeEndIdxExclusive = (0,_base_common_arrays_js__WEBPACK_IMPORTED_MODULE_0__.findLastIndex)(this._normalizedRanges, r => r.startLineNumber <= range.endLineNumberExclusive) + 1;
-        if (joinRangeStartIdx === joinRangeEndIdxExclusive) {
-            return [range];
-        }
-        const result = [];
-        let startLineNumber = range.startLineNumber;
-        for (let i = joinRangeStartIdx; i < joinRangeEndIdxExclusive; i++) {
-            const r = this._normalizedRanges[i];
-            if (r.startLineNumber > startLineNumber) {
-                result.push(new _core_lineRange_js__WEBPACK_IMPORTED_MODULE_4__.LineRange(startLineNumber, r.startLineNumber));
-            }
-            startLineNumber = r.endLineNumberExclusive;
-        }
-        if (startLineNumber < range.endLineNumberExclusive) {
-            result.push(new _core_lineRange_js__WEBPACK_IMPORTED_MODULE_4__.LineRange(startLineNumber, range.endLineNumberExclusive));
-        }
-        return result;
-    }
-}
-function mapMinusOne(idx, mapTo) {
-    return idx === -1 ? mapTo : idx;
-}
-function coverFullWords(sequence1, sequence2, sequenceDiffs) {
-    const additional = [];
-    let lastModifiedWord = undefined;
-    function maybePushWordToAdditional() {
-        if (!lastModifiedWord) {
-            return;
-        }
-        const originalLength1 = lastModifiedWord.s1Range.length - lastModifiedWord.deleted;
-        const originalLength2 = lastModifiedWord.s2Range.length - lastModifiedWord.added;
-        if (originalLength1 !== originalLength2) {
-            // TODO figure out why this happens
-        }
-        if (Math.max(lastModifiedWord.deleted, lastModifiedWord.added) + (lastModifiedWord.count - 1) > originalLength1) {
-            additional.push(new _algorithms_diffAlgorithm_js__WEBPACK_IMPORTED_MODULE_8__.SequenceDiff(lastModifiedWord.s1Range, lastModifiedWord.s2Range));
-        }
-        lastModifiedWord = undefined;
-    }
-    for (const s of sequenceDiffs) {
-        function processWord(s1Range, s2Range) {
-            var _a, _b, _c, _d;
-            if (!lastModifiedWord || !lastModifiedWord.s1Range.containsRange(s1Range) || !lastModifiedWord.s2Range.containsRange(s2Range)) {
-                if (lastModifiedWord && !(lastModifiedWord.s1Range.endExclusive < s1Range.start && lastModifiedWord.s2Range.endExclusive < s2Range.start)) {
-                    const s1Added = _core_offsetRange_js__WEBPACK_IMPORTED_MODULE_5__.OffsetRange.tryCreate(lastModifiedWord.s1Range.endExclusive, s1Range.start);
-                    const s2Added = _core_offsetRange_js__WEBPACK_IMPORTED_MODULE_5__.OffsetRange.tryCreate(lastModifiedWord.s2Range.endExclusive, s2Range.start);
-                    lastModifiedWord.deleted += (_a = s1Added === null || s1Added === void 0 ? void 0 : s1Added.length) !== null && _a !== void 0 ? _a : 0;
-                    lastModifiedWord.added += (_b = s2Added === null || s2Added === void 0 ? void 0 : s2Added.length) !== null && _b !== void 0 ? _b : 0;
-                    lastModifiedWord.s1Range = lastModifiedWord.s1Range.join(s1Range);
-                    lastModifiedWord.s2Range = lastModifiedWord.s2Range.join(s2Range);
-                }
-                else {
-                    maybePushWordToAdditional();
-                    lastModifiedWord = { added: 0, deleted: 0, count: 0, s1Range: s1Range, s2Range: s2Range };
-                }
-            }
-            const changedS1 = s1Range.intersect(s.seq1Range);
-            const changedS2 = s2Range.intersect(s.seq2Range);
-            lastModifiedWord.count++;
-            lastModifiedWord.deleted += (_c = changedS1 === null || changedS1 === void 0 ? void 0 : changedS1.length) !== null && _c !== void 0 ? _c : 0;
-            lastModifiedWord.added += (_d = changedS2 === null || changedS2 === void 0 ? void 0 : changedS2.length) !== null && _d !== void 0 ? _d : 0;
-        }
-        const w1Before = sequence1.findWordContaining(s.seq1Range.start - 1);
-        const w2Before = sequence2.findWordContaining(s.seq2Range.start - 1);
-        const w1After = sequence1.findWordContaining(s.seq1Range.endExclusive);
-        const w2After = sequence2.findWordContaining(s.seq2Range.endExclusive);
-        if (w1Before && w1After && w2Before && w2After && w1Before.equals(w1After) && w2Before.equals(w2After)) {
-            processWord(w1Before, w2Before);
-        }
-        else {
-            if (w1Before && w2Before) {
-                processWord(w1Before, w2Before);
-            }
-            if (w1After && w2After) {
-                processWord(w1After, w2After);
-            }
-        }
-    }
-    maybePushWordToAdditional();
-    const merged = mergeSequenceDiffs(sequenceDiffs, additional);
-    return merged;
-}
-function mergeSequenceDiffs(sequenceDiffs1, sequenceDiffs2) {
-    const result = [];
-    while (sequenceDiffs1.length > 0 || sequenceDiffs2.length > 0) {
-        const sd1 = sequenceDiffs1[0];
-        const sd2 = sequenceDiffs2[0];
-        let next;
-        if (sd1 && (!sd2 || sd1.seq1Range.start < sd2.seq1Range.start)) {
-            next = sequenceDiffs1.shift();
-        }
-        else {
-            next = sequenceDiffs2.shift();
-        }
-        if (result.length > 0 && result[result.length - 1].seq1Range.endExclusive >= next.seq1Range.start) {
-            result[result.length - 1] = result[result.length - 1].join(next);
-        }
-        else {
-            result.push(next);
-        }
-    }
-    return result;
-}
-function lineRangeMappingFromRangeMappings(alignments, originalLines, modifiedLines, dontAssertStartLine = false) {
-    const changes = [];
-    for (const g of group(alignments.map(a => getLineRangeMapping(a, originalLines, modifiedLines)), (a1, a2) => a1.originalRange.overlapOrTouch(a2.originalRange)
-        || a1.modifiedRange.overlapOrTouch(a2.modifiedRange))) {
-        const first = g[0];
-        const last = g[g.length - 1];
-        changes.push(new _linesDiffComputer_js__WEBPACK_IMPORTED_MODULE_12__.LineRangeMapping(first.originalRange.join(last.originalRange), first.modifiedRange.join(last.modifiedRange), g.map(a => a.innerChanges[0])));
-    }
-    (0,_base_common_assert_js__WEBPACK_IMPORTED_MODULE_1__.assertFn)(() => {
-        if (!dontAssertStartLine) {
-            if (changes.length > 0 && changes[0].originalRange.startLineNumber !== changes[0].modifiedRange.startLineNumber) {
-                return false;
-            }
-        }
-        return (0,_base_common_assert_js__WEBPACK_IMPORTED_MODULE_1__.checkAdjacentItems)(changes, (m1, m2) => m2.originalRange.startLineNumber - m1.originalRange.endLineNumberExclusive === m2.modifiedRange.startLineNumber - m1.modifiedRange.endLineNumberExclusive &&
-            // There has to be an unchanged line in between (otherwise both diffs should have been joined)
-            m1.originalRange.endLineNumberExclusive < m2.originalRange.startLineNumber &&
-            m1.modifiedRange.endLineNumberExclusive < m2.modifiedRange.startLineNumber);
-    });
-    return changes;
-}
-function getLineRangeMapping(rangeMapping, originalLines, modifiedLines) {
-    let lineStartDelta = 0;
-    let lineEndDelta = 0;
-    // rangeMapping describes the edit that replaces `rangeMapping.originalRange` with `newText := getText(modifiedLines, rangeMapping.modifiedRange)`.
-    // original: ]xxx \n <- this line is not modified
-    // modified: ]xx  \n
-    if (rangeMapping.modifiedRange.endColumn === 1 && rangeMapping.originalRange.endColumn === 1
-        && rangeMapping.originalRange.startLineNumber + lineStartDelta <= rangeMapping.originalRange.endLineNumber
-        && rangeMapping.modifiedRange.startLineNumber + lineStartDelta <= rangeMapping.modifiedRange.endLineNumber) {
-        // We can only do this if the range is not empty yet
-        lineEndDelta = -1;
-    }
-    // original: xxx[ \n <- this line is not modified
-    // modified: xxx[ \n
-    if (rangeMapping.modifiedRange.startColumn - 1 >= modifiedLines[rangeMapping.modifiedRange.startLineNumber - 1].length
-        && rangeMapping.originalRange.startColumn - 1 >= originalLines[rangeMapping.originalRange.startLineNumber - 1].length
-        && rangeMapping.originalRange.startLineNumber <= rangeMapping.originalRange.endLineNumber + lineEndDelta
-        && rangeMapping.modifiedRange.startLineNumber <= rangeMapping.modifiedRange.endLineNumber + lineEndDelta) {
-        // We can only do this if the range is not empty yet
-        lineStartDelta = 1;
-    }
-    const originalLineRange = new _core_lineRange_js__WEBPACK_IMPORTED_MODULE_4__.LineRange(rangeMapping.originalRange.startLineNumber + lineStartDelta, rangeMapping.originalRange.endLineNumber + 1 + lineEndDelta);
-    const modifiedLineRange = new _core_lineRange_js__WEBPACK_IMPORTED_MODULE_4__.LineRange(rangeMapping.modifiedRange.startLineNumber + lineStartDelta, rangeMapping.modifiedRange.endLineNumber + 1 + lineEndDelta);
-    return new _linesDiffComputer_js__WEBPACK_IMPORTED_MODULE_12__.LineRangeMapping(originalLineRange, modifiedLineRange, [rangeMapping]);
-}
-function* group(items, shouldBeGrouped) {
-    let currentGroup;
-    let last;
-    for (const item of items) {
-        if (last !== undefined && shouldBeGrouped(last, item)) {
-            currentGroup.push(item);
-        }
-        else {
-            if (currentGroup) {
-                yield currentGroup;
-            }
-            currentGroup = [item];
-        }
-        last = item;
-    }
-    if (currentGroup) {
-        yield currentGroup;
-    }
-}
-class LineSequence {
-    constructor(trimmedHash, lines) {
-        this.trimmedHash = trimmedHash;
-        this.lines = lines;
-    }
-    getElement(offset) {
-        return this.trimmedHash[offset];
-    }
-    get length() {
-        return this.trimmedHash.length;
-    }
-    getBoundaryScore(length) {
-        const indentationBefore = length === 0 ? 0 : getIndentation(this.lines[length - 1]);
-        const indentationAfter = length === this.lines.length ? 0 : getIndentation(this.lines[length]);
-        return 1000 - (indentationBefore + indentationAfter);
-    }
-    getText(range) {
-        return this.lines.slice(range.start, range.endExclusive).join('\n');
-    }
-    isStronglyEqual(offset1, offset2) {
-        return this.lines[offset1] === this.lines[offset2];
-    }
-}
-function getIndentation(str) {
-    let i = 0;
-    while (i < str.length && (str.charCodeAt(i) === 32 /* CharCode.Space */ || str.charCodeAt(i) === 9 /* CharCode.Tab */)) {
-        i++;
-    }
-    return i;
-}
-class LinesSliceCharSequence {
-    constructor(lines, lineRange, considerWhitespaceChanges) {
-        // This slice has to have lineRange.length many \n! (otherwise diffing against an empty slice will be problematic)
-        // (Unless it covers the entire document, in that case the other slice also has to cover the entire document ands it's okay)
-        this.lines = lines;
-        this.considerWhitespaceChanges = considerWhitespaceChanges;
-        this.elements = [];
-        this.firstCharOffsetByLineMinusOne = [];
-        // To account for trimming
-        this.additionalOffsetByLine = [];
-        // If the slice covers the end, but does not start at the beginning, we include just the \n of the previous line.
-        let trimFirstLineFully = false;
-        if (lineRange.start > 0 && lineRange.endExclusive >= lines.length) {
-            lineRange = new _core_offsetRange_js__WEBPACK_IMPORTED_MODULE_5__.OffsetRange(lineRange.start - 1, lineRange.endExclusive);
-            trimFirstLineFully = true;
-        }
-        this.lineRange = lineRange;
-        for (let i = this.lineRange.start; i < this.lineRange.endExclusive; i++) {
-            let line = lines[i];
-            let offset = 0;
-            if (trimFirstLineFully) {
-                offset = line.length;
-                line = '';
-                trimFirstLineFully = false;
-            }
-            else if (!considerWhitespaceChanges) {
-                const trimmedStartLine = line.trimStart();
-                offset = line.length - trimmedStartLine.length;
-                line = trimmedStartLine.trimEnd();
-            }
-            this.additionalOffsetByLine.push(offset);
-            for (let i = 0; i < line.length; i++) {
-                this.elements.push(line.charCodeAt(i));
-            }
-            // Don't add an \n that does not exist in the document.
-            if (i < lines.length - 1) {
-                this.elements.push('\n'.charCodeAt(0));
-                this.firstCharOffsetByLineMinusOne[i - this.lineRange.start] = this.elements.length;
-            }
-        }
-        // To account for the last line
-        this.additionalOffsetByLine.push(0);
-    }
-    toString() {
-        return `Slice: "${this.text}"`;
-    }
-    get text() {
-        return this.getText(new _core_offsetRange_js__WEBPACK_IMPORTED_MODULE_5__.OffsetRange(0, this.length));
-    }
-    getText(range) {
-        return this.elements.slice(range.start, range.endExclusive).map(e => String.fromCharCode(e)).join('');
-    }
-    getElement(offset) {
-        return this.elements[offset];
-    }
-    get length() {
-        return this.elements.length;
-    }
-    getBoundaryScore(length) {
-        //   a   b   c   ,           d   e   f
-        // 11  0   0   12  15  6   13  0   0   11
-        const prevCategory = getCategory(length > 0 ? this.elements[length - 1] : -1);
-        const nextCategory = getCategory(length < this.elements.length ? this.elements[length] : -1);
-        if (prevCategory === 6 /* CharBoundaryCategory.LineBreakCR */ && nextCategory === 7 /* CharBoundaryCategory.LineBreakLF */) {
-            // don't break between \r and \n
-            return 0;
-        }
-        let score = 0;
-        if (prevCategory !== nextCategory) {
-            score += 10;
-            if (nextCategory === 1 /* CharBoundaryCategory.WordUpper */) {
-                score += 1;
-            }
-        }
-        score += getCategoryBoundaryScore(prevCategory);
-        score += getCategoryBoundaryScore(nextCategory);
-        return score;
-    }
-    translateOffset(offset) {
-        // find smallest i, so that lineBreakOffsets[i] <= offset using binary search
-        if (this.lineRange.isEmpty) {
-            return new _core_position_js__WEBPACK_IMPORTED_MODULE_6__.Position(this.lineRange.start + 1, 1);
-        }
-        let i = 0;
-        let j = this.firstCharOffsetByLineMinusOne.length;
-        while (i < j) {
-            const k = Math.floor((i + j) / 2);
-            if (this.firstCharOffsetByLineMinusOne[k] > offset) {
-                j = k;
-            }
-            else {
-                i = k + 1;
-            }
-        }
-        const offsetOfFirstCharInLine = i === 0 ? 0 : this.firstCharOffsetByLineMinusOne[i - 1];
-        return new _core_position_js__WEBPACK_IMPORTED_MODULE_6__.Position(this.lineRange.start + i + 1, offset - offsetOfFirstCharInLine + 1 + this.additionalOffsetByLine[i]);
-    }
-    translateRange(range) {
-        return _core_range_js__WEBPACK_IMPORTED_MODULE_7__.Range.fromPositions(this.translateOffset(range.start), this.translateOffset(range.endExclusive));
-    }
-    /**
-     * Finds the word that contains the character at the given offset
-     */
-    findWordContaining(offset) {
-        if (offset < 0 || offset >= this.elements.length) {
-            return undefined;
-        }
-        if (!isWordChar(this.elements[offset])) {
-            return undefined;
-        }
-        // find start
-        let start = offset;
-        while (start > 0 && isWordChar(this.elements[start - 1])) {
-            start--;
-        }
-        // find end
-        let end = offset;
-        while (end < this.elements.length && isWordChar(this.elements[end])) {
-            end++;
-        }
-        return new _core_offsetRange_js__WEBPACK_IMPORTED_MODULE_5__.OffsetRange(start, end);
-    }
-    countLinesIn(range) {
-        return this.translateOffset(range.endExclusive).lineNumber - this.translateOffset(range.start).lineNumber;
-    }
-    isStronglyEqual(offset1, offset2) {
-        return this.elements[offset1] === this.elements[offset2];
-    }
-    extendToFullLines(range) {
-        var _a, _b;
-        const start = (_a = findLastMonotonous(this.firstCharOffsetByLineMinusOne, x => x <= range.start)) !== null && _a !== void 0 ? _a : 0;
-        const end = (_b = findFirstMonotonous(this.firstCharOffsetByLineMinusOne, x => range.endExclusive <= x)) !== null && _b !== void 0 ? _b : this.elements.length;
-        return new _core_offsetRange_js__WEBPACK_IMPORTED_MODULE_5__.OffsetRange(start, end);
-    }
-}
-/**
- * `arr.map(predicate)` must be like `[true, ..., true, false, ..., false]`!
- *
- * @returns -1 if predicate is false for all items
- */
-function findLastIdxMonotonous(arr, predicate) {
-    let i = 0;
-    let j = arr.length;
-    while (i < j) {
-        const k = Math.floor((i + j) / 2);
-        if (predicate(arr[k])) {
-            i = k + 1;
-        }
-        else {
-            j = k;
-        }
-    }
-    return i - 1;
-}
-function findLastMonotonous(arr, predicate) {
-    const idx = findLastIdxMonotonous(arr, predicate);
-    return idx === -1 ? undefined : arr[idx];
-}
-/**
- * `arr.map(predicate)` must be like `[false, ..., false, true, ..., true]`!
- *
- * @returns arr.length if predicate is false for all items
- */
-function findFirstIdxMonotonous(arr, predicate) {
-    let i = 0;
-    let j = arr.length;
-    while (i < j) {
-        const k = Math.floor((i + j) / 2);
-        if (predicate(arr[k])) {
-            j = k;
-        }
-        else {
-            i = k + 1;
-        }
-    }
-    return i;
-}
-function findFirstMonotonous(arr, predicate) {
-    const idx = findFirstIdxMonotonous(arr, predicate);
-    return idx === arr.length ? undefined : arr[idx];
-}
-function isWordChar(charCode) {
-    return charCode >= 97 /* CharCode.a */ && charCode <= 122 /* CharCode.z */
-        || charCode >= 65 /* CharCode.A */ && charCode <= 90 /* CharCode.Z */
-        || charCode >= 48 /* CharCode.Digit0 */ && charCode <= 57 /* CharCode.Digit9 */;
-}
-const score = {
-    [0 /* CharBoundaryCategory.WordLower */]: 0,
-    [1 /* CharBoundaryCategory.WordUpper */]: 0,
-    [2 /* CharBoundaryCategory.WordNumber */]: 0,
-    [3 /* CharBoundaryCategory.End */]: 10,
-    [4 /* CharBoundaryCategory.Other */]: 2,
-    [5 /* CharBoundaryCategory.Space */]: 3,
-    [6 /* CharBoundaryCategory.LineBreakCR */]: 10,
-    [7 /* CharBoundaryCategory.LineBreakLF */]: 10,
-};
-function getCategoryBoundaryScore(category) {
-    return score[category];
-}
-function getCategory(charCode) {
-    if (charCode === 10 /* CharCode.LineFeed */) {
-        return 7 /* CharBoundaryCategory.LineBreakLF */;
-    }
-    else if (charCode === 13 /* CharCode.CarriageReturn */) {
-        return 6 /* CharBoundaryCategory.LineBreakCR */;
-    }
-    else if (isSpace(charCode)) {
-        return 5 /* CharBoundaryCategory.Space */;
-    }
-    else if (charCode >= 97 /* CharCode.a */ && charCode <= 122 /* CharCode.z */) {
-        return 0 /* CharBoundaryCategory.WordLower */;
-    }
-    else if (charCode >= 65 /* CharCode.A */ && charCode <= 90 /* CharCode.Z */) {
-        return 1 /* CharBoundaryCategory.WordUpper */;
-    }
-    else if (charCode >= 48 /* CharCode.Digit0 */ && charCode <= 57 /* CharCode.Digit9 */) {
-        return 2 /* CharBoundaryCategory.WordNumber */;
-    }
-    else if (charCode === -1) {
-        return 3 /* CharBoundaryCategory.End */;
-    }
-    else {
-        return 4 /* CharBoundaryCategory.Other */;
-    }
-}
-function isSpace(charCode) {
-    return charCode === 32 /* CharCode.Space */ || charCode === 9 /* CharCode.Tab */;
-}
-const chrKeys = new Map();
-function getKey(chr) {
-    let key = chrKeys.get(chr);
-    if (key === undefined) {
-        key = chrKeys.size;
-        chrKeys.set(chr, key);
-    }
-    return key;
-}
-class LineRangeFragment {
-    constructor(range, lines, source) {
-        this.range = range;
-        this.lines = lines;
-        this.source = source;
-        this.histogram = [];
-        let counter = 0;
-        for (let i = range.startLineNumber - 1; i < range.endLineNumberExclusive - 1; i++) {
-            const line = lines[i];
-            for (let j = 0; j < line.length; j++) {
-                counter++;
-                const chr = line[j];
-                const key = getKey(chr);
-                this.histogram[key] = (this.histogram[key] || 0) + 1;
-            }
-            counter++;
-            const key = getKey('\n');
-            this.histogram[key] = (this.histogram[key] || 0) + 1;
-        }
-        this.totalCount = counter;
-    }
-    computeSimilarity(other) {
-        var _a, _b;
-        let sumDifferences = 0;
-        const maxLength = Math.max(this.histogram.length, other.histogram.length);
-        for (let i = 0; i < maxLength; i++) {
-            sumDifferences += Math.abs(((_a = this.histogram[i]) !== null && _a !== void 0 ? _a : 0) - ((_b = other.histogram[i]) !== null && _b !== void 0 ? _b : 0));
-        }
-        return 1 - (sumDifferences / (this.totalCount + other.totalCount));
-    }
-}
-
-
-/***/ }),
-
-/***/ "./node_modules/monaco-editor/esm/vs/editor/common/diff/algorithms/diffAlgorithm.js":
-/*!******************************************************************************************!*\
-  !*** ./node_modules/monaco-editor/esm/vs/editor/common/diff/algorithms/diffAlgorithm.js ***!
-  \******************************************************************************************/
+/***/ "./node_modules/monaco-editor/esm/vs/editor/common/diff/defaultLinesDiffComputer/algorithms/diffAlgorithm.js":
+/*!*******************************************************************************************************************!*\
+  !*** ./node_modules/monaco-editor/esm/vs/editor/common/diff/defaultLinesDiffComputer/algorithms/diffAlgorithm.js ***!
+  \*******************************************************************************************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
@@ -12043,22 +12018,25 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   DateTimeout: () => (/* binding */ DateTimeout),
 /* harmony export */   DiffAlgorithmResult: () => (/* binding */ DiffAlgorithmResult),
 /* harmony export */   InfiniteTimeout: () => (/* binding */ InfiniteTimeout),
+/* harmony export */   OffsetPair: () => (/* binding */ OffsetPair),
 /* harmony export */   SequenceDiff: () => (/* binding */ SequenceDiff)
 /* harmony export */ });
-/* harmony import */ var _base_common_errors_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../../base/common/errors.js */ "./node_modules/monaco-editor/esm/vs/base/common/errors.js");
-/* harmony import */ var _core_offsetRange_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../core/offsetRange.js */ "./node_modules/monaco-editor/esm/vs/editor/common/core/offsetRange.js");
+/* harmony import */ var _base_common_arrays_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../../../base/common/arrays.js */ "./node_modules/monaco-editor/esm/vs/base/common/arrays.js");
+/* harmony import */ var _base_common_errors_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../../../base/common/errors.js */ "./node_modules/monaco-editor/esm/vs/base/common/errors.js");
+/* harmony import */ var _core_offsetRange_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../core/offsetRange.js */ "./node_modules/monaco-editor/esm/vs/editor/common/core/offsetRange.js");
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
 
+
 class DiffAlgorithmResult {
     static trivial(seq1, seq2) {
-        return new DiffAlgorithmResult([new SequenceDiff(new _core_offsetRange_js__WEBPACK_IMPORTED_MODULE_1__.OffsetRange(0, seq1.length), new _core_offsetRange_js__WEBPACK_IMPORTED_MODULE_1__.OffsetRange(0, seq2.length))], false);
+        return new DiffAlgorithmResult([new SequenceDiff(_core_offsetRange_js__WEBPACK_IMPORTED_MODULE_2__.OffsetRange.ofLength(seq1.length), _core_offsetRange_js__WEBPACK_IMPORTED_MODULE_2__.OffsetRange.ofLength(seq2.length))], false);
     }
     static trivialTimedOut(seq1, seq2) {
-        return new DiffAlgorithmResult([new SequenceDiff(new _core_offsetRange_js__WEBPACK_IMPORTED_MODULE_1__.OffsetRange(0, seq1.length), new _core_offsetRange_js__WEBPACK_IMPORTED_MODULE_1__.OffsetRange(0, seq2.length))], true);
+        return new DiffAlgorithmResult([new SequenceDiff(_core_offsetRange_js__WEBPACK_IMPORTED_MODULE_2__.OffsetRange.ofLength(seq1.length), _core_offsetRange_js__WEBPACK_IMPORTED_MODULE_2__.OffsetRange.ofLength(seq2.length))], true);
     }
     constructor(diffs, 
     /**
@@ -12071,11 +12049,21 @@ class DiffAlgorithmResult {
     }
 }
 class SequenceDiff {
+    static invert(sequenceDiffs, doc1Length) {
+        const result = [];
+        (0,_base_common_arrays_js__WEBPACK_IMPORTED_MODULE_0__.forEachAdjacent)(sequenceDiffs, (a, b) => {
+            result.push(SequenceDiff.fromOffsetPairs(a ? a.getEndExclusives() : OffsetPair.zero, b ? b.getStarts() : new OffsetPair(doc1Length, (a ? a.seq2Range.endExclusive - a.seq1Range.endExclusive : 0) + doc1Length)));
+        });
+        return result;
+    }
+    static fromOffsetPairs(start, endExclusive) {
+        return new SequenceDiff(new _core_offsetRange_js__WEBPACK_IMPORTED_MODULE_2__.OffsetRange(start.offset1, endExclusive.offset1), new _core_offsetRange_js__WEBPACK_IMPORTED_MODULE_2__.OffsetRange(start.offset2, endExclusive.offset2));
+    }
     constructor(seq1Range, seq2Range) {
         this.seq1Range = seq1Range;
         this.seq2Range = seq2Range;
     }
-    reverse() {
+    swap() {
         return new SequenceDiff(this.seq2Range, this.seq1Range);
     }
     toString() {
@@ -12090,7 +12078,53 @@ class SequenceDiff {
         }
         return new SequenceDiff(this.seq1Range.delta(offset), this.seq2Range.delta(offset));
     }
+    deltaStart(offset) {
+        if (offset === 0) {
+            return this;
+        }
+        return new SequenceDiff(this.seq1Range.deltaStart(offset), this.seq2Range.deltaStart(offset));
+    }
+    deltaEnd(offset) {
+        if (offset === 0) {
+            return this;
+        }
+        return new SequenceDiff(this.seq1Range.deltaEnd(offset), this.seq2Range.deltaEnd(offset));
+    }
+    intersect(other) {
+        const i1 = this.seq1Range.intersect(other.seq1Range);
+        const i2 = this.seq2Range.intersect(other.seq2Range);
+        if (!i1 || !i2) {
+            return undefined;
+        }
+        return new SequenceDiff(i1, i2);
+    }
+    getStarts() {
+        return new OffsetPair(this.seq1Range.start, this.seq2Range.start);
+    }
+    getEndExclusives() {
+        return new OffsetPair(this.seq1Range.endExclusive, this.seq2Range.endExclusive);
+    }
 }
+class OffsetPair {
+    constructor(offset1, offset2) {
+        this.offset1 = offset1;
+        this.offset2 = offset2;
+    }
+    toString() {
+        return `${this.offset1} <-> ${this.offset2}`;
+    }
+    delta(offset) {
+        if (offset === 0) {
+            return this;
+        }
+        return new OffsetPair(this.offset1 + offset, this.offset2 + offset);
+    }
+    equals(other) {
+        return this.offset1 === other.offset1 && this.offset2 === other.offset2;
+    }
+}
+OffsetPair.zero = new OffsetPair(0, 0);
+OffsetPair.max = new OffsetPair(Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER);
 class InfiniteTimeout {
     isValid() {
         return true;
@@ -12103,7 +12137,7 @@ class DateTimeout {
         this.startTime = Date.now();
         this.valid = true;
         if (timeout <= 0) {
-            throw new _base_common_errors_js__WEBPACK_IMPORTED_MODULE_0__.BugIndicatingError('timeout must be positive');
+            throw new _base_common_errors_js__WEBPACK_IMPORTED_MODULE_1__.BugIndicatingError('timeout must be positive');
         }
     }
     // Recommendation: Set a log-point `{this.disable()}` in the body
@@ -12121,19 +12155,19 @@ class DateTimeout {
 
 /***/ }),
 
-/***/ "./node_modules/monaco-editor/esm/vs/editor/common/diff/algorithms/dynamicProgrammingDiffing.js":
-/*!******************************************************************************************************!*\
-  !*** ./node_modules/monaco-editor/esm/vs/editor/common/diff/algorithms/dynamicProgrammingDiffing.js ***!
-  \******************************************************************************************************/
+/***/ "./node_modules/monaco-editor/esm/vs/editor/common/diff/defaultLinesDiffComputer/algorithms/dynamicProgrammingDiffing.js":
+/*!*******************************************************************************************************************************!*\
+  !*** ./node_modules/monaco-editor/esm/vs/editor/common/diff/defaultLinesDiffComputer/algorithms/dynamicProgrammingDiffing.js ***!
+  \*******************************************************************************************************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   DynamicProgrammingDiffing: () => (/* binding */ DynamicProgrammingDiffing)
 /* harmony export */ });
-/* harmony import */ var _core_offsetRange_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../core/offsetRange.js */ "./node_modules/monaco-editor/esm/vs/editor/common/core/offsetRange.js");
-/* harmony import */ var _diffAlgorithm_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./diffAlgorithm.js */ "./node_modules/monaco-editor/esm/vs/editor/common/diff/algorithms/diffAlgorithm.js");
-/* harmony import */ var _utils_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./utils.js */ "./node_modules/monaco-editor/esm/vs/editor/common/diff/algorithms/utils.js");
+/* harmony import */ var _core_offsetRange_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../core/offsetRange.js */ "./node_modules/monaco-editor/esm/vs/editor/common/core/offsetRange.js");
+/* harmony import */ var _diffAlgorithm_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./diffAlgorithm.js */ "./node_modules/monaco-editor/esm/vs/editor/common/diff/defaultLinesDiffComputer/algorithms/diffAlgorithm.js");
+/* harmony import */ var _utils_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../utils.js */ "./node_modules/monaco-editor/esm/vs/editor/common/diff/defaultLinesDiffComputer/utils.js");
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
@@ -12236,320 +12270,18 @@ class DynamicProgrammingDiffing {
 
 /***/ }),
 
-/***/ "./node_modules/monaco-editor/esm/vs/editor/common/diff/algorithms/joinSequenceDiffs.js":
-/*!**********************************************************************************************!*\
-  !*** ./node_modules/monaco-editor/esm/vs/editor/common/diff/algorithms/joinSequenceDiffs.js ***!
-  \**********************************************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   joinSequenceDiffs: () => (/* binding */ joinSequenceDiffs),
-/* harmony export */   optimizeSequenceDiffs: () => (/* binding */ optimizeSequenceDiffs),
-/* harmony export */   removeRandomLineMatches: () => (/* binding */ removeRandomLineMatches),
-/* harmony export */   removeRandomMatches: () => (/* binding */ removeRandomMatches),
-/* harmony export */   shiftSequenceDiffs: () => (/* binding */ shiftSequenceDiffs),
-/* harmony export */   smoothenSequenceDiffs: () => (/* binding */ smoothenSequenceDiffs)
-/* harmony export */ });
-/* harmony import */ var _core_offsetRange_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../core/offsetRange.js */ "./node_modules/monaco-editor/esm/vs/editor/common/core/offsetRange.js");
-/* harmony import */ var _diffAlgorithm_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./diffAlgorithm.js */ "./node_modules/monaco-editor/esm/vs/editor/common/diff/algorithms/diffAlgorithm.js");
-/*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
- *  Licensed under the MIT License. See License.txt in the project root for license information.
- *--------------------------------------------------------------------------------------------*/
-
-
-function optimizeSequenceDiffs(sequence1, sequence2, sequenceDiffs) {
-    let result = sequenceDiffs;
-    result = joinSequenceDiffs(sequence1, sequence2, result);
-    result = shiftSequenceDiffs(sequence1, sequence2, result);
-    return result;
-}
-function smoothenSequenceDiffs(sequence1, sequence2, sequenceDiffs) {
-    const result = [];
-    for (const s of sequenceDiffs) {
-        const last = result[result.length - 1];
-        if (!last) {
-            result.push(s);
-            continue;
-        }
-        if (s.seq1Range.start - last.seq1Range.endExclusive <= 2 || s.seq2Range.start - last.seq2Range.endExclusive <= 2) {
-            result[result.length - 1] = new _diffAlgorithm_js__WEBPACK_IMPORTED_MODULE_1__.SequenceDiff(last.seq1Range.join(s.seq1Range), last.seq2Range.join(s.seq2Range));
-        }
-        else {
-            result.push(s);
-        }
-    }
-    return result;
-}
-function removeRandomLineMatches(sequence1, _sequence2, sequenceDiffs) {
-    let diffs = sequenceDiffs;
-    if (diffs.length === 0) {
-        return diffs;
-    }
-    let counter = 0;
-    let shouldRepeat;
-    do {
-        shouldRepeat = false;
-        const result = [
-            diffs[0]
-        ];
-        for (let i = 1; i < diffs.length; i++) {
-            const cur = diffs[i];
-            const lastResult = result[result.length - 1];
-            function shouldJoinDiffs(before, after) {
-                const unchangedRange = new _core_offsetRange_js__WEBPACK_IMPORTED_MODULE_0__.OffsetRange(lastResult.seq1Range.endExclusive, cur.seq1Range.start);
-                const unchangedText = sequence1.getText(unchangedRange);
-                const unchangedTextWithoutWs = unchangedText.replace(/\s/g, '');
-                if (unchangedTextWithoutWs.length <= 4
-                    && (before.seq1Range.length + before.seq2Range.length > 5 || after.seq1Range.length + after.seq2Range.length > 5)) {
-                    return true;
-                }
-                return false;
-            }
-            const shouldJoin = shouldJoinDiffs(lastResult, cur);
-            if (shouldJoin) {
-                shouldRepeat = true;
-                result[result.length - 1] = result[result.length - 1].join(cur);
-            }
-            else {
-                result.push(cur);
-            }
-        }
-        diffs = result;
-    } while (counter++ < 10 && shouldRepeat);
-    return diffs;
-}
-function removeRandomMatches(sequence1, sequence2, sequenceDiffs) {
-    let diffs = sequenceDiffs;
-    if (diffs.length === 0) {
-        return diffs;
-    }
-    let counter = 0;
-    let shouldRepeat;
-    do {
-        shouldRepeat = false;
-        const result = [
-            diffs[0]
-        ];
-        for (let i = 1; i < diffs.length; i++) {
-            const cur = diffs[i];
-            const lastResult = result[result.length - 1];
-            function shouldJoinDiffs(before, after) {
-                const unchangedRange = new _core_offsetRange_js__WEBPACK_IMPORTED_MODULE_0__.OffsetRange(lastResult.seq1Range.endExclusive, cur.seq1Range.start);
-                const unchangedLineCount = sequence1.countLinesIn(unchangedRange);
-                if (unchangedLineCount > 5 || unchangedRange.length > 500) {
-                    return false;
-                }
-                const unchangedText = sequence1.getText(unchangedRange).trim();
-                if (unchangedText.length > 20 || unchangedText.split(/\r\n|\r|\n/).length > 1) {
-                    return false;
-                }
-                const beforeLineCount1 = sequence1.countLinesIn(before.seq1Range);
-                const beforeSeq1Length = before.seq1Range.length;
-                const beforeLineCount2 = sequence2.countLinesIn(before.seq2Range);
-                const beforeSeq2Length = before.seq2Range.length;
-                const afterLineCount1 = sequence1.countLinesIn(after.seq1Range);
-                const afterSeq1Length = after.seq1Range.length;
-                const afterLineCount2 = sequence2.countLinesIn(after.seq2Range);
-                const afterSeq2Length = after.seq2Range.length;
-                // TODO: Maybe a neural net can be used to derive the result from these numbers
-                const max = 2 * 40 + 50;
-                function cap(v) {
-                    return Math.min(v, max);
-                }
-                if (Math.pow(Math.pow(cap(beforeLineCount1 * 40 + beforeSeq1Length), 1.5) + Math.pow(cap(beforeLineCount2 * 40 + beforeSeq2Length), 1.5), 1.5)
-                    + Math.pow(Math.pow(cap(afterLineCount1 * 40 + afterSeq1Length), 1.5) + Math.pow(cap(afterLineCount2 * 40 + afterSeq2Length), 1.5), 1.5) > (Math.pow((Math.pow(max, 1.5)), 1.5)) * 1.3) {
-                    return true;
-                }
-                return false;
-            }
-            const shouldJoin = shouldJoinDiffs(lastResult, cur);
-            if (shouldJoin) {
-                shouldRepeat = true;
-                result[result.length - 1] = result[result.length - 1].join(cur);
-            }
-            else {
-                result.push(cur);
-            }
-        }
-        diffs = result;
-    } while (counter++ < 10 && shouldRepeat);
-    // Remove short suffixes/prefixes
-    for (let i = 0; i < diffs.length; i++) {
-        const cur = diffs[i];
-        let range1 = cur.seq1Range;
-        let range2 = cur.seq2Range;
-        const fullRange1 = sequence1.extendToFullLines(cur.seq1Range);
-        const prefix = sequence1.getText(new _core_offsetRange_js__WEBPACK_IMPORTED_MODULE_0__.OffsetRange(fullRange1.start, cur.seq1Range.start));
-        if (prefix.length > 0 && prefix.trim().length <= 3 && cur.seq1Range.length + cur.seq2Range.length > 100) {
-            range1 = cur.seq1Range.deltaStart(-prefix.length);
-            range2 = cur.seq2Range.deltaStart(-prefix.length);
-        }
-        const suffix = sequence1.getText(new _core_offsetRange_js__WEBPACK_IMPORTED_MODULE_0__.OffsetRange(cur.seq1Range.endExclusive, fullRange1.endExclusive));
-        if (suffix.length > 0 && (suffix.trim().length <= 3 && cur.seq1Range.length + cur.seq2Range.length > 150)) {
-            range1 = range1.deltaEnd(suffix.length);
-            range2 = range2.deltaEnd(suffix.length);
-        }
-        diffs[i] = new _diffAlgorithm_js__WEBPACK_IMPORTED_MODULE_1__.SequenceDiff(range1, range2);
-    }
-    return diffs;
-}
-/**
- * This function fixes issues like this:
- * ```
- * import { Baz, Bar } from "foo";
- * ```
- * <->
- * ```
- * import { Baz, Bar, Foo } from "foo";
- * ```
- * Computed diff: [ {Add "," after Bar}, {Add "Foo " after space} }
- * Improved diff: [{Add ", Foo" after Bar}]
- */
-function joinSequenceDiffs(sequence1, sequence2, sequenceDiffs) {
-    if (sequenceDiffs.length === 0) {
-        return sequenceDiffs;
-    }
-    const result = [];
-    result.push(sequenceDiffs[0]);
-    // First move them all to the left as much as possible and join them if possible
-    for (let i = 1; i < sequenceDiffs.length; i++) {
-        const prevResult = result[result.length - 1];
-        let cur = sequenceDiffs[i];
-        if (cur.seq1Range.isEmpty || cur.seq2Range.isEmpty) {
-            const length = cur.seq1Range.start - prevResult.seq1Range.endExclusive;
-            let d;
-            for (d = 1; d <= length; d++) {
-                if (sequence1.getElement(cur.seq1Range.start - d) !== sequence1.getElement(cur.seq1Range.endExclusive - d) ||
-                    sequence2.getElement(cur.seq2Range.start - d) !== sequence2.getElement(cur.seq2Range.endExclusive - d)) {
-                    break;
-                }
-            }
-            d--;
-            if (d === length) {
-                // Merge previous and current diff
-                result[result.length - 1] = new _diffAlgorithm_js__WEBPACK_IMPORTED_MODULE_1__.SequenceDiff(new _core_offsetRange_js__WEBPACK_IMPORTED_MODULE_0__.OffsetRange(prevResult.seq1Range.start, cur.seq1Range.endExclusive - length), new _core_offsetRange_js__WEBPACK_IMPORTED_MODULE_0__.OffsetRange(prevResult.seq2Range.start, cur.seq2Range.endExclusive - length));
-                continue;
-            }
-            cur = cur.delta(-d);
-        }
-        result.push(cur);
-    }
-    const result2 = [];
-    // Then move them all to the right and join them again if possible
-    for (let i = 0; i < result.length - 1; i++) {
-        const nextResult = result[i + 1];
-        let cur = result[i];
-        if (cur.seq1Range.isEmpty || cur.seq2Range.isEmpty) {
-            const length = nextResult.seq1Range.start - cur.seq1Range.endExclusive;
-            let d;
-            for (d = 0; d < length; d++) {
-                if (sequence1.getElement(cur.seq1Range.start + d) !== sequence1.getElement(cur.seq1Range.endExclusive + d) ||
-                    sequence2.getElement(cur.seq2Range.start + d) !== sequence2.getElement(cur.seq2Range.endExclusive + d)) {
-                    break;
-                }
-            }
-            if (d === length) {
-                // Merge previous and current diff, write to result!
-                result[i + 1] = new _diffAlgorithm_js__WEBPACK_IMPORTED_MODULE_1__.SequenceDiff(new _core_offsetRange_js__WEBPACK_IMPORTED_MODULE_0__.OffsetRange(cur.seq1Range.start + length, nextResult.seq1Range.endExclusive), new _core_offsetRange_js__WEBPACK_IMPORTED_MODULE_0__.OffsetRange(cur.seq2Range.start + length, nextResult.seq2Range.endExclusive));
-                continue;
-            }
-            if (d > 0) {
-                cur = cur.delta(d);
-            }
-        }
-        result2.push(cur);
-    }
-    if (result.length > 0) {
-        result2.push(result[result.length - 1]);
-    }
-    return result2;
-}
-// align character level diffs at whitespace characters
-// import { IBar } from "foo";
-// import { I[Arr, I]Bar } from "foo";
-// ->
-// import { [IArr, ]IBar } from "foo";
-// import { ITransaction, observableValue, transaction } from 'vs/base/common/observable';
-// import { ITransaction, observable[FromEvent, observable]Value, transaction } from 'vs/base/common/observable';
-// ->
-// import { ITransaction, [observableFromEvent, ]observableValue, transaction } from 'vs/base/common/observable';
-// collectBrackets(level + 1, levelPerBracketType);
-// collectBrackets(level + 1, levelPerBracket[ + 1, levelPerBracket]Type);
-// ->
-// collectBrackets(level + 1, [levelPerBracket + 1, ]levelPerBracketType);
-function shiftSequenceDiffs(sequence1, sequence2, sequenceDiffs) {
-    if (!sequence1.getBoundaryScore || !sequence2.getBoundaryScore) {
-        return sequenceDiffs;
-    }
-    for (let i = 0; i < sequenceDiffs.length; i++) {
-        const prevDiff = (i > 0 ? sequenceDiffs[i - 1] : undefined);
-        const diff = sequenceDiffs[i];
-        const nextDiff = (i + 1 < sequenceDiffs.length ? sequenceDiffs[i + 1] : undefined);
-        const seq1ValidRange = new _core_offsetRange_js__WEBPACK_IMPORTED_MODULE_0__.OffsetRange(prevDiff ? prevDiff.seq1Range.start + 1 : 0, nextDiff ? nextDiff.seq1Range.endExclusive - 1 : sequence1.length);
-        const seq2ValidRange = new _core_offsetRange_js__WEBPACK_IMPORTED_MODULE_0__.OffsetRange(prevDiff ? prevDiff.seq2Range.start + 1 : 0, nextDiff ? nextDiff.seq2Range.endExclusive - 1 : sequence2.length);
-        if (diff.seq1Range.isEmpty) {
-            sequenceDiffs[i] = shiftDiffToBetterPosition(diff, sequence1, sequence2, seq1ValidRange, seq2ValidRange);
-        }
-        else if (diff.seq2Range.isEmpty) {
-            sequenceDiffs[i] = shiftDiffToBetterPosition(diff.reverse(), sequence2, sequence1, seq2ValidRange, seq1ValidRange).reverse();
-        }
-    }
-    return sequenceDiffs;
-}
-function shiftDiffToBetterPosition(diff, sequence1, sequence2, seq1ValidRange, seq2ValidRange) {
-    const maxShiftLimit = 100; // To prevent performance issues
-    // don't touch previous or next!
-    let deltaBefore = 1;
-    while (diff.seq1Range.start - deltaBefore >= seq1ValidRange.start &&
-        diff.seq2Range.start - deltaBefore >= seq2ValidRange.start &&
-        sequence2.isStronglyEqual(diff.seq2Range.start - deltaBefore, diff.seq2Range.endExclusive - deltaBefore) && deltaBefore < maxShiftLimit) {
-        deltaBefore++;
-    }
-    deltaBefore--;
-    let deltaAfter = 0;
-    while (diff.seq1Range.start + deltaAfter < seq1ValidRange.endExclusive &&
-        diff.seq2Range.endExclusive + deltaAfter < seq2ValidRange.endExclusive &&
-        sequence2.isStronglyEqual(diff.seq2Range.start + deltaAfter, diff.seq2Range.endExclusive + deltaAfter) && deltaAfter < maxShiftLimit) {
-        deltaAfter++;
-    }
-    if (deltaBefore === 0 && deltaAfter === 0) {
-        return diff;
-    }
-    // Visualize `[sequence1.text, diff.seq1Range.start + deltaAfter]`
-    // and `[sequence2.text, diff.seq2Range.start + deltaAfter, diff.seq2Range.endExclusive + deltaAfter]`
-    let bestDelta = 0;
-    let bestScore = -1;
-    // find best scored delta
-    for (let delta = -deltaBefore; delta <= deltaAfter; delta++) {
-        const seq2OffsetStart = diff.seq2Range.start + delta;
-        const seq2OffsetEndExclusive = diff.seq2Range.endExclusive + delta;
-        const seq1Offset = diff.seq1Range.start + delta;
-        const score = sequence1.getBoundaryScore(seq1Offset) + sequence2.getBoundaryScore(seq2OffsetStart) + sequence2.getBoundaryScore(seq2OffsetEndExclusive);
-        if (score > bestScore) {
-            bestScore = score;
-            bestDelta = delta;
-        }
-    }
-    return diff.delta(bestDelta);
-}
-
-
-/***/ }),
-
-/***/ "./node_modules/monaco-editor/esm/vs/editor/common/diff/algorithms/myersDiffAlgorithm.js":
-/*!***********************************************************************************************!*\
-  !*** ./node_modules/monaco-editor/esm/vs/editor/common/diff/algorithms/myersDiffAlgorithm.js ***!
-  \***********************************************************************************************/
+/***/ "./node_modules/monaco-editor/esm/vs/editor/common/diff/defaultLinesDiffComputer/algorithms/myersDiffAlgorithm.js":
+/*!************************************************************************************************************************!*\
+  !*** ./node_modules/monaco-editor/esm/vs/editor/common/diff/defaultLinesDiffComputer/algorithms/myersDiffAlgorithm.js ***!
+  \************************************************************************************************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   MyersDiffAlgorithm: () => (/* binding */ MyersDiffAlgorithm)
 /* harmony export */ });
-/* harmony import */ var _core_offsetRange_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../core/offsetRange.js */ "./node_modules/monaco-editor/esm/vs/editor/common/core/offsetRange.js");
-/* harmony import */ var _diffAlgorithm_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./diffAlgorithm.js */ "./node_modules/monaco-editor/esm/vs/editor/common/diff/algorithms/diffAlgorithm.js");
+/* harmony import */ var _core_offsetRange_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../core/offsetRange.js */ "./node_modules/monaco-editor/esm/vs/editor/common/core/offsetRange.js");
+/* harmony import */ var _diffAlgorithm_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./diffAlgorithm.js */ "./node_modules/monaco-editor/esm/vs/editor/common/diff/defaultLinesDiffComputer/algorithms/diffAlgorithm.js");
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
@@ -12566,8 +12298,10 @@ class MyersDiffAlgorithm {
         if (seq1.length === 0 || seq2.length === 0) {
             return _diffAlgorithm_js__WEBPACK_IMPORTED_MODULE_1__.DiffAlgorithmResult.trivial(seq1, seq2);
         }
+        const seqX = seq1; // Text on the x axis
+        const seqY = seq2; // Text on the y axis
         function getXAfterSnake(x, y) {
-            while (x < seq1.length && y < seq2.length && seq1.getElement(x) === seq2.getElement(y)) {
+            while (x < seqX.length && y < seqY.length && seqX.getElement(x) === seqY.getElement(y)) {
                 x++;
                 y++;
             }
@@ -12577,6 +12311,7 @@ class MyersDiffAlgorithm {
         // V[k]: X value of longest d-line that ends in diagonal k.
         // d-line: path from (0,0) to (x,y) that uses exactly d non-diagonals.
         // diagonal k: Set of points (x,y) with x-y = k.
+        // k=1 -> (1,0),(2,1)
         const V = new FastInt32Array();
         V.set(0, getXAfterSnake(0, 0));
         const paths = new FastArrayNegativeIndices();
@@ -12585,18 +12320,21 @@ class MyersDiffAlgorithm {
         loop: while (true) {
             d++;
             if (!timeout.isValid()) {
-                return _diffAlgorithm_js__WEBPACK_IMPORTED_MODULE_1__.DiffAlgorithmResult.trivialTimedOut(seq1, seq2);
+                return _diffAlgorithm_js__WEBPACK_IMPORTED_MODULE_1__.DiffAlgorithmResult.trivialTimedOut(seqX, seqY);
             }
             // The paper has `for (k = -d; k <= d; k += 2)`, but we can ignore diagonals that cannot influence the result.
-            const lowerBound = -Math.min(d, seq2.length + (d % 2));
-            const upperBound = Math.min(d, seq1.length + (d % 2));
+            const lowerBound = -Math.min(d, seqY.length + (d % 2));
+            const upperBound = Math.min(d, seqX.length + (d % 2));
             for (k = lowerBound; k <= upperBound; k += 2) {
+                let step = 0;
                 // We can use the X values of (d-1)-lines to compute X value of the longest d-lines.
-                const maxXofDLineTop = k === upperBound ? -1 : V.get(k + 1); // We take a vertical non-diagonal (add a symbol in seq1)
-                const maxXofDLineLeft = k === lowerBound ? -1 : V.get(k - 1) + 1; // We take a horizontal non-diagonal (+1 x) (delete a symbol in seq1)
-                const x = Math.min(Math.max(maxXofDLineTop, maxXofDLineLeft), seq1.length);
+                const maxXofDLineTop = k === upperBound ? -1 : V.get(k + 1); // We take a vertical non-diagonal (add a symbol in seqX)
+                const maxXofDLineLeft = k === lowerBound ? -1 : V.get(k - 1) + 1; // We take a horizontal non-diagonal (+1 x) (delete a symbol in seqX)
+                step++;
+                const x = Math.min(Math.max(maxXofDLineTop, maxXofDLineLeft), seqX.length);
                 const y = x - k;
-                if (x > seq1.length || y > seq2.length) {
+                step++;
+                if (x > seqX.length || y > seqY.length) {
                     // This diagonal is irrelevant for the result.
                     // TODO: Don't pay the cost for this in the next iteration.
                     continue;
@@ -12605,15 +12343,15 @@ class MyersDiffAlgorithm {
                 V.set(k, newMaxX);
                 const lastPath = x === maxXofDLineTop ? paths.get(k + 1) : paths.get(k - 1);
                 paths.set(k, newMaxX !== x ? new SnakePath(lastPath, x, y, newMaxX - x) : lastPath);
-                if (V.get(k) === seq1.length && V.get(k) - k === seq2.length) {
+                if (V.get(k) === seqX.length && V.get(k) - k === seqY.length) {
                     break loop;
                 }
             }
         }
         let path = paths.get(k);
         const result = [];
-        let lastAligningPosS1 = seq1.length;
-        let lastAligningPosS2 = seq2.length;
+        let lastAligningPosS1 = seqX.length;
+        let lastAligningPosS2 = seqY.length;
         while (true) {
             const endX = path ? path.x + path.length : 0;
             const endY = path ? path.y + path.length : 0;
@@ -12707,15 +12445,1182 @@ class FastArrayNegativeIndices {
 
 /***/ }),
 
-/***/ "./node_modules/monaco-editor/esm/vs/editor/common/diff/algorithms/utils.js":
-/*!**********************************************************************************!*\
-  !*** ./node_modules/monaco-editor/esm/vs/editor/common/diff/algorithms/utils.js ***!
-  \**********************************************************************************/
+/***/ "./node_modules/monaco-editor/esm/vs/editor/common/diff/defaultLinesDiffComputer/computeMovedLines.js":
+/*!************************************************************************************************************!*\
+  !*** ./node_modules/monaco-editor/esm/vs/editor/common/diff/defaultLinesDiffComputer/computeMovedLines.js ***!
+  \************************************************************************************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   Array2D: () => (/* binding */ Array2D)
+/* harmony export */   computeMovedLines: () => (/* binding */ computeMovedLines)
+/* harmony export */ });
+/* harmony import */ var _algorithms_diffAlgorithm_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./algorithms/diffAlgorithm.js */ "./node_modules/monaco-editor/esm/vs/editor/common/diff/defaultLinesDiffComputer/algorithms/diffAlgorithm.js");
+/* harmony import */ var _rangeMapping_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../rangeMapping.js */ "./node_modules/monaco-editor/esm/vs/editor/common/diff/rangeMapping.js");
+/* harmony import */ var _base_common_arrays_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../../base/common/arrays.js */ "./node_modules/monaco-editor/esm/vs/base/common/arrays.js");
+/* harmony import */ var _base_common_arraysFind_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../../../base/common/arraysFind.js */ "./node_modules/monaco-editor/esm/vs/base/common/arraysFind.js");
+/* harmony import */ var _base_common_map_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../../../base/common/map.js */ "./node_modules/monaco-editor/esm/vs/base/common/map.js");
+/* harmony import */ var _core_lineRange_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../core/lineRange.js */ "./node_modules/monaco-editor/esm/vs/editor/common/core/lineRange.js");
+/* harmony import */ var _core_offsetRange_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../core/offsetRange.js */ "./node_modules/monaco-editor/esm/vs/editor/common/core/offsetRange.js");
+/* harmony import */ var _linesSliceCharSequence_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./linesSliceCharSequence.js */ "./node_modules/monaco-editor/esm/vs/editor/common/diff/defaultLinesDiffComputer/linesSliceCharSequence.js");
+/* harmony import */ var _utils_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./utils.js */ "./node_modules/monaco-editor/esm/vs/editor/common/diff/defaultLinesDiffComputer/utils.js");
+/* harmony import */ var _algorithms_myersDiffAlgorithm_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./algorithms/myersDiffAlgorithm.js */ "./node_modules/monaco-editor/esm/vs/editor/common/diff/defaultLinesDiffComputer/algorithms/myersDiffAlgorithm.js");
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+
+
+
+
+
+
+
+
+
+function computeMovedLines(changes, originalLines, modifiedLines, hashedOriginalLines, hashedModifiedLines, timeout) {
+    let { moves, excludedChanges } = computeMovesFromSimpleDeletionsToSimpleInsertions(changes, originalLines, modifiedLines, timeout);
+    if (!timeout.isValid()) {
+        return [];
+    }
+    const filteredChanges = changes.filter(c => !excludedChanges.has(c));
+    const unchangedMoves = computeUnchangedMoves(filteredChanges, hashedOriginalLines, hashedModifiedLines, originalLines, modifiedLines, timeout);
+    (0,_base_common_arrays_js__WEBPACK_IMPORTED_MODULE_2__.pushMany)(moves, unchangedMoves);
+    moves = joinCloseConsecutiveMoves(moves);
+    // Ignore too short moves
+    moves = moves.filter(current => {
+        const lines = current.original.toOffsetRange().slice(originalLines).map(l => l.trim());
+        const originalText = lines.join('\n');
+        return originalText.length >= 15 && countWhere(lines, l => l.length >= 2) >= 2;
+    });
+    moves = removeMovesInSameDiff(changes, moves);
+    return moves;
+}
+function countWhere(arr, predicate) {
+    let count = 0;
+    for (const t of arr) {
+        if (predicate(t)) {
+            count++;
+        }
+    }
+    return count;
+}
+function computeMovesFromSimpleDeletionsToSimpleInsertions(changes, originalLines, modifiedLines, timeout) {
+    const moves = [];
+    const deletions = changes
+        .filter(c => c.modified.isEmpty && c.original.length >= 3)
+        .map(d => new _utils_js__WEBPACK_IMPORTED_MODULE_8__.LineRangeFragment(d.original, originalLines, d));
+    const insertions = new Set(changes
+        .filter(c => c.original.isEmpty && c.modified.length >= 3)
+        .map(d => new _utils_js__WEBPACK_IMPORTED_MODULE_8__.LineRangeFragment(d.modified, modifiedLines, d)));
+    const excludedChanges = new Set();
+    for (const deletion of deletions) {
+        let highestSimilarity = -1;
+        let best;
+        for (const insertion of insertions) {
+            const similarity = deletion.computeSimilarity(insertion);
+            if (similarity > highestSimilarity) {
+                highestSimilarity = similarity;
+                best = insertion;
+            }
+        }
+        if (highestSimilarity > 0.90 && best) {
+            insertions.delete(best);
+            moves.push(new _rangeMapping_js__WEBPACK_IMPORTED_MODULE_1__.LineRangeMapping(deletion.range, best.range));
+            excludedChanges.add(deletion.source);
+            excludedChanges.add(best.source);
+        }
+        if (!timeout.isValid()) {
+            return { moves, excludedChanges };
+        }
+    }
+    return { moves, excludedChanges };
+}
+function computeUnchangedMoves(changes, hashedOriginalLines, hashedModifiedLines, originalLines, modifiedLines, timeout) {
+    const moves = [];
+    const original3LineHashes = new _base_common_map_js__WEBPACK_IMPORTED_MODULE_4__.SetMap();
+    for (const change of changes) {
+        for (let i = change.original.startLineNumber; i < change.original.endLineNumberExclusive - 2; i++) {
+            const key = `${hashedOriginalLines[i - 1]}:${hashedOriginalLines[i + 1 - 1]}:${hashedOriginalLines[i + 2 - 1]}`;
+            original3LineHashes.add(key, { range: new _core_lineRange_js__WEBPACK_IMPORTED_MODULE_5__.LineRange(i, i + 3) });
+        }
+    }
+    const possibleMappings = [];
+    changes.sort((0,_base_common_arrays_js__WEBPACK_IMPORTED_MODULE_2__.compareBy)(c => c.modified.startLineNumber, _base_common_arrays_js__WEBPACK_IMPORTED_MODULE_2__.numberComparator));
+    for (const change of changes) {
+        let lastMappings = [];
+        for (let i = change.modified.startLineNumber; i < change.modified.endLineNumberExclusive - 2; i++) {
+            const key = `${hashedModifiedLines[i - 1]}:${hashedModifiedLines[i + 1 - 1]}:${hashedModifiedLines[i + 2 - 1]}`;
+            const currentModifiedRange = new _core_lineRange_js__WEBPACK_IMPORTED_MODULE_5__.LineRange(i, i + 3);
+            const nextMappings = [];
+            original3LineHashes.forEach(key, ({ range }) => {
+                for (const lastMapping of lastMappings) {
+                    // does this match extend some last match?
+                    if (lastMapping.originalLineRange.endLineNumberExclusive + 1 === range.endLineNumberExclusive &&
+                        lastMapping.modifiedLineRange.endLineNumberExclusive + 1 === currentModifiedRange.endLineNumberExclusive) {
+                        lastMapping.originalLineRange = new _core_lineRange_js__WEBPACK_IMPORTED_MODULE_5__.LineRange(lastMapping.originalLineRange.startLineNumber, range.endLineNumberExclusive);
+                        lastMapping.modifiedLineRange = new _core_lineRange_js__WEBPACK_IMPORTED_MODULE_5__.LineRange(lastMapping.modifiedLineRange.startLineNumber, currentModifiedRange.endLineNumberExclusive);
+                        nextMappings.push(lastMapping);
+                        return;
+                    }
+                }
+                const mapping = {
+                    modifiedLineRange: currentModifiedRange,
+                    originalLineRange: range,
+                };
+                possibleMappings.push(mapping);
+                nextMappings.push(mapping);
+            });
+            lastMappings = nextMappings;
+        }
+        if (!timeout.isValid()) {
+            return [];
+        }
+    }
+    possibleMappings.sort((0,_base_common_arrays_js__WEBPACK_IMPORTED_MODULE_2__.reverseOrder)((0,_base_common_arrays_js__WEBPACK_IMPORTED_MODULE_2__.compareBy)(m => m.modifiedLineRange.length, _base_common_arrays_js__WEBPACK_IMPORTED_MODULE_2__.numberComparator)));
+    const modifiedSet = new _core_lineRange_js__WEBPACK_IMPORTED_MODULE_5__.LineRangeSet();
+    const originalSet = new _core_lineRange_js__WEBPACK_IMPORTED_MODULE_5__.LineRangeSet();
+    for (const mapping of possibleMappings) {
+        const diffOrigToMod = mapping.modifiedLineRange.startLineNumber - mapping.originalLineRange.startLineNumber;
+        const modifiedSections = modifiedSet.subtractFrom(mapping.modifiedLineRange);
+        const originalTranslatedSections = originalSet.subtractFrom(mapping.originalLineRange).getWithDelta(diffOrigToMod);
+        const modifiedIntersectedSections = modifiedSections.getIntersection(originalTranslatedSections);
+        for (const s of modifiedIntersectedSections.ranges) {
+            if (s.length < 3) {
+                continue;
+            }
+            const modifiedLineRange = s;
+            const originalLineRange = s.delta(-diffOrigToMod);
+            moves.push(new _rangeMapping_js__WEBPACK_IMPORTED_MODULE_1__.LineRangeMapping(originalLineRange, modifiedLineRange));
+            modifiedSet.addRange(modifiedLineRange);
+            originalSet.addRange(originalLineRange);
+        }
+    }
+    moves.sort((0,_base_common_arrays_js__WEBPACK_IMPORTED_MODULE_2__.compareBy)(m => m.original.startLineNumber, _base_common_arrays_js__WEBPACK_IMPORTED_MODULE_2__.numberComparator));
+    const monotonousChanges = new _base_common_arraysFind_js__WEBPACK_IMPORTED_MODULE_3__.MonotonousArray(changes);
+    for (let i = 0; i < moves.length; i++) {
+        const move = moves[i];
+        const firstTouchingChangeOrig = monotonousChanges.findLastMonotonous(c => c.original.startLineNumber <= move.original.startLineNumber);
+        const firstTouchingChangeMod = (0,_base_common_arraysFind_js__WEBPACK_IMPORTED_MODULE_3__.findLastMonotonous)(changes, c => c.modified.startLineNumber <= move.modified.startLineNumber);
+        const linesAbove = Math.max(move.original.startLineNumber - firstTouchingChangeOrig.original.startLineNumber, move.modified.startLineNumber - firstTouchingChangeMod.modified.startLineNumber);
+        const lastTouchingChangeOrig = monotonousChanges.findLastMonotonous(c => c.original.startLineNumber < move.original.endLineNumberExclusive);
+        const lastTouchingChangeMod = (0,_base_common_arraysFind_js__WEBPACK_IMPORTED_MODULE_3__.findLastMonotonous)(changes, c => c.modified.startLineNumber < move.modified.endLineNumberExclusive);
+        const linesBelow = Math.max(lastTouchingChangeOrig.original.endLineNumberExclusive - move.original.endLineNumberExclusive, lastTouchingChangeMod.modified.endLineNumberExclusive - move.modified.endLineNumberExclusive);
+        let extendToTop;
+        for (extendToTop = 0; extendToTop < linesAbove; extendToTop++) {
+            const origLine = move.original.startLineNumber - extendToTop - 1;
+            const modLine = move.modified.startLineNumber - extendToTop - 1;
+            if (origLine > originalLines.length || modLine > modifiedLines.length) {
+                break;
+            }
+            if (modifiedSet.contains(modLine) || originalSet.contains(origLine)) {
+                break;
+            }
+            if (!areLinesSimilar(originalLines[origLine - 1], modifiedLines[modLine - 1], timeout)) {
+                break;
+            }
+        }
+        if (extendToTop > 0) {
+            originalSet.addRange(new _core_lineRange_js__WEBPACK_IMPORTED_MODULE_5__.LineRange(move.original.startLineNumber - extendToTop, move.original.startLineNumber));
+            modifiedSet.addRange(new _core_lineRange_js__WEBPACK_IMPORTED_MODULE_5__.LineRange(move.modified.startLineNumber - extendToTop, move.modified.startLineNumber));
+        }
+        let extendToBottom;
+        for (extendToBottom = 0; extendToBottom < linesBelow; extendToBottom++) {
+            const origLine = move.original.endLineNumberExclusive + extendToBottom;
+            const modLine = move.modified.endLineNumberExclusive + extendToBottom;
+            if (origLine > originalLines.length || modLine > modifiedLines.length) {
+                break;
+            }
+            if (modifiedSet.contains(modLine) || originalSet.contains(origLine)) {
+                break;
+            }
+            if (!areLinesSimilar(originalLines[origLine - 1], modifiedLines[modLine - 1], timeout)) {
+                break;
+            }
+        }
+        if (extendToBottom > 0) {
+            originalSet.addRange(new _core_lineRange_js__WEBPACK_IMPORTED_MODULE_5__.LineRange(move.original.endLineNumberExclusive, move.original.endLineNumberExclusive + extendToBottom));
+            modifiedSet.addRange(new _core_lineRange_js__WEBPACK_IMPORTED_MODULE_5__.LineRange(move.modified.endLineNumberExclusive, move.modified.endLineNumberExclusive + extendToBottom));
+        }
+        if (extendToTop > 0 || extendToBottom > 0) {
+            moves[i] = new _rangeMapping_js__WEBPACK_IMPORTED_MODULE_1__.LineRangeMapping(new _core_lineRange_js__WEBPACK_IMPORTED_MODULE_5__.LineRange(move.original.startLineNumber - extendToTop, move.original.endLineNumberExclusive + extendToBottom), new _core_lineRange_js__WEBPACK_IMPORTED_MODULE_5__.LineRange(move.modified.startLineNumber - extendToTop, move.modified.endLineNumberExclusive + extendToBottom));
+        }
+    }
+    return moves;
+}
+function areLinesSimilar(line1, line2, timeout) {
+    if (line1.trim() === line2.trim()) {
+        return true;
+    }
+    if (line1.length > 300 && line2.length > 300) {
+        return false;
+    }
+    const myersDiffingAlgorithm = new _algorithms_myersDiffAlgorithm_js__WEBPACK_IMPORTED_MODULE_9__.MyersDiffAlgorithm();
+    const result = myersDiffingAlgorithm.compute(new _linesSliceCharSequence_js__WEBPACK_IMPORTED_MODULE_7__.LinesSliceCharSequence([line1], new _core_offsetRange_js__WEBPACK_IMPORTED_MODULE_6__.OffsetRange(0, 1), false), new _linesSliceCharSequence_js__WEBPACK_IMPORTED_MODULE_7__.LinesSliceCharSequence([line2], new _core_offsetRange_js__WEBPACK_IMPORTED_MODULE_6__.OffsetRange(0, 1), false), timeout);
+    let commonNonSpaceCharCount = 0;
+    const inverted = _algorithms_diffAlgorithm_js__WEBPACK_IMPORTED_MODULE_0__.SequenceDiff.invert(result.diffs, line1.length);
+    for (const seq of inverted) {
+        seq.seq1Range.forEach(idx => {
+            if (!(0,_utils_js__WEBPACK_IMPORTED_MODULE_8__.isSpace)(line1.charCodeAt(idx))) {
+                commonNonSpaceCharCount++;
+            }
+        });
+    }
+    function countNonWsChars(str) {
+        let count = 0;
+        for (let i = 0; i < line1.length; i++) {
+            if (!(0,_utils_js__WEBPACK_IMPORTED_MODULE_8__.isSpace)(str.charCodeAt(i))) {
+                count++;
+            }
+        }
+        return count;
+    }
+    const longerLineLength = countNonWsChars(line1.length > line2.length ? line1 : line2);
+    const r = commonNonSpaceCharCount / longerLineLength > 0.6 && longerLineLength > 10;
+    return r;
+}
+function joinCloseConsecutiveMoves(moves) {
+    if (moves.length === 0) {
+        return moves;
+    }
+    moves.sort((0,_base_common_arrays_js__WEBPACK_IMPORTED_MODULE_2__.compareBy)(m => m.original.startLineNumber, _base_common_arrays_js__WEBPACK_IMPORTED_MODULE_2__.numberComparator));
+    const result = [moves[0]];
+    for (let i = 1; i < moves.length; i++) {
+        const last = result[result.length - 1];
+        const current = moves[i];
+        const originalDist = current.original.startLineNumber - last.original.endLineNumberExclusive;
+        const modifiedDist = current.modified.startLineNumber - last.modified.endLineNumberExclusive;
+        const currentMoveAfterLast = originalDist >= 0 && modifiedDist >= 0;
+        if (currentMoveAfterLast && originalDist + modifiedDist <= 2) {
+            result[result.length - 1] = last.join(current);
+            continue;
+        }
+        result.push(current);
+    }
+    return result;
+}
+function removeMovesInSameDiff(changes, moves) {
+    const changesMonotonous = new _base_common_arraysFind_js__WEBPACK_IMPORTED_MODULE_3__.MonotonousArray(changes);
+    moves = moves.filter(m => {
+        const diffBeforeEndOfMoveOriginal = changesMonotonous.findLastMonotonous(c => c.original.startLineNumber < m.original.endLineNumberExclusive)
+            || new _rangeMapping_js__WEBPACK_IMPORTED_MODULE_1__.LineRangeMapping(new _core_lineRange_js__WEBPACK_IMPORTED_MODULE_5__.LineRange(1, 1), new _core_lineRange_js__WEBPACK_IMPORTED_MODULE_5__.LineRange(1, 1));
+        const diffBeforeEndOfMoveModified = (0,_base_common_arraysFind_js__WEBPACK_IMPORTED_MODULE_3__.findLastMonotonous)(changes, c => c.modified.startLineNumber < m.modified.endLineNumberExclusive);
+        const differentDiffs = diffBeforeEndOfMoveOriginal !== diffBeforeEndOfMoveModified;
+        return differentDiffs;
+    });
+    return moves;
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/monaco-editor/esm/vs/editor/common/diff/defaultLinesDiffComputer/defaultLinesDiffComputer.js":
+/*!*******************************************************************************************************************!*\
+  !*** ./node_modules/monaco-editor/esm/vs/editor/common/diff/defaultLinesDiffComputer/defaultLinesDiffComputer.js ***!
+  \*******************************************************************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   DefaultLinesDiffComputer: () => (/* binding */ DefaultLinesDiffComputer),
+/* harmony export */   getLineRangeMapping: () => (/* binding */ getLineRangeMapping),
+/* harmony export */   lineRangeMappingFromRangeMappings: () => (/* binding */ lineRangeMappingFromRangeMappings)
+/* harmony export */ });
+/* harmony import */ var _base_common_arrays_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../../base/common/arrays.js */ "./node_modules/monaco-editor/esm/vs/base/common/arrays.js");
+/* harmony import */ var _base_common_assert_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../../base/common/assert.js */ "./node_modules/monaco-editor/esm/vs/base/common/assert.js");
+/* harmony import */ var _core_lineRange_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../core/lineRange.js */ "./node_modules/monaco-editor/esm/vs/editor/common/core/lineRange.js");
+/* harmony import */ var _core_offsetRange_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../core/offsetRange.js */ "./node_modules/monaco-editor/esm/vs/editor/common/core/offsetRange.js");
+/* harmony import */ var _core_range_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../core/range.js */ "./node_modules/monaco-editor/esm/vs/editor/common/core/range.js");
+/* harmony import */ var _algorithms_diffAlgorithm_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./algorithms/diffAlgorithm.js */ "./node_modules/monaco-editor/esm/vs/editor/common/diff/defaultLinesDiffComputer/algorithms/diffAlgorithm.js");
+/* harmony import */ var _algorithms_dynamicProgrammingDiffing_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./algorithms/dynamicProgrammingDiffing.js */ "./node_modules/monaco-editor/esm/vs/editor/common/diff/defaultLinesDiffComputer/algorithms/dynamicProgrammingDiffing.js");
+/* harmony import */ var _algorithms_myersDiffAlgorithm_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./algorithms/myersDiffAlgorithm.js */ "./node_modules/monaco-editor/esm/vs/editor/common/diff/defaultLinesDiffComputer/algorithms/myersDiffAlgorithm.js");
+/* harmony import */ var _computeMovedLines_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./computeMovedLines.js */ "./node_modules/monaco-editor/esm/vs/editor/common/diff/defaultLinesDiffComputer/computeMovedLines.js");
+/* harmony import */ var _heuristicSequenceOptimizations_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./heuristicSequenceOptimizations.js */ "./node_modules/monaco-editor/esm/vs/editor/common/diff/defaultLinesDiffComputer/heuristicSequenceOptimizations.js");
+/* harmony import */ var _linesDiffComputer_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../linesDiffComputer.js */ "./node_modules/monaco-editor/esm/vs/editor/common/diff/linesDiffComputer.js");
+/* harmony import */ var _rangeMapping_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../rangeMapping.js */ "./node_modules/monaco-editor/esm/vs/editor/common/diff/rangeMapping.js");
+/* harmony import */ var _linesSliceCharSequence_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./linesSliceCharSequence.js */ "./node_modules/monaco-editor/esm/vs/editor/common/diff/defaultLinesDiffComputer/linesSliceCharSequence.js");
+/* harmony import */ var _lineSequence_js__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./lineSequence.js */ "./node_modules/monaco-editor/esm/vs/editor/common/diff/defaultLinesDiffComputer/lineSequence.js");
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+class DefaultLinesDiffComputer {
+    constructor() {
+        this.dynamicProgrammingDiffing = new _algorithms_dynamicProgrammingDiffing_js__WEBPACK_IMPORTED_MODULE_6__.DynamicProgrammingDiffing();
+        this.myersDiffingAlgorithm = new _algorithms_myersDiffAlgorithm_js__WEBPACK_IMPORTED_MODULE_7__.MyersDiffAlgorithm();
+    }
+    computeDiff(originalLines, modifiedLines, options) {
+        if (originalLines.length <= 1 && (0,_base_common_arrays_js__WEBPACK_IMPORTED_MODULE_0__.equals)(originalLines, modifiedLines, (a, b) => a === b)) {
+            return new _linesDiffComputer_js__WEBPACK_IMPORTED_MODULE_10__.LinesDiff([], [], false);
+        }
+        if (originalLines.length === 1 && originalLines[0].length === 0 || modifiedLines.length === 1 && modifiedLines[0].length === 0) {
+            return new _linesDiffComputer_js__WEBPACK_IMPORTED_MODULE_10__.LinesDiff([
+                new _rangeMapping_js__WEBPACK_IMPORTED_MODULE_11__.DetailedLineRangeMapping(new _core_lineRange_js__WEBPACK_IMPORTED_MODULE_2__.LineRange(1, originalLines.length + 1), new _core_lineRange_js__WEBPACK_IMPORTED_MODULE_2__.LineRange(1, modifiedLines.length + 1), [
+                    new _rangeMapping_js__WEBPACK_IMPORTED_MODULE_11__.RangeMapping(new _core_range_js__WEBPACK_IMPORTED_MODULE_4__.Range(1, 1, originalLines.length, originalLines[0].length + 1), new _core_range_js__WEBPACK_IMPORTED_MODULE_4__.Range(1, 1, modifiedLines.length, modifiedLines[0].length + 1))
+                ])
+            ], [], false);
+        }
+        const timeout = options.maxComputationTimeMs === 0 ? _algorithms_diffAlgorithm_js__WEBPACK_IMPORTED_MODULE_5__.InfiniteTimeout.instance : new _algorithms_diffAlgorithm_js__WEBPACK_IMPORTED_MODULE_5__.DateTimeout(options.maxComputationTimeMs);
+        const considerWhitespaceChanges = !options.ignoreTrimWhitespace;
+        const perfectHashes = new Map();
+        function getOrCreateHash(text) {
+            let hash = perfectHashes.get(text);
+            if (hash === undefined) {
+                hash = perfectHashes.size;
+                perfectHashes.set(text, hash);
+            }
+            return hash;
+        }
+        const originalLinesHashes = originalLines.map((l) => getOrCreateHash(l.trim()));
+        const modifiedLinesHashes = modifiedLines.map((l) => getOrCreateHash(l.trim()));
+        const sequence1 = new _lineSequence_js__WEBPACK_IMPORTED_MODULE_13__.LineSequence(originalLinesHashes, originalLines);
+        const sequence2 = new _lineSequence_js__WEBPACK_IMPORTED_MODULE_13__.LineSequence(modifiedLinesHashes, modifiedLines);
+        const lineAlignmentResult = (() => {
+            if (sequence1.length + sequence2.length < 1700) {
+                // Use the improved algorithm for small files
+                return this.dynamicProgrammingDiffing.compute(sequence1, sequence2, timeout, (offset1, offset2) => originalLines[offset1] === modifiedLines[offset2]
+                    ? modifiedLines[offset2].length === 0
+                        ? 0.1
+                        : 1 + Math.log(1 + modifiedLines[offset2].length)
+                    : 0.99);
+            }
+            return this.myersDiffingAlgorithm.compute(sequence1, sequence2);
+        })();
+        let lineAlignments = lineAlignmentResult.diffs;
+        let hitTimeout = lineAlignmentResult.hitTimeout;
+        lineAlignments = (0,_heuristicSequenceOptimizations_js__WEBPACK_IMPORTED_MODULE_9__.optimizeSequenceDiffs)(sequence1, sequence2, lineAlignments);
+        lineAlignments = (0,_heuristicSequenceOptimizations_js__WEBPACK_IMPORTED_MODULE_9__.removeVeryShortMatchingLinesBetweenDiffs)(sequence1, sequence2, lineAlignments);
+        const alignments = [];
+        const scanForWhitespaceChanges = (equalLinesCount) => {
+            if (!considerWhitespaceChanges) {
+                return;
+            }
+            for (let i = 0; i < equalLinesCount; i++) {
+                const seq1Offset = seq1LastStart + i;
+                const seq2Offset = seq2LastStart + i;
+                if (originalLines[seq1Offset] !== modifiedLines[seq2Offset]) {
+                    // This is because of whitespace changes, diff these lines
+                    const characterDiffs = this.refineDiff(originalLines, modifiedLines, new _algorithms_diffAlgorithm_js__WEBPACK_IMPORTED_MODULE_5__.SequenceDiff(new _core_offsetRange_js__WEBPACK_IMPORTED_MODULE_3__.OffsetRange(seq1Offset, seq1Offset + 1), new _core_offsetRange_js__WEBPACK_IMPORTED_MODULE_3__.OffsetRange(seq2Offset, seq2Offset + 1)), timeout, considerWhitespaceChanges);
+                    for (const a of characterDiffs.mappings) {
+                        alignments.push(a);
+                    }
+                    if (characterDiffs.hitTimeout) {
+                        hitTimeout = true;
+                    }
+                }
+            }
+        };
+        let seq1LastStart = 0;
+        let seq2LastStart = 0;
+        for (const diff of lineAlignments) {
+            (0,_base_common_assert_js__WEBPACK_IMPORTED_MODULE_1__.assertFn)(() => diff.seq1Range.start - seq1LastStart === diff.seq2Range.start - seq2LastStart);
+            const equalLinesCount = diff.seq1Range.start - seq1LastStart;
+            scanForWhitespaceChanges(equalLinesCount);
+            seq1LastStart = diff.seq1Range.endExclusive;
+            seq2LastStart = diff.seq2Range.endExclusive;
+            const characterDiffs = this.refineDiff(originalLines, modifiedLines, diff, timeout, considerWhitespaceChanges);
+            if (characterDiffs.hitTimeout) {
+                hitTimeout = true;
+            }
+            for (const a of characterDiffs.mappings) {
+                alignments.push(a);
+            }
+        }
+        scanForWhitespaceChanges(originalLines.length - seq1LastStart);
+        const changes = lineRangeMappingFromRangeMappings(alignments, originalLines, modifiedLines);
+        let moves = [];
+        if (options.computeMoves) {
+            moves = this.computeMoves(changes, originalLines, modifiedLines, originalLinesHashes, modifiedLinesHashes, timeout, considerWhitespaceChanges);
+        }
+        // Make sure all ranges are valid
+        (0,_base_common_assert_js__WEBPACK_IMPORTED_MODULE_1__.assertFn)(() => {
+            function validatePosition(pos, lines) {
+                if (pos.lineNumber < 1 || pos.lineNumber > lines.length) {
+                    return false;
+                }
+                const line = lines[pos.lineNumber - 1];
+                if (pos.column < 1 || pos.column > line.length + 1) {
+                    return false;
+                }
+                return true;
+            }
+            function validateRange(range, lines) {
+                if (range.startLineNumber < 1 || range.startLineNumber > lines.length + 1) {
+                    return false;
+                }
+                if (range.endLineNumberExclusive < 1 || range.endLineNumberExclusive > lines.length + 1) {
+                    return false;
+                }
+                return true;
+            }
+            for (const c of changes) {
+                if (!c.innerChanges) {
+                    return false;
+                }
+                for (const ic of c.innerChanges) {
+                    const valid = validatePosition(ic.modifiedRange.getStartPosition(), modifiedLines) && validatePosition(ic.modifiedRange.getEndPosition(), modifiedLines) &&
+                        validatePosition(ic.originalRange.getStartPosition(), originalLines) && validatePosition(ic.originalRange.getEndPosition(), originalLines);
+                    if (!valid) {
+                        return false;
+                    }
+                }
+                if (!validateRange(c.modified, modifiedLines) || !validateRange(c.original, originalLines)) {
+                    return false;
+                }
+            }
+            return true;
+        });
+        return new _linesDiffComputer_js__WEBPACK_IMPORTED_MODULE_10__.LinesDiff(changes, moves, hitTimeout);
+    }
+    computeMoves(changes, originalLines, modifiedLines, hashedOriginalLines, hashedModifiedLines, timeout, considerWhitespaceChanges) {
+        const moves = (0,_computeMovedLines_js__WEBPACK_IMPORTED_MODULE_8__.computeMovedLines)(changes, originalLines, modifiedLines, hashedOriginalLines, hashedModifiedLines, timeout);
+        const movesWithDiffs = moves.map(m => {
+            const moveChanges = this.refineDiff(originalLines, modifiedLines, new _algorithms_diffAlgorithm_js__WEBPACK_IMPORTED_MODULE_5__.SequenceDiff(m.original.toOffsetRange(), m.modified.toOffsetRange()), timeout, considerWhitespaceChanges);
+            const mappings = lineRangeMappingFromRangeMappings(moveChanges.mappings, originalLines, modifiedLines, true);
+            return new _linesDiffComputer_js__WEBPACK_IMPORTED_MODULE_10__.MovedText(m, mappings);
+        });
+        return movesWithDiffs;
+    }
+    refineDiff(originalLines, modifiedLines, diff, timeout, considerWhitespaceChanges) {
+        const slice1 = new _linesSliceCharSequence_js__WEBPACK_IMPORTED_MODULE_12__.LinesSliceCharSequence(originalLines, diff.seq1Range, considerWhitespaceChanges);
+        const slice2 = new _linesSliceCharSequence_js__WEBPACK_IMPORTED_MODULE_12__.LinesSliceCharSequence(modifiedLines, diff.seq2Range, considerWhitespaceChanges);
+        const diffResult = slice1.length + slice2.length < 500
+            ? this.dynamicProgrammingDiffing.compute(slice1, slice2, timeout)
+            : this.myersDiffingAlgorithm.compute(slice1, slice2, timeout);
+        let diffs = diffResult.diffs;
+        diffs = (0,_heuristicSequenceOptimizations_js__WEBPACK_IMPORTED_MODULE_9__.optimizeSequenceDiffs)(slice1, slice2, diffs);
+        diffs = (0,_heuristicSequenceOptimizations_js__WEBPACK_IMPORTED_MODULE_9__.extendDiffsToEntireWordIfAppropriate)(slice1, slice2, diffs);
+        diffs = (0,_heuristicSequenceOptimizations_js__WEBPACK_IMPORTED_MODULE_9__.removeShortMatches)(slice1, slice2, diffs);
+        diffs = (0,_heuristicSequenceOptimizations_js__WEBPACK_IMPORTED_MODULE_9__.removeVeryShortMatchingTextBetweenLongDiffs)(slice1, slice2, diffs);
+        const result = diffs.map((d) => new _rangeMapping_js__WEBPACK_IMPORTED_MODULE_11__.RangeMapping(slice1.translateRange(d.seq1Range), slice2.translateRange(d.seq2Range)));
+        // Assert: result applied on original should be the same as diff applied to original
+        return {
+            mappings: result,
+            hitTimeout: diffResult.hitTimeout,
+        };
+    }
+}
+function lineRangeMappingFromRangeMappings(alignments, originalLines, modifiedLines, dontAssertStartLine = false) {
+    const changes = [];
+    for (const g of (0,_base_common_arrays_js__WEBPACK_IMPORTED_MODULE_0__.groupAdjacentBy)(alignments.map(a => getLineRangeMapping(a, originalLines, modifiedLines)), (a1, a2) => a1.original.overlapOrTouch(a2.original)
+        || a1.modified.overlapOrTouch(a2.modified))) {
+        const first = g[0];
+        const last = g[g.length - 1];
+        changes.push(new _rangeMapping_js__WEBPACK_IMPORTED_MODULE_11__.DetailedLineRangeMapping(first.original.join(last.original), first.modified.join(last.modified), g.map(a => a.innerChanges[0])));
+    }
+    (0,_base_common_assert_js__WEBPACK_IMPORTED_MODULE_1__.assertFn)(() => {
+        if (!dontAssertStartLine) {
+            if (changes.length > 0 && changes[0].original.startLineNumber !== changes[0].modified.startLineNumber) {
+                return false;
+            }
+        }
+        return (0,_base_common_assert_js__WEBPACK_IMPORTED_MODULE_1__.checkAdjacentItems)(changes, (m1, m2) => m2.original.startLineNumber - m1.original.endLineNumberExclusive === m2.modified.startLineNumber - m1.modified.endLineNumberExclusive &&
+            // There has to be an unchanged line in between (otherwise both diffs should have been joined)
+            m1.original.endLineNumberExclusive < m2.original.startLineNumber &&
+            m1.modified.endLineNumberExclusive < m2.modified.startLineNumber);
+    });
+    return changes;
+}
+function getLineRangeMapping(rangeMapping, originalLines, modifiedLines) {
+    let lineStartDelta = 0;
+    let lineEndDelta = 0;
+    // rangeMapping describes the edit that replaces `rangeMapping.originalRange` with `newText := getText(modifiedLines, rangeMapping.modifiedRange)`.
+    // original: ]xxx \n <- this line is not modified
+    // modified: ]xx  \n
+    if (rangeMapping.modifiedRange.endColumn === 1 && rangeMapping.originalRange.endColumn === 1
+        && rangeMapping.originalRange.startLineNumber + lineStartDelta <= rangeMapping.originalRange.endLineNumber
+        && rangeMapping.modifiedRange.startLineNumber + lineStartDelta <= rangeMapping.modifiedRange.endLineNumber) {
+        // We can only do this if the range is not empty yet
+        lineEndDelta = -1;
+    }
+    // original: xxx[ \n <- this line is not modified
+    // modified: xxx[ \n
+    if (rangeMapping.modifiedRange.startColumn - 1 >= modifiedLines[rangeMapping.modifiedRange.startLineNumber - 1].length
+        && rangeMapping.originalRange.startColumn - 1 >= originalLines[rangeMapping.originalRange.startLineNumber - 1].length
+        && rangeMapping.originalRange.startLineNumber <= rangeMapping.originalRange.endLineNumber + lineEndDelta
+        && rangeMapping.modifiedRange.startLineNumber <= rangeMapping.modifiedRange.endLineNumber + lineEndDelta) {
+        // We can only do this if the range is not empty yet
+        lineStartDelta = 1;
+    }
+    const originalLineRange = new _core_lineRange_js__WEBPACK_IMPORTED_MODULE_2__.LineRange(rangeMapping.originalRange.startLineNumber + lineStartDelta, rangeMapping.originalRange.endLineNumber + 1 + lineEndDelta);
+    const modifiedLineRange = new _core_lineRange_js__WEBPACK_IMPORTED_MODULE_2__.LineRange(rangeMapping.modifiedRange.startLineNumber + lineStartDelta, rangeMapping.modifiedRange.endLineNumber + 1 + lineEndDelta);
+    return new _rangeMapping_js__WEBPACK_IMPORTED_MODULE_11__.DetailedLineRangeMapping(originalLineRange, modifiedLineRange, [rangeMapping]);
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/monaco-editor/esm/vs/editor/common/diff/defaultLinesDiffComputer/heuristicSequenceOptimizations.js":
+/*!*************************************************************************************************************************!*\
+  !*** ./node_modules/monaco-editor/esm/vs/editor/common/diff/defaultLinesDiffComputer/heuristicSequenceOptimizations.js ***!
+  \*************************************************************************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   extendDiffsToEntireWordIfAppropriate: () => (/* binding */ extendDiffsToEntireWordIfAppropriate),
+/* harmony export */   optimizeSequenceDiffs: () => (/* binding */ optimizeSequenceDiffs),
+/* harmony export */   removeShortMatches: () => (/* binding */ removeShortMatches),
+/* harmony export */   removeVeryShortMatchingLinesBetweenDiffs: () => (/* binding */ removeVeryShortMatchingLinesBetweenDiffs),
+/* harmony export */   removeVeryShortMatchingTextBetweenLongDiffs: () => (/* binding */ removeVeryShortMatchingTextBetweenLongDiffs)
+/* harmony export */ });
+/* harmony import */ var _base_common_arrays_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../../base/common/arrays.js */ "./node_modules/monaco-editor/esm/vs/base/common/arrays.js");
+/* harmony import */ var _core_offsetRange_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../core/offsetRange.js */ "./node_modules/monaco-editor/esm/vs/editor/common/core/offsetRange.js");
+/* harmony import */ var _algorithms_diffAlgorithm_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./algorithms/diffAlgorithm.js */ "./node_modules/monaco-editor/esm/vs/editor/common/diff/defaultLinesDiffComputer/algorithms/diffAlgorithm.js");
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+
+
+function optimizeSequenceDiffs(sequence1, sequence2, sequenceDiffs) {
+    let result = sequenceDiffs;
+    result = joinSequenceDiffsByShifting(sequence1, sequence2, result);
+    // Sometimes, calling this function twice improves the result.
+    // Uncomment the second invocation and run the tests to see the difference.
+    result = joinSequenceDiffsByShifting(sequence1, sequence2, result);
+    result = shiftSequenceDiffs(sequence1, sequence2, result);
+    return result;
+}
+/**
+ * This function fixes issues like this:
+ * ```
+ * import { Baz, Bar } from "foo";
+ * ```
+ * <->
+ * ```
+ * import { Baz, Bar, Foo } from "foo";
+ * ```
+ * Computed diff: [ {Add "," after Bar}, {Add "Foo " after space} }
+ * Improved diff: [{Add ", Foo" after Bar}]
+ */
+function joinSequenceDiffsByShifting(sequence1, sequence2, sequenceDiffs) {
+    if (sequenceDiffs.length === 0) {
+        return sequenceDiffs;
+    }
+    const result = [];
+    result.push(sequenceDiffs[0]);
+    // First move them all to the left as much as possible and join them if possible
+    for (let i = 1; i < sequenceDiffs.length; i++) {
+        const prevResult = result[result.length - 1];
+        let cur = sequenceDiffs[i];
+        if (cur.seq1Range.isEmpty || cur.seq2Range.isEmpty) {
+            const length = cur.seq1Range.start - prevResult.seq1Range.endExclusive;
+            let d;
+            for (d = 1; d <= length; d++) {
+                if (sequence1.getElement(cur.seq1Range.start - d) !== sequence1.getElement(cur.seq1Range.endExclusive - d) ||
+                    sequence2.getElement(cur.seq2Range.start - d) !== sequence2.getElement(cur.seq2Range.endExclusive - d)) {
+                    break;
+                }
+            }
+            d--;
+            if (d === length) {
+                // Merge previous and current diff
+                result[result.length - 1] = new _algorithms_diffAlgorithm_js__WEBPACK_IMPORTED_MODULE_2__.SequenceDiff(new _core_offsetRange_js__WEBPACK_IMPORTED_MODULE_1__.OffsetRange(prevResult.seq1Range.start, cur.seq1Range.endExclusive - length), new _core_offsetRange_js__WEBPACK_IMPORTED_MODULE_1__.OffsetRange(prevResult.seq2Range.start, cur.seq2Range.endExclusive - length));
+                continue;
+            }
+            cur = cur.delta(-d);
+        }
+        result.push(cur);
+    }
+    const result2 = [];
+    // Then move them all to the right and join them again if possible
+    for (let i = 0; i < result.length - 1; i++) {
+        const nextResult = result[i + 1];
+        let cur = result[i];
+        if (cur.seq1Range.isEmpty || cur.seq2Range.isEmpty) {
+            const length = nextResult.seq1Range.start - cur.seq1Range.endExclusive;
+            let d;
+            for (d = 0; d < length; d++) {
+                if (!sequence1.isStronglyEqual(cur.seq1Range.start + d, cur.seq1Range.endExclusive + d) ||
+                    !sequence2.isStronglyEqual(cur.seq2Range.start + d, cur.seq2Range.endExclusive + d)) {
+                    break;
+                }
+            }
+            if (d === length) {
+                // Merge previous and current diff, write to result!
+                result[i + 1] = new _algorithms_diffAlgorithm_js__WEBPACK_IMPORTED_MODULE_2__.SequenceDiff(new _core_offsetRange_js__WEBPACK_IMPORTED_MODULE_1__.OffsetRange(cur.seq1Range.start + length, nextResult.seq1Range.endExclusive), new _core_offsetRange_js__WEBPACK_IMPORTED_MODULE_1__.OffsetRange(cur.seq2Range.start + length, nextResult.seq2Range.endExclusive));
+                continue;
+            }
+            if (d > 0) {
+                cur = cur.delta(d);
+            }
+        }
+        result2.push(cur);
+    }
+    if (result.length > 0) {
+        result2.push(result[result.length - 1]);
+    }
+    return result2;
+}
+// align character level diffs at whitespace characters
+// import { IBar } from "foo";
+// import { I[Arr, I]Bar } from "foo";
+// ->
+// import { [IArr, ]IBar } from "foo";
+// import { ITransaction, observableValue, transaction } from 'vs/base/common/observable';
+// import { ITransaction, observable[FromEvent, observable]Value, transaction } from 'vs/base/common/observable';
+// ->
+// import { ITransaction, [observableFromEvent, ]observableValue, transaction } from 'vs/base/common/observable';
+// collectBrackets(level + 1, levelPerBracketType);
+// collectBrackets(level + 1, levelPerBracket[ + 1, levelPerBracket]Type);
+// ->
+// collectBrackets(level + 1, [levelPerBracket + 1, ]levelPerBracketType);
+function shiftSequenceDiffs(sequence1, sequence2, sequenceDiffs) {
+    if (!sequence1.getBoundaryScore || !sequence2.getBoundaryScore) {
+        return sequenceDiffs;
+    }
+    for (let i = 0; i < sequenceDiffs.length; i++) {
+        const prevDiff = (i > 0 ? sequenceDiffs[i - 1] : undefined);
+        const diff = sequenceDiffs[i];
+        const nextDiff = (i + 1 < sequenceDiffs.length ? sequenceDiffs[i + 1] : undefined);
+        const seq1ValidRange = new _core_offsetRange_js__WEBPACK_IMPORTED_MODULE_1__.OffsetRange(prevDiff ? prevDiff.seq1Range.endExclusive + 1 : 0, nextDiff ? nextDiff.seq1Range.start - 1 : sequence1.length);
+        const seq2ValidRange = new _core_offsetRange_js__WEBPACK_IMPORTED_MODULE_1__.OffsetRange(prevDiff ? prevDiff.seq2Range.endExclusive + 1 : 0, nextDiff ? nextDiff.seq2Range.start - 1 : sequence2.length);
+        if (diff.seq1Range.isEmpty) {
+            sequenceDiffs[i] = shiftDiffToBetterPosition(diff, sequence1, sequence2, seq1ValidRange, seq2ValidRange);
+        }
+        else if (diff.seq2Range.isEmpty) {
+            sequenceDiffs[i] = shiftDiffToBetterPosition(diff.swap(), sequence2, sequence1, seq2ValidRange, seq1ValidRange).swap();
+        }
+    }
+    return sequenceDiffs;
+}
+function shiftDiffToBetterPosition(diff, sequence1, sequence2, seq1ValidRange, seq2ValidRange) {
+    const maxShiftLimit = 100; // To prevent performance issues
+    // don't touch previous or next!
+    let deltaBefore = 1;
+    while (diff.seq1Range.start - deltaBefore >= seq1ValidRange.start &&
+        diff.seq2Range.start - deltaBefore >= seq2ValidRange.start &&
+        sequence2.isStronglyEqual(diff.seq2Range.start - deltaBefore, diff.seq2Range.endExclusive - deltaBefore) && deltaBefore < maxShiftLimit) {
+        deltaBefore++;
+    }
+    deltaBefore--;
+    let deltaAfter = 0;
+    while (diff.seq1Range.start + deltaAfter < seq1ValidRange.endExclusive &&
+        diff.seq2Range.endExclusive + deltaAfter < seq2ValidRange.endExclusive &&
+        sequence2.isStronglyEqual(diff.seq2Range.start + deltaAfter, diff.seq2Range.endExclusive + deltaAfter) && deltaAfter < maxShiftLimit) {
+        deltaAfter++;
+    }
+    if (deltaBefore === 0 && deltaAfter === 0) {
+        return diff;
+    }
+    // Visualize `[sequence1.text, diff.seq1Range.start + deltaAfter]`
+    // and `[sequence2.text, diff.seq2Range.start + deltaAfter, diff.seq2Range.endExclusive + deltaAfter]`
+    let bestDelta = 0;
+    let bestScore = -1;
+    // find best scored delta
+    for (let delta = -deltaBefore; delta <= deltaAfter; delta++) {
+        const seq2OffsetStart = diff.seq2Range.start + delta;
+        const seq2OffsetEndExclusive = diff.seq2Range.endExclusive + delta;
+        const seq1Offset = diff.seq1Range.start + delta;
+        const score = sequence1.getBoundaryScore(seq1Offset) + sequence2.getBoundaryScore(seq2OffsetStart) + sequence2.getBoundaryScore(seq2OffsetEndExclusive);
+        if (score > bestScore) {
+            bestScore = score;
+            bestDelta = delta;
+        }
+    }
+    return diff.delta(bestDelta);
+}
+function removeShortMatches(sequence1, sequence2, sequenceDiffs) {
+    const result = [];
+    for (const s of sequenceDiffs) {
+        const last = result[result.length - 1];
+        if (!last) {
+            result.push(s);
+            continue;
+        }
+        if (s.seq1Range.start - last.seq1Range.endExclusive <= 2 || s.seq2Range.start - last.seq2Range.endExclusive <= 2) {
+            result[result.length - 1] = new _algorithms_diffAlgorithm_js__WEBPACK_IMPORTED_MODULE_2__.SequenceDiff(last.seq1Range.join(s.seq1Range), last.seq2Range.join(s.seq2Range));
+        }
+        else {
+            result.push(s);
+        }
+    }
+    return result;
+}
+function extendDiffsToEntireWordIfAppropriate(sequence1, sequence2, sequenceDiffs) {
+    const equalMappings = _algorithms_diffAlgorithm_js__WEBPACK_IMPORTED_MODULE_2__.SequenceDiff.invert(sequenceDiffs, sequence1.length);
+    const additional = [];
+    let lastPoint = new _algorithms_diffAlgorithm_js__WEBPACK_IMPORTED_MODULE_2__.OffsetPair(0, 0);
+    function scanWord(pair, equalMapping) {
+        if (pair.offset1 < lastPoint.offset1 || pair.offset2 < lastPoint.offset2) {
+            return;
+        }
+        const w1 = sequence1.findWordContaining(pair.offset1);
+        const w2 = sequence2.findWordContaining(pair.offset2);
+        if (!w1 || !w2) {
+            return;
+        }
+        let w = new _algorithms_diffAlgorithm_js__WEBPACK_IMPORTED_MODULE_2__.SequenceDiff(w1, w2);
+        const equalPart = w.intersect(equalMapping);
+        let equalChars1 = equalPart.seq1Range.length;
+        let equalChars2 = equalPart.seq2Range.length;
+        // The words do not touch previous equals mappings, as we would have processed them already.
+        // But they might touch the next ones.
+        while (equalMappings.length > 0) {
+            const next = equalMappings[0];
+            const intersects = next.seq1Range.intersects(w1) || next.seq2Range.intersects(w2);
+            if (!intersects) {
+                break;
+            }
+            const v1 = sequence1.findWordContaining(next.seq1Range.start);
+            const v2 = sequence2.findWordContaining(next.seq2Range.start);
+            // Because there is an intersection, we know that the words are not empty.
+            const v = new _algorithms_diffAlgorithm_js__WEBPACK_IMPORTED_MODULE_2__.SequenceDiff(v1, v2);
+            const equalPart = v.intersect(next);
+            equalChars1 += equalPart.seq1Range.length;
+            equalChars2 += equalPart.seq2Range.length;
+            w = w.join(v);
+            if (w.seq1Range.endExclusive >= next.seq1Range.endExclusive) {
+                // The word extends beyond the next equal mapping.
+                equalMappings.shift();
+            }
+            else {
+                break;
+            }
+        }
+        if (equalChars1 + equalChars2 < (w.seq1Range.length + w.seq2Range.length) * 2 / 3) {
+            additional.push(w);
+        }
+        lastPoint = w.getEndExclusives();
+    }
+    while (equalMappings.length > 0) {
+        const next = equalMappings.shift();
+        if (next.seq1Range.isEmpty) {
+            continue;
+        }
+        scanWord(next.getStarts(), next);
+        // The equal parts are not empty, so -1 gives us a character that is equal in both parts.
+        scanWord(next.getEndExclusives().delta(-1), next);
+    }
+    const merged = mergeSequenceDiffs(sequenceDiffs, additional);
+    return merged;
+}
+function mergeSequenceDiffs(sequenceDiffs1, sequenceDiffs2) {
+    const result = [];
+    while (sequenceDiffs1.length > 0 || sequenceDiffs2.length > 0) {
+        const sd1 = sequenceDiffs1[0];
+        const sd2 = sequenceDiffs2[0];
+        let next;
+        if (sd1 && (!sd2 || sd1.seq1Range.start < sd2.seq1Range.start)) {
+            next = sequenceDiffs1.shift();
+        }
+        else {
+            next = sequenceDiffs2.shift();
+        }
+        if (result.length > 0 && result[result.length - 1].seq1Range.endExclusive >= next.seq1Range.start) {
+            result[result.length - 1] = result[result.length - 1].join(next);
+        }
+        else {
+            result.push(next);
+        }
+    }
+    return result;
+}
+function removeVeryShortMatchingLinesBetweenDiffs(sequence1, _sequence2, sequenceDiffs) {
+    let diffs = sequenceDiffs;
+    if (diffs.length === 0) {
+        return diffs;
+    }
+    let counter = 0;
+    let shouldRepeat;
+    do {
+        shouldRepeat = false;
+        const result = [
+            diffs[0]
+        ];
+        for (let i = 1; i < diffs.length; i++) {
+            const cur = diffs[i];
+            const lastResult = result[result.length - 1];
+            function shouldJoinDiffs(before, after) {
+                const unchangedRange = new _core_offsetRange_js__WEBPACK_IMPORTED_MODULE_1__.OffsetRange(lastResult.seq1Range.endExclusive, cur.seq1Range.start);
+                const unchangedText = sequence1.getText(unchangedRange);
+                const unchangedTextWithoutWs = unchangedText.replace(/\s/g, '');
+                if (unchangedTextWithoutWs.length <= 4
+                    && (before.seq1Range.length + before.seq2Range.length > 5 || after.seq1Range.length + after.seq2Range.length > 5)) {
+                    return true;
+                }
+                return false;
+            }
+            const shouldJoin = shouldJoinDiffs(lastResult, cur);
+            if (shouldJoin) {
+                shouldRepeat = true;
+                result[result.length - 1] = result[result.length - 1].join(cur);
+            }
+            else {
+                result.push(cur);
+            }
+        }
+        diffs = result;
+    } while (counter++ < 10 && shouldRepeat);
+    return diffs;
+}
+function removeVeryShortMatchingTextBetweenLongDiffs(sequence1, sequence2, sequenceDiffs) {
+    let diffs = sequenceDiffs;
+    if (diffs.length === 0) {
+        return diffs;
+    }
+    let counter = 0;
+    let shouldRepeat;
+    do {
+        shouldRepeat = false;
+        const result = [
+            diffs[0]
+        ];
+        for (let i = 1; i < diffs.length; i++) {
+            const cur = diffs[i];
+            const lastResult = result[result.length - 1];
+            function shouldJoinDiffs(before, after) {
+                const unchangedRange = new _core_offsetRange_js__WEBPACK_IMPORTED_MODULE_1__.OffsetRange(lastResult.seq1Range.endExclusive, cur.seq1Range.start);
+                const unchangedLineCount = sequence1.countLinesIn(unchangedRange);
+                if (unchangedLineCount > 5 || unchangedRange.length > 500) {
+                    return false;
+                }
+                const unchangedText = sequence1.getText(unchangedRange).trim();
+                if (unchangedText.length > 20 || unchangedText.split(/\r\n|\r|\n/).length > 1) {
+                    return false;
+                }
+                const beforeLineCount1 = sequence1.countLinesIn(before.seq1Range);
+                const beforeSeq1Length = before.seq1Range.length;
+                const beforeLineCount2 = sequence2.countLinesIn(before.seq2Range);
+                const beforeSeq2Length = before.seq2Range.length;
+                const afterLineCount1 = sequence1.countLinesIn(after.seq1Range);
+                const afterSeq1Length = after.seq1Range.length;
+                const afterLineCount2 = sequence2.countLinesIn(after.seq2Range);
+                const afterSeq2Length = after.seq2Range.length;
+                // TODO: Maybe a neural net can be used to derive the result from these numbers
+                const max = 2 * 40 + 50;
+                function cap(v) {
+                    return Math.min(v, max);
+                }
+                if (Math.pow(Math.pow(cap(beforeLineCount1 * 40 + beforeSeq1Length), 1.5) + Math.pow(cap(beforeLineCount2 * 40 + beforeSeq2Length), 1.5), 1.5)
+                    + Math.pow(Math.pow(cap(afterLineCount1 * 40 + afterSeq1Length), 1.5) + Math.pow(cap(afterLineCount2 * 40 + afterSeq2Length), 1.5), 1.5) > ((max ** 1.5) ** 1.5) * 1.3) {
+                    return true;
+                }
+                return false;
+            }
+            const shouldJoin = shouldJoinDiffs(lastResult, cur);
+            if (shouldJoin) {
+                shouldRepeat = true;
+                result[result.length - 1] = result[result.length - 1].join(cur);
+            }
+            else {
+                result.push(cur);
+            }
+        }
+        diffs = result;
+    } while (counter++ < 10 && shouldRepeat);
+    const newDiffs = [];
+    // Remove short suffixes/prefixes
+    (0,_base_common_arrays_js__WEBPACK_IMPORTED_MODULE_0__.forEachWithNeighbors)(diffs, (prev, cur, next) => {
+        let newDiff = cur;
+        function shouldMarkAsChanged(text) {
+            return text.length > 0 && text.trim().length <= 3 && cur.seq1Range.length + cur.seq2Range.length > 100;
+        }
+        const fullRange1 = sequence1.extendToFullLines(cur.seq1Range);
+        const prefix = sequence1.getText(new _core_offsetRange_js__WEBPACK_IMPORTED_MODULE_1__.OffsetRange(fullRange1.start, cur.seq1Range.start));
+        if (shouldMarkAsChanged(prefix)) {
+            newDiff = newDiff.deltaStart(-prefix.length);
+        }
+        const suffix = sequence1.getText(new _core_offsetRange_js__WEBPACK_IMPORTED_MODULE_1__.OffsetRange(cur.seq1Range.endExclusive, fullRange1.endExclusive));
+        if (shouldMarkAsChanged(suffix)) {
+            newDiff = newDiff.deltaEnd(suffix.length);
+        }
+        const availableSpace = _algorithms_diffAlgorithm_js__WEBPACK_IMPORTED_MODULE_2__.SequenceDiff.fromOffsetPairs(prev ? prev.getEndExclusives() : _algorithms_diffAlgorithm_js__WEBPACK_IMPORTED_MODULE_2__.OffsetPair.zero, next ? next.getStarts() : _algorithms_diffAlgorithm_js__WEBPACK_IMPORTED_MODULE_2__.OffsetPair.max);
+        const result = newDiff.intersect(availableSpace);
+        if (newDiffs.length > 0 && result.getStarts().equals(newDiffs[newDiffs.length - 1].getEndExclusives())) {
+            newDiffs[newDiffs.length - 1] = newDiffs[newDiffs.length - 1].join(result);
+        }
+        else {
+            newDiffs.push(result);
+        }
+    });
+    return newDiffs;
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/monaco-editor/esm/vs/editor/common/diff/defaultLinesDiffComputer/lineSequence.js":
+/*!*******************************************************************************************************!*\
+  !*** ./node_modules/monaco-editor/esm/vs/editor/common/diff/defaultLinesDiffComputer/lineSequence.js ***!
+  \*******************************************************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   LineSequence: () => (/* binding */ LineSequence)
+/* harmony export */ });
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+class LineSequence {
+    constructor(trimmedHash, lines) {
+        this.trimmedHash = trimmedHash;
+        this.lines = lines;
+    }
+    getElement(offset) {
+        return this.trimmedHash[offset];
+    }
+    get length() {
+        return this.trimmedHash.length;
+    }
+    getBoundaryScore(length) {
+        const indentationBefore = length === 0 ? 0 : getIndentation(this.lines[length - 1]);
+        const indentationAfter = length === this.lines.length ? 0 : getIndentation(this.lines[length]);
+        return 1000 - (indentationBefore + indentationAfter);
+    }
+    getText(range) {
+        return this.lines.slice(range.start, range.endExclusive).join('\n');
+    }
+    isStronglyEqual(offset1, offset2) {
+        return this.lines[offset1] === this.lines[offset2];
+    }
+}
+function getIndentation(str) {
+    let i = 0;
+    while (i < str.length && (str.charCodeAt(i) === 32 /* CharCode.Space */ || str.charCodeAt(i) === 9 /* CharCode.Tab */)) {
+        i++;
+    }
+    return i;
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/monaco-editor/esm/vs/editor/common/diff/defaultLinesDiffComputer/linesSliceCharSequence.js":
+/*!*****************************************************************************************************************!*\
+  !*** ./node_modules/monaco-editor/esm/vs/editor/common/diff/defaultLinesDiffComputer/linesSliceCharSequence.js ***!
+  \*****************************************************************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   LinesSliceCharSequence: () => (/* binding */ LinesSliceCharSequence)
+/* harmony export */ });
+/* harmony import */ var _base_common_arraysFind_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../../base/common/arraysFind.js */ "./node_modules/monaco-editor/esm/vs/base/common/arraysFind.js");
+/* harmony import */ var _core_offsetRange_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../core/offsetRange.js */ "./node_modules/monaco-editor/esm/vs/editor/common/core/offsetRange.js");
+/* harmony import */ var _core_position_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../core/position.js */ "./node_modules/monaco-editor/esm/vs/editor/common/core/position.js");
+/* harmony import */ var _core_range_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../core/range.js */ "./node_modules/monaco-editor/esm/vs/editor/common/core/range.js");
+/* harmony import */ var _utils_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./utils.js */ "./node_modules/monaco-editor/esm/vs/editor/common/diff/defaultLinesDiffComputer/utils.js");
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+
+
+
+
+class LinesSliceCharSequence {
+    constructor(lines, lineRange, considerWhitespaceChanges) {
+        // This slice has to have lineRange.length many \n! (otherwise diffing against an empty slice will be problematic)
+        // (Unless it covers the entire document, in that case the other slice also has to cover the entire document ands it's okay)
+        this.lines = lines;
+        this.considerWhitespaceChanges = considerWhitespaceChanges;
+        this.elements = [];
+        this.firstCharOffsetByLine = [];
+        // To account for trimming
+        this.additionalOffsetByLine = [];
+        // If the slice covers the end, but does not start at the beginning, we include just the \n of the previous line.
+        let trimFirstLineFully = false;
+        if (lineRange.start > 0 && lineRange.endExclusive >= lines.length) {
+            lineRange = new _core_offsetRange_js__WEBPACK_IMPORTED_MODULE_1__.OffsetRange(lineRange.start - 1, lineRange.endExclusive);
+            trimFirstLineFully = true;
+        }
+        this.lineRange = lineRange;
+        this.firstCharOffsetByLine[0] = 0;
+        for (let i = this.lineRange.start; i < this.lineRange.endExclusive; i++) {
+            let line = lines[i];
+            let offset = 0;
+            if (trimFirstLineFully) {
+                offset = line.length;
+                line = '';
+                trimFirstLineFully = false;
+            }
+            else if (!considerWhitespaceChanges) {
+                const trimmedStartLine = line.trimStart();
+                offset = line.length - trimmedStartLine.length;
+                line = trimmedStartLine.trimEnd();
+            }
+            this.additionalOffsetByLine.push(offset);
+            for (let i = 0; i < line.length; i++) {
+                this.elements.push(line.charCodeAt(i));
+            }
+            // Don't add an \n that does not exist in the document.
+            if (i < lines.length - 1) {
+                this.elements.push('\n'.charCodeAt(0));
+                this.firstCharOffsetByLine[i - this.lineRange.start + 1] = this.elements.length;
+            }
+        }
+        // To account for the last line
+        this.additionalOffsetByLine.push(0);
+    }
+    toString() {
+        return `Slice: "${this.text}"`;
+    }
+    get text() {
+        return this.getText(new _core_offsetRange_js__WEBPACK_IMPORTED_MODULE_1__.OffsetRange(0, this.length));
+    }
+    getText(range) {
+        return this.elements.slice(range.start, range.endExclusive).map(e => String.fromCharCode(e)).join('');
+    }
+    getElement(offset) {
+        return this.elements[offset];
+    }
+    get length() {
+        return this.elements.length;
+    }
+    getBoundaryScore(length) {
+        //   a   b   c   ,           d   e   f
+        // 11  0   0   12  15  6   13  0   0   11
+        const prevCategory = getCategory(length > 0 ? this.elements[length - 1] : -1);
+        const nextCategory = getCategory(length < this.elements.length ? this.elements[length] : -1);
+        if (prevCategory === 7 /* CharBoundaryCategory.LineBreakCR */ && nextCategory === 8 /* CharBoundaryCategory.LineBreakLF */) {
+            // don't break between \r and \n
+            return 0;
+        }
+        if (prevCategory === 8 /* CharBoundaryCategory.LineBreakLF */) {
+            // prefer the linebreak before the change
+            return 150;
+        }
+        let score = 0;
+        if (prevCategory !== nextCategory) {
+            score += 10;
+            if (prevCategory === 0 /* CharBoundaryCategory.WordLower */ && nextCategory === 1 /* CharBoundaryCategory.WordUpper */) {
+                score += 1;
+            }
+        }
+        score += getCategoryBoundaryScore(prevCategory);
+        score += getCategoryBoundaryScore(nextCategory);
+        return score;
+    }
+    translateOffset(offset) {
+        // find smallest i, so that lineBreakOffsets[i] <= offset using binary search
+        if (this.lineRange.isEmpty) {
+            return new _core_position_js__WEBPACK_IMPORTED_MODULE_2__.Position(this.lineRange.start + 1, 1);
+        }
+        const i = (0,_base_common_arraysFind_js__WEBPACK_IMPORTED_MODULE_0__.findLastIdxMonotonous)(this.firstCharOffsetByLine, (value) => value <= offset);
+        return new _core_position_js__WEBPACK_IMPORTED_MODULE_2__.Position(this.lineRange.start + i + 1, offset - this.firstCharOffsetByLine[i] + this.additionalOffsetByLine[i] + 1);
+    }
+    translateRange(range) {
+        return _core_range_js__WEBPACK_IMPORTED_MODULE_3__.Range.fromPositions(this.translateOffset(range.start), this.translateOffset(range.endExclusive));
+    }
+    /**
+     * Finds the word that contains the character at the given offset
+     */
+    findWordContaining(offset) {
+        if (offset < 0 || offset >= this.elements.length) {
+            return undefined;
+        }
+        if (!isWordChar(this.elements[offset])) {
+            return undefined;
+        }
+        // find start
+        let start = offset;
+        while (start > 0 && isWordChar(this.elements[start - 1])) {
+            start--;
+        }
+        // find end
+        let end = offset;
+        while (end < this.elements.length && isWordChar(this.elements[end])) {
+            end++;
+        }
+        return new _core_offsetRange_js__WEBPACK_IMPORTED_MODULE_1__.OffsetRange(start, end);
+    }
+    countLinesIn(range) {
+        return this.translateOffset(range.endExclusive).lineNumber - this.translateOffset(range.start).lineNumber;
+    }
+    isStronglyEqual(offset1, offset2) {
+        return this.elements[offset1] === this.elements[offset2];
+    }
+    extendToFullLines(range) {
+        var _a, _b;
+        const start = (_a = (0,_base_common_arraysFind_js__WEBPACK_IMPORTED_MODULE_0__.findLastMonotonous)(this.firstCharOffsetByLine, x => x <= range.start)) !== null && _a !== void 0 ? _a : 0;
+        const end = (_b = (0,_base_common_arraysFind_js__WEBPACK_IMPORTED_MODULE_0__.findFirstMonotonous)(this.firstCharOffsetByLine, x => range.endExclusive <= x)) !== null && _b !== void 0 ? _b : this.elements.length;
+        return new _core_offsetRange_js__WEBPACK_IMPORTED_MODULE_1__.OffsetRange(start, end);
+    }
+}
+function isWordChar(charCode) {
+    return charCode >= 97 /* CharCode.a */ && charCode <= 122 /* CharCode.z */
+        || charCode >= 65 /* CharCode.A */ && charCode <= 90 /* CharCode.Z */
+        || charCode >= 48 /* CharCode.Digit0 */ && charCode <= 57 /* CharCode.Digit9 */;
+}
+const score = {
+    [0 /* CharBoundaryCategory.WordLower */]: 0,
+    [1 /* CharBoundaryCategory.WordUpper */]: 0,
+    [2 /* CharBoundaryCategory.WordNumber */]: 0,
+    [3 /* CharBoundaryCategory.End */]: 10,
+    [4 /* CharBoundaryCategory.Other */]: 2,
+    [5 /* CharBoundaryCategory.Separator */]: 30,
+    [6 /* CharBoundaryCategory.Space */]: 3,
+    [7 /* CharBoundaryCategory.LineBreakCR */]: 10,
+    [8 /* CharBoundaryCategory.LineBreakLF */]: 10,
+};
+function getCategoryBoundaryScore(category) {
+    return score[category];
+}
+function getCategory(charCode) {
+    if (charCode === 10 /* CharCode.LineFeed */) {
+        return 8 /* CharBoundaryCategory.LineBreakLF */;
+    }
+    else if (charCode === 13 /* CharCode.CarriageReturn */) {
+        return 7 /* CharBoundaryCategory.LineBreakCR */;
+    }
+    else if ((0,_utils_js__WEBPACK_IMPORTED_MODULE_4__.isSpace)(charCode)) {
+        return 6 /* CharBoundaryCategory.Space */;
+    }
+    else if (charCode >= 97 /* CharCode.a */ && charCode <= 122 /* CharCode.z */) {
+        return 0 /* CharBoundaryCategory.WordLower */;
+    }
+    else if (charCode >= 65 /* CharCode.A */ && charCode <= 90 /* CharCode.Z */) {
+        return 1 /* CharBoundaryCategory.WordUpper */;
+    }
+    else if (charCode >= 48 /* CharCode.Digit0 */ && charCode <= 57 /* CharCode.Digit9 */) {
+        return 2 /* CharBoundaryCategory.WordNumber */;
+    }
+    else if (charCode === -1) {
+        return 3 /* CharBoundaryCategory.End */;
+    }
+    else if (charCode === 44 /* CharCode.Comma */ || charCode === 59 /* CharCode.Semicolon */) {
+        return 5 /* CharBoundaryCategory.Separator */;
+    }
+    else {
+        return 4 /* CharBoundaryCategory.Other */;
+    }
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/monaco-editor/esm/vs/editor/common/diff/defaultLinesDiffComputer/utils.js":
+/*!************************************************************************************************!*\
+  !*** ./node_modules/monaco-editor/esm/vs/editor/common/diff/defaultLinesDiffComputer/utils.js ***!
+  \************************************************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   Array2D: () => (/* binding */ Array2D),
+/* harmony export */   LineRangeFragment: () => (/* binding */ LineRangeFragment),
+/* harmony export */   isSpace: () => (/* binding */ isSpace)
 /* harmony export */ });
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
@@ -12735,6 +13640,49 @@ class Array2D {
         this.array[x + y * this.width] = value;
     }
 }
+function isSpace(charCode) {
+    return charCode === 32 /* CharCode.Space */ || charCode === 9 /* CharCode.Tab */;
+}
+class LineRangeFragment {
+    static getKey(chr) {
+        let key = this.chrKeys.get(chr);
+        if (key === undefined) {
+            key = this.chrKeys.size;
+            this.chrKeys.set(chr, key);
+        }
+        return key;
+    }
+    constructor(range, lines, source) {
+        this.range = range;
+        this.lines = lines;
+        this.source = source;
+        this.histogram = [];
+        let counter = 0;
+        for (let i = range.startLineNumber - 1; i < range.endLineNumberExclusive - 1; i++) {
+            const line = lines[i];
+            for (let j = 0; j < line.length; j++) {
+                counter++;
+                const chr = line[j];
+                const key = LineRangeFragment.getKey(chr);
+                this.histogram[key] = (this.histogram[key] || 0) + 1;
+            }
+            counter++;
+            const key = LineRangeFragment.getKey('\n');
+            this.histogram[key] = (this.histogram[key] || 0) + 1;
+        }
+        this.totalCount = counter;
+    }
+    computeSimilarity(other) {
+        var _a, _b;
+        let sumDifferences = 0;
+        const maxLength = Math.max(this.histogram.length, other.histogram.length);
+        for (let i = 0; i < maxLength; i++) {
+            sumDifferences += Math.abs(((_a = this.histogram[i]) !== null && _a !== void 0 ? _a : 0) - ((_b = other.histogram[i]) !== null && _b !== void 0 ? _b : 0));
+        }
+        return 1 - (sumDifferences / (this.totalCount + other.totalCount));
+    }
+}
+LineRangeFragment.chrKeys = new Map();
 
 
 /***/ }),
@@ -12752,14 +13700,16 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var _base_common_diff_diff_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../base/common/diff/diff.js */ "./node_modules/monaco-editor/esm/vs/base/common/diff/diff.js");
 /* harmony import */ var _linesDiffComputer_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./linesDiffComputer.js */ "./node_modules/monaco-editor/esm/vs/editor/common/diff/linesDiffComputer.js");
-/* harmony import */ var _base_common_strings_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../base/common/strings.js */ "./node_modules/monaco-editor/esm/vs/base/common/strings.js");
-/* harmony import */ var _core_range_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../core/range.js */ "./node_modules/monaco-editor/esm/vs/editor/common/core/range.js");
-/* harmony import */ var _base_common_assert_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../../base/common/assert.js */ "./node_modules/monaco-editor/esm/vs/base/common/assert.js");
-/* harmony import */ var _core_lineRange_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../core/lineRange.js */ "./node_modules/monaco-editor/esm/vs/editor/common/core/lineRange.js");
+/* harmony import */ var _rangeMapping_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./rangeMapping.js */ "./node_modules/monaco-editor/esm/vs/editor/common/diff/rangeMapping.js");
+/* harmony import */ var _base_common_strings_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../../base/common/strings.js */ "./node_modules/monaco-editor/esm/vs/base/common/strings.js");
+/* harmony import */ var _core_range_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../core/range.js */ "./node_modules/monaco-editor/esm/vs/editor/common/core/range.js");
+/* harmony import */ var _base_common_assert_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../../base/common/assert.js */ "./node_modules/monaco-editor/esm/vs/base/common/assert.js");
+/* harmony import */ var _core_lineRange_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../core/lineRange.js */ "./node_modules/monaco-editor/esm/vs/editor/common/core/lineRange.js");
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
+
 
 
 
@@ -12784,25 +13734,25 @@ class LegacyLinesDiffComputer {
             let originalRange;
             if (c.originalEndLineNumber === 0) {
                 // Insertion
-                originalRange = new _core_lineRange_js__WEBPACK_IMPORTED_MODULE_5__.LineRange(c.originalStartLineNumber + 1, c.originalStartLineNumber + 1);
+                originalRange = new _core_lineRange_js__WEBPACK_IMPORTED_MODULE_6__.LineRange(c.originalStartLineNumber + 1, c.originalStartLineNumber + 1);
             }
             else {
-                originalRange = new _core_lineRange_js__WEBPACK_IMPORTED_MODULE_5__.LineRange(c.originalStartLineNumber, c.originalEndLineNumber + 1);
+                originalRange = new _core_lineRange_js__WEBPACK_IMPORTED_MODULE_6__.LineRange(c.originalStartLineNumber, c.originalEndLineNumber + 1);
             }
             let modifiedRange;
             if (c.modifiedEndLineNumber === 0) {
                 // Deletion
-                modifiedRange = new _core_lineRange_js__WEBPACK_IMPORTED_MODULE_5__.LineRange(c.modifiedStartLineNumber + 1, c.modifiedStartLineNumber + 1);
+                modifiedRange = new _core_lineRange_js__WEBPACK_IMPORTED_MODULE_6__.LineRange(c.modifiedStartLineNumber + 1, c.modifiedStartLineNumber + 1);
             }
             else {
-                modifiedRange = new _core_lineRange_js__WEBPACK_IMPORTED_MODULE_5__.LineRange(c.modifiedStartLineNumber, c.modifiedEndLineNumber + 1);
+                modifiedRange = new _core_lineRange_js__WEBPACK_IMPORTED_MODULE_6__.LineRange(c.modifiedStartLineNumber, c.modifiedEndLineNumber + 1);
             }
-            let change = new _linesDiffComputer_js__WEBPACK_IMPORTED_MODULE_1__.LineRangeMapping(originalRange, modifiedRange, (_a = c.charChanges) === null || _a === void 0 ? void 0 : _a.map(c => new _linesDiffComputer_js__WEBPACK_IMPORTED_MODULE_1__.RangeMapping(new _core_range_js__WEBPACK_IMPORTED_MODULE_3__.Range(c.originalStartLineNumber, c.originalStartColumn, c.originalEndLineNumber, c.originalEndColumn), new _core_range_js__WEBPACK_IMPORTED_MODULE_3__.Range(c.modifiedStartLineNumber, c.modifiedStartColumn, c.modifiedEndLineNumber, c.modifiedEndColumn))));
+            let change = new _rangeMapping_js__WEBPACK_IMPORTED_MODULE_2__.DetailedLineRangeMapping(originalRange, modifiedRange, (_a = c.charChanges) === null || _a === void 0 ? void 0 : _a.map(c => new _rangeMapping_js__WEBPACK_IMPORTED_MODULE_2__.RangeMapping(new _core_range_js__WEBPACK_IMPORTED_MODULE_4__.Range(c.originalStartLineNumber, c.originalStartColumn, c.originalEndLineNumber, c.originalEndColumn), new _core_range_js__WEBPACK_IMPORTED_MODULE_4__.Range(c.modifiedStartLineNumber, c.modifiedStartColumn, c.modifiedEndLineNumber, c.modifiedEndColumn))));
             if (lastChange) {
-                if (lastChange.modifiedRange.endLineNumberExclusive === change.modifiedRange.startLineNumber
-                    || lastChange.originalRange.endLineNumberExclusive === change.originalRange.startLineNumber) {
+                if (lastChange.modified.endLineNumberExclusive === change.modified.startLineNumber
+                    || lastChange.original.endLineNumberExclusive === change.original.startLineNumber) {
                     // join touching diffs. Probably moving diffs up/down in the algorithm causes touching diffs.
-                    change = new _linesDiffComputer_js__WEBPACK_IMPORTED_MODULE_1__.LineRangeMapping(lastChange.originalRange.join(change.originalRange), lastChange.modifiedRange.join(change.modifiedRange), lastChange.innerChanges && change.innerChanges ?
+                    change = new _rangeMapping_js__WEBPACK_IMPORTED_MODULE_2__.DetailedLineRangeMapping(lastChange.original.join(change.original), lastChange.modified.join(change.modified), lastChange.innerChanges && change.innerChanges ?
                         lastChange.innerChanges.concat(change.innerChanges) : undefined);
                     changes.pop();
                 }
@@ -12810,11 +13760,11 @@ class LegacyLinesDiffComputer {
             changes.push(change);
             lastChange = change;
         }
-        (0,_base_common_assert_js__WEBPACK_IMPORTED_MODULE_4__.assertFn)(() => {
-            return (0,_base_common_assert_js__WEBPACK_IMPORTED_MODULE_4__.checkAdjacentItems)(changes, (m1, m2) => m2.originalRange.startLineNumber - m1.originalRange.endLineNumberExclusive === m2.modifiedRange.startLineNumber - m1.modifiedRange.endLineNumberExclusive &&
+        (0,_base_common_assert_js__WEBPACK_IMPORTED_MODULE_5__.assertFn)(() => {
+            return (0,_base_common_assert_js__WEBPACK_IMPORTED_MODULE_5__.checkAdjacentItems)(changes, (m1, m2) => m2.original.startLineNumber - m1.original.endLineNumberExclusive === m2.modified.startLineNumber - m1.modified.endLineNumberExclusive &&
                 // There has to be an unchanged line in between (otherwise both diffs should have been joined)
-                m1.originalRange.endLineNumberExclusive < m2.originalRange.startLineNumber &&
-                m1.modifiedRange.endLineNumberExclusive < m2.modifiedRange.startLineNumber);
+                m1.original.endLineNumberExclusive < m2.original.startLineNumber &&
+                m1.modified.endLineNumberExclusive < m2.modified.startLineNumber);
         });
         return new _linesDiffComputer_js__WEBPACK_IMPORTED_MODULE_1__.LinesDiff(changes, [], result.quitEarly);
     }
@@ -13199,14 +14149,14 @@ class DiffComputer {
     }
 }
 function getFirstNonBlankColumn(txt, defaultValue) {
-    const r = _base_common_strings_js__WEBPACK_IMPORTED_MODULE_2__.firstNonWhitespaceIndex(txt);
+    const r = _base_common_strings_js__WEBPACK_IMPORTED_MODULE_3__.firstNonWhitespaceIndex(txt);
     if (r === -1) {
         return defaultValue;
     }
     return r + 1;
 }
 function getLastNonBlankColumn(txt, defaultValue) {
-    const r = _base_common_strings_js__WEBPACK_IMPORTED_MODULE_2__.lastNonWhitespaceIndex(txt);
+    const r = _base_common_strings_js__WEBPACK_IMPORTED_MODULE_3__.lastNonWhitespaceIndex(txt);
     if (r === -1) {
         return defaultValue;
     }
@@ -13233,18 +14183,13 @@ function createContinueProcessingPredicate(maximumRuntime) {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   LineRangeMapping: () => (/* binding */ LineRangeMapping),
 /* harmony export */   LinesDiff: () => (/* binding */ LinesDiff),
-/* harmony export */   MovedText: () => (/* binding */ MovedText),
-/* harmony export */   RangeMapping: () => (/* binding */ RangeMapping),
-/* harmony export */   SimpleLineRangeMapping: () => (/* binding */ SimpleLineRangeMapping)
+/* harmony export */   MovedText: () => (/* binding */ MovedText)
 /* harmony export */ });
-/* harmony import */ var _core_lineRange_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../core/lineRange.js */ "./node_modules/monaco-editor/esm/vs/editor/common/core/lineRange.js");
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-
 class LinesDiff {
     constructor(changes, 
     /**
@@ -13262,82 +14207,10 @@ class LinesDiff {
         this.hitTimeout = hitTimeout;
     }
 }
-/**
- * Maps a line range in the original text model to a line range in the modified text model.
- */
-class LineRangeMapping {
-    static inverse(mapping, originalLineCount, modifiedLineCount) {
-        const result = [];
-        let lastOriginalEndLineNumber = 1;
-        let lastModifiedEndLineNumber = 1;
-        for (const m of mapping) {
-            const r = new LineRangeMapping(new _core_lineRange_js__WEBPACK_IMPORTED_MODULE_0__.LineRange(lastOriginalEndLineNumber, m.originalRange.startLineNumber), new _core_lineRange_js__WEBPACK_IMPORTED_MODULE_0__.LineRange(lastModifiedEndLineNumber, m.modifiedRange.startLineNumber), undefined);
-            if (!r.modifiedRange.isEmpty) {
-                result.push(r);
-            }
-            lastOriginalEndLineNumber = m.originalRange.endLineNumberExclusive;
-            lastModifiedEndLineNumber = m.modifiedRange.endLineNumberExclusive;
-        }
-        const r = new LineRangeMapping(new _core_lineRange_js__WEBPACK_IMPORTED_MODULE_0__.LineRange(lastOriginalEndLineNumber, originalLineCount + 1), new _core_lineRange_js__WEBPACK_IMPORTED_MODULE_0__.LineRange(lastModifiedEndLineNumber, modifiedLineCount + 1), undefined);
-        if (!r.modifiedRange.isEmpty) {
-            result.push(r);
-        }
-        return result;
-    }
-    constructor(originalRange, modifiedRange, innerChanges) {
-        this.originalRange = originalRange;
-        this.modifiedRange = modifiedRange;
-        this.innerChanges = innerChanges;
-    }
-    toString() {
-        return `{${this.originalRange.toString()}->${this.modifiedRange.toString()}}`;
-    }
-    get changedLineCount() {
-        return Math.max(this.originalRange.length, this.modifiedRange.length);
-    }
-    flip() {
-        var _a;
-        return new LineRangeMapping(this.modifiedRange, this.originalRange, (_a = this.innerChanges) === null || _a === void 0 ? void 0 : _a.map(c => c.flip()));
-    }
-}
-/**
- * Maps a range in the original text model to a range in the modified text model.
- */
-class RangeMapping {
-    constructor(originalRange, modifiedRange) {
-        this.originalRange = originalRange;
-        this.modifiedRange = modifiedRange;
-    }
-    toString() {
-        return `{${this.originalRange.toString()}->${this.modifiedRange.toString()}}`;
-    }
-    flip() {
-        return new RangeMapping(this.modifiedRange, this.originalRange);
-    }
-}
-// TODO@hediet: Make LineRangeMapping extend from this!
-class SimpleLineRangeMapping {
-    constructor(original, modified) {
-        this.original = original;
-        this.modified = modified;
-    }
-    toString() {
-        return `{${this.original.toString()}->${this.modified.toString()}}`;
-    }
-    flip() {
-        return new SimpleLineRangeMapping(this.modified, this.original);
-    }
-    join(other) {
-        return new SimpleLineRangeMapping(this.original.join(other.original), this.modified.join(other.modified));
-    }
-}
 class MovedText {
     constructor(lineRangeMapping, changes) {
         this.lineRangeMapping = lineRangeMapping;
         this.changes = changes;
-    }
-    flip() {
-        return new MovedText(this.lineRangeMapping.flip(), this.changes.map(c => c.flip()));
     }
 }
 
@@ -13355,7 +14228,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   linesDiffComputers: () => (/* binding */ linesDiffComputers)
 /* harmony export */ });
 /* harmony import */ var _legacyLinesDiffComputer_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./legacyLinesDiffComputer.js */ "./node_modules/monaco-editor/esm/vs/editor/common/diff/legacyLinesDiffComputer.js");
-/* harmony import */ var _advancedLinesDiffComputer_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./advancedLinesDiffComputer.js */ "./node_modules/monaco-editor/esm/vs/editor/common/diff/advancedLinesDiffComputer.js");
+/* harmony import */ var _defaultLinesDiffComputer_defaultLinesDiffComputer_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./defaultLinesDiffComputer/defaultLinesDiffComputer.js */ "./node_modules/monaco-editor/esm/vs/editor/common/diff/defaultLinesDiffComputer/defaultLinesDiffComputer.js");
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
@@ -13364,8 +14237,106 @@ __webpack_require__.r(__webpack_exports__);
 
 const linesDiffComputers = {
     getLegacy: () => new _legacyLinesDiffComputer_js__WEBPACK_IMPORTED_MODULE_0__.LegacyLinesDiffComputer(),
-    getAdvanced: () => new _advancedLinesDiffComputer_js__WEBPACK_IMPORTED_MODULE_1__.AdvancedLinesDiffComputer(),
+    getDefault: () => new _defaultLinesDiffComputer_defaultLinesDiffComputer_js__WEBPACK_IMPORTED_MODULE_1__.DefaultLinesDiffComputer(),
 };
+
+
+/***/ }),
+
+/***/ "./node_modules/monaco-editor/esm/vs/editor/common/diff/rangeMapping.js":
+/*!******************************************************************************!*\
+  !*** ./node_modules/monaco-editor/esm/vs/editor/common/diff/rangeMapping.js ***!
+  \******************************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   DetailedLineRangeMapping: () => (/* binding */ DetailedLineRangeMapping),
+/* harmony export */   LineRangeMapping: () => (/* binding */ LineRangeMapping),
+/* harmony export */   RangeMapping: () => (/* binding */ RangeMapping)
+/* harmony export */ });
+/* harmony import */ var _core_lineRange_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../core/lineRange.js */ "./node_modules/monaco-editor/esm/vs/editor/common/core/lineRange.js");
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+/**
+ * Maps a line range in the original text model to a line range in the modified text model.
+ */
+class LineRangeMapping {
+    static inverse(mapping, originalLineCount, modifiedLineCount) {
+        const result = [];
+        let lastOriginalEndLineNumber = 1;
+        let lastModifiedEndLineNumber = 1;
+        for (const m of mapping) {
+            const r = new LineRangeMapping(new _core_lineRange_js__WEBPACK_IMPORTED_MODULE_0__.LineRange(lastOriginalEndLineNumber, m.original.startLineNumber), new _core_lineRange_js__WEBPACK_IMPORTED_MODULE_0__.LineRange(lastModifiedEndLineNumber, m.modified.startLineNumber));
+            if (!r.modified.isEmpty) {
+                result.push(r);
+            }
+            lastOriginalEndLineNumber = m.original.endLineNumberExclusive;
+            lastModifiedEndLineNumber = m.modified.endLineNumberExclusive;
+        }
+        const r = new LineRangeMapping(new _core_lineRange_js__WEBPACK_IMPORTED_MODULE_0__.LineRange(lastOriginalEndLineNumber, originalLineCount + 1), new _core_lineRange_js__WEBPACK_IMPORTED_MODULE_0__.LineRange(lastModifiedEndLineNumber, modifiedLineCount + 1));
+        if (!r.modified.isEmpty) {
+            result.push(r);
+        }
+        return result;
+    }
+    static clip(mapping, originalRange, modifiedRange) {
+        const result = [];
+        for (const m of mapping) {
+            const original = m.original.intersect(originalRange);
+            const modified = m.modified.intersect(modifiedRange);
+            if (original && !original.isEmpty && modified && !modified.isEmpty) {
+                result.push(new LineRangeMapping(original, modified));
+            }
+        }
+        return result;
+    }
+    constructor(originalRange, modifiedRange) {
+        this.original = originalRange;
+        this.modified = modifiedRange;
+    }
+    toString() {
+        return `{${this.original.toString()}->${this.modified.toString()}}`;
+    }
+    flip() {
+        return new LineRangeMapping(this.modified, this.original);
+    }
+    join(other) {
+        return new LineRangeMapping(this.original.join(other.original), this.modified.join(other.modified));
+    }
+}
+/**
+ * Maps a line range in the original text model to a line range in the modified text model.
+ * Also contains inner range mappings.
+ */
+class DetailedLineRangeMapping extends LineRangeMapping {
+    constructor(originalRange, modifiedRange, innerChanges) {
+        super(originalRange, modifiedRange);
+        this.innerChanges = innerChanges;
+    }
+    flip() {
+        var _a;
+        return new DetailedLineRangeMapping(this.modified, this.original, (_a = this.innerChanges) === null || _a === void 0 ? void 0 : _a.map(c => c.flip()));
+    }
+}
+/**
+ * Maps a range in the original text model to a range in the modified text model.
+ */
+class RangeMapping {
+    constructor(originalRange, modifiedRange) {
+        this.originalRange = originalRange;
+        this.modifiedRange = modifiedRange;
+    }
+    toString() {
+        return `{${this.originalRange.toString()}->${this.modifiedRange.toString()}}`;
+    }
+    flip() {
+        return new RangeMapping(this.modifiedRange, this.originalRange);
+    }
+}
 
 
 /***/ }),
@@ -13385,7 +14356,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   FoldingRangeKind: () => (/* binding */ FoldingRangeKind),
 /* harmony export */   InlayHintKind: () => (/* binding */ InlayHintKind),
 /* harmony export */   InlineCompletionTriggerKind: () => (/* binding */ InlineCompletionTriggerKind),
+/* harmony export */   InlineEditTriggerKind: () => (/* binding */ InlineEditTriggerKind),
 /* harmony export */   LazyTokenizationSupport: () => (/* binding */ LazyTokenizationSupport),
+/* harmony export */   NewSymbolNameTag: () => (/* binding */ NewSymbolNameTag),
 /* harmony export */   SelectedSuggestionInfo: () => (/* binding */ SelectedSuggestionInfo),
 /* harmony export */   SignatureHelpTriggerKind: () => (/* binding */ SignatureHelpTriggerKind),
 /* harmony export */   SymbolKinds: () => (/* binding */ SymbolKinds),
@@ -13719,6 +14692,10 @@ FoldingRangeKind.Imports = new FoldingRangeKind('imports');
  * The value of the kind is 'region'.
  */
 FoldingRangeKind.Region = new FoldingRangeKind('region');
+var NewSymbolNameTag;
+(function (NewSymbolNameTag) {
+    NewSymbolNameTag[NewSymbolNameTag["AIGenerated"] = 1] = "AIGenerated";
+})(NewSymbolNameTag || (NewSymbolNameTag = {}));
 /**
  * @internal
  */
@@ -13769,6 +14746,11 @@ class LazyTokenizationSupport {
  * @internal
  */
 const TokenizationRegistry = new _tokenizationRegistry_js__WEBPACK_IMPORTED_MODULE_3__.TokenizationRegistry();
+var InlineEditTriggerKind;
+(function (InlineEditTriggerKind) {
+    InlineEditTriggerKind[InlineEditTriggerKind["Invoke"] = 0] = "Invoke";
+    InlineEditTriggerKind[InlineEditTriggerKind["Automatic"] = 1] = "Automatic";
+})(InlineEditTriggerKind || (InlineEditTriggerKind = {}));
 
 
 /***/ }),
@@ -14351,7 +15333,8 @@ var OverviewRulerLane;
 var GlyphMarginLane;
 (function (GlyphMarginLane) {
     GlyphMarginLane[GlyphMarginLane["Left"] = 1] = "Left";
-    GlyphMarginLane[GlyphMarginLane["Right"] = 2] = "Right";
+    GlyphMarginLane[GlyphMarginLane["Center"] = 2] = "Center";
+    GlyphMarginLane[GlyphMarginLane["Right"] = 3] = "Right";
 })(GlyphMarginLane || (GlyphMarginLane = {}));
 /**
  * Position in the minimap to render the decoration.
@@ -15366,8 +16349,8 @@ KeyMod.Alt = 512 /* ConstKeyMod.Alt */;
 KeyMod.WinCtrl = 256 /* ConstKeyMod.WinCtrl */;
 function createMonacoBaseAPI() {
     return {
-        editor: undefined,
-        languages: undefined,
+        editor: undefined, // undefined override expected here
+        languages: undefined, // undefined override expected here
         CancellationTokenSource: _base_common_cancellation_js__WEBPACK_IMPORTED_MODULE_0__.CancellationTokenSource,
         Emitter: _base_common_event_js__WEBPACK_IMPORTED_MODULE_1__.Emitter,
         KeyCode: _standalone_standaloneEnums_js__WEBPACK_IMPORTED_MODULE_8__.KeyCode,
@@ -15415,15 +16398,6 @@ __webpack_require__.r(__webpack_exports__);
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 
 
 
@@ -15659,28 +16633,25 @@ class EditorSimpleWorker {
         }
         delete this._models[strURL];
     }
-    computeUnicodeHighlights(url, options, range) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const model = this._getModel(url);
-            if (!model) {
-                return { ranges: [], hasMore: false, ambiguousCharacterCount: 0, invisibleCharacterCount: 0, nonBasicAsciiCharacterCount: 0 };
-            }
-            return _unicodeTextModelHighlighter_js__WEBPACK_IMPORTED_MODULE_10__.UnicodeTextModelHighlighter.computeUnicodeHighlights(model, options, range);
-        });
+    async computeUnicodeHighlights(url, options, range) {
+        const model = this._getModel(url);
+        if (!model) {
+            return { ranges: [], hasMore: false, ambiguousCharacterCount: 0, invisibleCharacterCount: 0, nonBasicAsciiCharacterCount: 0 };
+        }
+        return _unicodeTextModelHighlighter_js__WEBPACK_IMPORTED_MODULE_10__.UnicodeTextModelHighlighter.computeUnicodeHighlights(model, options, range);
     }
     // ---- BEGIN diff --------------------------------------------------------------------------
-    computeDiff(originalUrl, modifiedUrl, options, algorithm) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const original = this._getModel(originalUrl);
-            const modified = this._getModel(modifiedUrl);
-            if (!original || !modified) {
-                return null;
-            }
-            return EditorSimpleWorker.computeDiff(original, modified, options, algorithm);
-        });
+    async computeDiff(originalUrl, modifiedUrl, options, algorithm) {
+        const original = this._getModel(originalUrl);
+        const modified = this._getModel(modifiedUrl);
+        if (!original || !modified) {
+            return null;
+        }
+        const result = EditorSimpleWorker.computeDiff(original, modified, options, algorithm);
+        return result;
     }
     static computeDiff(originalTextModel, modifiedTextModel, options, algorithm) {
-        const diffAlgorithm = algorithm === 'advanced' ? _diff_linesDiffComputers_js__WEBPACK_IMPORTED_MODULE_11__.linesDiffComputers.getAdvanced() : _diff_linesDiffComputers_js__WEBPACK_IMPORTED_MODULE_11__.linesDiffComputers.getLegacy();
+        const diffAlgorithm = algorithm === 'advanced' ? _diff_linesDiffComputers_js__WEBPACK_IMPORTED_MODULE_11__.linesDiffComputers.getDefault() : _diff_linesDiffComputers_js__WEBPACK_IMPORTED_MODULE_11__.linesDiffComputers.getLegacy();
         const originalLines = originalTextModel.getLinesContent();
         const modifiedLines = modifiedTextModel.getLinesContent();
         const result = diffAlgorithm.computeDiff(originalLines, modifiedLines, options);
@@ -15688,7 +16659,7 @@ class EditorSimpleWorker {
         function getLineChanges(changes) {
             return changes.map(m => {
                 var _a;
-                return ([m.originalRange.startLineNumber, m.originalRange.endLineNumberExclusive, m.modifiedRange.startLineNumber, m.modifiedRange.endLineNumberExclusive, (_a = m.innerChanges) === null || _a === void 0 ? void 0 : _a.map(m => [
+                return ([m.original.startLineNumber, m.original.endLineNumberExclusive, m.modified.startLineNumber, m.modified.endLineNumberExclusive, (_a = m.innerChanges) === null || _a === void 0 ? void 0 : _a.map(m => [
                         m.originalRange.startLineNumber,
                         m.originalRange.startColumn,
                         m.originalRange.endLineNumber,
@@ -15728,163 +16699,164 @@ class EditorSimpleWorker {
         }
         return true;
     }
-    computeMoreMinimalEdits(modelUrl, edits, pretty) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const model = this._getModel(modelUrl);
-            if (!model) {
-                return edits;
+    async computeMoreMinimalEdits(modelUrl, edits, pretty) {
+        const model = this._getModel(modelUrl);
+        if (!model) {
+            return edits;
+        }
+        const result = [];
+        let lastEol = undefined;
+        edits = edits.slice(0).sort((a, b) => {
+            if (a.range && b.range) {
+                return _core_range_js__WEBPACK_IMPORTED_MODULE_3__.Range.compareRangesUsingStarts(a.range, b.range);
             }
-            const result = [];
-            let lastEol = undefined;
-            edits = edits.slice(0).sort((a, b) => {
-                if (a.range && b.range) {
-                    return _core_range_js__WEBPACK_IMPORTED_MODULE_3__.Range.compareRangesUsingStarts(a.range, b.range);
-                }
-                // eol only changes should go to the end
-                const aRng = a.range ? 0 : 1;
-                const bRng = b.range ? 0 : 1;
-                return aRng - bRng;
-            });
-            for (let { range, text, eol } of edits) {
-                if (typeof eol === 'number') {
-                    lastEol = eol;
-                }
-                if (_core_range_js__WEBPACK_IMPORTED_MODULE_3__.Range.isEmpty(range) && !text) {
-                    // empty change
-                    continue;
-                }
-                const original = model.getValueInRange(range);
-                text = text.replace(/\r\n|\n|\r/g, model.eol);
-                if (original === text) {
-                    // noop
-                    continue;
-                }
-                // make sure diff won't take too long
-                if (Math.max(text.length, original.length) > EditorSimpleWorker._diffLimit) {
-                    result.push({ range, text });
-                    continue;
-                }
-                // compute diff between original and edit.text
-                const changes = (0,_base_common_diff_diff_js__WEBPACK_IMPORTED_MODULE_0__.stringDiff)(original, text, pretty);
-                const editOffset = model.offsetAt(_core_range_js__WEBPACK_IMPORTED_MODULE_3__.Range.lift(range).getStartPosition());
-                for (const change of changes) {
-                    const start = model.positionAt(editOffset + change.originalStart);
-                    const end = model.positionAt(editOffset + change.originalStart + change.originalLength);
-                    const newEdit = {
-                        text: text.substr(change.modifiedStart, change.modifiedLength),
-                        range: { startLineNumber: start.lineNumber, startColumn: start.column, endLineNumber: end.lineNumber, endColumn: end.column }
-                    };
-                    if (model.getValueInRange(newEdit.range) !== newEdit.text) {
-                        result.push(newEdit);
-                    }
-                }
-            }
-            if (typeof lastEol === 'number') {
-                result.push({ eol: lastEol, text: '', range: { startLineNumber: 0, startColumn: 0, endLineNumber: 0, endColumn: 0 } });
-            }
-            return result;
+            // eol only changes should go to the end
+            const aRng = a.range ? 0 : 1;
+            const bRng = b.range ? 0 : 1;
+            return aRng - bRng;
         });
+        // merge adjacent edits
+        let writeIndex = 0;
+        for (let readIndex = 1; readIndex < edits.length; readIndex++) {
+            if (_core_range_js__WEBPACK_IMPORTED_MODULE_3__.Range.getEndPosition(edits[writeIndex].range).equals(_core_range_js__WEBPACK_IMPORTED_MODULE_3__.Range.getStartPosition(edits[readIndex].range))) {
+                edits[writeIndex].range = _core_range_js__WEBPACK_IMPORTED_MODULE_3__.Range.fromPositions(_core_range_js__WEBPACK_IMPORTED_MODULE_3__.Range.getStartPosition(edits[writeIndex].range), _core_range_js__WEBPACK_IMPORTED_MODULE_3__.Range.getEndPosition(edits[readIndex].range));
+                edits[writeIndex].text += edits[readIndex].text;
+            }
+            else {
+                writeIndex++;
+                edits[writeIndex] = edits[readIndex];
+            }
+        }
+        edits.length = writeIndex + 1;
+        for (let { range, text, eol } of edits) {
+            if (typeof eol === 'number') {
+                lastEol = eol;
+            }
+            if (_core_range_js__WEBPACK_IMPORTED_MODULE_3__.Range.isEmpty(range) && !text) {
+                // empty change
+                continue;
+            }
+            const original = model.getValueInRange(range);
+            text = text.replace(/\r\n|\n|\r/g, model.eol);
+            if (original === text) {
+                // noop
+                continue;
+            }
+            // make sure diff won't take too long
+            if (Math.max(text.length, original.length) > EditorSimpleWorker._diffLimit) {
+                result.push({ range, text });
+                continue;
+            }
+            // compute diff between original and edit.text
+            const changes = (0,_base_common_diff_diff_js__WEBPACK_IMPORTED_MODULE_0__.stringDiff)(original, text, pretty);
+            const editOffset = model.offsetAt(_core_range_js__WEBPACK_IMPORTED_MODULE_3__.Range.lift(range).getStartPosition());
+            for (const change of changes) {
+                const start = model.positionAt(editOffset + change.originalStart);
+                const end = model.positionAt(editOffset + change.originalStart + change.originalLength);
+                const newEdit = {
+                    text: text.substr(change.modifiedStart, change.modifiedLength),
+                    range: { startLineNumber: start.lineNumber, startColumn: start.column, endLineNumber: end.lineNumber, endColumn: end.column }
+                };
+                if (model.getValueInRange(newEdit.range) !== newEdit.text) {
+                    result.push(newEdit);
+                }
+            }
+        }
+        if (typeof lastEol === 'number') {
+            result.push({ eol: lastEol, text: '', range: { startLineNumber: 0, startColumn: 0, endLineNumber: 0, endColumn: 0 } });
+        }
+        return result;
     }
     // ---- END minimal edits ---------------------------------------------------------------
-    computeLinks(modelUrl) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const model = this._getModel(modelUrl);
-            if (!model) {
-                return null;
-            }
-            return (0,_languages_linkComputer_js__WEBPACK_IMPORTED_MODULE_6__.computeLinks)(model);
-        });
+    async computeLinks(modelUrl) {
+        const model = this._getModel(modelUrl);
+        if (!model) {
+            return null;
+        }
+        return (0,_languages_linkComputer_js__WEBPACK_IMPORTED_MODULE_6__.computeLinks)(model);
     }
     // --- BEGIN default document colors -----------------------------------------------------------
-    computeDefaultDocumentColors(modelUrl) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const model = this._getModel(modelUrl);
-            if (!model) {
-                return null;
-            }
-            return (0,_languages_defaultDocumentColorsComputer_js__WEBPACK_IMPORTED_MODULE_13__.computeDefaultDocumentColors)(model);
-        });
+    async computeDefaultDocumentColors(modelUrl) {
+        const model = this._getModel(modelUrl);
+        if (!model) {
+            return null;
+        }
+        return (0,_languages_defaultDocumentColorsComputer_js__WEBPACK_IMPORTED_MODULE_13__.computeDefaultDocumentColors)(model);
     }
-    textualSuggest(modelUrls, leadingWord, wordDef, wordDefFlags) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const sw = new _base_common_stopwatch_js__WEBPACK_IMPORTED_MODULE_9__.StopWatch();
-            const wordDefRegExp = new RegExp(wordDef, wordDefFlags);
-            const seen = new Set();
-            outer: for (const url of modelUrls) {
-                const model = this._getModel(url);
-                if (!model) {
+    async textualSuggest(modelUrls, leadingWord, wordDef, wordDefFlags) {
+        const sw = new _base_common_stopwatch_js__WEBPACK_IMPORTED_MODULE_9__.StopWatch();
+        const wordDefRegExp = new RegExp(wordDef, wordDefFlags);
+        const seen = new Set();
+        outer: for (const url of modelUrls) {
+            const model = this._getModel(url);
+            if (!model) {
+                continue;
+            }
+            for (const word of model.words(wordDefRegExp)) {
+                if (word === leadingWord || !isNaN(Number(word))) {
                     continue;
                 }
-                for (const word of model.words(wordDefRegExp)) {
-                    if (word === leadingWord || !isNaN(Number(word))) {
-                        continue;
-                    }
-                    seen.add(word);
-                    if (seen.size > EditorSimpleWorker._suggestionsLimit) {
-                        break outer;
-                    }
+                seen.add(word);
+                if (seen.size > EditorSimpleWorker._suggestionsLimit) {
+                    break outer;
                 }
             }
-            return { words: Array.from(seen), duration: sw.elapsed() };
-        });
+        }
+        return { words: Array.from(seen), duration: sw.elapsed() };
     }
     // ---- END suggest --------------------------------------------------------------------------
     //#region -- word ranges --
-    computeWordRanges(modelUrl, range, wordDef, wordDefFlags) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const model = this._getModel(modelUrl);
-            if (!model) {
-                return Object.create(null);
-            }
-            const wordDefRegExp = new RegExp(wordDef, wordDefFlags);
-            const result = Object.create(null);
-            for (let line = range.startLineNumber; line < range.endLineNumber; line++) {
-                const words = model.getLineWords(line, wordDefRegExp);
-                for (const word of words) {
-                    if (!isNaN(Number(word.word))) {
-                        continue;
-                    }
-                    let array = result[word.word];
-                    if (!array) {
-                        array = [];
-                        result[word.word] = array;
-                    }
-                    array.push({
-                        startLineNumber: line,
-                        startColumn: word.startColumn,
-                        endLineNumber: line,
-                        endColumn: word.endColumn
-                    });
+    async computeWordRanges(modelUrl, range, wordDef, wordDefFlags) {
+        const model = this._getModel(modelUrl);
+        if (!model) {
+            return Object.create(null);
+        }
+        const wordDefRegExp = new RegExp(wordDef, wordDefFlags);
+        const result = Object.create(null);
+        for (let line = range.startLineNumber; line < range.endLineNumber; line++) {
+            const words = model.getLineWords(line, wordDefRegExp);
+            for (const word of words) {
+                if (!isNaN(Number(word.word))) {
+                    continue;
                 }
+                let array = result[word.word];
+                if (!array) {
+                    array = [];
+                    result[word.word] = array;
+                }
+                array.push({
+                    startLineNumber: line,
+                    startColumn: word.startColumn,
+                    endLineNumber: line,
+                    endColumn: word.endColumn
+                });
             }
-            return result;
-        });
+        }
+        return result;
     }
     //#endregion
-    navigateValueSet(modelUrl, range, up, wordDef, wordDefFlags) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const model = this._getModel(modelUrl);
-            if (!model) {
-                return null;
-            }
-            const wordDefRegExp = new RegExp(wordDef, wordDefFlags);
-            if (range.startColumn === range.endColumn) {
-                range = {
-                    startLineNumber: range.startLineNumber,
-                    startColumn: range.startColumn,
-                    endLineNumber: range.endLineNumber,
-                    endColumn: range.endColumn + 1
-                };
-            }
-            const selectionText = model.getValueInRange(range);
-            const wordRange = model.getWordAtPosition({ lineNumber: range.startLineNumber, column: range.startColumn }, wordDefRegExp);
-            if (!wordRange) {
-                return null;
-            }
-            const word = model.getValueInRange(wordRange);
-            const result = _languages_supports_inplaceReplaceSupport_js__WEBPACK_IMPORTED_MODULE_7__.BasicInplaceReplace.INSTANCE.navigateValueSet(range, selectionText, wordRange, word, up);
-            return result;
-        });
+    async navigateValueSet(modelUrl, range, up, wordDef, wordDefFlags) {
+        const model = this._getModel(modelUrl);
+        if (!model) {
+            return null;
+        }
+        const wordDefRegExp = new RegExp(wordDef, wordDefFlags);
+        if (range.startColumn === range.endColumn) {
+            range = {
+                startLineNumber: range.startLineNumber,
+                startColumn: range.startColumn,
+                endLineNumber: range.endLineNumber,
+                endColumn: range.endColumn + 1
+            };
+        }
+        const selectionText = model.getValueInRange(range);
+        const wordRange = model.getWordAtPosition({ lineNumber: range.startLineNumber, column: range.startColumn }, wordDefRegExp);
+        if (!wordRange) {
+            return null;
+        }
+        const word = model.getValueInRange(wordRange);
+        const result = _languages_supports_inplaceReplaceSupport_js__WEBPACK_IMPORTED_MODULE_7__.BasicInplaceReplace.INSTANCE.navigateValueSet(range, selectionText, wordRange, word, up);
+        return result;
     }
     // ---- BEGIN foreign module support --------------------------------------------------------------------------
     loadForeignModule(moduleId, createData, foreignHostMethods) {
@@ -16181,11 +17153,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   InjectedTextCursorStops: () => (/* binding */ InjectedTextCursorStops),
 /* harmony export */   InlayHintKind: () => (/* binding */ InlayHintKind),
 /* harmony export */   InlineCompletionTriggerKind: () => (/* binding */ InlineCompletionTriggerKind),
+/* harmony export */   InlineEditTriggerKind: () => (/* binding */ InlineEditTriggerKind),
 /* harmony export */   KeyCode: () => (/* binding */ KeyCode),
 /* harmony export */   MarkerSeverity: () => (/* binding */ MarkerSeverity),
 /* harmony export */   MarkerTag: () => (/* binding */ MarkerTag),
 /* harmony export */   MinimapPosition: () => (/* binding */ MinimapPosition),
 /* harmony export */   MouseTargetType: () => (/* binding */ MouseTargetType),
+/* harmony export */   NewSymbolNameTag: () => (/* binding */ NewSymbolNameTag),
 /* harmony export */   OverlayWidgetPositionPreference: () => (/* binding */ OverlayWidgetPositionPreference),
 /* harmony export */   OverviewRulerLane: () => (/* binding */ OverviewRulerLane),
 /* harmony export */   PositionAffinity: () => (/* binding */ PositionAffinity),
@@ -16194,6 +17168,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   ScrollType: () => (/* binding */ ScrollType),
 /* harmony export */   ScrollbarVisibility: () => (/* binding */ ScrollbarVisibility),
 /* harmony export */   SelectionDirection: () => (/* binding */ SelectionDirection),
+/* harmony export */   ShowLightbulbIconMode: () => (/* binding */ ShowLightbulbIconMode),
 /* harmony export */   SignatureHelpTriggerKind: () => (/* binding */ SignatureHelpTriggerKind),
 /* harmony export */   SymbolKind: () => (/* binding */ SymbolKind),
 /* harmony export */   SymbolTag: () => (/* binding */ SymbolTag),
@@ -16382,146 +17357,148 @@ var EditorOption;
     EditorOption[EditorOption["ariaLabel"] = 4] = "ariaLabel";
     EditorOption[EditorOption["ariaRequired"] = 5] = "ariaRequired";
     EditorOption[EditorOption["autoClosingBrackets"] = 6] = "autoClosingBrackets";
-    EditorOption[EditorOption["screenReaderAnnounceInlineSuggestion"] = 7] = "screenReaderAnnounceInlineSuggestion";
-    EditorOption[EditorOption["autoClosingDelete"] = 8] = "autoClosingDelete";
-    EditorOption[EditorOption["autoClosingOvertype"] = 9] = "autoClosingOvertype";
-    EditorOption[EditorOption["autoClosingQuotes"] = 10] = "autoClosingQuotes";
-    EditorOption[EditorOption["autoIndent"] = 11] = "autoIndent";
-    EditorOption[EditorOption["automaticLayout"] = 12] = "automaticLayout";
-    EditorOption[EditorOption["autoSurround"] = 13] = "autoSurround";
-    EditorOption[EditorOption["bracketPairColorization"] = 14] = "bracketPairColorization";
-    EditorOption[EditorOption["guides"] = 15] = "guides";
-    EditorOption[EditorOption["codeLens"] = 16] = "codeLens";
-    EditorOption[EditorOption["codeLensFontFamily"] = 17] = "codeLensFontFamily";
-    EditorOption[EditorOption["codeLensFontSize"] = 18] = "codeLensFontSize";
-    EditorOption[EditorOption["colorDecorators"] = 19] = "colorDecorators";
-    EditorOption[EditorOption["colorDecoratorsLimit"] = 20] = "colorDecoratorsLimit";
-    EditorOption[EditorOption["columnSelection"] = 21] = "columnSelection";
-    EditorOption[EditorOption["comments"] = 22] = "comments";
-    EditorOption[EditorOption["contextmenu"] = 23] = "contextmenu";
-    EditorOption[EditorOption["copyWithSyntaxHighlighting"] = 24] = "copyWithSyntaxHighlighting";
-    EditorOption[EditorOption["cursorBlinking"] = 25] = "cursorBlinking";
-    EditorOption[EditorOption["cursorSmoothCaretAnimation"] = 26] = "cursorSmoothCaretAnimation";
-    EditorOption[EditorOption["cursorStyle"] = 27] = "cursorStyle";
-    EditorOption[EditorOption["cursorSurroundingLines"] = 28] = "cursorSurroundingLines";
-    EditorOption[EditorOption["cursorSurroundingLinesStyle"] = 29] = "cursorSurroundingLinesStyle";
-    EditorOption[EditorOption["cursorWidth"] = 30] = "cursorWidth";
-    EditorOption[EditorOption["disableLayerHinting"] = 31] = "disableLayerHinting";
-    EditorOption[EditorOption["disableMonospaceOptimizations"] = 32] = "disableMonospaceOptimizations";
-    EditorOption[EditorOption["domReadOnly"] = 33] = "domReadOnly";
-    EditorOption[EditorOption["dragAndDrop"] = 34] = "dragAndDrop";
-    EditorOption[EditorOption["dropIntoEditor"] = 35] = "dropIntoEditor";
-    EditorOption[EditorOption["emptySelectionClipboard"] = 36] = "emptySelectionClipboard";
-    EditorOption[EditorOption["experimentalWhitespaceRendering"] = 37] = "experimentalWhitespaceRendering";
-    EditorOption[EditorOption["extraEditorClassName"] = 38] = "extraEditorClassName";
-    EditorOption[EditorOption["fastScrollSensitivity"] = 39] = "fastScrollSensitivity";
-    EditorOption[EditorOption["find"] = 40] = "find";
-    EditorOption[EditorOption["fixedOverflowWidgets"] = 41] = "fixedOverflowWidgets";
-    EditorOption[EditorOption["folding"] = 42] = "folding";
-    EditorOption[EditorOption["foldingStrategy"] = 43] = "foldingStrategy";
-    EditorOption[EditorOption["foldingHighlight"] = 44] = "foldingHighlight";
-    EditorOption[EditorOption["foldingImportsByDefault"] = 45] = "foldingImportsByDefault";
-    EditorOption[EditorOption["foldingMaximumRegions"] = 46] = "foldingMaximumRegions";
-    EditorOption[EditorOption["unfoldOnClickAfterEndOfLine"] = 47] = "unfoldOnClickAfterEndOfLine";
-    EditorOption[EditorOption["fontFamily"] = 48] = "fontFamily";
-    EditorOption[EditorOption["fontInfo"] = 49] = "fontInfo";
-    EditorOption[EditorOption["fontLigatures"] = 50] = "fontLigatures";
-    EditorOption[EditorOption["fontSize"] = 51] = "fontSize";
-    EditorOption[EditorOption["fontWeight"] = 52] = "fontWeight";
-    EditorOption[EditorOption["fontVariations"] = 53] = "fontVariations";
-    EditorOption[EditorOption["formatOnPaste"] = 54] = "formatOnPaste";
-    EditorOption[EditorOption["formatOnType"] = 55] = "formatOnType";
-    EditorOption[EditorOption["glyphMargin"] = 56] = "glyphMargin";
-    EditorOption[EditorOption["gotoLocation"] = 57] = "gotoLocation";
-    EditorOption[EditorOption["hideCursorInOverviewRuler"] = 58] = "hideCursorInOverviewRuler";
-    EditorOption[EditorOption["hover"] = 59] = "hover";
-    EditorOption[EditorOption["inDiffEditor"] = 60] = "inDiffEditor";
-    EditorOption[EditorOption["inlineSuggest"] = 61] = "inlineSuggest";
-    EditorOption[EditorOption["letterSpacing"] = 62] = "letterSpacing";
-    EditorOption[EditorOption["lightbulb"] = 63] = "lightbulb";
-    EditorOption[EditorOption["lineDecorationsWidth"] = 64] = "lineDecorationsWidth";
-    EditorOption[EditorOption["lineHeight"] = 65] = "lineHeight";
-    EditorOption[EditorOption["lineNumbers"] = 66] = "lineNumbers";
-    EditorOption[EditorOption["lineNumbersMinChars"] = 67] = "lineNumbersMinChars";
-    EditorOption[EditorOption["linkedEditing"] = 68] = "linkedEditing";
-    EditorOption[EditorOption["links"] = 69] = "links";
-    EditorOption[EditorOption["matchBrackets"] = 70] = "matchBrackets";
-    EditorOption[EditorOption["minimap"] = 71] = "minimap";
-    EditorOption[EditorOption["mouseStyle"] = 72] = "mouseStyle";
-    EditorOption[EditorOption["mouseWheelScrollSensitivity"] = 73] = "mouseWheelScrollSensitivity";
-    EditorOption[EditorOption["mouseWheelZoom"] = 74] = "mouseWheelZoom";
-    EditorOption[EditorOption["multiCursorMergeOverlapping"] = 75] = "multiCursorMergeOverlapping";
-    EditorOption[EditorOption["multiCursorModifier"] = 76] = "multiCursorModifier";
-    EditorOption[EditorOption["multiCursorPaste"] = 77] = "multiCursorPaste";
-    EditorOption[EditorOption["multiCursorLimit"] = 78] = "multiCursorLimit";
-    EditorOption[EditorOption["occurrencesHighlight"] = 79] = "occurrencesHighlight";
-    EditorOption[EditorOption["overviewRulerBorder"] = 80] = "overviewRulerBorder";
-    EditorOption[EditorOption["overviewRulerLanes"] = 81] = "overviewRulerLanes";
-    EditorOption[EditorOption["padding"] = 82] = "padding";
-    EditorOption[EditorOption["pasteAs"] = 83] = "pasteAs";
-    EditorOption[EditorOption["parameterHints"] = 84] = "parameterHints";
-    EditorOption[EditorOption["peekWidgetDefaultFocus"] = 85] = "peekWidgetDefaultFocus";
-    EditorOption[EditorOption["definitionLinkOpensInPeek"] = 86] = "definitionLinkOpensInPeek";
-    EditorOption[EditorOption["quickSuggestions"] = 87] = "quickSuggestions";
-    EditorOption[EditorOption["quickSuggestionsDelay"] = 88] = "quickSuggestionsDelay";
-    EditorOption[EditorOption["readOnly"] = 89] = "readOnly";
-    EditorOption[EditorOption["readOnlyMessage"] = 90] = "readOnlyMessage";
-    EditorOption[EditorOption["renameOnType"] = 91] = "renameOnType";
-    EditorOption[EditorOption["renderControlCharacters"] = 92] = "renderControlCharacters";
-    EditorOption[EditorOption["renderFinalNewline"] = 93] = "renderFinalNewline";
-    EditorOption[EditorOption["renderLineHighlight"] = 94] = "renderLineHighlight";
-    EditorOption[EditorOption["renderLineHighlightOnlyWhenFocus"] = 95] = "renderLineHighlightOnlyWhenFocus";
-    EditorOption[EditorOption["renderValidationDecorations"] = 96] = "renderValidationDecorations";
-    EditorOption[EditorOption["renderWhitespace"] = 97] = "renderWhitespace";
-    EditorOption[EditorOption["revealHorizontalRightPadding"] = 98] = "revealHorizontalRightPadding";
-    EditorOption[EditorOption["roundedSelection"] = 99] = "roundedSelection";
-    EditorOption[EditorOption["rulers"] = 100] = "rulers";
-    EditorOption[EditorOption["scrollbar"] = 101] = "scrollbar";
-    EditorOption[EditorOption["scrollBeyondLastColumn"] = 102] = "scrollBeyondLastColumn";
-    EditorOption[EditorOption["scrollBeyondLastLine"] = 103] = "scrollBeyondLastLine";
-    EditorOption[EditorOption["scrollPredominantAxis"] = 104] = "scrollPredominantAxis";
-    EditorOption[EditorOption["selectionClipboard"] = 105] = "selectionClipboard";
-    EditorOption[EditorOption["selectionHighlight"] = 106] = "selectionHighlight";
-    EditorOption[EditorOption["selectOnLineNumbers"] = 107] = "selectOnLineNumbers";
-    EditorOption[EditorOption["showFoldingControls"] = 108] = "showFoldingControls";
-    EditorOption[EditorOption["showUnused"] = 109] = "showUnused";
-    EditorOption[EditorOption["snippetSuggestions"] = 110] = "snippetSuggestions";
-    EditorOption[EditorOption["smartSelect"] = 111] = "smartSelect";
-    EditorOption[EditorOption["smoothScrolling"] = 112] = "smoothScrolling";
-    EditorOption[EditorOption["stickyScroll"] = 113] = "stickyScroll";
-    EditorOption[EditorOption["stickyTabStops"] = 114] = "stickyTabStops";
-    EditorOption[EditorOption["stopRenderingLineAfter"] = 115] = "stopRenderingLineAfter";
-    EditorOption[EditorOption["suggest"] = 116] = "suggest";
-    EditorOption[EditorOption["suggestFontSize"] = 117] = "suggestFontSize";
-    EditorOption[EditorOption["suggestLineHeight"] = 118] = "suggestLineHeight";
-    EditorOption[EditorOption["suggestOnTriggerCharacters"] = 119] = "suggestOnTriggerCharacters";
-    EditorOption[EditorOption["suggestSelection"] = 120] = "suggestSelection";
-    EditorOption[EditorOption["tabCompletion"] = 121] = "tabCompletion";
-    EditorOption[EditorOption["tabIndex"] = 122] = "tabIndex";
-    EditorOption[EditorOption["unicodeHighlighting"] = 123] = "unicodeHighlighting";
-    EditorOption[EditorOption["unusualLineTerminators"] = 124] = "unusualLineTerminators";
-    EditorOption[EditorOption["useShadowDOM"] = 125] = "useShadowDOM";
-    EditorOption[EditorOption["useTabStops"] = 126] = "useTabStops";
-    EditorOption[EditorOption["wordBreak"] = 127] = "wordBreak";
-    EditorOption[EditorOption["wordSeparators"] = 128] = "wordSeparators";
-    EditorOption[EditorOption["wordWrap"] = 129] = "wordWrap";
-    EditorOption[EditorOption["wordWrapBreakAfterCharacters"] = 130] = "wordWrapBreakAfterCharacters";
-    EditorOption[EditorOption["wordWrapBreakBeforeCharacters"] = 131] = "wordWrapBreakBeforeCharacters";
-    EditorOption[EditorOption["wordWrapColumn"] = 132] = "wordWrapColumn";
-    EditorOption[EditorOption["wordWrapOverride1"] = 133] = "wordWrapOverride1";
-    EditorOption[EditorOption["wordWrapOverride2"] = 134] = "wordWrapOverride2";
-    EditorOption[EditorOption["wrappingIndent"] = 135] = "wrappingIndent";
-    EditorOption[EditorOption["wrappingStrategy"] = 136] = "wrappingStrategy";
-    EditorOption[EditorOption["showDeprecated"] = 137] = "showDeprecated";
-    EditorOption[EditorOption["inlayHints"] = 138] = "inlayHints";
-    EditorOption[EditorOption["editorClassName"] = 139] = "editorClassName";
-    EditorOption[EditorOption["pixelRatio"] = 140] = "pixelRatio";
-    EditorOption[EditorOption["tabFocusMode"] = 141] = "tabFocusMode";
-    EditorOption[EditorOption["layoutInfo"] = 142] = "layoutInfo";
-    EditorOption[EditorOption["wrappingInfo"] = 143] = "wrappingInfo";
-    EditorOption[EditorOption["defaultColorDecorators"] = 144] = "defaultColorDecorators";
-    EditorOption[EditorOption["colorDecoratorsActivatedOn"] = 145] = "colorDecoratorsActivatedOn";
-    EditorOption[EditorOption["inlineCompletionsAccessibilityVerbose"] = 146] = "inlineCompletionsAccessibilityVerbose";
+    EditorOption[EditorOption["autoClosingComments"] = 7] = "autoClosingComments";
+    EditorOption[EditorOption["screenReaderAnnounceInlineSuggestion"] = 8] = "screenReaderAnnounceInlineSuggestion";
+    EditorOption[EditorOption["autoClosingDelete"] = 9] = "autoClosingDelete";
+    EditorOption[EditorOption["autoClosingOvertype"] = 10] = "autoClosingOvertype";
+    EditorOption[EditorOption["autoClosingQuotes"] = 11] = "autoClosingQuotes";
+    EditorOption[EditorOption["autoIndent"] = 12] = "autoIndent";
+    EditorOption[EditorOption["automaticLayout"] = 13] = "automaticLayout";
+    EditorOption[EditorOption["autoSurround"] = 14] = "autoSurround";
+    EditorOption[EditorOption["bracketPairColorization"] = 15] = "bracketPairColorization";
+    EditorOption[EditorOption["guides"] = 16] = "guides";
+    EditorOption[EditorOption["codeLens"] = 17] = "codeLens";
+    EditorOption[EditorOption["codeLensFontFamily"] = 18] = "codeLensFontFamily";
+    EditorOption[EditorOption["codeLensFontSize"] = 19] = "codeLensFontSize";
+    EditorOption[EditorOption["colorDecorators"] = 20] = "colorDecorators";
+    EditorOption[EditorOption["colorDecoratorsLimit"] = 21] = "colorDecoratorsLimit";
+    EditorOption[EditorOption["columnSelection"] = 22] = "columnSelection";
+    EditorOption[EditorOption["comments"] = 23] = "comments";
+    EditorOption[EditorOption["contextmenu"] = 24] = "contextmenu";
+    EditorOption[EditorOption["copyWithSyntaxHighlighting"] = 25] = "copyWithSyntaxHighlighting";
+    EditorOption[EditorOption["cursorBlinking"] = 26] = "cursorBlinking";
+    EditorOption[EditorOption["cursorSmoothCaretAnimation"] = 27] = "cursorSmoothCaretAnimation";
+    EditorOption[EditorOption["cursorStyle"] = 28] = "cursorStyle";
+    EditorOption[EditorOption["cursorSurroundingLines"] = 29] = "cursorSurroundingLines";
+    EditorOption[EditorOption["cursorSurroundingLinesStyle"] = 30] = "cursorSurroundingLinesStyle";
+    EditorOption[EditorOption["cursorWidth"] = 31] = "cursorWidth";
+    EditorOption[EditorOption["disableLayerHinting"] = 32] = "disableLayerHinting";
+    EditorOption[EditorOption["disableMonospaceOptimizations"] = 33] = "disableMonospaceOptimizations";
+    EditorOption[EditorOption["domReadOnly"] = 34] = "domReadOnly";
+    EditorOption[EditorOption["dragAndDrop"] = 35] = "dragAndDrop";
+    EditorOption[EditorOption["dropIntoEditor"] = 36] = "dropIntoEditor";
+    EditorOption[EditorOption["emptySelectionClipboard"] = 37] = "emptySelectionClipboard";
+    EditorOption[EditorOption["experimentalWhitespaceRendering"] = 38] = "experimentalWhitespaceRendering";
+    EditorOption[EditorOption["extraEditorClassName"] = 39] = "extraEditorClassName";
+    EditorOption[EditorOption["fastScrollSensitivity"] = 40] = "fastScrollSensitivity";
+    EditorOption[EditorOption["find"] = 41] = "find";
+    EditorOption[EditorOption["fixedOverflowWidgets"] = 42] = "fixedOverflowWidgets";
+    EditorOption[EditorOption["folding"] = 43] = "folding";
+    EditorOption[EditorOption["foldingStrategy"] = 44] = "foldingStrategy";
+    EditorOption[EditorOption["foldingHighlight"] = 45] = "foldingHighlight";
+    EditorOption[EditorOption["foldingImportsByDefault"] = 46] = "foldingImportsByDefault";
+    EditorOption[EditorOption["foldingMaximumRegions"] = 47] = "foldingMaximumRegions";
+    EditorOption[EditorOption["unfoldOnClickAfterEndOfLine"] = 48] = "unfoldOnClickAfterEndOfLine";
+    EditorOption[EditorOption["fontFamily"] = 49] = "fontFamily";
+    EditorOption[EditorOption["fontInfo"] = 50] = "fontInfo";
+    EditorOption[EditorOption["fontLigatures"] = 51] = "fontLigatures";
+    EditorOption[EditorOption["fontSize"] = 52] = "fontSize";
+    EditorOption[EditorOption["fontWeight"] = 53] = "fontWeight";
+    EditorOption[EditorOption["fontVariations"] = 54] = "fontVariations";
+    EditorOption[EditorOption["formatOnPaste"] = 55] = "formatOnPaste";
+    EditorOption[EditorOption["formatOnType"] = 56] = "formatOnType";
+    EditorOption[EditorOption["glyphMargin"] = 57] = "glyphMargin";
+    EditorOption[EditorOption["gotoLocation"] = 58] = "gotoLocation";
+    EditorOption[EditorOption["hideCursorInOverviewRuler"] = 59] = "hideCursorInOverviewRuler";
+    EditorOption[EditorOption["hover"] = 60] = "hover";
+    EditorOption[EditorOption["inDiffEditor"] = 61] = "inDiffEditor";
+    EditorOption[EditorOption["inlineSuggest"] = 62] = "inlineSuggest";
+    EditorOption[EditorOption["inlineEdit"] = 63] = "inlineEdit";
+    EditorOption[EditorOption["letterSpacing"] = 64] = "letterSpacing";
+    EditorOption[EditorOption["lightbulb"] = 65] = "lightbulb";
+    EditorOption[EditorOption["lineDecorationsWidth"] = 66] = "lineDecorationsWidth";
+    EditorOption[EditorOption["lineHeight"] = 67] = "lineHeight";
+    EditorOption[EditorOption["lineNumbers"] = 68] = "lineNumbers";
+    EditorOption[EditorOption["lineNumbersMinChars"] = 69] = "lineNumbersMinChars";
+    EditorOption[EditorOption["linkedEditing"] = 70] = "linkedEditing";
+    EditorOption[EditorOption["links"] = 71] = "links";
+    EditorOption[EditorOption["matchBrackets"] = 72] = "matchBrackets";
+    EditorOption[EditorOption["minimap"] = 73] = "minimap";
+    EditorOption[EditorOption["mouseStyle"] = 74] = "mouseStyle";
+    EditorOption[EditorOption["mouseWheelScrollSensitivity"] = 75] = "mouseWheelScrollSensitivity";
+    EditorOption[EditorOption["mouseWheelZoom"] = 76] = "mouseWheelZoom";
+    EditorOption[EditorOption["multiCursorMergeOverlapping"] = 77] = "multiCursorMergeOverlapping";
+    EditorOption[EditorOption["multiCursorModifier"] = 78] = "multiCursorModifier";
+    EditorOption[EditorOption["multiCursorPaste"] = 79] = "multiCursorPaste";
+    EditorOption[EditorOption["multiCursorLimit"] = 80] = "multiCursorLimit";
+    EditorOption[EditorOption["occurrencesHighlight"] = 81] = "occurrencesHighlight";
+    EditorOption[EditorOption["overviewRulerBorder"] = 82] = "overviewRulerBorder";
+    EditorOption[EditorOption["overviewRulerLanes"] = 83] = "overviewRulerLanes";
+    EditorOption[EditorOption["padding"] = 84] = "padding";
+    EditorOption[EditorOption["pasteAs"] = 85] = "pasteAs";
+    EditorOption[EditorOption["parameterHints"] = 86] = "parameterHints";
+    EditorOption[EditorOption["peekWidgetDefaultFocus"] = 87] = "peekWidgetDefaultFocus";
+    EditorOption[EditorOption["definitionLinkOpensInPeek"] = 88] = "definitionLinkOpensInPeek";
+    EditorOption[EditorOption["quickSuggestions"] = 89] = "quickSuggestions";
+    EditorOption[EditorOption["quickSuggestionsDelay"] = 90] = "quickSuggestionsDelay";
+    EditorOption[EditorOption["readOnly"] = 91] = "readOnly";
+    EditorOption[EditorOption["readOnlyMessage"] = 92] = "readOnlyMessage";
+    EditorOption[EditorOption["renameOnType"] = 93] = "renameOnType";
+    EditorOption[EditorOption["renderControlCharacters"] = 94] = "renderControlCharacters";
+    EditorOption[EditorOption["renderFinalNewline"] = 95] = "renderFinalNewline";
+    EditorOption[EditorOption["renderLineHighlight"] = 96] = "renderLineHighlight";
+    EditorOption[EditorOption["renderLineHighlightOnlyWhenFocus"] = 97] = "renderLineHighlightOnlyWhenFocus";
+    EditorOption[EditorOption["renderValidationDecorations"] = 98] = "renderValidationDecorations";
+    EditorOption[EditorOption["renderWhitespace"] = 99] = "renderWhitespace";
+    EditorOption[EditorOption["revealHorizontalRightPadding"] = 100] = "revealHorizontalRightPadding";
+    EditorOption[EditorOption["roundedSelection"] = 101] = "roundedSelection";
+    EditorOption[EditorOption["rulers"] = 102] = "rulers";
+    EditorOption[EditorOption["scrollbar"] = 103] = "scrollbar";
+    EditorOption[EditorOption["scrollBeyondLastColumn"] = 104] = "scrollBeyondLastColumn";
+    EditorOption[EditorOption["scrollBeyondLastLine"] = 105] = "scrollBeyondLastLine";
+    EditorOption[EditorOption["scrollPredominantAxis"] = 106] = "scrollPredominantAxis";
+    EditorOption[EditorOption["selectionClipboard"] = 107] = "selectionClipboard";
+    EditorOption[EditorOption["selectionHighlight"] = 108] = "selectionHighlight";
+    EditorOption[EditorOption["selectOnLineNumbers"] = 109] = "selectOnLineNumbers";
+    EditorOption[EditorOption["showFoldingControls"] = 110] = "showFoldingControls";
+    EditorOption[EditorOption["showUnused"] = 111] = "showUnused";
+    EditorOption[EditorOption["snippetSuggestions"] = 112] = "snippetSuggestions";
+    EditorOption[EditorOption["smartSelect"] = 113] = "smartSelect";
+    EditorOption[EditorOption["smoothScrolling"] = 114] = "smoothScrolling";
+    EditorOption[EditorOption["stickyScroll"] = 115] = "stickyScroll";
+    EditorOption[EditorOption["stickyTabStops"] = 116] = "stickyTabStops";
+    EditorOption[EditorOption["stopRenderingLineAfter"] = 117] = "stopRenderingLineAfter";
+    EditorOption[EditorOption["suggest"] = 118] = "suggest";
+    EditorOption[EditorOption["suggestFontSize"] = 119] = "suggestFontSize";
+    EditorOption[EditorOption["suggestLineHeight"] = 120] = "suggestLineHeight";
+    EditorOption[EditorOption["suggestOnTriggerCharacters"] = 121] = "suggestOnTriggerCharacters";
+    EditorOption[EditorOption["suggestSelection"] = 122] = "suggestSelection";
+    EditorOption[EditorOption["tabCompletion"] = 123] = "tabCompletion";
+    EditorOption[EditorOption["tabIndex"] = 124] = "tabIndex";
+    EditorOption[EditorOption["unicodeHighlighting"] = 125] = "unicodeHighlighting";
+    EditorOption[EditorOption["unusualLineTerminators"] = 126] = "unusualLineTerminators";
+    EditorOption[EditorOption["useShadowDOM"] = 127] = "useShadowDOM";
+    EditorOption[EditorOption["useTabStops"] = 128] = "useTabStops";
+    EditorOption[EditorOption["wordBreak"] = 129] = "wordBreak";
+    EditorOption[EditorOption["wordSeparators"] = 130] = "wordSeparators";
+    EditorOption[EditorOption["wordWrap"] = 131] = "wordWrap";
+    EditorOption[EditorOption["wordWrapBreakAfterCharacters"] = 132] = "wordWrapBreakAfterCharacters";
+    EditorOption[EditorOption["wordWrapBreakBeforeCharacters"] = 133] = "wordWrapBreakBeforeCharacters";
+    EditorOption[EditorOption["wordWrapColumn"] = 134] = "wordWrapColumn";
+    EditorOption[EditorOption["wordWrapOverride1"] = 135] = "wordWrapOverride1";
+    EditorOption[EditorOption["wordWrapOverride2"] = 136] = "wordWrapOverride2";
+    EditorOption[EditorOption["wrappingIndent"] = 137] = "wrappingIndent";
+    EditorOption[EditorOption["wrappingStrategy"] = 138] = "wrappingStrategy";
+    EditorOption[EditorOption["showDeprecated"] = 139] = "showDeprecated";
+    EditorOption[EditorOption["inlayHints"] = 140] = "inlayHints";
+    EditorOption[EditorOption["editorClassName"] = 141] = "editorClassName";
+    EditorOption[EditorOption["pixelRatio"] = 142] = "pixelRatio";
+    EditorOption[EditorOption["tabFocusMode"] = 143] = "tabFocusMode";
+    EditorOption[EditorOption["layoutInfo"] = 144] = "layoutInfo";
+    EditorOption[EditorOption["wrappingInfo"] = 145] = "wrappingInfo";
+    EditorOption[EditorOption["defaultColorDecorators"] = 146] = "defaultColorDecorators";
+    EditorOption[EditorOption["colorDecoratorsActivatedOn"] = 147] = "colorDecoratorsActivatedOn";
+    EditorOption[EditorOption["inlineCompletionsAccessibilityVerbose"] = 148] = "inlineCompletionsAccessibilityVerbose";
 })(EditorOption || (EditorOption = {}));
 /**
  * End of line character preference.
@@ -16561,7 +17538,8 @@ var EndOfLineSequence;
 var GlyphMarginLane;
 (function (GlyphMarginLane) {
     GlyphMarginLane[GlyphMarginLane["Left"] = 1] = "Left";
-    GlyphMarginLane[GlyphMarginLane["Right"] = 2] = "Right";
+    GlyphMarginLane[GlyphMarginLane["Center"] = 2] = "Center";
+    GlyphMarginLane[GlyphMarginLane["Right"] = 3] = "Right";
 })(GlyphMarginLane || (GlyphMarginLane = {}));
 /**
  * Describes what to do with the indentation when pressing Enter.
@@ -16615,6 +17593,11 @@ var InlineCompletionTriggerKind;
      */
     InlineCompletionTriggerKind[InlineCompletionTriggerKind["Explicit"] = 1] = "Explicit";
 })(InlineCompletionTriggerKind || (InlineCompletionTriggerKind = {}));
+var InlineEditTriggerKind;
+(function (InlineEditTriggerKind) {
+    InlineEditTriggerKind[InlineEditTriggerKind["Invoke"] = 0] = "Invoke";
+    InlineEditTriggerKind[InlineEditTriggerKind["Automatic"] = 1] = "Automatic";
+})(InlineEditTriggerKind || (InlineEditTriggerKind = {}));
 /**
  * Virtual Key Codes, the value does not hold any inherent meaning.
  * Inspired somewhat from https://msdn.microsoft.com/en-us/library/windows/desktop/dd375731(v=vs.85).aspx
@@ -16902,6 +17885,10 @@ var MouseTargetType;
      */
     MouseTargetType[MouseTargetType["OUTSIDE_EDITOR"] = 13] = "OUTSIDE_EDITOR";
 })(MouseTargetType || (MouseTargetType = {}));
+var NewSymbolNameTag;
+(function (NewSymbolNameTag) {
+    NewSymbolNameTag[NewSymbolNameTag["AIGenerated"] = 1] = "AIGenerated";
+})(NewSymbolNameTag || (NewSymbolNameTag = {}));
 /**
  * A positioning preference for rendering overlay widgets.
  */
@@ -16992,6 +17979,12 @@ var SelectionDirection;
      */
     SelectionDirection[SelectionDirection["RTL"] = 1] = "RTL";
 })(SelectionDirection || (SelectionDirection = {}));
+var ShowLightbulbIconMode;
+(function (ShowLightbulbIconMode) {
+    ShowLightbulbIconMode["Off"] = "off";
+    ShowLightbulbIconMode["OnCode"] = "onCode";
+    ShowLightbulbIconMode["On"] = "on";
+})(ShowLightbulbIconMode || (ShowLightbulbIconMode = {}));
 var SignatureHelpTriggerKind;
 (function (SignatureHelpTriggerKind) {
     SignatureHelpTriggerKind[SignatureHelpTriggerKind["Invoke"] = 1] = "Invoke";
@@ -17147,15 +18140,6 @@ __webpack_require__.r(__webpack_exports__);
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 
 
 class TokenizationRegistry {
@@ -17200,21 +18184,19 @@ class TokenizationRegistry {
             v.dispose();
         });
     }
-    getOrCreate(languageId) {
-        return __awaiter(this, void 0, void 0, function* () {
-            // check first if the support is already set
-            const tokenizationSupport = this.get(languageId);
-            if (tokenizationSupport) {
-                return tokenizationSupport;
-            }
-            const factory = this._factories.get(languageId);
-            if (!factory || factory.isResolved) {
-                // no factory or factory.resolve already finished
-                return null;
-            }
-            yield factory.resolve();
-            return this.get(languageId);
-        });
+    async getOrCreate(languageId) {
+        // check first if the support is already set
+        const tokenizationSupport = this.get(languageId);
+        if (tokenizationSupport) {
+            return tokenizationSupport;
+        }
+        const factory = this._factories.get(languageId);
+        if (!factory || factory.isResolved) {
+            // no factory or factory.resolve already finished
+            return null;
+        }
+        await factory.resolve();
+        return this.get(languageId);
     }
     isResolved(languageId) {
         const tokenizationSupport = this.get(languageId);
@@ -17261,22 +18243,18 @@ class TokenizationSupportFactoryData extends _base_common_lifecycle_js__WEBPACK_
         this._isDisposed = true;
         super.dispose();
     }
-    resolve() {
-        return __awaiter(this, void 0, void 0, function* () {
-            if (!this._resolvePromise) {
-                this._resolvePromise = this._create();
-            }
-            return this._resolvePromise;
-        });
+    async resolve() {
+        if (!this._resolvePromise) {
+            this._resolvePromise = this._create();
+        }
+        return this._resolvePromise;
     }
-    _create() {
-        return __awaiter(this, void 0, void 0, function* () {
-            const value = yield this._factory.tokenizationSupport;
-            this._isResolved = true;
-            if (value && !this._isDisposed) {
-                this._register(this._registry.register(this._languageId, value));
-            }
-        });
+    async _create() {
+        const value = await this._factory.tokenizationSupport;
+        this._isResolved = true;
+        if (value && !this._isDisposed) {
+            this._register(this._registry.register(this._languageId, value));
+        }
     }
 }
 
@@ -17336,21 +18314,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   getConfiguredDefaultLocale: () => (/* binding */ getConfiguredDefaultLocale),
 /* harmony export */   load: () => (/* binding */ load),
 /* harmony export */   localize: () => (/* binding */ localize),
+/* harmony export */   localize2: () => (/* binding */ localize2),
 /* harmony export */   setPseudoTranslation: () => (/* binding */ setPseudoTranslation)
 /* harmony export */ });
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 let isPseudo = (typeof document !== 'undefined' && document.location && document.location.hash.indexOf('pseudo=true') >= 0);
 const DEFAULT_TAG = 'i-default';
 function _format(message, args) {
@@ -17395,16 +18365,14 @@ function endWithSlash(path) {
     }
     return path + '/';
 }
-function getMessagesFromTranslationsService(translationServiceUrl, language, name) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const url = endWithSlash(translationServiceUrl) + endWithSlash(language) + 'vscode/' + endWithSlash(name);
-        const res = yield fetch(url);
-        if (res.ok) {
-            const messages = yield res.json();
-            return messages;
-        }
-        throw new Error(`${res.status} - ${res.statusText}`);
-    });
+async function getMessagesFromTranslationsService(translationServiceUrl, language, name) {
+    const url = endWithSlash(translationServiceUrl) + endWithSlash(language) + 'vscode/' + endWithSlash(name);
+    const res = await fetch(url);
+    if (res.ok) {
+        const messages = await res.json();
+        return messages;
+    }
+    throw new Error(`${res.status} - ${res.statusText}`);
 }
 function createScopedLocalize(scope) {
     return function (idx, defaultValue) {
@@ -17412,11 +18380,27 @@ function createScopedLocalize(scope) {
         return _format(scope[idx], restArgs);
     };
 }
+function createScopedLocalize2(scope) {
+    return (idx, defaultValue, ...args) => ({
+        value: _format(scope[idx], args),
+        original: _format(defaultValue, args)
+    });
+}
 /**
  * @skipMangle
  */
 function localize(data, message, ...args) {
     return _format(message, args);
+}
+/**
+ * @skipMangle
+ */
+function localize2(data, message, ...args) {
+    const original = _format(message, args);
+    return {
+        value: original,
+        original
+    };
 }
 /**
  * @skipMangle
@@ -17440,6 +18424,7 @@ function create(key, data) {
     var _a;
     return {
         localize: createScopedLocalize(data[key]),
+        localize2: createScopedLocalize2(data[key]),
         getConfiguredDefaultLocale: (_a = data.getConfiguredDefaultLocale) !== null && _a !== void 0 ? _a : ((_) => undefined)
     };
 }
@@ -17454,6 +18439,7 @@ function load(name, req, load, config) {
         // TODO: We need to give back the mangled names here
         return load({
             localize: localize,
+            localize2: localize2,
             getConfiguredDefaultLocale: () => { var _a; return (_a = pluginConfig.availableLanguages) === null || _a === void 0 ? void 0 : _a['*']; }
         });
     }
@@ -17466,9 +18452,11 @@ function load(name, req, load, config) {
     const messagesLoaded = (messages) => {
         if (Array.isArray(messages)) {
             messages.localize = createScopedLocalize(messages);
+            messages.localize2 = createScopedLocalize2(messages);
         }
         else {
             messages.localize = createScopedLocalize(messages[name]);
+            messages.localize2 = createScopedLocalize2(messages[name]);
         }
         messages.getConfiguredDefaultLocale = () => { var _a; return (_a = pluginConfig.availableLanguages) === null || _a === void 0 ? void 0 : _a['*']; };
         load(messages);
@@ -17485,10 +18473,10 @@ function load(name, req, load, config) {
         });
     }
     else if (pluginConfig.translationServiceUrl && !useDefaultLanguage) {
-        (() => __awaiter(this, void 0, void 0, function* () {
-            var _b;
+        (async () => {
+            var _a;
             try {
-                const messages = yield getMessagesFromTranslationsService(pluginConfig.translationServiceUrl, language, name);
+                const messages = await getMessagesFromTranslationsService(pluginConfig.translationServiceUrl, language, name);
                 return messagesLoaded(messages);
             }
             catch (err) {
@@ -17502,9 +18490,9 @@ function load(name, req, load, config) {
                     // Since we were unable to load the specific language, try to load the generic language. Ex. we failed to find a
                     // Swiss German (de-CH), so try to load the generic German (de) messages instead.
                     const genericLanguage = language.split('-')[0];
-                    const messages = yield getMessagesFromTranslationsService(pluginConfig.translationServiceUrl, genericLanguage, name);
+                    const messages = await getMessagesFromTranslationsService(pluginConfig.translationServiceUrl, genericLanguage, name);
                     // We got some messages, so we configure the configuration to use the generic language for this session.
-                    (_b = pluginConfig.availableLanguages) !== null && _b !== void 0 ? _b : (pluginConfig.availableLanguages = {});
+                    (_a = pluginConfig.availableLanguages) !== null && _a !== void 0 ? _a : (pluginConfig.availableLanguages = {});
                     pluginConfig.availableLanguages['*'] = genericLanguage;
                     return messagesLoaded(messages);
                 }
@@ -17513,7 +18501,7 @@ function load(name, req, load, config) {
                     return req([name + '.nls'], messagesLoaded);
                 }
             }
-        }))();
+        })();
     }
     else {
         req([name + suffix], messagesLoaded, (err) => {
@@ -17569,18 +18557,6 @@ function load(name, req, load, config) {
 /******/ 		};
 /******/ 	})();
 /******/ 	
-/******/ 	/* webpack/runtime/global */
-/******/ 	(() => {
-/******/ 		__webpack_require__.g = (function() {
-/******/ 			if (typeof globalThis === 'object') return globalThis;
-/******/ 			try {
-/******/ 				return this || new Function('return this')();
-/******/ 			} catch (e) {
-/******/ 				if (typeof window === 'object') return window;
-/******/ 			}
-/******/ 		})();
-/******/ 	})();
-/******/ 	
 /******/ 	/* webpack/runtime/hasOwnProperty shorthand */
 /******/ 	(() => {
 /******/ 		__webpack_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
@@ -17608,10 +18584,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _editor_editor_worker_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../editor/editor.worker.js */ "./node_modules/monaco-editor/esm/vs/editor/editor.worker.js");
 /*!-----------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
- * Version: 0.43.0(94c055bcbdd49f04a0fa15515e848542a79fb948)
+ * Version: 0.47.0(69991d66135e4a1fc1cf0b1ac4ad25d429866a0d)
  * Released under the MIT license
  * https://github.com/microsoft/monaco-editor/blob/main/LICENSE.txt
  *-----------------------------------------------------------------------------*/
+
 
 // src/language/json/json.worker.ts
 
@@ -18300,37 +19277,61 @@ function visit(text, visitor, options) {
       var token = _scanner.scan();
       switch (_scanner.getTokenError()) {
         case 4:
-          handleError(14);
+          handleError(
+            14
+            /* InvalidUnicode */
+          );
           break;
         case 5:
-          handleError(15);
+          handleError(
+            15
+            /* InvalidEscapeCharacter */
+          );
           break;
         case 3:
-          handleError(13);
+          handleError(
+            13
+            /* UnexpectedEndOfNumber */
+          );
           break;
         case 1:
           if (!disallowComments) {
-            handleError(11);
+            handleError(
+              11
+              /* UnexpectedEndOfComment */
+            );
           }
           break;
         case 2:
-          handleError(12);
+          handleError(
+            12
+            /* UnexpectedEndOfString */
+          );
           break;
         case 6:
-          handleError(16);
+          handleError(
+            16
+            /* InvalidCharacter */
+          );
           break;
       }
       switch (token) {
         case 12:
         case 13:
           if (disallowComments) {
-            handleError(10);
+            handleError(
+              10
+              /* InvalidCommentToken */
+            );
           } else {
             onComment();
           }
           break;
         case 16:
-          handleError(1);
+          handleError(
+            1
+            /* InvalidSymbol */
+          );
           break;
         case 15:
         case 14:
@@ -18377,7 +19378,10 @@ function visit(text, visitor, options) {
         var tokenValue = _scanner.getTokenValue();
         var value = Number(tokenValue);
         if (isNaN(value)) {
-          handleError(2);
+          handleError(
+            2
+            /* InvalidNumberFormat */
+          );
           value = 0;
         }
         onLiteralValue(value);
@@ -18399,7 +19403,11 @@ function visit(text, visitor, options) {
   }
   function parseProperty() {
     if (_scanner.getToken() !== 10) {
-      handleError(3, [], [2, 5]);
+      handleError(3, [], [
+        2,
+        5
+        /* CommaToken */
+      ]);
       return false;
     }
     parseString(false);
@@ -18407,10 +19415,18 @@ function visit(text, visitor, options) {
       onSeparator(":");
       scanNext();
       if (!parseValue()) {
-        handleError(4, [], [2, 5]);
+        handleError(4, [], [
+          2,
+          5
+          /* CommaToken */
+        ]);
       }
     } else {
-      handleError(5, [], [2, 5]);
+      handleError(5, [], [
+        2,
+        5
+        /* CommaToken */
+      ]);
     }
     return true;
   }
@@ -18432,13 +19448,20 @@ function visit(text, visitor, options) {
         handleError(6, [], []);
       }
       if (!parseProperty()) {
-        handleError(4, [], [2, 5]);
+        handleError(4, [], [
+          2,
+          5
+          /* CommaToken */
+        ]);
       }
       needsComma = true;
     }
     onObjectEnd();
     if (_scanner.getToken() !== 2) {
-      handleError(7, [2], []);
+      handleError(7, [
+        2
+        /* CloseBraceToken */
+      ], []);
     } else {
       scanNext();
     }
@@ -18462,13 +19485,20 @@ function visit(text, visitor, options) {
         handleError(6, [], []);
       }
       if (!parseValue()) {
-        handleError(4, [], [4, 5]);
+        handleError(4, [], [
+          4,
+          5
+          /* CommaToken */
+        ]);
       }
       needsComma = true;
     }
     onArrayEnd();
     if (_scanner.getToken() !== 4) {
-      handleError(8, [4], []);
+      handleError(8, [
+        4
+        /* CloseBracketToken */
+      ], []);
     } else {
       scanNext();
     }
@@ -19006,281 +20036,294 @@ var WorkspaceEdit;
   }
   WorkspaceEdit2.is = is;
 })(WorkspaceEdit || (WorkspaceEdit = {}));
-var TextEditChangeImpl = function() {
-  function TextEditChangeImpl2(edits, changeAnnotations) {
-    this.edits = edits;
-    this.changeAnnotations = changeAnnotations;
-  }
-  TextEditChangeImpl2.prototype.insert = function(position, newText, annotation) {
-    var edit;
-    var id;
-    if (annotation === void 0) {
-      edit = TextEdit.insert(position, newText);
-    } else if (ChangeAnnotationIdentifier.is(annotation)) {
-      id = annotation;
-      edit = AnnotatedTextEdit.insert(position, newText, annotation);
-    } else {
-      this.assertChangeAnnotations(this.changeAnnotations);
-      id = this.changeAnnotations.manage(annotation);
-      edit = AnnotatedTextEdit.insert(position, newText, id);
+var TextEditChangeImpl = (
+  /** @class */
+  function() {
+    function TextEditChangeImpl2(edits, changeAnnotations) {
+      this.edits = edits;
+      this.changeAnnotations = changeAnnotations;
     }
-    this.edits.push(edit);
-    if (id !== void 0) {
-      return id;
-    }
-  };
-  TextEditChangeImpl2.prototype.replace = function(range, newText, annotation) {
-    var edit;
-    var id;
-    if (annotation === void 0) {
-      edit = TextEdit.replace(range, newText);
-    } else if (ChangeAnnotationIdentifier.is(annotation)) {
-      id = annotation;
-      edit = AnnotatedTextEdit.replace(range, newText, annotation);
-    } else {
-      this.assertChangeAnnotations(this.changeAnnotations);
-      id = this.changeAnnotations.manage(annotation);
-      edit = AnnotatedTextEdit.replace(range, newText, id);
-    }
-    this.edits.push(edit);
-    if (id !== void 0) {
-      return id;
-    }
-  };
-  TextEditChangeImpl2.prototype.delete = function(range, annotation) {
-    var edit;
-    var id;
-    if (annotation === void 0) {
-      edit = TextEdit.del(range);
-    } else if (ChangeAnnotationIdentifier.is(annotation)) {
-      id = annotation;
-      edit = AnnotatedTextEdit.del(range, annotation);
-    } else {
-      this.assertChangeAnnotations(this.changeAnnotations);
-      id = this.changeAnnotations.manage(annotation);
-      edit = AnnotatedTextEdit.del(range, id);
-    }
-    this.edits.push(edit);
-    if (id !== void 0) {
-      return id;
-    }
-  };
-  TextEditChangeImpl2.prototype.add = function(edit) {
-    this.edits.push(edit);
-  };
-  TextEditChangeImpl2.prototype.all = function() {
-    return this.edits;
-  };
-  TextEditChangeImpl2.prototype.clear = function() {
-    this.edits.splice(0, this.edits.length);
-  };
-  TextEditChangeImpl2.prototype.assertChangeAnnotations = function(value) {
-    if (value === void 0) {
-      throw new Error("Text edit change is not configured to manage change annotations.");
-    }
-  };
-  return TextEditChangeImpl2;
-}();
-var ChangeAnnotations = function() {
-  function ChangeAnnotations2(annotations) {
-    this._annotations = annotations === void 0 ? /* @__PURE__ */ Object.create(null) : annotations;
-    this._counter = 0;
-    this._size = 0;
-  }
-  ChangeAnnotations2.prototype.all = function() {
-    return this._annotations;
-  };
-  Object.defineProperty(ChangeAnnotations2.prototype, "size", {
-    get: function() {
-      return this._size;
-    },
-    enumerable: false,
-    configurable: true
-  });
-  ChangeAnnotations2.prototype.manage = function(idOrAnnotation, annotation) {
-    var id;
-    if (ChangeAnnotationIdentifier.is(idOrAnnotation)) {
-      id = idOrAnnotation;
-    } else {
-      id = this.nextId();
-      annotation = idOrAnnotation;
-    }
-    if (this._annotations[id] !== void 0) {
-      throw new Error("Id " + id + " is already in use.");
-    }
-    if (annotation === void 0) {
-      throw new Error("No annotation provided for id " + id);
-    }
-    this._annotations[id] = annotation;
-    this._size++;
-    return id;
-  };
-  ChangeAnnotations2.prototype.nextId = function() {
-    this._counter++;
-    return this._counter.toString();
-  };
-  return ChangeAnnotations2;
-}();
-var WorkspaceChange = function() {
-  function WorkspaceChange2(workspaceEdit) {
-    var _this = this;
-    this._textEditChanges = /* @__PURE__ */ Object.create(null);
-    if (workspaceEdit !== void 0) {
-      this._workspaceEdit = workspaceEdit;
-      if (workspaceEdit.documentChanges) {
-        this._changeAnnotations = new ChangeAnnotations(workspaceEdit.changeAnnotations);
-        workspaceEdit.changeAnnotations = this._changeAnnotations.all();
-        workspaceEdit.documentChanges.forEach(function(change) {
-          if (TextDocumentEdit.is(change)) {
-            var textEditChange = new TextEditChangeImpl(change.edits, _this._changeAnnotations);
-            _this._textEditChanges[change.textDocument.uri] = textEditChange;
-          }
-        });
-      } else if (workspaceEdit.changes) {
-        Object.keys(workspaceEdit.changes).forEach(function(key) {
-          var textEditChange = new TextEditChangeImpl(workspaceEdit.changes[key]);
-          _this._textEditChanges[key] = textEditChange;
-        });
+    TextEditChangeImpl2.prototype.insert = function(position, newText, annotation) {
+      var edit;
+      var id;
+      if (annotation === void 0) {
+        edit = TextEdit.insert(position, newText);
+      } else if (ChangeAnnotationIdentifier.is(annotation)) {
+        id = annotation;
+        edit = AnnotatedTextEdit.insert(position, newText, annotation);
+      } else {
+        this.assertChangeAnnotations(this.changeAnnotations);
+        id = this.changeAnnotations.manage(annotation);
+        edit = AnnotatedTextEdit.insert(position, newText, id);
       }
-    } else {
-      this._workspaceEdit = {};
+      this.edits.push(edit);
+      if (id !== void 0) {
+        return id;
+      }
+    };
+    TextEditChangeImpl2.prototype.replace = function(range, newText, annotation) {
+      var edit;
+      var id;
+      if (annotation === void 0) {
+        edit = TextEdit.replace(range, newText);
+      } else if (ChangeAnnotationIdentifier.is(annotation)) {
+        id = annotation;
+        edit = AnnotatedTextEdit.replace(range, newText, annotation);
+      } else {
+        this.assertChangeAnnotations(this.changeAnnotations);
+        id = this.changeAnnotations.manage(annotation);
+        edit = AnnotatedTextEdit.replace(range, newText, id);
+      }
+      this.edits.push(edit);
+      if (id !== void 0) {
+        return id;
+      }
+    };
+    TextEditChangeImpl2.prototype.delete = function(range, annotation) {
+      var edit;
+      var id;
+      if (annotation === void 0) {
+        edit = TextEdit.del(range);
+      } else if (ChangeAnnotationIdentifier.is(annotation)) {
+        id = annotation;
+        edit = AnnotatedTextEdit.del(range, annotation);
+      } else {
+        this.assertChangeAnnotations(this.changeAnnotations);
+        id = this.changeAnnotations.manage(annotation);
+        edit = AnnotatedTextEdit.del(range, id);
+      }
+      this.edits.push(edit);
+      if (id !== void 0) {
+        return id;
+      }
+    };
+    TextEditChangeImpl2.prototype.add = function(edit) {
+      this.edits.push(edit);
+    };
+    TextEditChangeImpl2.prototype.all = function() {
+      return this.edits;
+    };
+    TextEditChangeImpl2.prototype.clear = function() {
+      this.edits.splice(0, this.edits.length);
+    };
+    TextEditChangeImpl2.prototype.assertChangeAnnotations = function(value) {
+      if (value === void 0) {
+        throw new Error("Text edit change is not configured to manage change annotations.");
+      }
+    };
+    return TextEditChangeImpl2;
+  }()
+);
+var ChangeAnnotations = (
+  /** @class */
+  function() {
+    function ChangeAnnotations2(annotations) {
+      this._annotations = annotations === void 0 ? /* @__PURE__ */ Object.create(null) : annotations;
+      this._counter = 0;
+      this._size = 0;
     }
-  }
-  Object.defineProperty(WorkspaceChange2.prototype, "edit", {
-    get: function() {
-      this.initDocumentChanges();
-      if (this._changeAnnotations !== void 0) {
-        if (this._changeAnnotations.size === 0) {
-          this._workspaceEdit.changeAnnotations = void 0;
-        } else {
-          this._workspaceEdit.changeAnnotations = this._changeAnnotations.all();
+    ChangeAnnotations2.prototype.all = function() {
+      return this._annotations;
+    };
+    Object.defineProperty(ChangeAnnotations2.prototype, "size", {
+      get: function() {
+        return this._size;
+      },
+      enumerable: false,
+      configurable: true
+    });
+    ChangeAnnotations2.prototype.manage = function(idOrAnnotation, annotation) {
+      var id;
+      if (ChangeAnnotationIdentifier.is(idOrAnnotation)) {
+        id = idOrAnnotation;
+      } else {
+        id = this.nextId();
+        annotation = idOrAnnotation;
+      }
+      if (this._annotations[id] !== void 0) {
+        throw new Error("Id " + id + " is already in use.");
+      }
+      if (annotation === void 0) {
+        throw new Error("No annotation provided for id " + id);
+      }
+      this._annotations[id] = annotation;
+      this._size++;
+      return id;
+    };
+    ChangeAnnotations2.prototype.nextId = function() {
+      this._counter++;
+      return this._counter.toString();
+    };
+    return ChangeAnnotations2;
+  }()
+);
+var WorkspaceChange = (
+  /** @class */
+  function() {
+    function WorkspaceChange2(workspaceEdit) {
+      var _this = this;
+      this._textEditChanges = /* @__PURE__ */ Object.create(null);
+      if (workspaceEdit !== void 0) {
+        this._workspaceEdit = workspaceEdit;
+        if (workspaceEdit.documentChanges) {
+          this._changeAnnotations = new ChangeAnnotations(workspaceEdit.changeAnnotations);
+          workspaceEdit.changeAnnotations = this._changeAnnotations.all();
+          workspaceEdit.documentChanges.forEach(function(change) {
+            if (TextDocumentEdit.is(change)) {
+              var textEditChange = new TextEditChangeImpl(change.edits, _this._changeAnnotations);
+              _this._textEditChanges[change.textDocument.uri] = textEditChange;
+            }
+          });
+        } else if (workspaceEdit.changes) {
+          Object.keys(workspaceEdit.changes).forEach(function(key) {
+            var textEditChange = new TextEditChangeImpl(workspaceEdit.changes[key]);
+            _this._textEditChanges[key] = textEditChange;
+          });
         }
+      } else {
+        this._workspaceEdit = {};
       }
-      return this._workspaceEdit;
-    },
-    enumerable: false,
-    configurable: true
-  });
-  WorkspaceChange2.prototype.getTextEditChange = function(key) {
-    if (OptionalVersionedTextDocumentIdentifier.is(key)) {
+    }
+    Object.defineProperty(WorkspaceChange2.prototype, "edit", {
+      /**
+       * Returns the underlying [WorkspaceEdit](#WorkspaceEdit) literal
+       * use to be returned from a workspace edit operation like rename.
+       */
+      get: function() {
+        this.initDocumentChanges();
+        if (this._changeAnnotations !== void 0) {
+          if (this._changeAnnotations.size === 0) {
+            this._workspaceEdit.changeAnnotations = void 0;
+          } else {
+            this._workspaceEdit.changeAnnotations = this._changeAnnotations.all();
+          }
+        }
+        return this._workspaceEdit;
+      },
+      enumerable: false,
+      configurable: true
+    });
+    WorkspaceChange2.prototype.getTextEditChange = function(key) {
+      if (OptionalVersionedTextDocumentIdentifier.is(key)) {
+        this.initDocumentChanges();
+        if (this._workspaceEdit.documentChanges === void 0) {
+          throw new Error("Workspace edit is not configured for document changes.");
+        }
+        var textDocument = { uri: key.uri, version: key.version };
+        var result = this._textEditChanges[textDocument.uri];
+        if (!result) {
+          var edits = [];
+          var textDocumentEdit = {
+            textDocument,
+            edits
+          };
+          this._workspaceEdit.documentChanges.push(textDocumentEdit);
+          result = new TextEditChangeImpl(edits, this._changeAnnotations);
+          this._textEditChanges[textDocument.uri] = result;
+        }
+        return result;
+      } else {
+        this.initChanges();
+        if (this._workspaceEdit.changes === void 0) {
+          throw new Error("Workspace edit is not configured for normal text edit changes.");
+        }
+        var result = this._textEditChanges[key];
+        if (!result) {
+          var edits = [];
+          this._workspaceEdit.changes[key] = edits;
+          result = new TextEditChangeImpl(edits);
+          this._textEditChanges[key] = result;
+        }
+        return result;
+      }
+    };
+    WorkspaceChange2.prototype.initDocumentChanges = function() {
+      if (this._workspaceEdit.documentChanges === void 0 && this._workspaceEdit.changes === void 0) {
+        this._changeAnnotations = new ChangeAnnotations();
+        this._workspaceEdit.documentChanges = [];
+        this._workspaceEdit.changeAnnotations = this._changeAnnotations.all();
+      }
+    };
+    WorkspaceChange2.prototype.initChanges = function() {
+      if (this._workspaceEdit.documentChanges === void 0 && this._workspaceEdit.changes === void 0) {
+        this._workspaceEdit.changes = /* @__PURE__ */ Object.create(null);
+      }
+    };
+    WorkspaceChange2.prototype.createFile = function(uri, optionsOrAnnotation, options) {
       this.initDocumentChanges();
       if (this._workspaceEdit.documentChanges === void 0) {
         throw new Error("Workspace edit is not configured for document changes.");
       }
-      var textDocument = { uri: key.uri, version: key.version };
-      var result = this._textEditChanges[textDocument.uri];
-      if (!result) {
-        var edits = [];
-        var textDocumentEdit = {
-          textDocument,
-          edits
-        };
-        this._workspaceEdit.documentChanges.push(textDocumentEdit);
-        result = new TextEditChangeImpl(edits, this._changeAnnotations);
-        this._textEditChanges[textDocument.uri] = result;
+      var annotation;
+      if (ChangeAnnotation.is(optionsOrAnnotation) || ChangeAnnotationIdentifier.is(optionsOrAnnotation)) {
+        annotation = optionsOrAnnotation;
+      } else {
+        options = optionsOrAnnotation;
       }
-      return result;
-    } else {
-      this.initChanges();
-      if (this._workspaceEdit.changes === void 0) {
-        throw new Error("Workspace edit is not configured for normal text edit changes.");
+      var operation;
+      var id;
+      if (annotation === void 0) {
+        operation = CreateFile.create(uri, options);
+      } else {
+        id = ChangeAnnotationIdentifier.is(annotation) ? annotation : this._changeAnnotations.manage(annotation);
+        operation = CreateFile.create(uri, options, id);
       }
-      var result = this._textEditChanges[key];
-      if (!result) {
-        var edits = [];
-        this._workspaceEdit.changes[key] = edits;
-        result = new TextEditChangeImpl(edits);
-        this._textEditChanges[key] = result;
+      this._workspaceEdit.documentChanges.push(operation);
+      if (id !== void 0) {
+        return id;
       }
-      return result;
-    }
-  };
-  WorkspaceChange2.prototype.initDocumentChanges = function() {
-    if (this._workspaceEdit.documentChanges === void 0 && this._workspaceEdit.changes === void 0) {
-      this._changeAnnotations = new ChangeAnnotations();
-      this._workspaceEdit.documentChanges = [];
-      this._workspaceEdit.changeAnnotations = this._changeAnnotations.all();
-    }
-  };
-  WorkspaceChange2.prototype.initChanges = function() {
-    if (this._workspaceEdit.documentChanges === void 0 && this._workspaceEdit.changes === void 0) {
-      this._workspaceEdit.changes = /* @__PURE__ */ Object.create(null);
-    }
-  };
-  WorkspaceChange2.prototype.createFile = function(uri, optionsOrAnnotation, options) {
-    this.initDocumentChanges();
-    if (this._workspaceEdit.documentChanges === void 0) {
-      throw new Error("Workspace edit is not configured for document changes.");
-    }
-    var annotation;
-    if (ChangeAnnotation.is(optionsOrAnnotation) || ChangeAnnotationIdentifier.is(optionsOrAnnotation)) {
-      annotation = optionsOrAnnotation;
-    } else {
-      options = optionsOrAnnotation;
-    }
-    var operation;
-    var id;
-    if (annotation === void 0) {
-      operation = CreateFile.create(uri, options);
-    } else {
-      id = ChangeAnnotationIdentifier.is(annotation) ? annotation : this._changeAnnotations.manage(annotation);
-      operation = CreateFile.create(uri, options, id);
-    }
-    this._workspaceEdit.documentChanges.push(operation);
-    if (id !== void 0) {
-      return id;
-    }
-  };
-  WorkspaceChange2.prototype.renameFile = function(oldUri, newUri, optionsOrAnnotation, options) {
-    this.initDocumentChanges();
-    if (this._workspaceEdit.documentChanges === void 0) {
-      throw new Error("Workspace edit is not configured for document changes.");
-    }
-    var annotation;
-    if (ChangeAnnotation.is(optionsOrAnnotation) || ChangeAnnotationIdentifier.is(optionsOrAnnotation)) {
-      annotation = optionsOrAnnotation;
-    } else {
-      options = optionsOrAnnotation;
-    }
-    var operation;
-    var id;
-    if (annotation === void 0) {
-      operation = RenameFile.create(oldUri, newUri, options);
-    } else {
-      id = ChangeAnnotationIdentifier.is(annotation) ? annotation : this._changeAnnotations.manage(annotation);
-      operation = RenameFile.create(oldUri, newUri, options, id);
-    }
-    this._workspaceEdit.documentChanges.push(operation);
-    if (id !== void 0) {
-      return id;
-    }
-  };
-  WorkspaceChange2.prototype.deleteFile = function(uri, optionsOrAnnotation, options) {
-    this.initDocumentChanges();
-    if (this._workspaceEdit.documentChanges === void 0) {
-      throw new Error("Workspace edit is not configured for document changes.");
-    }
-    var annotation;
-    if (ChangeAnnotation.is(optionsOrAnnotation) || ChangeAnnotationIdentifier.is(optionsOrAnnotation)) {
-      annotation = optionsOrAnnotation;
-    } else {
-      options = optionsOrAnnotation;
-    }
-    var operation;
-    var id;
-    if (annotation === void 0) {
-      operation = DeleteFile.create(uri, options);
-    } else {
-      id = ChangeAnnotationIdentifier.is(annotation) ? annotation : this._changeAnnotations.manage(annotation);
-      operation = DeleteFile.create(uri, options, id);
-    }
-    this._workspaceEdit.documentChanges.push(operation);
-    if (id !== void 0) {
-      return id;
-    }
-  };
-  return WorkspaceChange2;
-}();
+    };
+    WorkspaceChange2.prototype.renameFile = function(oldUri, newUri, optionsOrAnnotation, options) {
+      this.initDocumentChanges();
+      if (this._workspaceEdit.documentChanges === void 0) {
+        throw new Error("Workspace edit is not configured for document changes.");
+      }
+      var annotation;
+      if (ChangeAnnotation.is(optionsOrAnnotation) || ChangeAnnotationIdentifier.is(optionsOrAnnotation)) {
+        annotation = optionsOrAnnotation;
+      } else {
+        options = optionsOrAnnotation;
+      }
+      var operation;
+      var id;
+      if (annotation === void 0) {
+        operation = RenameFile.create(oldUri, newUri, options);
+      } else {
+        id = ChangeAnnotationIdentifier.is(annotation) ? annotation : this._changeAnnotations.manage(annotation);
+        operation = RenameFile.create(oldUri, newUri, options, id);
+      }
+      this._workspaceEdit.documentChanges.push(operation);
+      if (id !== void 0) {
+        return id;
+      }
+    };
+    WorkspaceChange2.prototype.deleteFile = function(uri, optionsOrAnnotation, options) {
+      this.initDocumentChanges();
+      if (this._workspaceEdit.documentChanges === void 0) {
+        throw new Error("Workspace edit is not configured for document changes.");
+      }
+      var annotation;
+      if (ChangeAnnotation.is(optionsOrAnnotation) || ChangeAnnotationIdentifier.is(optionsOrAnnotation)) {
+        annotation = optionsOrAnnotation;
+      } else {
+        options = optionsOrAnnotation;
+      }
+      var operation;
+      var id;
+      if (annotation === void 0) {
+        operation = DeleteFile.create(uri, options);
+      } else {
+        id = ChangeAnnotationIdentifier.is(annotation) ? annotation : this._changeAnnotations.manage(annotation);
+        operation = DeleteFile.create(uri, options, id);
+      }
+      this._workspaceEdit.documentChanges.push(operation);
+      if (id !== void 0) {
+        return id;
+      }
+    };
+    return WorkspaceChange2;
+  }()
+);
 var TextDocumentIdentifier;
 (function(TextDocumentIdentifier2) {
   function create(uri) {
@@ -19720,109 +20763,112 @@ var TextDocument;
     return data;
   }
 })(TextDocument || (TextDocument = {}));
-var FullTextDocument = function() {
-  function FullTextDocument3(uri, languageId, version, content) {
-    this._uri = uri;
-    this._languageId = languageId;
-    this._version = version;
-    this._content = content;
-    this._lineOffsets = void 0;
-  }
-  Object.defineProperty(FullTextDocument3.prototype, "uri", {
-    get: function() {
-      return this._uri;
-    },
-    enumerable: false,
-    configurable: true
-  });
-  Object.defineProperty(FullTextDocument3.prototype, "languageId", {
-    get: function() {
-      return this._languageId;
-    },
-    enumerable: false,
-    configurable: true
-  });
-  Object.defineProperty(FullTextDocument3.prototype, "version", {
-    get: function() {
-      return this._version;
-    },
-    enumerable: false,
-    configurable: true
-  });
-  FullTextDocument3.prototype.getText = function(range) {
-    if (range) {
-      var start = this.offsetAt(range.start);
-      var end = this.offsetAt(range.end);
-      return this._content.substring(start, end);
+var FullTextDocument = (
+  /** @class */
+  function() {
+    function FullTextDocument3(uri, languageId, version, content) {
+      this._uri = uri;
+      this._languageId = languageId;
+      this._version = version;
+      this._content = content;
+      this._lineOffsets = void 0;
     }
-    return this._content;
-  };
-  FullTextDocument3.prototype.update = function(event, version) {
-    this._content = event.text;
-    this._version = version;
-    this._lineOffsets = void 0;
-  };
-  FullTextDocument3.prototype.getLineOffsets = function() {
-    if (this._lineOffsets === void 0) {
-      var lineOffsets = [];
-      var text = this._content;
-      var isLineStart = true;
-      for (var i = 0; i < text.length; i++) {
-        if (isLineStart) {
-          lineOffsets.push(i);
-          isLineStart = false;
+    Object.defineProperty(FullTextDocument3.prototype, "uri", {
+      get: function() {
+        return this._uri;
+      },
+      enumerable: false,
+      configurable: true
+    });
+    Object.defineProperty(FullTextDocument3.prototype, "languageId", {
+      get: function() {
+        return this._languageId;
+      },
+      enumerable: false,
+      configurable: true
+    });
+    Object.defineProperty(FullTextDocument3.prototype, "version", {
+      get: function() {
+        return this._version;
+      },
+      enumerable: false,
+      configurable: true
+    });
+    FullTextDocument3.prototype.getText = function(range) {
+      if (range) {
+        var start = this.offsetAt(range.start);
+        var end = this.offsetAt(range.end);
+        return this._content.substring(start, end);
+      }
+      return this._content;
+    };
+    FullTextDocument3.prototype.update = function(event, version) {
+      this._content = event.text;
+      this._version = version;
+      this._lineOffsets = void 0;
+    };
+    FullTextDocument3.prototype.getLineOffsets = function() {
+      if (this._lineOffsets === void 0) {
+        var lineOffsets = [];
+        var text = this._content;
+        var isLineStart = true;
+        for (var i = 0; i < text.length; i++) {
+          if (isLineStart) {
+            lineOffsets.push(i);
+            isLineStart = false;
+          }
+          var ch = text.charAt(i);
+          isLineStart = ch === "\r" || ch === "\n";
+          if (ch === "\r" && i + 1 < text.length && text.charAt(i + 1) === "\n") {
+            i++;
+          }
         }
-        var ch = text.charAt(i);
-        isLineStart = ch === "\r" || ch === "\n";
-        if (ch === "\r" && i + 1 < text.length && text.charAt(i + 1) === "\n") {
-          i++;
+        if (isLineStart && text.length > 0) {
+          lineOffsets.push(text.length);
+        }
+        this._lineOffsets = lineOffsets;
+      }
+      return this._lineOffsets;
+    };
+    FullTextDocument3.prototype.positionAt = function(offset) {
+      offset = Math.max(Math.min(offset, this._content.length), 0);
+      var lineOffsets = this.getLineOffsets();
+      var low = 0, high = lineOffsets.length;
+      if (high === 0) {
+        return Position.create(0, offset);
+      }
+      while (low < high) {
+        var mid = Math.floor((low + high) / 2);
+        if (lineOffsets[mid] > offset) {
+          high = mid;
+        } else {
+          low = mid + 1;
         }
       }
-      if (isLineStart && text.length > 0) {
-        lineOffsets.push(text.length);
+      var line = low - 1;
+      return Position.create(line, offset - lineOffsets[line]);
+    };
+    FullTextDocument3.prototype.offsetAt = function(position) {
+      var lineOffsets = this.getLineOffsets();
+      if (position.line >= lineOffsets.length) {
+        return this._content.length;
+      } else if (position.line < 0) {
+        return 0;
       }
-      this._lineOffsets = lineOffsets;
-    }
-    return this._lineOffsets;
-  };
-  FullTextDocument3.prototype.positionAt = function(offset) {
-    offset = Math.max(Math.min(offset, this._content.length), 0);
-    var lineOffsets = this.getLineOffsets();
-    var low = 0, high = lineOffsets.length;
-    if (high === 0) {
-      return Position.create(0, offset);
-    }
-    while (low < high) {
-      var mid = Math.floor((low + high) / 2);
-      if (lineOffsets[mid] > offset) {
-        high = mid;
-      } else {
-        low = mid + 1;
-      }
-    }
-    var line = low - 1;
-    return Position.create(line, offset - lineOffsets[line]);
-  };
-  FullTextDocument3.prototype.offsetAt = function(position) {
-    var lineOffsets = this.getLineOffsets();
-    if (position.line >= lineOffsets.length) {
-      return this._content.length;
-    } else if (position.line < 0) {
-      return 0;
-    }
-    var lineOffset = lineOffsets[position.line];
-    var nextLineOffset = position.line + 1 < lineOffsets.length ? lineOffsets[position.line + 1] : this._content.length;
-    return Math.max(Math.min(lineOffset + position.character, nextLineOffset), lineOffset);
-  };
-  Object.defineProperty(FullTextDocument3.prototype, "lineCount", {
-    get: function() {
-      return this.getLineOffsets().length;
-    },
-    enumerable: false,
-    configurable: true
-  });
-  return FullTextDocument3;
-}();
+      var lineOffset = lineOffsets[position.line];
+      var nextLineOffset = position.line + 1 < lineOffsets.length ? lineOffsets[position.line + 1] : this._content.length;
+      return Math.max(Math.min(lineOffset + position.character, nextLineOffset), lineOffset);
+    };
+    Object.defineProperty(FullTextDocument3.prototype, "lineCount", {
+      get: function() {
+        return this.getLineOffsets().length;
+      },
+      enumerable: false,
+      configurable: true
+    });
+    return FullTextDocument3;
+  }()
+);
 var Is;
 (function(Is2) {
   var toString = Object.prototype.toString;
@@ -19873,7 +20919,7 @@ var Is;
 })(Is || (Is = {}));
 
 // node_modules/vscode-languageserver-textdocument/lib/esm/main.js
-var FullTextDocument2 = class {
+var FullTextDocument2 = class _FullTextDocument {
   constructor(uri, languageId, version, content) {
     this._uri = uri;
     this._languageId = languageId;
@@ -19900,7 +20946,7 @@ var FullTextDocument2 = class {
   }
   update(changes, version) {
     for (let change of changes) {
-      if (FullTextDocument2.isIncremental(change)) {
+      if (_FullTextDocument.isIncremental(change)) {
         const range = getWellformedRange(change.range);
         const startOffset = this.offsetAt(range.start);
         const endOffset = this.offsetAt(range.end);
@@ -19926,7 +20972,7 @@ var FullTextDocument2 = class {
             lineOffsets[i] = lineOffsets[i] + diff;
           }
         }
-      } else if (FullTextDocument2.isFull(change)) {
+      } else if (_FullTextDocument.isFull(change)) {
         this._content = change.text;
         this._lineOffsets = void 0;
       } else {
@@ -20140,7 +21186,7 @@ function loadMessageBundle(file) {
 }
 
 // node_modules/vscode-json-languageservice/lib/esm/parser/jsonParser.js
-var __extends = function() {
+var __extends = /* @__PURE__ */ function() {
   var extendStatics = function(d, b) {
     extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function(d2, b2) {
       d2.__proto__ = b2;
@@ -20172,120 +21218,144 @@ var formats = {
   "ipv4": { errorMessage: localize2("ipv4FormatWarning", "String is not an IPv4 address."), pattern: /^(?:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)$/ },
   "ipv6": { errorMessage: localize2("ipv6FormatWarning", "String is not an IPv6 address."), pattern: /^((([0-9a-f]{1,4}:){7}([0-9a-f]{1,4}|:))|(([0-9a-f]{1,4}:){6}(:[0-9a-f]{1,4}|((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9a-f]{1,4}:){5}(((:[0-9a-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9a-f]{1,4}:){4}(((:[0-9a-f]{1,4}){1,3})|((:[0-9a-f]{1,4})?:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9a-f]{1,4}:){3}(((:[0-9a-f]{1,4}){1,4})|((:[0-9a-f]{1,4}){0,2}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9a-f]{1,4}:){2}(((:[0-9a-f]{1,4}){1,5})|((:[0-9a-f]{1,4}){0,3}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9a-f]{1,4}:){1}(((:[0-9a-f]{1,4}){1,6})|((:[0-9a-f]{1,4}){0,4}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(:(((:[0-9a-f]{1,4}){1,7})|((:[0-9a-f]{1,4}){0,5}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:)))$/i }
 };
-var ASTNodeImpl = function() {
-  function ASTNodeImpl2(parent, offset, length) {
-    if (length === void 0) {
-      length = 0;
+var ASTNodeImpl = (
+  /** @class */
+  function() {
+    function ASTNodeImpl2(parent, offset, length) {
+      if (length === void 0) {
+        length = 0;
+      }
+      this.offset = offset;
+      this.length = length;
+      this.parent = parent;
     }
-    this.offset = offset;
-    this.length = length;
-    this.parent = parent;
-  }
-  Object.defineProperty(ASTNodeImpl2.prototype, "children", {
-    get: function() {
-      return [];
-    },
-    enumerable: false,
-    configurable: true
-  });
-  ASTNodeImpl2.prototype.toString = function() {
-    return "type: " + this.type + " (" + this.offset + "/" + this.length + ")" + (this.parent ? " parent: {" + this.parent.toString() + "}" : "");
-  };
-  return ASTNodeImpl2;
-}();
-var NullASTNodeImpl = function(_super) {
-  __extends(NullASTNodeImpl2, _super);
-  function NullASTNodeImpl2(parent, offset) {
-    var _this = _super.call(this, parent, offset) || this;
-    _this.type = "null";
-    _this.value = null;
-    return _this;
-  }
-  return NullASTNodeImpl2;
-}(ASTNodeImpl);
-var BooleanASTNodeImpl = function(_super) {
-  __extends(BooleanASTNodeImpl2, _super);
-  function BooleanASTNodeImpl2(parent, boolValue, offset) {
-    var _this = _super.call(this, parent, offset) || this;
-    _this.type = "boolean";
-    _this.value = boolValue;
-    return _this;
-  }
-  return BooleanASTNodeImpl2;
-}(ASTNodeImpl);
-var ArrayASTNodeImpl = function(_super) {
-  __extends(ArrayASTNodeImpl2, _super);
-  function ArrayASTNodeImpl2(parent, offset) {
-    var _this = _super.call(this, parent, offset) || this;
-    _this.type = "array";
-    _this.items = [];
-    return _this;
-  }
-  Object.defineProperty(ArrayASTNodeImpl2.prototype, "children", {
-    get: function() {
-      return this.items;
-    },
-    enumerable: false,
-    configurable: true
-  });
-  return ArrayASTNodeImpl2;
-}(ASTNodeImpl);
-var NumberASTNodeImpl = function(_super) {
-  __extends(NumberASTNodeImpl2, _super);
-  function NumberASTNodeImpl2(parent, offset) {
-    var _this = _super.call(this, parent, offset) || this;
-    _this.type = "number";
-    _this.isInteger = true;
-    _this.value = Number.NaN;
-    return _this;
-  }
-  return NumberASTNodeImpl2;
-}(ASTNodeImpl);
-var StringASTNodeImpl = function(_super) {
-  __extends(StringASTNodeImpl2, _super);
-  function StringASTNodeImpl2(parent, offset, length) {
-    var _this = _super.call(this, parent, offset, length) || this;
-    _this.type = "string";
-    _this.value = "";
-    return _this;
-  }
-  return StringASTNodeImpl2;
-}(ASTNodeImpl);
-var PropertyASTNodeImpl = function(_super) {
-  __extends(PropertyASTNodeImpl2, _super);
-  function PropertyASTNodeImpl2(parent, offset, keyNode) {
-    var _this = _super.call(this, parent, offset) || this;
-    _this.type = "property";
-    _this.colonOffset = -1;
-    _this.keyNode = keyNode;
-    return _this;
-  }
-  Object.defineProperty(PropertyASTNodeImpl2.prototype, "children", {
-    get: function() {
-      return this.valueNode ? [this.keyNode, this.valueNode] : [this.keyNode];
-    },
-    enumerable: false,
-    configurable: true
-  });
-  return PropertyASTNodeImpl2;
-}(ASTNodeImpl);
-var ObjectASTNodeImpl = function(_super) {
-  __extends(ObjectASTNodeImpl2, _super);
-  function ObjectASTNodeImpl2(parent, offset) {
-    var _this = _super.call(this, parent, offset) || this;
-    _this.type = "object";
-    _this.properties = [];
-    return _this;
-  }
-  Object.defineProperty(ObjectASTNodeImpl2.prototype, "children", {
-    get: function() {
-      return this.properties;
-    },
-    enumerable: false,
-    configurable: true
-  });
-  return ObjectASTNodeImpl2;
-}(ASTNodeImpl);
+    Object.defineProperty(ASTNodeImpl2.prototype, "children", {
+      get: function() {
+        return [];
+      },
+      enumerable: false,
+      configurable: true
+    });
+    ASTNodeImpl2.prototype.toString = function() {
+      return "type: " + this.type + " (" + this.offset + "/" + this.length + ")" + (this.parent ? " parent: {" + this.parent.toString() + "}" : "");
+    };
+    return ASTNodeImpl2;
+  }()
+);
+var NullASTNodeImpl = (
+  /** @class */
+  function(_super) {
+    __extends(NullASTNodeImpl2, _super);
+    function NullASTNodeImpl2(parent, offset) {
+      var _this = _super.call(this, parent, offset) || this;
+      _this.type = "null";
+      _this.value = null;
+      return _this;
+    }
+    return NullASTNodeImpl2;
+  }(ASTNodeImpl)
+);
+var BooleanASTNodeImpl = (
+  /** @class */
+  function(_super) {
+    __extends(BooleanASTNodeImpl2, _super);
+    function BooleanASTNodeImpl2(parent, boolValue, offset) {
+      var _this = _super.call(this, parent, offset) || this;
+      _this.type = "boolean";
+      _this.value = boolValue;
+      return _this;
+    }
+    return BooleanASTNodeImpl2;
+  }(ASTNodeImpl)
+);
+var ArrayASTNodeImpl = (
+  /** @class */
+  function(_super) {
+    __extends(ArrayASTNodeImpl2, _super);
+    function ArrayASTNodeImpl2(parent, offset) {
+      var _this = _super.call(this, parent, offset) || this;
+      _this.type = "array";
+      _this.items = [];
+      return _this;
+    }
+    Object.defineProperty(ArrayASTNodeImpl2.prototype, "children", {
+      get: function() {
+        return this.items;
+      },
+      enumerable: false,
+      configurable: true
+    });
+    return ArrayASTNodeImpl2;
+  }(ASTNodeImpl)
+);
+var NumberASTNodeImpl = (
+  /** @class */
+  function(_super) {
+    __extends(NumberASTNodeImpl2, _super);
+    function NumberASTNodeImpl2(parent, offset) {
+      var _this = _super.call(this, parent, offset) || this;
+      _this.type = "number";
+      _this.isInteger = true;
+      _this.value = Number.NaN;
+      return _this;
+    }
+    return NumberASTNodeImpl2;
+  }(ASTNodeImpl)
+);
+var StringASTNodeImpl = (
+  /** @class */
+  function(_super) {
+    __extends(StringASTNodeImpl2, _super);
+    function StringASTNodeImpl2(parent, offset, length) {
+      var _this = _super.call(this, parent, offset, length) || this;
+      _this.type = "string";
+      _this.value = "";
+      return _this;
+    }
+    return StringASTNodeImpl2;
+  }(ASTNodeImpl)
+);
+var PropertyASTNodeImpl = (
+  /** @class */
+  function(_super) {
+    __extends(PropertyASTNodeImpl2, _super);
+    function PropertyASTNodeImpl2(parent, offset, keyNode) {
+      var _this = _super.call(this, parent, offset) || this;
+      _this.type = "property";
+      _this.colonOffset = -1;
+      _this.keyNode = keyNode;
+      return _this;
+    }
+    Object.defineProperty(PropertyASTNodeImpl2.prototype, "children", {
+      get: function() {
+        return this.valueNode ? [this.keyNode, this.valueNode] : [this.keyNode];
+      },
+      enumerable: false,
+      configurable: true
+    });
+    return PropertyASTNodeImpl2;
+  }(ASTNodeImpl)
+);
+var ObjectASTNodeImpl = (
+  /** @class */
+  function(_super) {
+    __extends(ObjectASTNodeImpl2, _super);
+    function ObjectASTNodeImpl2(parent, offset) {
+      var _this = _super.call(this, parent, offset) || this;
+      _this.type = "object";
+      _this.properties = [];
+      return _this;
+    }
+    Object.defineProperty(ObjectASTNodeImpl2.prototype, "children", {
+      get: function() {
+        return this.properties;
+      },
+      enumerable: false,
+      configurable: true
+    });
+    return ObjectASTNodeImpl2;
+  }(ASTNodeImpl)
+);
 function asSchema(schema) {
   if (isBoolean(schema)) {
     return schema ? {} : { "not": {} };
@@ -20297,114 +21367,123 @@ var EnumMatch;
   EnumMatch2[EnumMatch2["Key"] = 0] = "Key";
   EnumMatch2[EnumMatch2["Enum"] = 1] = "Enum";
 })(EnumMatch || (EnumMatch = {}));
-var SchemaCollector = function() {
-  function SchemaCollector2(focusOffset, exclude) {
-    if (focusOffset === void 0) {
-      focusOffset = -1;
+var SchemaCollector = (
+  /** @class */
+  function() {
+    function SchemaCollector2(focusOffset, exclude) {
+      if (focusOffset === void 0) {
+        focusOffset = -1;
+      }
+      this.focusOffset = focusOffset;
+      this.exclude = exclude;
+      this.schemas = [];
     }
-    this.focusOffset = focusOffset;
-    this.exclude = exclude;
-    this.schemas = [];
-  }
-  SchemaCollector2.prototype.add = function(schema) {
-    this.schemas.push(schema);
-  };
-  SchemaCollector2.prototype.merge = function(other) {
-    Array.prototype.push.apply(this.schemas, other.schemas);
-  };
-  SchemaCollector2.prototype.include = function(node) {
-    return (this.focusOffset === -1 || contains2(node, this.focusOffset)) && node !== this.exclude;
-  };
-  SchemaCollector2.prototype.newSub = function() {
-    return new SchemaCollector2(-1, this.exclude);
-  };
-  return SchemaCollector2;
-}();
-var NoOpSchemaCollector = function() {
-  function NoOpSchemaCollector2() {
-  }
-  Object.defineProperty(NoOpSchemaCollector2.prototype, "schemas", {
-    get: function() {
-      return [];
-    },
-    enumerable: false,
-    configurable: true
-  });
-  NoOpSchemaCollector2.prototype.add = function(schema) {
-  };
-  NoOpSchemaCollector2.prototype.merge = function(other) {
-  };
-  NoOpSchemaCollector2.prototype.include = function(node) {
-    return true;
-  };
-  NoOpSchemaCollector2.prototype.newSub = function() {
-    return this;
-  };
-  NoOpSchemaCollector2.instance = new NoOpSchemaCollector2();
-  return NoOpSchemaCollector2;
-}();
-var ValidationResult = function() {
-  function ValidationResult2() {
-    this.problems = [];
-    this.propertiesMatches = 0;
-    this.propertiesValueMatches = 0;
-    this.primaryValueMatches = 0;
-    this.enumValueMatch = false;
-    this.enumValues = void 0;
-  }
-  ValidationResult2.prototype.hasProblems = function() {
-    return !!this.problems.length;
-  };
-  ValidationResult2.prototype.mergeAll = function(validationResults) {
-    for (var _i = 0, validationResults_1 = validationResults; _i < validationResults_1.length; _i++) {
-      var validationResult = validationResults_1[_i];
-      this.merge(validationResult);
+    SchemaCollector2.prototype.add = function(schema) {
+      this.schemas.push(schema);
+    };
+    SchemaCollector2.prototype.merge = function(other) {
+      Array.prototype.push.apply(this.schemas, other.schemas);
+    };
+    SchemaCollector2.prototype.include = function(node) {
+      return (this.focusOffset === -1 || contains2(node, this.focusOffset)) && node !== this.exclude;
+    };
+    SchemaCollector2.prototype.newSub = function() {
+      return new SchemaCollector2(-1, this.exclude);
+    };
+    return SchemaCollector2;
+  }()
+);
+var NoOpSchemaCollector = (
+  /** @class */
+  function() {
+    function NoOpSchemaCollector2() {
     }
-  };
-  ValidationResult2.prototype.merge = function(validationResult) {
-    this.problems = this.problems.concat(validationResult.problems);
-  };
-  ValidationResult2.prototype.mergeEnumValues = function(validationResult) {
-    if (!this.enumValueMatch && !validationResult.enumValueMatch && this.enumValues && validationResult.enumValues) {
-      this.enumValues = this.enumValues.concat(validationResult.enumValues);
-      for (var _i = 0, _a = this.problems; _i < _a.length; _i++) {
-        var error = _a[_i];
-        if (error.code === ErrorCode.EnumValueMismatch) {
-          error.message = localize2("enumWarning", "Value is not accepted. Valid values: {0}.", this.enumValues.map(function(v) {
-            return JSON.stringify(v);
-          }).join(", "));
+    Object.defineProperty(NoOpSchemaCollector2.prototype, "schemas", {
+      get: function() {
+        return [];
+      },
+      enumerable: false,
+      configurable: true
+    });
+    NoOpSchemaCollector2.prototype.add = function(schema) {
+    };
+    NoOpSchemaCollector2.prototype.merge = function(other) {
+    };
+    NoOpSchemaCollector2.prototype.include = function(node) {
+      return true;
+    };
+    NoOpSchemaCollector2.prototype.newSub = function() {
+      return this;
+    };
+    NoOpSchemaCollector2.instance = new NoOpSchemaCollector2();
+    return NoOpSchemaCollector2;
+  }()
+);
+var ValidationResult = (
+  /** @class */
+  function() {
+    function ValidationResult2() {
+      this.problems = [];
+      this.propertiesMatches = 0;
+      this.propertiesValueMatches = 0;
+      this.primaryValueMatches = 0;
+      this.enumValueMatch = false;
+      this.enumValues = void 0;
+    }
+    ValidationResult2.prototype.hasProblems = function() {
+      return !!this.problems.length;
+    };
+    ValidationResult2.prototype.mergeAll = function(validationResults) {
+      for (var _i = 0, validationResults_1 = validationResults; _i < validationResults_1.length; _i++) {
+        var validationResult = validationResults_1[_i];
+        this.merge(validationResult);
+      }
+    };
+    ValidationResult2.prototype.merge = function(validationResult) {
+      this.problems = this.problems.concat(validationResult.problems);
+    };
+    ValidationResult2.prototype.mergeEnumValues = function(validationResult) {
+      if (!this.enumValueMatch && !validationResult.enumValueMatch && this.enumValues && validationResult.enumValues) {
+        this.enumValues = this.enumValues.concat(validationResult.enumValues);
+        for (var _i = 0, _a = this.problems; _i < _a.length; _i++) {
+          var error = _a[_i];
+          if (error.code === ErrorCode.EnumValueMismatch) {
+            error.message = localize2("enumWarning", "Value is not accepted. Valid values: {0}.", this.enumValues.map(function(v) {
+              return JSON.stringify(v);
+            }).join(", "));
+          }
         }
       }
-    }
-  };
-  ValidationResult2.prototype.mergePropertyMatch = function(propertyValidationResult) {
-    this.merge(propertyValidationResult);
-    this.propertiesMatches++;
-    if (propertyValidationResult.enumValueMatch || !propertyValidationResult.hasProblems() && propertyValidationResult.propertiesMatches) {
-      this.propertiesValueMatches++;
-    }
-    if (propertyValidationResult.enumValueMatch && propertyValidationResult.enumValues && propertyValidationResult.enumValues.length === 1) {
-      this.primaryValueMatches++;
-    }
-  };
-  ValidationResult2.prototype.compare = function(other) {
-    var hasProblems = this.hasProblems();
-    if (hasProblems !== other.hasProblems()) {
-      return hasProblems ? -1 : 1;
-    }
-    if (this.enumValueMatch !== other.enumValueMatch) {
-      return other.enumValueMatch ? -1 : 1;
-    }
-    if (this.primaryValueMatches !== other.primaryValueMatches) {
-      return this.primaryValueMatches - other.primaryValueMatches;
-    }
-    if (this.propertiesValueMatches !== other.propertiesValueMatches) {
-      return this.propertiesValueMatches - other.propertiesValueMatches;
-    }
-    return this.propertiesMatches - other.propertiesMatches;
-  };
-  return ValidationResult2;
-}();
+    };
+    ValidationResult2.prototype.mergePropertyMatch = function(propertyValidationResult) {
+      this.merge(propertyValidationResult);
+      this.propertiesMatches++;
+      if (propertyValidationResult.enumValueMatch || !propertyValidationResult.hasProblems() && propertyValidationResult.propertiesMatches) {
+        this.propertiesValueMatches++;
+      }
+      if (propertyValidationResult.enumValueMatch && propertyValidationResult.enumValues && propertyValidationResult.enumValues.length === 1) {
+        this.primaryValueMatches++;
+      }
+    };
+    ValidationResult2.prototype.compare = function(other) {
+      var hasProblems = this.hasProblems();
+      if (hasProblems !== other.hasProblems()) {
+        return hasProblems ? -1 : 1;
+      }
+      if (this.enumValueMatch !== other.enumValueMatch) {
+        return other.enumValueMatch ? -1 : 1;
+      }
+      if (this.primaryValueMatches !== other.primaryValueMatches) {
+        return this.primaryValueMatches - other.primaryValueMatches;
+      }
+      if (this.propertiesValueMatches !== other.propertiesValueMatches) {
+        return this.propertiesValueMatches - other.propertiesValueMatches;
+      }
+      return this.propertiesMatches - other.propertiesMatches;
+    };
+    return ValidationResult2;
+  }()
+);
 function newJSONDocument(root, diagnostics) {
   if (diagnostics === void 0) {
     diagnostics = [];
@@ -20423,69 +21502,72 @@ function contains2(node, offset, includeRightBound) {
   }
   return offset >= node.offset && offset < node.offset + node.length || includeRightBound && offset === node.offset + node.length;
 }
-var JSONDocument = function() {
-  function JSONDocument2(root, syntaxErrors, comments) {
-    if (syntaxErrors === void 0) {
-      syntaxErrors = [];
+var JSONDocument = (
+  /** @class */
+  function() {
+    function JSONDocument2(root, syntaxErrors, comments) {
+      if (syntaxErrors === void 0) {
+        syntaxErrors = [];
+      }
+      if (comments === void 0) {
+        comments = [];
+      }
+      this.root = root;
+      this.syntaxErrors = syntaxErrors;
+      this.comments = comments;
     }
-    if (comments === void 0) {
-      comments = [];
-    }
-    this.root = root;
-    this.syntaxErrors = syntaxErrors;
-    this.comments = comments;
-  }
-  JSONDocument2.prototype.getNodeFromOffset = function(offset, includeRightBound) {
-    if (includeRightBound === void 0) {
-      includeRightBound = false;
-    }
-    if (this.root) {
-      return findNodeAtOffset2(this.root, offset, includeRightBound);
-    }
-    return void 0;
-  };
-  JSONDocument2.prototype.visit = function(visitor) {
-    if (this.root) {
-      var doVisit_1 = function(node) {
-        var ctn = visitor(node);
-        var children = node.children;
-        if (Array.isArray(children)) {
-          for (var i = 0; i < children.length && ctn; i++) {
-            ctn = doVisit_1(children[i]);
+    JSONDocument2.prototype.getNodeFromOffset = function(offset, includeRightBound) {
+      if (includeRightBound === void 0) {
+        includeRightBound = false;
+      }
+      if (this.root) {
+        return findNodeAtOffset2(this.root, offset, includeRightBound);
+      }
+      return void 0;
+    };
+    JSONDocument2.prototype.visit = function(visitor) {
+      if (this.root) {
+        var doVisit_1 = function(node) {
+          var ctn = visitor(node);
+          var children = node.children;
+          if (Array.isArray(children)) {
+            for (var i = 0; i < children.length && ctn; i++) {
+              ctn = doVisit_1(children[i]);
+            }
           }
-        }
-        return ctn;
-      };
-      doVisit_1(this.root);
-    }
-  };
-  JSONDocument2.prototype.validate = function(textDocument, schema, severity) {
-    if (severity === void 0) {
-      severity = DiagnosticSeverity.Warning;
-    }
-    if (this.root && schema) {
-      var validationResult = new ValidationResult();
-      validate(this.root, schema, validationResult, NoOpSchemaCollector.instance);
-      return validationResult.problems.map(function(p) {
-        var _a;
-        var range = Range.create(textDocument.positionAt(p.location.offset), textDocument.positionAt(p.location.offset + p.location.length));
-        return Diagnostic.create(range, p.message, (_a = p.severity) !== null && _a !== void 0 ? _a : severity, p.code);
-      });
-    }
-    return void 0;
-  };
-  JSONDocument2.prototype.getMatchingSchemas = function(schema, focusOffset, exclude) {
-    if (focusOffset === void 0) {
-      focusOffset = -1;
-    }
-    var matchingSchemas = new SchemaCollector(focusOffset, exclude);
-    if (this.root && schema) {
-      validate(this.root, schema, new ValidationResult(), matchingSchemas);
-    }
-    return matchingSchemas.schemas;
-  };
-  return JSONDocument2;
-}();
+          return ctn;
+        };
+        doVisit_1(this.root);
+      }
+    };
+    JSONDocument2.prototype.validate = function(textDocument, schema, severity) {
+      if (severity === void 0) {
+        severity = DiagnosticSeverity.Warning;
+      }
+      if (this.root && schema) {
+        var validationResult = new ValidationResult();
+        validate(this.root, schema, validationResult, NoOpSchemaCollector.instance);
+        return validationResult.problems.map(function(p) {
+          var _a;
+          var range = Range.create(textDocument.positionAt(p.location.offset), textDocument.positionAt(p.location.offset + p.location.length));
+          return Diagnostic.create(range, p.message, (_a = p.severity) !== null && _a !== void 0 ? _a : severity, p.code);
+        });
+      }
+      return void 0;
+    };
+    JSONDocument2.prototype.getMatchingSchemas = function(schema, focusOffset, exclude) {
+      if (focusOffset === void 0) {
+        focusOffset = -1;
+      }
+      var matchingSchemas = new SchemaCollector(focusOffset, exclude);
+      if (this.root && schema) {
+        validate(this.root, schema, new ValidationResult(), matchingSchemas);
+      }
+      return matchingSchemas.schemas;
+    };
+    return JSONDocument2;
+  }()
+);
 function validate(n, schema, validationResult, matchingSchemas) {
   if (!n || !matchingSchemas.include(n)) {
     return;
@@ -21200,7 +22282,11 @@ function parse3(textDocument, config) {
       }
       var item = _parseValue(node);
       if (!item) {
-        _error(localize2("PropertyExpected", "Value expected"), ErrorCode.ValueExpected, void 0, [], [4, 5]);
+        _error(localize2("PropertyExpected", "Value expected"), ErrorCode.ValueExpected, void 0, [], [
+          4,
+          5
+          /* CommaToken */
+        ]);
       } else {
         node.items.push(item);
       }
@@ -21249,7 +22335,11 @@ function parse3(textDocument, config) {
     }
     var value = _parseValue(node);
     if (!value) {
-      return _error(localize2("ValueExpected", "Value expected"), ErrorCode.ValueExpected, node, [], [2, 5]);
+      return _error(localize2("ValueExpected", "Value expected"), ErrorCode.ValueExpected, node, [], [
+        2,
+        5
+        /* CommaToken */
+      ]);
     }
     node.valueNode = value;
     node.length = value.offset + value.length - node.offset;
@@ -21281,7 +22371,11 @@ function parse3(textDocument, config) {
       }
       var property = _parseProperty(node, keysSeen);
       if (!property) {
-        _error(localize2("PropertyExpected", "Property expected"), ErrorCode.PropertyExpected, void 0, [], [2, 5]);
+        _error(localize2("PropertyExpected", "Property expected"), ErrorCode.PropertyExpected, void 0, [], [
+          2,
+          5
+          /* CommaToken */
+        ]);
       } else {
         node.properties.push(property);
       }
@@ -21392,205 +22486,234 @@ function stringifyObject(obj, indent, stringifyLiteral) {
 var localize3 = loadMessageBundle();
 var valueCommitCharacters = [",", "}", "]"];
 var propertyCommitCharacters = [":"];
-var JSONCompletion = function() {
-  function JSONCompletion2(schemaService, contributions, promiseConstructor, clientCapabilities) {
-    if (contributions === void 0) {
-      contributions = [];
+var JSONCompletion = (
+  /** @class */
+  function() {
+    function JSONCompletion2(schemaService, contributions, promiseConstructor, clientCapabilities) {
+      if (contributions === void 0) {
+        contributions = [];
+      }
+      if (promiseConstructor === void 0) {
+        promiseConstructor = Promise;
+      }
+      if (clientCapabilities === void 0) {
+        clientCapabilities = {};
+      }
+      this.schemaService = schemaService;
+      this.contributions = contributions;
+      this.promiseConstructor = promiseConstructor;
+      this.clientCapabilities = clientCapabilities;
     }
-    if (promiseConstructor === void 0) {
-      promiseConstructor = Promise;
-    }
-    if (clientCapabilities === void 0) {
-      clientCapabilities = {};
-    }
-    this.schemaService = schemaService;
-    this.contributions = contributions;
-    this.promiseConstructor = promiseConstructor;
-    this.clientCapabilities = clientCapabilities;
-  }
-  JSONCompletion2.prototype.doResolve = function(item) {
-    for (var i = this.contributions.length - 1; i >= 0; i--) {
-      var resolveCompletion = this.contributions[i].resolveCompletion;
-      if (resolveCompletion) {
-        var resolver = resolveCompletion(item);
-        if (resolver) {
-          return resolver;
+    JSONCompletion2.prototype.doResolve = function(item) {
+      for (var i = this.contributions.length - 1; i >= 0; i--) {
+        var resolveCompletion = this.contributions[i].resolveCompletion;
+        if (resolveCompletion) {
+          var resolver = resolveCompletion(item);
+          if (resolver) {
+            return resolver;
+          }
         }
       }
-    }
-    return this.promiseConstructor.resolve(item);
-  };
-  JSONCompletion2.prototype.doComplete = function(document, position, doc) {
-    var _this = this;
-    var result = {
-      items: [],
-      isIncomplete: false
+      return this.promiseConstructor.resolve(item);
     };
-    var text = document.getText();
-    var offset = document.offsetAt(position);
-    var node = doc.getNodeFromOffset(offset, true);
-    if (this.isInComment(document, node ? node.offset : 0, offset)) {
-      return Promise.resolve(result);
-    }
-    if (node && offset === node.offset + node.length && offset > 0) {
-      var ch = text[offset - 1];
-      if (node.type === "object" && ch === "}" || node.type === "array" && ch === "]") {
-        node = node.parent;
+    JSONCompletion2.prototype.doComplete = function(document, position, doc) {
+      var _this = this;
+      var result = {
+        items: [],
+        isIncomplete: false
+      };
+      var text = document.getText();
+      var offset = document.offsetAt(position);
+      var node = doc.getNodeFromOffset(offset, true);
+      if (this.isInComment(document, node ? node.offset : 0, offset)) {
+        return Promise.resolve(result);
       }
-    }
-    var currentWord = this.getCurrentWord(document, offset);
-    var overwriteRange;
-    if (node && (node.type === "string" || node.type === "number" || node.type === "boolean" || node.type === "null")) {
-      overwriteRange = Range.create(document.positionAt(node.offset), document.positionAt(node.offset + node.length));
-    } else {
-      var overwriteStart = offset - currentWord.length;
-      if (overwriteStart > 0 && text[overwriteStart - 1] === '"') {
-        overwriteStart--;
-      }
-      overwriteRange = Range.create(document.positionAt(overwriteStart), position);
-    }
-    var supportsCommitCharacters = false;
-    var proposed = {};
-    var collector = {
-      add: function(suggestion) {
-        var label = suggestion.label;
-        var existing = proposed[label];
-        if (!existing) {
-          label = label.replace(/[\n]/g, "\u21B5");
-          if (label.length > 60) {
-            var shortendedLabel = label.substr(0, 57).trim() + "...";
-            if (!proposed[shortendedLabel]) {
-              label = shortendedLabel;
-            }
-          }
-          if (overwriteRange && suggestion.insertText !== void 0) {
-            suggestion.textEdit = TextEdit.replace(overwriteRange, suggestion.insertText);
-          }
-          if (supportsCommitCharacters) {
-            suggestion.commitCharacters = suggestion.kind === CompletionItemKind.Property ? propertyCommitCharacters : valueCommitCharacters;
-          }
-          suggestion.label = label;
-          proposed[label] = suggestion;
-          result.items.push(suggestion);
-        } else {
-          if (!existing.documentation) {
-            existing.documentation = suggestion.documentation;
-          }
-          if (!existing.detail) {
-            existing.detail = suggestion.detail;
-          }
-        }
-      },
-      setAsIncomplete: function() {
-        result.isIncomplete = true;
-      },
-      error: function(message) {
-        console.error(message);
-      },
-      log: function(message) {
-        console.log(message);
-      },
-      getNumberOfProposals: function() {
-        return result.items.length;
-      }
-    };
-    return this.schemaService.getSchemaForResource(document.uri, doc).then(function(schema) {
-      var collectionPromises = [];
-      var addValue = true;
-      var currentKey = "";
-      var currentProperty = void 0;
-      if (node) {
-        if (node.type === "string") {
-          var parent = node.parent;
-          if (parent && parent.type === "property" && parent.keyNode === node) {
-            addValue = !parent.valueNode;
-            currentProperty = parent;
-            currentKey = text.substr(node.offset + 1, node.length - 2);
-            if (parent) {
-              node = parent.parent;
-            }
-          }
+      if (node && offset === node.offset + node.length && offset > 0) {
+        var ch = text[offset - 1];
+        if (node.type === "object" && ch === "}" || node.type === "array" && ch === "]") {
+          node = node.parent;
         }
       }
-      if (node && node.type === "object") {
-        if (node.offset === offset) {
-          return result;
-        }
-        var properties = node.properties;
-        properties.forEach(function(p) {
-          if (!currentProperty || currentProperty !== p) {
-            proposed[p.keyNode.value] = CompletionItem.create("__");
-          }
-        });
-        var separatorAfter_1 = "";
-        if (addValue) {
-          separatorAfter_1 = _this.evaluateSeparatorAfter(document, document.offsetAt(overwriteRange.end));
-        }
-        if (schema) {
-          _this.getPropertyCompletions(schema, doc, node, addValue, separatorAfter_1, collector);
-        } else {
-          _this.getSchemaLessPropertyCompletions(doc, node, currentKey, collector);
-        }
-        var location_1 = getNodePath3(node);
-        _this.contributions.forEach(function(contribution) {
-          var collectPromise = contribution.collectPropertyCompletions(document.uri, location_1, currentWord, addValue, separatorAfter_1 === "", collector);
-          if (collectPromise) {
-            collectionPromises.push(collectPromise);
-          }
-        });
-        if (!schema && currentWord.length > 0 && text.charAt(offset - currentWord.length - 1) !== '"') {
-          collector.add({
-            kind: CompletionItemKind.Property,
-            label: _this.getLabelForValue(currentWord),
-            insertText: _this.getInsertTextForProperty(currentWord, void 0, false, separatorAfter_1),
-            insertTextFormat: InsertTextFormat.Snippet,
-            documentation: ""
-          });
-          collector.setAsIncomplete();
-        }
-      }
-      var types = {};
-      if (schema) {
-        _this.getValueCompletions(schema, doc, node, offset, document, collector, types);
+      var currentWord = this.getCurrentWord(document, offset);
+      var overwriteRange;
+      if (node && (node.type === "string" || node.type === "number" || node.type === "boolean" || node.type === "null")) {
+        overwriteRange = Range.create(document.positionAt(node.offset), document.positionAt(node.offset + node.length));
       } else {
-        _this.getSchemaLessValueCompletions(doc, node, offset, document, collector);
-      }
-      if (_this.contributions.length > 0) {
-        _this.getContributedValueCompletions(doc, node, offset, document, collector, collectionPromises);
-      }
-      return _this.promiseConstructor.all(collectionPromises).then(function() {
-        if (collector.getNumberOfProposals() === 0) {
-          var offsetForSeparator = offset;
-          if (node && (node.type === "string" || node.type === "number" || node.type === "boolean" || node.type === "null")) {
-            offsetForSeparator = node.offset + node.length;
-          }
-          var separatorAfter = _this.evaluateSeparatorAfter(document, offsetForSeparator);
-          _this.addFillerValueCompletions(types, separatorAfter, collector);
+        var overwriteStart = offset - currentWord.length;
+        if (overwriteStart > 0 && text[overwriteStart - 1] === '"') {
+          overwriteStart--;
         }
-        return result;
+        overwriteRange = Range.create(document.positionAt(overwriteStart), position);
+      }
+      var supportsCommitCharacters = false;
+      var proposed = {};
+      var collector = {
+        add: function(suggestion) {
+          var label = suggestion.label;
+          var existing = proposed[label];
+          if (!existing) {
+            label = label.replace(/[\n]/g, "\u21B5");
+            if (label.length > 60) {
+              var shortendedLabel = label.substr(0, 57).trim() + "...";
+              if (!proposed[shortendedLabel]) {
+                label = shortendedLabel;
+              }
+            }
+            if (overwriteRange && suggestion.insertText !== void 0) {
+              suggestion.textEdit = TextEdit.replace(overwriteRange, suggestion.insertText);
+            }
+            if (supportsCommitCharacters) {
+              suggestion.commitCharacters = suggestion.kind === CompletionItemKind.Property ? propertyCommitCharacters : valueCommitCharacters;
+            }
+            suggestion.label = label;
+            proposed[label] = suggestion;
+            result.items.push(suggestion);
+          } else {
+            if (!existing.documentation) {
+              existing.documentation = suggestion.documentation;
+            }
+            if (!existing.detail) {
+              existing.detail = suggestion.detail;
+            }
+          }
+        },
+        setAsIncomplete: function() {
+          result.isIncomplete = true;
+        },
+        error: function(message) {
+          console.error(message);
+        },
+        log: function(message) {
+          console.log(message);
+        },
+        getNumberOfProposals: function() {
+          return result.items.length;
+        }
+      };
+      return this.schemaService.getSchemaForResource(document.uri, doc).then(function(schema) {
+        var collectionPromises = [];
+        var addValue = true;
+        var currentKey = "";
+        var currentProperty = void 0;
+        if (node) {
+          if (node.type === "string") {
+            var parent = node.parent;
+            if (parent && parent.type === "property" && parent.keyNode === node) {
+              addValue = !parent.valueNode;
+              currentProperty = parent;
+              currentKey = text.substr(node.offset + 1, node.length - 2);
+              if (parent) {
+                node = parent.parent;
+              }
+            }
+          }
+        }
+        if (node && node.type === "object") {
+          if (node.offset === offset) {
+            return result;
+          }
+          var properties = node.properties;
+          properties.forEach(function(p) {
+            if (!currentProperty || currentProperty !== p) {
+              proposed[p.keyNode.value] = CompletionItem.create("__");
+            }
+          });
+          var separatorAfter_1 = "";
+          if (addValue) {
+            separatorAfter_1 = _this.evaluateSeparatorAfter(document, document.offsetAt(overwriteRange.end));
+          }
+          if (schema) {
+            _this.getPropertyCompletions(schema, doc, node, addValue, separatorAfter_1, collector);
+          } else {
+            _this.getSchemaLessPropertyCompletions(doc, node, currentKey, collector);
+          }
+          var location_1 = getNodePath3(node);
+          _this.contributions.forEach(function(contribution) {
+            var collectPromise = contribution.collectPropertyCompletions(document.uri, location_1, currentWord, addValue, separatorAfter_1 === "", collector);
+            if (collectPromise) {
+              collectionPromises.push(collectPromise);
+            }
+          });
+          if (!schema && currentWord.length > 0 && text.charAt(offset - currentWord.length - 1) !== '"') {
+            collector.add({
+              kind: CompletionItemKind.Property,
+              label: _this.getLabelForValue(currentWord),
+              insertText: _this.getInsertTextForProperty(currentWord, void 0, false, separatorAfter_1),
+              insertTextFormat: InsertTextFormat.Snippet,
+              documentation: ""
+            });
+            collector.setAsIncomplete();
+          }
+        }
+        var types = {};
+        if (schema) {
+          _this.getValueCompletions(schema, doc, node, offset, document, collector, types);
+        } else {
+          _this.getSchemaLessValueCompletions(doc, node, offset, document, collector);
+        }
+        if (_this.contributions.length > 0) {
+          _this.getContributedValueCompletions(doc, node, offset, document, collector, collectionPromises);
+        }
+        return _this.promiseConstructor.all(collectionPromises).then(function() {
+          if (collector.getNumberOfProposals() === 0) {
+            var offsetForSeparator = offset;
+            if (node && (node.type === "string" || node.type === "number" || node.type === "boolean" || node.type === "null")) {
+              offsetForSeparator = node.offset + node.length;
+            }
+            var separatorAfter = _this.evaluateSeparatorAfter(document, offsetForSeparator);
+            _this.addFillerValueCompletions(types, separatorAfter, collector);
+          }
+          return result;
+        });
       });
-    });
-  };
-  JSONCompletion2.prototype.getPropertyCompletions = function(schema, doc, node, addValue, separatorAfter, collector) {
-    var _this = this;
-    var matchingSchemas = doc.getMatchingSchemas(schema.schema, node.offset);
-    matchingSchemas.forEach(function(s) {
-      if (s.node === node && !s.inverted) {
-        var schemaProperties_1 = s.schema.properties;
-        if (schemaProperties_1) {
-          Object.keys(schemaProperties_1).forEach(function(key) {
-            var propertySchema = schemaProperties_1[key];
-            if (typeof propertySchema === "object" && !propertySchema.deprecationMessage && !propertySchema.doNotSuggest) {
+    };
+    JSONCompletion2.prototype.getPropertyCompletions = function(schema, doc, node, addValue, separatorAfter, collector) {
+      var _this = this;
+      var matchingSchemas = doc.getMatchingSchemas(schema.schema, node.offset);
+      matchingSchemas.forEach(function(s) {
+        if (s.node === node && !s.inverted) {
+          var schemaProperties_1 = s.schema.properties;
+          if (schemaProperties_1) {
+            Object.keys(schemaProperties_1).forEach(function(key) {
+              var propertySchema = schemaProperties_1[key];
+              if (typeof propertySchema === "object" && !propertySchema.deprecationMessage && !propertySchema.doNotSuggest) {
+                var proposal = {
+                  kind: CompletionItemKind.Property,
+                  label: key,
+                  insertText: _this.getInsertTextForProperty(key, propertySchema, addValue, separatorAfter),
+                  insertTextFormat: InsertTextFormat.Snippet,
+                  filterText: _this.getFilterTextForValue(key),
+                  documentation: _this.fromMarkup(propertySchema.markdownDescription) || propertySchema.description || ""
+                };
+                if (propertySchema.suggestSortText !== void 0) {
+                  proposal.sortText = propertySchema.suggestSortText;
+                }
+                if (proposal.insertText && endsWith(proposal.insertText, "$1".concat(separatorAfter))) {
+                  proposal.command = {
+                    title: "Suggest",
+                    command: "editor.action.triggerSuggest"
+                  };
+                }
+                collector.add(proposal);
+              }
+            });
+          }
+          var schemaPropertyNames_1 = s.schema.propertyNames;
+          if (typeof schemaPropertyNames_1 === "object" && !schemaPropertyNames_1.deprecationMessage && !schemaPropertyNames_1.doNotSuggest) {
+            var propertyNameCompletionItem = function(name, enumDescription2) {
+              if (enumDescription2 === void 0) {
+                enumDescription2 = void 0;
+              }
               var proposal = {
                 kind: CompletionItemKind.Property,
-                label: key,
-                insertText: _this.getInsertTextForProperty(key, propertySchema, addValue, separatorAfter),
+                label: name,
+                insertText: _this.getInsertTextForProperty(name, void 0, addValue, separatorAfter),
                 insertTextFormat: InsertTextFormat.Snippet,
-                filterText: _this.getFilterTextForValue(key),
-                documentation: _this.fromMarkup(propertySchema.markdownDescription) || propertySchema.description || ""
+                filterText: _this.getFilterTextForValue(name),
+                documentation: enumDescription2 || _this.fromMarkup(schemaPropertyNames_1.markdownDescription) || schemaPropertyNames_1.description || ""
               };
-              if (propertySchema.suggestSortText !== void 0) {
-                proposal.sortText = propertySchema.suggestSortText;
+              if (schemaPropertyNames_1.suggestSortText !== void 0) {
+                proposal.sortText = schemaPropertyNames_1.suggestSortText;
               }
               if (proposal.insertText && endsWith(proposal.insertText, "$1".concat(separatorAfter))) {
                 proposal.command = {
@@ -21599,811 +22722,788 @@ var JSONCompletion = function() {
                 };
               }
               collector.add(proposal);
+            };
+            if (schemaPropertyNames_1.enum) {
+              for (var i = 0; i < schemaPropertyNames_1.enum.length; i++) {
+                var enumDescription = void 0;
+                if (schemaPropertyNames_1.markdownEnumDescriptions && i < schemaPropertyNames_1.markdownEnumDescriptions.length) {
+                  enumDescription = _this.fromMarkup(schemaPropertyNames_1.markdownEnumDescriptions[i]);
+                } else if (schemaPropertyNames_1.enumDescriptions && i < schemaPropertyNames_1.enumDescriptions.length) {
+                  enumDescription = schemaPropertyNames_1.enumDescriptions[i];
+                }
+                propertyNameCompletionItem(schemaPropertyNames_1.enum[i], enumDescription);
+              }
+            }
+            if (schemaPropertyNames_1.const) {
+              propertyNameCompletionItem(schemaPropertyNames_1.const);
+            }
+          }
+        }
+      });
+    };
+    JSONCompletion2.prototype.getSchemaLessPropertyCompletions = function(doc, node, currentKey, collector) {
+      var _this = this;
+      var collectCompletionsForSimilarObject = function(obj) {
+        obj.properties.forEach(function(p) {
+          var key = p.keyNode.value;
+          collector.add({
+            kind: CompletionItemKind.Property,
+            label: key,
+            insertText: _this.getInsertTextForValue(key, ""),
+            insertTextFormat: InsertTextFormat.Snippet,
+            filterText: _this.getFilterTextForValue(key),
+            documentation: ""
+          });
+        });
+      };
+      if (node.parent) {
+        if (node.parent.type === "property") {
+          var parentKey_1 = node.parent.keyNode.value;
+          doc.visit(function(n) {
+            if (n.type === "property" && n !== node.parent && n.keyNode.value === parentKey_1 && n.valueNode && n.valueNode.type === "object") {
+              collectCompletionsForSimilarObject(n.valueNode);
+            }
+            return true;
+          });
+        } else if (node.parent.type === "array") {
+          node.parent.items.forEach(function(n) {
+            if (n.type === "object" && n !== node) {
+              collectCompletionsForSimilarObject(n);
             }
           });
         }
-        var schemaPropertyNames_1 = s.schema.propertyNames;
-        if (typeof schemaPropertyNames_1 === "object" && !schemaPropertyNames_1.deprecationMessage && !schemaPropertyNames_1.doNotSuggest) {
-          var propertyNameCompletionItem = function(name, enumDescription2) {
-            if (enumDescription2 === void 0) {
-              enumDescription2 = void 0;
-            }
-            var proposal = {
-              kind: CompletionItemKind.Property,
-              label: name,
-              insertText: _this.getInsertTextForProperty(name, void 0, addValue, separatorAfter),
-              insertTextFormat: InsertTextFormat.Snippet,
-              filterText: _this.getFilterTextForValue(name),
-              documentation: enumDescription2 || _this.fromMarkup(schemaPropertyNames_1.markdownDescription) || schemaPropertyNames_1.description || ""
-            };
-            if (schemaPropertyNames_1.suggestSortText !== void 0) {
-              proposal.sortText = schemaPropertyNames_1.suggestSortText;
-            }
-            if (proposal.insertText && endsWith(proposal.insertText, "$1".concat(separatorAfter))) {
-              proposal.command = {
-                title: "Suggest",
-                command: "editor.action.triggerSuggest"
-              };
-            }
-            collector.add(proposal);
-          };
-          if (schemaPropertyNames_1.enum) {
-            for (var i = 0; i < schemaPropertyNames_1.enum.length; i++) {
-              var enumDescription = void 0;
-              if (schemaPropertyNames_1.markdownEnumDescriptions && i < schemaPropertyNames_1.markdownEnumDescriptions.length) {
-                enumDescription = _this.fromMarkup(schemaPropertyNames_1.markdownEnumDescriptions[i]);
-              } else if (schemaPropertyNames_1.enumDescriptions && i < schemaPropertyNames_1.enumDescriptions.length) {
-                enumDescription = schemaPropertyNames_1.enumDescriptions[i];
-              }
-              propertyNameCompletionItem(schemaPropertyNames_1.enum[i], enumDescription);
-            }
-          }
-          if (schemaPropertyNames_1.const) {
-            propertyNameCompletionItem(schemaPropertyNames_1.const);
-          }
-        }
-      }
-    });
-  };
-  JSONCompletion2.prototype.getSchemaLessPropertyCompletions = function(doc, node, currentKey, collector) {
-    var _this = this;
-    var collectCompletionsForSimilarObject = function(obj) {
-      obj.properties.forEach(function(p) {
-        var key = p.keyNode.value;
+      } else if (node.type === "object") {
         collector.add({
           kind: CompletionItemKind.Property,
-          label: key,
-          insertText: _this.getInsertTextForValue(key, ""),
+          label: "$schema",
+          insertText: this.getInsertTextForProperty("$schema", void 0, true, ""),
           insertTextFormat: InsertTextFormat.Snippet,
-          filterText: _this.getFilterTextForValue(key),
-          documentation: ""
-        });
-      });
-    };
-    if (node.parent) {
-      if (node.parent.type === "property") {
-        var parentKey_1 = node.parent.keyNode.value;
-        doc.visit(function(n) {
-          if (n.type === "property" && n !== node.parent && n.keyNode.value === parentKey_1 && n.valueNode && n.valueNode.type === "object") {
-            collectCompletionsForSimilarObject(n.valueNode);
-          }
-          return true;
-        });
-      } else if (node.parent.type === "array") {
-        node.parent.items.forEach(function(n) {
-          if (n.type === "object" && n !== node) {
-            collectCompletionsForSimilarObject(n);
-          }
+          documentation: "",
+          filterText: this.getFilterTextForValue("$schema")
         });
       }
-    } else if (node.type === "object") {
-      collector.add({
-        kind: CompletionItemKind.Property,
-        label: "$schema",
-        insertText: this.getInsertTextForProperty("$schema", void 0, true, ""),
-        insertTextFormat: InsertTextFormat.Snippet,
-        documentation: "",
-        filterText: this.getFilterTextForValue("$schema")
-      });
-    }
-  };
-  JSONCompletion2.prototype.getSchemaLessValueCompletions = function(doc, node, offset, document, collector) {
-    var _this = this;
-    var offsetForSeparator = offset;
-    if (node && (node.type === "string" || node.type === "number" || node.type === "boolean" || node.type === "null")) {
-      offsetForSeparator = node.offset + node.length;
-      node = node.parent;
-    }
-    if (!node) {
-      collector.add({
-        kind: this.getSuggestionKind("object"),
-        label: "Empty object",
-        insertText: this.getInsertTextForValue({}, ""),
-        insertTextFormat: InsertTextFormat.Snippet,
-        documentation: ""
-      });
-      collector.add({
-        kind: this.getSuggestionKind("array"),
-        label: "Empty array",
-        insertText: this.getInsertTextForValue([], ""),
-        insertTextFormat: InsertTextFormat.Snippet,
-        documentation: ""
-      });
-      return;
-    }
-    var separatorAfter = this.evaluateSeparatorAfter(document, offsetForSeparator);
-    var collectSuggestionsForValues = function(value) {
-      if (value.parent && !contains2(value.parent, offset, true)) {
+    };
+    JSONCompletion2.prototype.getSchemaLessValueCompletions = function(doc, node, offset, document, collector) {
+      var _this = this;
+      var offsetForSeparator = offset;
+      if (node && (node.type === "string" || node.type === "number" || node.type === "boolean" || node.type === "null")) {
+        offsetForSeparator = node.offset + node.length;
+        node = node.parent;
+      }
+      if (!node) {
         collector.add({
-          kind: _this.getSuggestionKind(value.type),
-          label: _this.getLabelTextForMatchingNode(value, document),
-          insertText: _this.getInsertTextForMatchingNode(value, document, separatorAfter),
+          kind: this.getSuggestionKind("object"),
+          label: "Empty object",
+          insertText: this.getInsertTextForValue({}, ""),
           insertTextFormat: InsertTextFormat.Snippet,
           documentation: ""
         });
-      }
-      if (value.type === "boolean") {
-        _this.addBooleanValueCompletion(!value.value, separatorAfter, collector);
-      }
-    };
-    if (node.type === "property") {
-      if (offset > (node.colonOffset || 0)) {
-        var valueNode = node.valueNode;
-        if (valueNode && (offset > valueNode.offset + valueNode.length || valueNode.type === "object" || valueNode.type === "array")) {
-          return;
-        }
-        var parentKey_2 = node.keyNode.value;
-        doc.visit(function(n) {
-          if (n.type === "property" && n.keyNode.value === parentKey_2 && n.valueNode) {
-            collectSuggestionsForValues(n.valueNode);
-          }
-          return true;
+        collector.add({
+          kind: this.getSuggestionKind("array"),
+          label: "Empty array",
+          insertText: this.getInsertTextForValue([], ""),
+          insertTextFormat: InsertTextFormat.Snippet,
+          documentation: ""
         });
-        if (parentKey_2 === "$schema" && node.parent && !node.parent.parent) {
-          this.addDollarSchemaCompletions(separatorAfter, collector);
-        }
-      }
-    }
-    if (node.type === "array") {
-      if (node.parent && node.parent.type === "property") {
-        var parentKey_3 = node.parent.keyNode.value;
-        doc.visit(function(n) {
-          if (n.type === "property" && n.keyNode.value === parentKey_3 && n.valueNode && n.valueNode.type === "array") {
-            n.valueNode.items.forEach(collectSuggestionsForValues);
-          }
-          return true;
-        });
-      } else {
-        node.items.forEach(collectSuggestionsForValues);
-      }
-    }
-  };
-  JSONCompletion2.prototype.getValueCompletions = function(schema, doc, node, offset, document, collector, types) {
-    var offsetForSeparator = offset;
-    var parentKey = void 0;
-    var valueNode = void 0;
-    if (node && (node.type === "string" || node.type === "number" || node.type === "boolean" || node.type === "null")) {
-      offsetForSeparator = node.offset + node.length;
-      valueNode = node;
-      node = node.parent;
-    }
-    if (!node) {
-      this.addSchemaValueCompletions(schema.schema, "", collector, types);
-      return;
-    }
-    if (node.type === "property" && offset > (node.colonOffset || 0)) {
-      var valueNode_1 = node.valueNode;
-      if (valueNode_1 && offset > valueNode_1.offset + valueNode_1.length) {
         return;
       }
-      parentKey = node.keyNode.value;
-      node = node.parent;
-    }
-    if (node && (parentKey !== void 0 || node.type === "array")) {
       var separatorAfter = this.evaluateSeparatorAfter(document, offsetForSeparator);
-      var matchingSchemas = doc.getMatchingSchemas(schema.schema, node.offset, valueNode);
-      for (var _i = 0, matchingSchemas_1 = matchingSchemas; _i < matchingSchemas_1.length; _i++) {
-        var s = matchingSchemas_1[_i];
-        if (s.node === node && !s.inverted && s.schema) {
-          if (node.type === "array" && s.schema.items) {
-            if (Array.isArray(s.schema.items)) {
-              var index = this.findItemAtOffset(node, document, offset);
-              if (index < s.schema.items.length) {
-                this.addSchemaValueCompletions(s.schema.items[index], separatorAfter, collector, types);
-              }
-            } else {
-              this.addSchemaValueCompletions(s.schema.items, separatorAfter, collector, types);
-            }
+      var collectSuggestionsForValues = function(value) {
+        if (value.parent && !contains2(value.parent, offset, true)) {
+          collector.add({
+            kind: _this.getSuggestionKind(value.type),
+            label: _this.getLabelTextForMatchingNode(value, document),
+            insertText: _this.getInsertTextForMatchingNode(value, document, separatorAfter),
+            insertTextFormat: InsertTextFormat.Snippet,
+            documentation: ""
+          });
+        }
+        if (value.type === "boolean") {
+          _this.addBooleanValueCompletion(!value.value, separatorAfter, collector);
+        }
+      };
+      if (node.type === "property") {
+        if (offset > (node.colonOffset || 0)) {
+          var valueNode = node.valueNode;
+          if (valueNode && (offset > valueNode.offset + valueNode.length || valueNode.type === "object" || valueNode.type === "array")) {
+            return;
           }
-          if (parentKey !== void 0) {
-            var propertyMatched = false;
-            if (s.schema.properties) {
-              var propertySchema = s.schema.properties[parentKey];
-              if (propertySchema) {
-                propertyMatched = true;
-                this.addSchemaValueCompletions(propertySchema, separatorAfter, collector, types);
+          var parentKey_2 = node.keyNode.value;
+          doc.visit(function(n) {
+            if (n.type === "property" && n.keyNode.value === parentKey_2 && n.valueNode) {
+              collectSuggestionsForValues(n.valueNode);
+            }
+            return true;
+          });
+          if (parentKey_2 === "$schema" && node.parent && !node.parent.parent) {
+            this.addDollarSchemaCompletions(separatorAfter, collector);
+          }
+        }
+      }
+      if (node.type === "array") {
+        if (node.parent && node.parent.type === "property") {
+          var parentKey_3 = node.parent.keyNode.value;
+          doc.visit(function(n) {
+            if (n.type === "property" && n.keyNode.value === parentKey_3 && n.valueNode && n.valueNode.type === "array") {
+              n.valueNode.items.forEach(collectSuggestionsForValues);
+            }
+            return true;
+          });
+        } else {
+          node.items.forEach(collectSuggestionsForValues);
+        }
+      }
+    };
+    JSONCompletion2.prototype.getValueCompletions = function(schema, doc, node, offset, document, collector, types) {
+      var offsetForSeparator = offset;
+      var parentKey = void 0;
+      var valueNode = void 0;
+      if (node && (node.type === "string" || node.type === "number" || node.type === "boolean" || node.type === "null")) {
+        offsetForSeparator = node.offset + node.length;
+        valueNode = node;
+        node = node.parent;
+      }
+      if (!node) {
+        this.addSchemaValueCompletions(schema.schema, "", collector, types);
+        return;
+      }
+      if (node.type === "property" && offset > (node.colonOffset || 0)) {
+        var valueNode_1 = node.valueNode;
+        if (valueNode_1 && offset > valueNode_1.offset + valueNode_1.length) {
+          return;
+        }
+        parentKey = node.keyNode.value;
+        node = node.parent;
+      }
+      if (node && (parentKey !== void 0 || node.type === "array")) {
+        var separatorAfter = this.evaluateSeparatorAfter(document, offsetForSeparator);
+        var matchingSchemas = doc.getMatchingSchemas(schema.schema, node.offset, valueNode);
+        for (var _i = 0, matchingSchemas_1 = matchingSchemas; _i < matchingSchemas_1.length; _i++) {
+          var s = matchingSchemas_1[_i];
+          if (s.node === node && !s.inverted && s.schema) {
+            if (node.type === "array" && s.schema.items) {
+              if (Array.isArray(s.schema.items)) {
+                var index = this.findItemAtOffset(node, document, offset);
+                if (index < s.schema.items.length) {
+                  this.addSchemaValueCompletions(s.schema.items[index], separatorAfter, collector, types);
+                }
+              } else {
+                this.addSchemaValueCompletions(s.schema.items, separatorAfter, collector, types);
               }
             }
-            if (s.schema.patternProperties && !propertyMatched) {
-              for (var _a = 0, _b = Object.keys(s.schema.patternProperties); _a < _b.length; _a++) {
-                var pattern = _b[_a];
-                var regex = extendedRegExp(pattern);
-                if (regex === null || regex === void 0 ? void 0 : regex.test(parentKey)) {
+            if (parentKey !== void 0) {
+              var propertyMatched = false;
+              if (s.schema.properties) {
+                var propertySchema = s.schema.properties[parentKey];
+                if (propertySchema) {
                   propertyMatched = true;
-                  var propertySchema = s.schema.patternProperties[pattern];
                   this.addSchemaValueCompletions(propertySchema, separatorAfter, collector, types);
                 }
               }
-            }
-            if (s.schema.additionalProperties && !propertyMatched) {
-              var propertySchema = s.schema.additionalProperties;
-              this.addSchemaValueCompletions(propertySchema, separatorAfter, collector, types);
+              if (s.schema.patternProperties && !propertyMatched) {
+                for (var _a = 0, _b = Object.keys(s.schema.patternProperties); _a < _b.length; _a++) {
+                  var pattern = _b[_a];
+                  var regex = extendedRegExp(pattern);
+                  if (regex === null || regex === void 0 ? void 0 : regex.test(parentKey)) {
+                    propertyMatched = true;
+                    var propertySchema = s.schema.patternProperties[pattern];
+                    this.addSchemaValueCompletions(propertySchema, separatorAfter, collector, types);
+                  }
+                }
+              }
+              if (s.schema.additionalProperties && !propertyMatched) {
+                var propertySchema = s.schema.additionalProperties;
+                this.addSchemaValueCompletions(propertySchema, separatorAfter, collector, types);
+              }
             }
           }
         }
-      }
-      if (parentKey === "$schema" && !node.parent) {
-        this.addDollarSchemaCompletions(separatorAfter, collector);
-      }
-      if (types["boolean"]) {
-        this.addBooleanValueCompletion(true, separatorAfter, collector);
-        this.addBooleanValueCompletion(false, separatorAfter, collector);
-      }
-      if (types["null"]) {
-        this.addNullValueCompletion(separatorAfter, collector);
-      }
-    }
-  };
-  JSONCompletion2.prototype.getContributedValueCompletions = function(doc, node, offset, document, collector, collectionPromises) {
-    if (!node) {
-      this.contributions.forEach(function(contribution) {
-        var collectPromise = contribution.collectDefaultCompletions(document.uri, collector);
-        if (collectPromise) {
-          collectionPromises.push(collectPromise);
+        if (parentKey === "$schema" && !node.parent) {
+          this.addDollarSchemaCompletions(separatorAfter, collector);
         }
-      });
-    } else {
-      if (node.type === "string" || node.type === "number" || node.type === "boolean" || node.type === "null") {
-        node = node.parent;
+        if (types["boolean"]) {
+          this.addBooleanValueCompletion(true, separatorAfter, collector);
+          this.addBooleanValueCompletion(false, separatorAfter, collector);
+        }
+        if (types["null"]) {
+          this.addNullValueCompletion(separatorAfter, collector);
+        }
       }
-      if (node && node.type === "property" && offset > (node.colonOffset || 0)) {
-        var parentKey_4 = node.keyNode.value;
-        var valueNode = node.valueNode;
-        if ((!valueNode || offset <= valueNode.offset + valueNode.length) && node.parent) {
-          var location_2 = getNodePath3(node.parent);
-          this.contributions.forEach(function(contribution) {
-            var collectPromise = contribution.collectValueCompletions(document.uri, location_2, parentKey_4, collector);
-            if (collectPromise) {
-              collectionPromises.push(collectPromise);
-            }
+    };
+    JSONCompletion2.prototype.getContributedValueCompletions = function(doc, node, offset, document, collector, collectionPromises) {
+      if (!node) {
+        this.contributions.forEach(function(contribution) {
+          var collectPromise = contribution.collectDefaultCompletions(document.uri, collector);
+          if (collectPromise) {
+            collectionPromises.push(collectPromise);
+          }
+        });
+      } else {
+        if (node.type === "string" || node.type === "number" || node.type === "boolean" || node.type === "null") {
+          node = node.parent;
+        }
+        if (node && node.type === "property" && offset > (node.colonOffset || 0)) {
+          var parentKey_4 = node.keyNode.value;
+          var valueNode = node.valueNode;
+          if ((!valueNode || offset <= valueNode.offset + valueNode.length) && node.parent) {
+            var location_2 = getNodePath3(node.parent);
+            this.contributions.forEach(function(contribution) {
+              var collectPromise = contribution.collectValueCompletions(document.uri, location_2, parentKey_4, collector);
+              if (collectPromise) {
+                collectionPromises.push(collectPromise);
+              }
+            });
+          }
+        }
+      }
+    };
+    JSONCompletion2.prototype.addSchemaValueCompletions = function(schema, separatorAfter, collector, types) {
+      var _this = this;
+      if (typeof schema === "object") {
+        this.addEnumValueCompletions(schema, separatorAfter, collector);
+        this.addDefaultValueCompletions(schema, separatorAfter, collector);
+        this.collectTypes(schema, types);
+        if (Array.isArray(schema.allOf)) {
+          schema.allOf.forEach(function(s) {
+            return _this.addSchemaValueCompletions(s, separatorAfter, collector, types);
+          });
+        }
+        if (Array.isArray(schema.anyOf)) {
+          schema.anyOf.forEach(function(s) {
+            return _this.addSchemaValueCompletions(s, separatorAfter, collector, types);
+          });
+        }
+        if (Array.isArray(schema.oneOf)) {
+          schema.oneOf.forEach(function(s) {
+            return _this.addSchemaValueCompletions(s, separatorAfter, collector, types);
           });
         }
       }
-    }
-  };
-  JSONCompletion2.prototype.addSchemaValueCompletions = function(schema, separatorAfter, collector, types) {
-    var _this = this;
-    if (typeof schema === "object") {
-      this.addEnumValueCompletions(schema, separatorAfter, collector);
-      this.addDefaultValueCompletions(schema, separatorAfter, collector);
-      this.collectTypes(schema, types);
-      if (Array.isArray(schema.allOf)) {
-        schema.allOf.forEach(function(s) {
-          return _this.addSchemaValueCompletions(s, separatorAfter, collector, types);
-        });
+    };
+    JSONCompletion2.prototype.addDefaultValueCompletions = function(schema, separatorAfter, collector, arrayDepth) {
+      var _this = this;
+      if (arrayDepth === void 0) {
+        arrayDepth = 0;
       }
-      if (Array.isArray(schema.anyOf)) {
-        schema.anyOf.forEach(function(s) {
-          return _this.addSchemaValueCompletions(s, separatorAfter, collector, types);
-        });
-      }
-      if (Array.isArray(schema.oneOf)) {
-        schema.oneOf.forEach(function(s) {
-          return _this.addSchemaValueCompletions(s, separatorAfter, collector, types);
-        });
-      }
-    }
-  };
-  JSONCompletion2.prototype.addDefaultValueCompletions = function(schema, separatorAfter, collector, arrayDepth) {
-    var _this = this;
-    if (arrayDepth === void 0) {
-      arrayDepth = 0;
-    }
-    var hasProposals = false;
-    if (isDefined(schema.default)) {
-      var type = schema.type;
-      var value = schema.default;
-      for (var i = arrayDepth; i > 0; i--) {
-        value = [value];
-        type = "array";
-      }
-      collector.add({
-        kind: this.getSuggestionKind(type),
-        label: this.getLabelForValue(value),
-        insertText: this.getInsertTextForValue(value, separatorAfter),
-        insertTextFormat: InsertTextFormat.Snippet,
-        detail: localize3("json.suggest.default", "Default value")
-      });
-      hasProposals = true;
-    }
-    if (Array.isArray(schema.examples)) {
-      schema.examples.forEach(function(example) {
-        var type2 = schema.type;
-        var value2 = example;
-        for (var i2 = arrayDepth; i2 > 0; i2--) {
-          value2 = [value2];
-          type2 = "array";
+      var hasProposals = false;
+      if (isDefined(schema.default)) {
+        var type = schema.type;
+        var value = schema.default;
+        for (var i = arrayDepth; i > 0; i--) {
+          value = [value];
+          type = "array";
         }
         collector.add({
-          kind: _this.getSuggestionKind(type2),
-          label: _this.getLabelForValue(value2),
-          insertText: _this.getInsertTextForValue(value2, separatorAfter),
-          insertTextFormat: InsertTextFormat.Snippet
+          kind: this.getSuggestionKind(type),
+          label: this.getLabelForValue(value),
+          insertText: this.getInsertTextForValue(value, separatorAfter),
+          insertTextFormat: InsertTextFormat.Snippet,
+          detail: localize3("json.suggest.default", "Default value")
         });
         hasProposals = true;
-      });
-    }
-    if (Array.isArray(schema.defaultSnippets)) {
-      schema.defaultSnippets.forEach(function(s) {
-        var type2 = schema.type;
-        var value2 = s.body;
-        var label = s.label;
-        var insertText;
-        var filterText;
-        if (isDefined(value2)) {
-          var type_1 = schema.type;
+      }
+      if (Array.isArray(schema.examples)) {
+        schema.examples.forEach(function(example) {
+          var type2 = schema.type;
+          var value2 = example;
           for (var i2 = arrayDepth; i2 > 0; i2--) {
             value2 = [value2];
-            type_1 = "array";
-          }
-          insertText = _this.getInsertTextForSnippetValue(value2, separatorAfter);
-          filterText = _this.getFilterTextForSnippetValue(value2);
-          label = label || _this.getLabelForSnippetValue(value2);
-        } else if (typeof s.bodyText === "string") {
-          var prefix = "", suffix = "", indent = "";
-          for (var i2 = arrayDepth; i2 > 0; i2--) {
-            prefix = prefix + indent + "[\n";
-            suffix = suffix + "\n" + indent + "]";
-            indent += "	";
             type2 = "array";
           }
-          insertText = prefix + indent + s.bodyText.split("\n").join("\n" + indent) + suffix + separatorAfter;
-          label = label || insertText, filterText = insertText.replace(/[\n]/g, "");
-        } else {
-          return;
-        }
-        collector.add({
-          kind: _this.getSuggestionKind(type2),
-          label,
-          documentation: _this.fromMarkup(s.markdownDescription) || s.description,
-          insertText,
-          insertTextFormat: InsertTextFormat.Snippet,
-          filterText
+          collector.add({
+            kind: _this.getSuggestionKind(type2),
+            label: _this.getLabelForValue(value2),
+            insertText: _this.getInsertTextForValue(value2, separatorAfter),
+            insertTextFormat: InsertTextFormat.Snippet
+          });
+          hasProposals = true;
         });
-        hasProposals = true;
-      });
-    }
-    if (!hasProposals && typeof schema.items === "object" && !Array.isArray(schema.items) && arrayDepth < 5) {
-      this.addDefaultValueCompletions(schema.items, separatorAfter, collector, arrayDepth + 1);
-    }
-  };
-  JSONCompletion2.prototype.addEnumValueCompletions = function(schema, separatorAfter, collector) {
-    if (isDefined(schema.const)) {
-      collector.add({
-        kind: this.getSuggestionKind(schema.type),
-        label: this.getLabelForValue(schema.const),
-        insertText: this.getInsertTextForValue(schema.const, separatorAfter),
-        insertTextFormat: InsertTextFormat.Snippet,
-        documentation: this.fromMarkup(schema.markdownDescription) || schema.description
-      });
-    }
-    if (Array.isArray(schema.enum)) {
-      for (var i = 0, length = schema.enum.length; i < length; i++) {
-        var enm = schema.enum[i];
-        var documentation = this.fromMarkup(schema.markdownDescription) || schema.description;
-        if (schema.markdownEnumDescriptions && i < schema.markdownEnumDescriptions.length && this.doesSupportMarkdown()) {
-          documentation = this.fromMarkup(schema.markdownEnumDescriptions[i]);
-        } else if (schema.enumDescriptions && i < schema.enumDescriptions.length) {
-          documentation = schema.enumDescriptions[i];
-        }
+      }
+      if (Array.isArray(schema.defaultSnippets)) {
+        schema.defaultSnippets.forEach(function(s) {
+          var type2 = schema.type;
+          var value2 = s.body;
+          var label = s.label;
+          var insertText;
+          var filterText;
+          if (isDefined(value2)) {
+            var type_1 = schema.type;
+            for (var i2 = arrayDepth; i2 > 0; i2--) {
+              value2 = [value2];
+              type_1 = "array";
+            }
+            insertText = _this.getInsertTextForSnippetValue(value2, separatorAfter);
+            filterText = _this.getFilterTextForSnippetValue(value2);
+            label = label || _this.getLabelForSnippetValue(value2);
+          } else if (typeof s.bodyText === "string") {
+            var prefix = "", suffix = "", indent = "";
+            for (var i2 = arrayDepth; i2 > 0; i2--) {
+              prefix = prefix + indent + "[\n";
+              suffix = suffix + "\n" + indent + "]";
+              indent += "	";
+              type2 = "array";
+            }
+            insertText = prefix + indent + s.bodyText.split("\n").join("\n" + indent) + suffix + separatorAfter;
+            label = label || insertText, filterText = insertText.replace(/[\n]/g, "");
+          } else {
+            return;
+          }
+          collector.add({
+            kind: _this.getSuggestionKind(type2),
+            label,
+            documentation: _this.fromMarkup(s.markdownDescription) || s.description,
+            insertText,
+            insertTextFormat: InsertTextFormat.Snippet,
+            filterText
+          });
+          hasProposals = true;
+        });
+      }
+      if (!hasProposals && typeof schema.items === "object" && !Array.isArray(schema.items) && arrayDepth < 5) {
+        this.addDefaultValueCompletions(schema.items, separatorAfter, collector, arrayDepth + 1);
+      }
+    };
+    JSONCompletion2.prototype.addEnumValueCompletions = function(schema, separatorAfter, collector) {
+      if (isDefined(schema.const)) {
         collector.add({
           kind: this.getSuggestionKind(schema.type),
-          label: this.getLabelForValue(enm),
-          insertText: this.getInsertTextForValue(enm, separatorAfter),
+          label: this.getLabelForValue(schema.const),
+          insertText: this.getInsertTextForValue(schema.const, separatorAfter),
           insertTextFormat: InsertTextFormat.Snippet,
-          documentation
+          documentation: this.fromMarkup(schema.markdownDescription) || schema.description
         });
       }
-    }
-  };
-  JSONCompletion2.prototype.collectTypes = function(schema, types) {
-    if (Array.isArray(schema.enum) || isDefined(schema.const)) {
-      return;
-    }
-    var type = schema.type;
-    if (Array.isArray(type)) {
-      type.forEach(function(t) {
-        return types[t] = true;
-      });
-    } else if (type) {
-      types[type] = true;
-    }
-  };
-  JSONCompletion2.prototype.addFillerValueCompletions = function(types, separatorAfter, collector) {
-    if (types["object"]) {
-      collector.add({
-        kind: this.getSuggestionKind("object"),
-        label: "{}",
-        insertText: this.getInsertTextForGuessedValue({}, separatorAfter),
-        insertTextFormat: InsertTextFormat.Snippet,
-        detail: localize3("defaults.object", "New object"),
-        documentation: ""
-      });
-    }
-    if (types["array"]) {
-      collector.add({
-        kind: this.getSuggestionKind("array"),
-        label: "[]",
-        insertText: this.getInsertTextForGuessedValue([], separatorAfter),
-        insertTextFormat: InsertTextFormat.Snippet,
-        detail: localize3("defaults.array", "New array"),
-        documentation: ""
-      });
-    }
-  };
-  JSONCompletion2.prototype.addBooleanValueCompletion = function(value, separatorAfter, collector) {
-    collector.add({
-      kind: this.getSuggestionKind("boolean"),
-      label: value ? "true" : "false",
-      insertText: this.getInsertTextForValue(value, separatorAfter),
-      insertTextFormat: InsertTextFormat.Snippet,
-      documentation: ""
-    });
-  };
-  JSONCompletion2.prototype.addNullValueCompletion = function(separatorAfter, collector) {
-    collector.add({
-      kind: this.getSuggestionKind("null"),
-      label: "null",
-      insertText: "null" + separatorAfter,
-      insertTextFormat: InsertTextFormat.Snippet,
-      documentation: ""
-    });
-  };
-  JSONCompletion2.prototype.addDollarSchemaCompletions = function(separatorAfter, collector) {
-    var _this = this;
-    var schemaIds = this.schemaService.getRegisteredSchemaIds(function(schema) {
-      return schema === "http" || schema === "https";
-    });
-    schemaIds.forEach(function(schemaId) {
-      return collector.add({
-        kind: CompletionItemKind.Module,
-        label: _this.getLabelForValue(schemaId),
-        filterText: _this.getFilterTextForValue(schemaId),
-        insertText: _this.getInsertTextForValue(schemaId, separatorAfter),
-        insertTextFormat: InsertTextFormat.Snippet,
-        documentation: ""
-      });
-    });
-  };
-  JSONCompletion2.prototype.getLabelForValue = function(value) {
-    return JSON.stringify(value);
-  };
-  JSONCompletion2.prototype.getFilterTextForValue = function(value) {
-    return JSON.stringify(value);
-  };
-  JSONCompletion2.prototype.getFilterTextForSnippetValue = function(value) {
-    return JSON.stringify(value).replace(/\$\{\d+:([^}]+)\}|\$\d+/g, "$1");
-  };
-  JSONCompletion2.prototype.getLabelForSnippetValue = function(value) {
-    var label = JSON.stringify(value);
-    return label.replace(/\$\{\d+:([^}]+)\}|\$\d+/g, "$1");
-  };
-  JSONCompletion2.prototype.getInsertTextForPlainText = function(text) {
-    return text.replace(/[\\\$\}]/g, "\\$&");
-  };
-  JSONCompletion2.prototype.getInsertTextForValue = function(value, separatorAfter) {
-    var text = JSON.stringify(value, null, "	");
-    if (text === "{}") {
-      return "{$1}" + separatorAfter;
-    } else if (text === "[]") {
-      return "[$1]" + separatorAfter;
-    }
-    return this.getInsertTextForPlainText(text + separatorAfter);
-  };
-  JSONCompletion2.prototype.getInsertTextForSnippetValue = function(value, separatorAfter) {
-    var replacer = function(value2) {
-      if (typeof value2 === "string") {
-        if (value2[0] === "^") {
-          return value2.substr(1);
+      if (Array.isArray(schema.enum)) {
+        for (var i = 0, length = schema.enum.length; i < length; i++) {
+          var enm = schema.enum[i];
+          var documentation = this.fromMarkup(schema.markdownDescription) || schema.description;
+          if (schema.markdownEnumDescriptions && i < schema.markdownEnumDescriptions.length && this.doesSupportMarkdown()) {
+            documentation = this.fromMarkup(schema.markdownEnumDescriptions[i]);
+          } else if (schema.enumDescriptions && i < schema.enumDescriptions.length) {
+            documentation = schema.enumDescriptions[i];
+          }
+          collector.add({
+            kind: this.getSuggestionKind(schema.type),
+            label: this.getLabelForValue(enm),
+            insertText: this.getInsertTextForValue(enm, separatorAfter),
+            insertTextFormat: InsertTextFormat.Snippet,
+            documentation
+          });
         }
       }
-      return JSON.stringify(value2);
     };
-    return stringifyObject(value, "", replacer) + separatorAfter;
-  };
-  JSONCompletion2.prototype.getInsertTextForGuessedValue = function(value, separatorAfter) {
-    switch (typeof value) {
-      case "object":
-        if (value === null) {
-          return "${1:null}" + separatorAfter;
-        }
-        return this.getInsertTextForValue(value, separatorAfter);
-      case "string":
-        var snippetValue = JSON.stringify(value);
-        snippetValue = snippetValue.substr(1, snippetValue.length - 2);
-        snippetValue = this.getInsertTextForPlainText(snippetValue);
-        return '"${1:' + snippetValue + '}"' + separatorAfter;
-      case "number":
-      case "boolean":
-        return "${1:" + JSON.stringify(value) + "}" + separatorAfter;
-    }
-    return this.getInsertTextForValue(value, separatorAfter);
-  };
-  JSONCompletion2.prototype.getSuggestionKind = function(type) {
-    if (Array.isArray(type)) {
-      var array = type;
-      type = array.length > 0 ? array[0] : void 0;
-    }
-    if (!type) {
-      return CompletionItemKind.Value;
-    }
-    switch (type) {
-      case "string":
-        return CompletionItemKind.Value;
-      case "object":
-        return CompletionItemKind.Module;
-      case "property":
-        return CompletionItemKind.Property;
-      default:
-        return CompletionItemKind.Value;
-    }
-  };
-  JSONCompletion2.prototype.getLabelTextForMatchingNode = function(node, document) {
-    switch (node.type) {
-      case "array":
-        return "[]";
-      case "object":
-        return "{}";
-      default:
-        var content = document.getText().substr(node.offset, node.length);
-        return content;
-    }
-  };
-  JSONCompletion2.prototype.getInsertTextForMatchingNode = function(node, document, separatorAfter) {
-    switch (node.type) {
-      case "array":
-        return this.getInsertTextForValue([], separatorAfter);
-      case "object":
-        return this.getInsertTextForValue({}, separatorAfter);
-      default:
-        var content = document.getText().substr(node.offset, node.length) + separatorAfter;
-        return this.getInsertTextForPlainText(content);
-    }
-  };
-  JSONCompletion2.prototype.getInsertTextForProperty = function(key, propertySchema, addValue, separatorAfter) {
-    var propertyText = this.getInsertTextForValue(key, "");
-    if (!addValue) {
-      return propertyText;
-    }
-    var resultText = propertyText + ": ";
-    var value;
-    var nValueProposals = 0;
-    if (propertySchema) {
-      if (Array.isArray(propertySchema.defaultSnippets)) {
-        if (propertySchema.defaultSnippets.length === 1) {
-          var body = propertySchema.defaultSnippets[0].body;
-          if (isDefined(body)) {
-            value = this.getInsertTextForSnippetValue(body, "");
+    JSONCompletion2.prototype.collectTypes = function(schema, types) {
+      if (Array.isArray(schema.enum) || isDefined(schema.const)) {
+        return;
+      }
+      var type = schema.type;
+      if (Array.isArray(type)) {
+        type.forEach(function(t) {
+          return types[t] = true;
+        });
+      } else if (type) {
+        types[type] = true;
+      }
+    };
+    JSONCompletion2.prototype.addFillerValueCompletions = function(types, separatorAfter, collector) {
+      if (types["object"]) {
+        collector.add({
+          kind: this.getSuggestionKind("object"),
+          label: "{}",
+          insertText: this.getInsertTextForGuessedValue({}, separatorAfter),
+          insertTextFormat: InsertTextFormat.Snippet,
+          detail: localize3("defaults.object", "New object"),
+          documentation: ""
+        });
+      }
+      if (types["array"]) {
+        collector.add({
+          kind: this.getSuggestionKind("array"),
+          label: "[]",
+          insertText: this.getInsertTextForGuessedValue([], separatorAfter),
+          insertTextFormat: InsertTextFormat.Snippet,
+          detail: localize3("defaults.array", "New array"),
+          documentation: ""
+        });
+      }
+    };
+    JSONCompletion2.prototype.addBooleanValueCompletion = function(value, separatorAfter, collector) {
+      collector.add({
+        kind: this.getSuggestionKind("boolean"),
+        label: value ? "true" : "false",
+        insertText: this.getInsertTextForValue(value, separatorAfter),
+        insertTextFormat: InsertTextFormat.Snippet,
+        documentation: ""
+      });
+    };
+    JSONCompletion2.prototype.addNullValueCompletion = function(separatorAfter, collector) {
+      collector.add({
+        kind: this.getSuggestionKind("null"),
+        label: "null",
+        insertText: "null" + separatorAfter,
+        insertTextFormat: InsertTextFormat.Snippet,
+        documentation: ""
+      });
+    };
+    JSONCompletion2.prototype.addDollarSchemaCompletions = function(separatorAfter, collector) {
+      var _this = this;
+      var schemaIds = this.schemaService.getRegisteredSchemaIds(function(schema) {
+        return schema === "http" || schema === "https";
+      });
+      schemaIds.forEach(function(schemaId) {
+        return collector.add({
+          kind: CompletionItemKind.Module,
+          label: _this.getLabelForValue(schemaId),
+          filterText: _this.getFilterTextForValue(schemaId),
+          insertText: _this.getInsertTextForValue(schemaId, separatorAfter),
+          insertTextFormat: InsertTextFormat.Snippet,
+          documentation: ""
+        });
+      });
+    };
+    JSONCompletion2.prototype.getLabelForValue = function(value) {
+      return JSON.stringify(value);
+    };
+    JSONCompletion2.prototype.getFilterTextForValue = function(value) {
+      return JSON.stringify(value);
+    };
+    JSONCompletion2.prototype.getFilterTextForSnippetValue = function(value) {
+      return JSON.stringify(value).replace(/\$\{\d+:([^}]+)\}|\$\d+/g, "$1");
+    };
+    JSONCompletion2.prototype.getLabelForSnippetValue = function(value) {
+      var label = JSON.stringify(value);
+      return label.replace(/\$\{\d+:([^}]+)\}|\$\d+/g, "$1");
+    };
+    JSONCompletion2.prototype.getInsertTextForPlainText = function(text) {
+      return text.replace(/[\\\$\}]/g, "\\$&");
+    };
+    JSONCompletion2.prototype.getInsertTextForValue = function(value, separatorAfter) {
+      var text = JSON.stringify(value, null, "	");
+      if (text === "{}") {
+        return "{$1}" + separatorAfter;
+      } else if (text === "[]") {
+        return "[$1]" + separatorAfter;
+      }
+      return this.getInsertTextForPlainText(text + separatorAfter);
+    };
+    JSONCompletion2.prototype.getInsertTextForSnippetValue = function(value, separatorAfter) {
+      var replacer = function(value2) {
+        if (typeof value2 === "string") {
+          if (value2[0] === "^") {
+            return value2.substr(1);
           }
         }
-        nValueProposals += propertySchema.defaultSnippets.length;
-      }
-      if (propertySchema.enum) {
-        if (!value && propertySchema.enum.length === 1) {
-          value = this.getInsertTextForGuessedValue(propertySchema.enum[0], "");
-        }
-        nValueProposals += propertySchema.enum.length;
-      }
-      if (isDefined(propertySchema.default)) {
-        if (!value) {
-          value = this.getInsertTextForGuessedValue(propertySchema.default, "");
-        }
-        nValueProposals++;
-      }
-      if (Array.isArray(propertySchema.examples) && propertySchema.examples.length) {
-        if (!value) {
-          value = this.getInsertTextForGuessedValue(propertySchema.examples[0], "");
-        }
-        nValueProposals += propertySchema.examples.length;
-      }
-      if (nValueProposals === 0) {
-        var type = Array.isArray(propertySchema.type) ? propertySchema.type[0] : propertySchema.type;
-        if (!type) {
-          if (propertySchema.properties) {
-            type = "object";
-          } else if (propertySchema.items) {
-            type = "array";
-          }
-        }
-        switch (type) {
-          case "boolean":
-            value = "$1";
-            break;
-          case "string":
-            value = '"$1"';
-            break;
-          case "object":
-            value = "{$1}";
-            break;
-          case "array":
-            value = "[$1]";
-            break;
-          case "number":
-          case "integer":
-            value = "${1:0}";
-            break;
-          case "null":
-            value = "${1:null}";
-            break;
-          default:
-            return propertyText;
-        }
-      }
-    }
-    if (!value || nValueProposals > 1) {
-      value = "$1";
-    }
-    return resultText + value + separatorAfter;
-  };
-  JSONCompletion2.prototype.getCurrentWord = function(document, offset) {
-    var i = offset - 1;
-    var text = document.getText();
-    while (i >= 0 && ' 	\n\r\v":{[,]}'.indexOf(text.charAt(i)) === -1) {
-      i--;
-    }
-    return text.substring(i + 1, offset);
-  };
-  JSONCompletion2.prototype.evaluateSeparatorAfter = function(document, offset) {
-    var scanner = createScanner2(document.getText(), true);
-    scanner.setPosition(offset);
-    var token = scanner.scan();
-    switch (token) {
-      case 5:
-      case 2:
-      case 4:
-      case 17:
-        return "";
-      default:
-        return ",";
-    }
-  };
-  JSONCompletion2.prototype.findItemAtOffset = function(node, document, offset) {
-    var scanner = createScanner2(document.getText(), true);
-    var children = node.items;
-    for (var i = children.length - 1; i >= 0; i--) {
-      var child = children[i];
-      if (offset > child.offset + child.length) {
-        scanner.setPosition(child.offset + child.length);
-        var token = scanner.scan();
-        if (token === 5 && offset >= scanner.getTokenOffset() + scanner.getTokenLength()) {
-          return i + 1;
-        }
-        return i;
-      } else if (offset >= child.offset) {
-        return i;
-      }
-    }
-    return 0;
-  };
-  JSONCompletion2.prototype.isInComment = function(document, start, offset) {
-    var scanner = createScanner2(document.getText(), false);
-    scanner.setPosition(start);
-    var token = scanner.scan();
-    while (token !== 17 && scanner.getTokenOffset() + scanner.getTokenLength() < offset) {
-      token = scanner.scan();
-    }
-    return (token === 12 || token === 13) && scanner.getTokenOffset() <= offset;
-  };
-  JSONCompletion2.prototype.fromMarkup = function(markupString) {
-    if (markupString && this.doesSupportMarkdown()) {
-      return {
-        kind: MarkupKind.Markdown,
-        value: markupString
+        return JSON.stringify(value2);
       };
-    }
-    return void 0;
-  };
-  JSONCompletion2.prototype.doesSupportMarkdown = function() {
-    if (!isDefined(this.supportsMarkdown)) {
-      var completion = this.clientCapabilities.textDocument && this.clientCapabilities.textDocument.completion;
-      this.supportsMarkdown = completion && completion.completionItem && Array.isArray(completion.completionItem.documentationFormat) && completion.completionItem.documentationFormat.indexOf(MarkupKind.Markdown) !== -1;
-    }
-    return this.supportsMarkdown;
-  };
-  JSONCompletion2.prototype.doesSupportsCommitCharacters = function() {
-    if (!isDefined(this.supportsCommitCharacters)) {
-      var completion = this.clientCapabilities.textDocument && this.clientCapabilities.textDocument.completion;
-      this.supportsCommitCharacters = completion && completion.completionItem && !!completion.completionItem.commitCharactersSupport;
-    }
-    return this.supportsCommitCharacters;
-  };
-  return JSONCompletion2;
-}();
+      return stringifyObject(value, "", replacer) + separatorAfter;
+    };
+    JSONCompletion2.prototype.getInsertTextForGuessedValue = function(value, separatorAfter) {
+      switch (typeof value) {
+        case "object":
+          if (value === null) {
+            return "${1:null}" + separatorAfter;
+          }
+          return this.getInsertTextForValue(value, separatorAfter);
+        case "string":
+          var snippetValue = JSON.stringify(value);
+          snippetValue = snippetValue.substr(1, snippetValue.length - 2);
+          snippetValue = this.getInsertTextForPlainText(snippetValue);
+          return '"${1:' + snippetValue + '}"' + separatorAfter;
+        case "number":
+        case "boolean":
+          return "${1:" + JSON.stringify(value) + "}" + separatorAfter;
+      }
+      return this.getInsertTextForValue(value, separatorAfter);
+    };
+    JSONCompletion2.prototype.getSuggestionKind = function(type) {
+      if (Array.isArray(type)) {
+        var array = type;
+        type = array.length > 0 ? array[0] : void 0;
+      }
+      if (!type) {
+        return CompletionItemKind.Value;
+      }
+      switch (type) {
+        case "string":
+          return CompletionItemKind.Value;
+        case "object":
+          return CompletionItemKind.Module;
+        case "property":
+          return CompletionItemKind.Property;
+        default:
+          return CompletionItemKind.Value;
+      }
+    };
+    JSONCompletion2.prototype.getLabelTextForMatchingNode = function(node, document) {
+      switch (node.type) {
+        case "array":
+          return "[]";
+        case "object":
+          return "{}";
+        default:
+          var content = document.getText().substr(node.offset, node.length);
+          return content;
+      }
+    };
+    JSONCompletion2.prototype.getInsertTextForMatchingNode = function(node, document, separatorAfter) {
+      switch (node.type) {
+        case "array":
+          return this.getInsertTextForValue([], separatorAfter);
+        case "object":
+          return this.getInsertTextForValue({}, separatorAfter);
+        default:
+          var content = document.getText().substr(node.offset, node.length) + separatorAfter;
+          return this.getInsertTextForPlainText(content);
+      }
+    };
+    JSONCompletion2.prototype.getInsertTextForProperty = function(key, propertySchema, addValue, separatorAfter) {
+      var propertyText = this.getInsertTextForValue(key, "");
+      if (!addValue) {
+        return propertyText;
+      }
+      var resultText = propertyText + ": ";
+      var value;
+      var nValueProposals = 0;
+      if (propertySchema) {
+        if (Array.isArray(propertySchema.defaultSnippets)) {
+          if (propertySchema.defaultSnippets.length === 1) {
+            var body = propertySchema.defaultSnippets[0].body;
+            if (isDefined(body)) {
+              value = this.getInsertTextForSnippetValue(body, "");
+            }
+          }
+          nValueProposals += propertySchema.defaultSnippets.length;
+        }
+        if (propertySchema.enum) {
+          if (!value && propertySchema.enum.length === 1) {
+            value = this.getInsertTextForGuessedValue(propertySchema.enum[0], "");
+          }
+          nValueProposals += propertySchema.enum.length;
+        }
+        if (isDefined(propertySchema.default)) {
+          if (!value) {
+            value = this.getInsertTextForGuessedValue(propertySchema.default, "");
+          }
+          nValueProposals++;
+        }
+        if (Array.isArray(propertySchema.examples) && propertySchema.examples.length) {
+          if (!value) {
+            value = this.getInsertTextForGuessedValue(propertySchema.examples[0], "");
+          }
+          nValueProposals += propertySchema.examples.length;
+        }
+        if (nValueProposals === 0) {
+          var type = Array.isArray(propertySchema.type) ? propertySchema.type[0] : propertySchema.type;
+          if (!type) {
+            if (propertySchema.properties) {
+              type = "object";
+            } else if (propertySchema.items) {
+              type = "array";
+            }
+          }
+          switch (type) {
+            case "boolean":
+              value = "$1";
+              break;
+            case "string":
+              value = '"$1"';
+              break;
+            case "object":
+              value = "{$1}";
+              break;
+            case "array":
+              value = "[$1]";
+              break;
+            case "number":
+            case "integer":
+              value = "${1:0}";
+              break;
+            case "null":
+              value = "${1:null}";
+              break;
+            default:
+              return propertyText;
+          }
+        }
+      }
+      if (!value || nValueProposals > 1) {
+        value = "$1";
+      }
+      return resultText + value + separatorAfter;
+    };
+    JSONCompletion2.prototype.getCurrentWord = function(document, offset) {
+      var i = offset - 1;
+      var text = document.getText();
+      while (i >= 0 && ' 	\n\r\v":{[,]}'.indexOf(text.charAt(i)) === -1) {
+        i--;
+      }
+      return text.substring(i + 1, offset);
+    };
+    JSONCompletion2.prototype.evaluateSeparatorAfter = function(document, offset) {
+      var scanner = createScanner2(document.getText(), true);
+      scanner.setPosition(offset);
+      var token = scanner.scan();
+      switch (token) {
+        case 5:
+        case 2:
+        case 4:
+        case 17:
+          return "";
+        default:
+          return ",";
+      }
+    };
+    JSONCompletion2.prototype.findItemAtOffset = function(node, document, offset) {
+      var scanner = createScanner2(document.getText(), true);
+      var children = node.items;
+      for (var i = children.length - 1; i >= 0; i--) {
+        var child = children[i];
+        if (offset > child.offset + child.length) {
+          scanner.setPosition(child.offset + child.length);
+          var token = scanner.scan();
+          if (token === 5 && offset >= scanner.getTokenOffset() + scanner.getTokenLength()) {
+            return i + 1;
+          }
+          return i;
+        } else if (offset >= child.offset) {
+          return i;
+        }
+      }
+      return 0;
+    };
+    JSONCompletion2.prototype.isInComment = function(document, start, offset) {
+      var scanner = createScanner2(document.getText(), false);
+      scanner.setPosition(start);
+      var token = scanner.scan();
+      while (token !== 17 && scanner.getTokenOffset() + scanner.getTokenLength() < offset) {
+        token = scanner.scan();
+      }
+      return (token === 12 || token === 13) && scanner.getTokenOffset() <= offset;
+    };
+    JSONCompletion2.prototype.fromMarkup = function(markupString) {
+      if (markupString && this.doesSupportMarkdown()) {
+        return {
+          kind: MarkupKind.Markdown,
+          value: markupString
+        };
+      }
+      return void 0;
+    };
+    JSONCompletion2.prototype.doesSupportMarkdown = function() {
+      if (!isDefined(this.supportsMarkdown)) {
+        var completion = this.clientCapabilities.textDocument && this.clientCapabilities.textDocument.completion;
+        this.supportsMarkdown = completion && completion.completionItem && Array.isArray(completion.completionItem.documentationFormat) && completion.completionItem.documentationFormat.indexOf(MarkupKind.Markdown) !== -1;
+      }
+      return this.supportsMarkdown;
+    };
+    JSONCompletion2.prototype.doesSupportsCommitCharacters = function() {
+      if (!isDefined(this.supportsCommitCharacters)) {
+        var completion = this.clientCapabilities.textDocument && this.clientCapabilities.textDocument.completion;
+        this.supportsCommitCharacters = completion && completion.completionItem && !!completion.completionItem.commitCharactersSupport;
+      }
+      return this.supportsCommitCharacters;
+    };
+    return JSONCompletion2;
+  }()
+);
 
 // node_modules/vscode-json-languageservice/lib/esm/services/jsonHover.js
-var JSONHover = function() {
-  function JSONHover2(schemaService, contributions, promiseConstructor) {
-    if (contributions === void 0) {
-      contributions = [];
+var JSONHover = (
+  /** @class */
+  function() {
+    function JSONHover2(schemaService, contributions, promiseConstructor) {
+      if (contributions === void 0) {
+        contributions = [];
+      }
+      this.schemaService = schemaService;
+      this.contributions = contributions;
+      this.promise = promiseConstructor || Promise;
     }
-    this.schemaService = schemaService;
-    this.contributions = contributions;
-    this.promise = promiseConstructor || Promise;
-  }
-  JSONHover2.prototype.doHover = function(document, position, doc) {
-    var offset = document.offsetAt(position);
-    var node = doc.getNodeFromOffset(offset);
-    if (!node || (node.type === "object" || node.type === "array") && offset > node.offset + 1 && offset < node.offset + node.length - 1) {
-      return this.promise.resolve(null);
-    }
-    var hoverRangeNode = node;
-    if (node.type === "string") {
-      var parent = node.parent;
-      if (parent && parent.type === "property" && parent.keyNode === node) {
-        node = parent.valueNode;
-        if (!node) {
-          return this.promise.resolve(null);
+    JSONHover2.prototype.doHover = function(document, position, doc) {
+      var offset = document.offsetAt(position);
+      var node = doc.getNodeFromOffset(offset);
+      if (!node || (node.type === "object" || node.type === "array") && offset > node.offset + 1 && offset < node.offset + node.length - 1) {
+        return this.promise.resolve(null);
+      }
+      var hoverRangeNode = node;
+      if (node.type === "string") {
+        var parent = node.parent;
+        if (parent && parent.type === "property" && parent.keyNode === node) {
+          node = parent.valueNode;
+          if (!node) {
+            return this.promise.resolve(null);
+          }
         }
       }
-    }
-    var hoverRange = Range.create(document.positionAt(hoverRangeNode.offset), document.positionAt(hoverRangeNode.offset + hoverRangeNode.length));
-    var createHover = function(contents) {
-      var result = {
-        contents,
-        range: hoverRange
+      var hoverRange = Range.create(document.positionAt(hoverRangeNode.offset), document.positionAt(hoverRangeNode.offset + hoverRangeNode.length));
+      var createHover = function(contents) {
+        var result = {
+          contents,
+          range: hoverRange
+        };
+        return result;
       };
-      return result;
-    };
-    var location = getNodePath3(node);
-    for (var i = this.contributions.length - 1; i >= 0; i--) {
-      var contribution = this.contributions[i];
-      var promise = contribution.getInfoContribution(document.uri, location);
-      if (promise) {
-        return promise.then(function(htmlContent) {
-          return createHover(htmlContent);
-        });
+      var location = getNodePath3(node);
+      for (var i = this.contributions.length - 1; i >= 0; i--) {
+        var contribution = this.contributions[i];
+        var promise = contribution.getInfoContribution(document.uri, location);
+        if (promise) {
+          return promise.then(function(htmlContent) {
+            return createHover(htmlContent);
+          });
+        }
       }
-    }
-    return this.schemaService.getSchemaForResource(document.uri, doc).then(function(schema) {
-      if (schema && node) {
-        var matchingSchemas = doc.getMatchingSchemas(schema.schema, node.offset);
-        var title_1 = void 0;
-        var markdownDescription_1 = void 0;
-        var markdownEnumValueDescription_1 = void 0, enumValue_1 = void 0;
-        matchingSchemas.every(function(s) {
-          if (s.node === node && !s.inverted && s.schema) {
-            title_1 = title_1 || s.schema.title;
-            markdownDescription_1 = markdownDescription_1 || s.schema.markdownDescription || toMarkdown(s.schema.description);
-            if (s.schema.enum) {
-              var idx = s.schema.enum.indexOf(getNodeValue3(node));
-              if (s.schema.markdownEnumDescriptions) {
-                markdownEnumValueDescription_1 = s.schema.markdownEnumDescriptions[idx];
-              } else if (s.schema.enumDescriptions) {
-                markdownEnumValueDescription_1 = toMarkdown(s.schema.enumDescriptions[idx]);
-              }
-              if (markdownEnumValueDescription_1) {
-                enumValue_1 = s.schema.enum[idx];
-                if (typeof enumValue_1 !== "string") {
-                  enumValue_1 = JSON.stringify(enumValue_1);
+      return this.schemaService.getSchemaForResource(document.uri, doc).then(function(schema) {
+        if (schema && node) {
+          var matchingSchemas = doc.getMatchingSchemas(schema.schema, node.offset);
+          var title_1 = void 0;
+          var markdownDescription_1 = void 0;
+          var markdownEnumValueDescription_1 = void 0, enumValue_1 = void 0;
+          matchingSchemas.every(function(s) {
+            if (s.node === node && !s.inverted && s.schema) {
+              title_1 = title_1 || s.schema.title;
+              markdownDescription_1 = markdownDescription_1 || s.schema.markdownDescription || toMarkdown(s.schema.description);
+              if (s.schema.enum) {
+                var idx = s.schema.enum.indexOf(getNodeValue3(node));
+                if (s.schema.markdownEnumDescriptions) {
+                  markdownEnumValueDescription_1 = s.schema.markdownEnumDescriptions[idx];
+                } else if (s.schema.enumDescriptions) {
+                  markdownEnumValueDescription_1 = toMarkdown(s.schema.enumDescriptions[idx]);
+                }
+                if (markdownEnumValueDescription_1) {
+                  enumValue_1 = s.schema.enum[idx];
+                  if (typeof enumValue_1 !== "string") {
+                    enumValue_1 = JSON.stringify(enumValue_1);
+                  }
                 }
               }
             }
+            return true;
+          });
+          var result = "";
+          if (title_1) {
+            result = toMarkdown(title_1);
           }
-          return true;
-        });
-        var result = "";
-        if (title_1) {
-          result = toMarkdown(title_1);
-        }
-        if (markdownDescription_1) {
-          if (result.length > 0) {
-            result += "\n\n";
+          if (markdownDescription_1) {
+            if (result.length > 0) {
+              result += "\n\n";
+            }
+            result += markdownDescription_1;
           }
-          result += markdownDescription_1;
-        }
-        if (markdownEnumValueDescription_1) {
-          if (result.length > 0) {
-            result += "\n\n";
+          if (markdownEnumValueDescription_1) {
+            if (result.length > 0) {
+              result += "\n\n";
+            }
+            result += "`".concat(toMarkdownCodeBlock(enumValue_1), "`: ").concat(markdownEnumValueDescription_1);
           }
-          result += "`".concat(toMarkdownCodeBlock(enumValue_1), "`: ").concat(markdownEnumValueDescription_1);
+          return createHover([result]);
         }
-        return createHover([result]);
-      }
-      return null;
-    });
-  };
-  return JSONHover2;
-}();
+        return null;
+      });
+    };
+    return JSONHover2;
+  }()
+);
 function toMarkdown(plain) {
   if (plain) {
     var res = plain.replace(/([^\n\r])(\r?\n)([^\n\r])/gm, "$1\n\n$3");
@@ -22420,96 +23520,99 @@ function toMarkdownCodeBlock(content) {
 
 // node_modules/vscode-json-languageservice/lib/esm/services/jsonValidation.js
 var localize4 = loadMessageBundle();
-var JSONValidation = function() {
-  function JSONValidation2(jsonSchemaService, promiseConstructor) {
-    this.jsonSchemaService = jsonSchemaService;
-    this.promise = promiseConstructor;
-    this.validationEnabled = true;
-  }
-  JSONValidation2.prototype.configure = function(raw) {
-    if (raw) {
-      this.validationEnabled = raw.validate !== false;
-      this.commentSeverity = raw.allowComments ? void 0 : DiagnosticSeverity.Error;
+var JSONValidation = (
+  /** @class */
+  function() {
+    function JSONValidation2(jsonSchemaService, promiseConstructor) {
+      this.jsonSchemaService = jsonSchemaService;
+      this.promise = promiseConstructor;
+      this.validationEnabled = true;
     }
-  };
-  JSONValidation2.prototype.doValidation = function(textDocument, jsonDocument, documentSettings, schema) {
-    var _this = this;
-    if (!this.validationEnabled) {
-      return this.promise.resolve([]);
-    }
-    var diagnostics = [];
-    var added = {};
-    var addProblem = function(problem) {
-      var signature = problem.range.start.line + " " + problem.range.start.character + " " + problem.message;
-      if (!added[signature]) {
-        added[signature] = true;
-        diagnostics.push(problem);
+    JSONValidation2.prototype.configure = function(raw) {
+      if (raw) {
+        this.validationEnabled = raw.validate !== false;
+        this.commentSeverity = raw.allowComments ? void 0 : DiagnosticSeverity.Error;
       }
     };
-    var getDiagnostics = function(schema2) {
-      var trailingCommaSeverity = (documentSettings === null || documentSettings === void 0 ? void 0 : documentSettings.trailingCommas) ? toDiagnosticSeverity(documentSettings.trailingCommas) : DiagnosticSeverity.Error;
-      var commentSeverity = (documentSettings === null || documentSettings === void 0 ? void 0 : documentSettings.comments) ? toDiagnosticSeverity(documentSettings.comments) : _this.commentSeverity;
-      var schemaValidation = (documentSettings === null || documentSettings === void 0 ? void 0 : documentSettings.schemaValidation) ? toDiagnosticSeverity(documentSettings.schemaValidation) : DiagnosticSeverity.Warning;
-      var schemaRequest = (documentSettings === null || documentSettings === void 0 ? void 0 : documentSettings.schemaRequest) ? toDiagnosticSeverity(documentSettings.schemaRequest) : DiagnosticSeverity.Warning;
-      if (schema2) {
-        if (schema2.errors.length && jsonDocument.root && schemaRequest) {
-          var astRoot = jsonDocument.root;
-          var property = astRoot.type === "object" ? astRoot.properties[0] : void 0;
-          if (property && property.keyNode.value === "$schema") {
-            var node = property.valueNode || property;
-            var range = Range.create(textDocument.positionAt(node.offset), textDocument.positionAt(node.offset + node.length));
-            addProblem(Diagnostic.create(range, schema2.errors[0], schemaRequest, ErrorCode.SchemaResolveError));
-          } else {
-            var range = Range.create(textDocument.positionAt(astRoot.offset), textDocument.positionAt(astRoot.offset + 1));
-            addProblem(Diagnostic.create(range, schema2.errors[0], schemaRequest, ErrorCode.SchemaResolveError));
-          }
-        } else if (schemaValidation) {
-          var semanticErrors = jsonDocument.validate(textDocument, schema2.schema, schemaValidation);
-          if (semanticErrors) {
-            semanticErrors.forEach(addProblem);
-          }
-        }
-        if (schemaAllowsComments(schema2.schema)) {
-          commentSeverity = void 0;
-        }
-        if (schemaAllowsTrailingCommas(schema2.schema)) {
-          trailingCommaSeverity = void 0;
-        }
+    JSONValidation2.prototype.doValidation = function(textDocument, jsonDocument, documentSettings, schema) {
+      var _this = this;
+      if (!this.validationEnabled) {
+        return this.promise.resolve([]);
       }
-      for (var _i = 0, _a = jsonDocument.syntaxErrors; _i < _a.length; _i++) {
-        var p = _a[_i];
-        if (p.code === ErrorCode.TrailingComma) {
-          if (typeof trailingCommaSeverity !== "number") {
-            continue;
-          }
-          p.severity = trailingCommaSeverity;
+      var diagnostics = [];
+      var added = {};
+      var addProblem = function(problem) {
+        var signature = problem.range.start.line + " " + problem.range.start.character + " " + problem.message;
+        if (!added[signature]) {
+          added[signature] = true;
+          diagnostics.push(problem);
         }
-        addProblem(p);
-      }
-      if (typeof commentSeverity === "number") {
-        var message_1 = localize4("InvalidCommentToken", "Comments are not permitted in JSON.");
-        jsonDocument.comments.forEach(function(c) {
-          addProblem(Diagnostic.create(c, message_1, commentSeverity, ErrorCode.CommentNotPermitted));
+      };
+      var getDiagnostics = function(schema2) {
+        var trailingCommaSeverity = (documentSettings === null || documentSettings === void 0 ? void 0 : documentSettings.trailingCommas) ? toDiagnosticSeverity(documentSettings.trailingCommas) : DiagnosticSeverity.Error;
+        var commentSeverity = (documentSettings === null || documentSettings === void 0 ? void 0 : documentSettings.comments) ? toDiagnosticSeverity(documentSettings.comments) : _this.commentSeverity;
+        var schemaValidation = (documentSettings === null || documentSettings === void 0 ? void 0 : documentSettings.schemaValidation) ? toDiagnosticSeverity(documentSettings.schemaValidation) : DiagnosticSeverity.Warning;
+        var schemaRequest = (documentSettings === null || documentSettings === void 0 ? void 0 : documentSettings.schemaRequest) ? toDiagnosticSeverity(documentSettings.schemaRequest) : DiagnosticSeverity.Warning;
+        if (schema2) {
+          if (schema2.errors.length && jsonDocument.root && schemaRequest) {
+            var astRoot = jsonDocument.root;
+            var property = astRoot.type === "object" ? astRoot.properties[0] : void 0;
+            if (property && property.keyNode.value === "$schema") {
+              var node = property.valueNode || property;
+              var range = Range.create(textDocument.positionAt(node.offset), textDocument.positionAt(node.offset + node.length));
+              addProblem(Diagnostic.create(range, schema2.errors[0], schemaRequest, ErrorCode.SchemaResolveError));
+            } else {
+              var range = Range.create(textDocument.positionAt(astRoot.offset), textDocument.positionAt(astRoot.offset + 1));
+              addProblem(Diagnostic.create(range, schema2.errors[0], schemaRequest, ErrorCode.SchemaResolveError));
+            }
+          } else if (schemaValidation) {
+            var semanticErrors = jsonDocument.validate(textDocument, schema2.schema, schemaValidation);
+            if (semanticErrors) {
+              semanticErrors.forEach(addProblem);
+            }
+          }
+          if (schemaAllowsComments(schema2.schema)) {
+            commentSeverity = void 0;
+          }
+          if (schemaAllowsTrailingCommas(schema2.schema)) {
+            trailingCommaSeverity = void 0;
+          }
+        }
+        for (var _i = 0, _a = jsonDocument.syntaxErrors; _i < _a.length; _i++) {
+          var p = _a[_i];
+          if (p.code === ErrorCode.TrailingComma) {
+            if (typeof trailingCommaSeverity !== "number") {
+              continue;
+            }
+            p.severity = trailingCommaSeverity;
+          }
+          addProblem(p);
+        }
+        if (typeof commentSeverity === "number") {
+          var message_1 = localize4("InvalidCommentToken", "Comments are not permitted in JSON.");
+          jsonDocument.comments.forEach(function(c) {
+            addProblem(Diagnostic.create(c, message_1, commentSeverity, ErrorCode.CommentNotPermitted));
+          });
+        }
+        return diagnostics;
+      };
+      if (schema) {
+        var id = schema.id || "schemaservice://untitled/" + idCounter++;
+        var handle = this.jsonSchemaService.registerExternalSchema(id, [], schema);
+        return handle.getResolvedSchema().then(function(resolvedSchema) {
+          return getDiagnostics(resolvedSchema);
         });
       }
-      return diagnostics;
-    };
-    if (schema) {
-      var id = schema.id || "schemaservice://untitled/" + idCounter++;
-      var handle = this.jsonSchemaService.registerExternalSchema(id, [], schema);
-      return handle.getResolvedSchema().then(function(resolvedSchema) {
-        return getDiagnostics(resolvedSchema);
+      return this.jsonSchemaService.getSchemaForResource(textDocument.uri, jsonDocument).then(function(schema2) {
+        return getDiagnostics(schema2);
       });
-    }
-    return this.jsonSchemaService.getSchemaForResource(textDocument.uri, jsonDocument).then(function(schema2) {
-      return getDiagnostics(schema2);
-    });
-  };
-  JSONValidation2.prototype.getLanguageStatus = function(textDocument, jsonDocument) {
-    return { schemas: this.jsonSchemaService.getSchemaURIsForResource(textDocument.uri, jsonDocument) };
-  };
-  return JSONValidation2;
-}();
+    };
+    JSONValidation2.prototype.getLanguageStatus = function(textDocument, jsonDocument) {
+      return { schemas: this.jsonSchemaService.getSchemaURIsForResource(textDocument.uri, jsonDocument) };
+    };
+    return JSONValidation2;
+  }()
+);
 var idCounter = 0;
 function schemaAllowsComments(schemaRef) {
   if (schemaRef && typeof schemaRef === "object") {
@@ -22620,264 +23723,267 @@ function colorFromHex(text) {
 }
 
 // node_modules/vscode-json-languageservice/lib/esm/services/jsonDocumentSymbols.js
-var JSONDocumentSymbols = function() {
-  function JSONDocumentSymbols2(schemaService) {
-    this.schemaService = schemaService;
-  }
-  JSONDocumentSymbols2.prototype.findDocumentSymbols = function(document, doc, context) {
-    var _this = this;
-    if (context === void 0) {
-      context = { resultLimit: Number.MAX_VALUE };
+var JSONDocumentSymbols = (
+  /** @class */
+  function() {
+    function JSONDocumentSymbols2(schemaService) {
+      this.schemaService = schemaService;
     }
-    var root = doc.root;
-    if (!root) {
-      return [];
-    }
-    var limit = context.resultLimit || Number.MAX_VALUE;
-    var resourceString = document.uri;
-    if (resourceString === "vscode://defaultsettings/keybindings.json" || endsWith(resourceString.toLowerCase(), "/user/keybindings.json")) {
-      if (root.type === "array") {
-        var result_1 = [];
-        for (var _i = 0, _a = root.items; _i < _a.length; _i++) {
-          var item = _a[_i];
-          if (item.type === "object") {
-            for (var _b = 0, _c = item.properties; _b < _c.length; _b++) {
-              var property = _c[_b];
-              if (property.keyNode.value === "key" && property.valueNode) {
-                var location = Location.create(document.uri, getRange(document, item));
-                result_1.push({ name: getNodeValue3(property.valueNode), kind: SymbolKind.Function, location });
-                limit--;
-                if (limit <= 0) {
-                  if (context && context.onResultLimitExceeded) {
-                    context.onResultLimitExceeded(resourceString);
+    JSONDocumentSymbols2.prototype.findDocumentSymbols = function(document, doc, context) {
+      var _this = this;
+      if (context === void 0) {
+        context = { resultLimit: Number.MAX_VALUE };
+      }
+      var root = doc.root;
+      if (!root) {
+        return [];
+      }
+      var limit = context.resultLimit || Number.MAX_VALUE;
+      var resourceString = document.uri;
+      if (resourceString === "vscode://defaultsettings/keybindings.json" || endsWith(resourceString.toLowerCase(), "/user/keybindings.json")) {
+        if (root.type === "array") {
+          var result_1 = [];
+          for (var _i = 0, _a = root.items; _i < _a.length; _i++) {
+            var item = _a[_i];
+            if (item.type === "object") {
+              for (var _b = 0, _c = item.properties; _b < _c.length; _b++) {
+                var property = _c[_b];
+                if (property.keyNode.value === "key" && property.valueNode) {
+                  var location = Location.create(document.uri, getRange(document, item));
+                  result_1.push({ name: getNodeValue3(property.valueNode), kind: SymbolKind.Function, location });
+                  limit--;
+                  if (limit <= 0) {
+                    if (context && context.onResultLimitExceeded) {
+                      context.onResultLimitExceeded(resourceString);
+                    }
+                    return result_1;
                   }
-                  return result_1;
                 }
               }
             }
           }
+          return result_1;
         }
-        return result_1;
       }
-    }
-    var toVisit = [
-      { node: root, containerName: "" }
-    ];
-    var nextToVisit = 0;
-    var limitExceeded = false;
-    var result = [];
-    var collectOutlineEntries = function(node, containerName) {
-      if (node.type === "array") {
-        node.items.forEach(function(node2) {
-          if (node2) {
-            toVisit.push({ node: node2, containerName });
-          }
-        });
-      } else if (node.type === "object") {
-        node.properties.forEach(function(property2) {
-          var valueNode = property2.valueNode;
-          if (valueNode) {
-            if (limit > 0) {
-              limit--;
-              var location2 = Location.create(document.uri, getRange(document, property2));
-              var childContainerName = containerName ? containerName + "." + property2.keyNode.value : property2.keyNode.value;
-              result.push({ name: _this.getKeyLabel(property2), kind: _this.getSymbolKind(valueNode.type), location: location2, containerName });
-              toVisit.push({ node: valueNode, containerName: childContainerName });
-            } else {
-              limitExceeded = true;
-            }
-          }
-        });
-      }
-    };
-    while (nextToVisit < toVisit.length) {
-      var next = toVisit[nextToVisit++];
-      collectOutlineEntries(next.node, next.containerName);
-    }
-    if (limitExceeded && context && context.onResultLimitExceeded) {
-      context.onResultLimitExceeded(resourceString);
-    }
-    return result;
-  };
-  JSONDocumentSymbols2.prototype.findDocumentSymbols2 = function(document, doc, context) {
-    var _this = this;
-    if (context === void 0) {
-      context = { resultLimit: Number.MAX_VALUE };
-    }
-    var root = doc.root;
-    if (!root) {
-      return [];
-    }
-    var limit = context.resultLimit || Number.MAX_VALUE;
-    var resourceString = document.uri;
-    if (resourceString === "vscode://defaultsettings/keybindings.json" || endsWith(resourceString.toLowerCase(), "/user/keybindings.json")) {
-      if (root.type === "array") {
-        var result_2 = [];
-        for (var _i = 0, _a = root.items; _i < _a.length; _i++) {
-          var item = _a[_i];
-          if (item.type === "object") {
-            for (var _b = 0, _c = item.properties; _b < _c.length; _b++) {
-              var property = _c[_b];
-              if (property.keyNode.value === "key" && property.valueNode) {
-                var range = getRange(document, item);
-                var selectionRange = getRange(document, property.keyNode);
-                result_2.push({ name: getNodeValue3(property.valueNode), kind: SymbolKind.Function, range, selectionRange });
-                limit--;
-                if (limit <= 0) {
-                  if (context && context.onResultLimitExceeded) {
-                    context.onResultLimitExceeded(resourceString);
-                  }
-                  return result_2;
-                }
-              }
-            }
-          }
-        }
-        return result_2;
-      }
-    }
-    var result = [];
-    var toVisit = [
-      { node: root, result }
-    ];
-    var nextToVisit = 0;
-    var limitExceeded = false;
-    var collectOutlineEntries = function(node, result2) {
-      if (node.type === "array") {
-        node.items.forEach(function(node2, index) {
-          if (node2) {
-            if (limit > 0) {
-              limit--;
-              var range2 = getRange(document, node2);
-              var selectionRange2 = range2;
-              var name = String(index);
-              var symbol = { name, kind: _this.getSymbolKind(node2.type), range: range2, selectionRange: selectionRange2, children: [] };
-              result2.push(symbol);
-              toVisit.push({ result: symbol.children, node: node2 });
-            } else {
-              limitExceeded = true;
-            }
-          }
-        });
-      } else if (node.type === "object") {
-        node.properties.forEach(function(property2) {
-          var valueNode = property2.valueNode;
-          if (valueNode) {
-            if (limit > 0) {
-              limit--;
-              var range2 = getRange(document, property2);
-              var selectionRange2 = getRange(document, property2.keyNode);
-              var children = [];
-              var symbol = { name: _this.getKeyLabel(property2), kind: _this.getSymbolKind(valueNode.type), range: range2, selectionRange: selectionRange2, children, detail: _this.getDetail(valueNode) };
-              result2.push(symbol);
-              toVisit.push({ result: children, node: valueNode });
-            } else {
-              limitExceeded = true;
-            }
-          }
-        });
-      }
-    };
-    while (nextToVisit < toVisit.length) {
-      var next = toVisit[nextToVisit++];
-      collectOutlineEntries(next.node, next.result);
-    }
-    if (limitExceeded && context && context.onResultLimitExceeded) {
-      context.onResultLimitExceeded(resourceString);
-    }
-    return result;
-  };
-  JSONDocumentSymbols2.prototype.getSymbolKind = function(nodeType) {
-    switch (nodeType) {
-      case "object":
-        return SymbolKind.Module;
-      case "string":
-        return SymbolKind.String;
-      case "number":
-        return SymbolKind.Number;
-      case "array":
-        return SymbolKind.Array;
-      case "boolean":
-        return SymbolKind.Boolean;
-      default:
-        return SymbolKind.Variable;
-    }
-  };
-  JSONDocumentSymbols2.prototype.getKeyLabel = function(property) {
-    var name = property.keyNode.value;
-    if (name) {
-      name = name.replace(/[\n]/g, "\u21B5");
-    }
-    if (name && name.trim()) {
-      return name;
-    }
-    return '"'.concat(name, '"');
-  };
-  JSONDocumentSymbols2.prototype.getDetail = function(node) {
-    if (!node) {
-      return void 0;
-    }
-    if (node.type === "boolean" || node.type === "number" || node.type === "null" || node.type === "string") {
-      return String(node.value);
-    } else {
-      if (node.type === "array") {
-        return node.children.length ? void 0 : "[]";
-      } else if (node.type === "object") {
-        return node.children.length ? void 0 : "{}";
-      }
-    }
-    return void 0;
-  };
-  JSONDocumentSymbols2.prototype.findDocumentColors = function(document, doc, context) {
-    return this.schemaService.getSchemaForResource(document.uri, doc).then(function(schema) {
+      var toVisit = [
+        { node: root, containerName: "" }
+      ];
+      var nextToVisit = 0;
+      var limitExceeded = false;
       var result = [];
-      if (schema) {
-        var limit = context && typeof context.resultLimit === "number" ? context.resultLimit : Number.MAX_VALUE;
-        var matchingSchemas = doc.getMatchingSchemas(schema.schema);
-        var visitedNode = {};
-        for (var _i = 0, matchingSchemas_1 = matchingSchemas; _i < matchingSchemas_1.length; _i++) {
-          var s = matchingSchemas_1[_i];
-          if (!s.inverted && s.schema && (s.schema.format === "color" || s.schema.format === "color-hex") && s.node && s.node.type === "string") {
-            var nodeId = String(s.node.offset);
-            if (!visitedNode[nodeId]) {
-              var color = colorFromHex(getNodeValue3(s.node));
-              if (color) {
-                var range = getRange(document, s.node);
-                result.push({ color, range });
-              }
-              visitedNode[nodeId] = true;
-              limit--;
-              if (limit <= 0) {
-                if (context && context.onResultLimitExceeded) {
-                  context.onResultLimitExceeded(document.uri);
-                }
-                return result;
+      var collectOutlineEntries = function(node, containerName) {
+        if (node.type === "array") {
+          node.items.forEach(function(node2) {
+            if (node2) {
+              toVisit.push({ node: node2, containerName });
+            }
+          });
+        } else if (node.type === "object") {
+          node.properties.forEach(function(property2) {
+            var valueNode = property2.valueNode;
+            if (valueNode) {
+              if (limit > 0) {
+                limit--;
+                var location2 = Location.create(document.uri, getRange(document, property2));
+                var childContainerName = containerName ? containerName + "." + property2.keyNode.value : property2.keyNode.value;
+                result.push({ name: _this.getKeyLabel(property2), kind: _this.getSymbolKind(valueNode.type), location: location2, containerName });
+                toVisit.push({ node: valueNode, containerName: childContainerName });
+              } else {
+                limitExceeded = true;
               }
             }
-          }
+          });
         }
+      };
+      while (nextToVisit < toVisit.length) {
+        var next = toVisit[nextToVisit++];
+        collectOutlineEntries(next.node, next.containerName);
+      }
+      if (limitExceeded && context && context.onResultLimitExceeded) {
+        context.onResultLimitExceeded(resourceString);
       }
       return result;
-    });
-  };
-  JSONDocumentSymbols2.prototype.getColorPresentations = function(document, doc, color, range) {
-    var result = [];
-    var red256 = Math.round(color.red * 255), green256 = Math.round(color.green * 255), blue256 = Math.round(color.blue * 255);
-    function toTwoDigitHex(n) {
-      var r = n.toString(16);
-      return r.length !== 2 ? "0" + r : r;
-    }
-    var label;
-    if (color.alpha === 1) {
-      label = "#".concat(toTwoDigitHex(red256)).concat(toTwoDigitHex(green256)).concat(toTwoDigitHex(blue256));
-    } else {
-      label = "#".concat(toTwoDigitHex(red256)).concat(toTwoDigitHex(green256)).concat(toTwoDigitHex(blue256)).concat(toTwoDigitHex(Math.round(color.alpha * 255)));
-    }
-    result.push({ label, textEdit: TextEdit.replace(range, JSON.stringify(label)) });
-    return result;
-  };
-  return JSONDocumentSymbols2;
-}();
+    };
+    JSONDocumentSymbols2.prototype.findDocumentSymbols2 = function(document, doc, context) {
+      var _this = this;
+      if (context === void 0) {
+        context = { resultLimit: Number.MAX_VALUE };
+      }
+      var root = doc.root;
+      if (!root) {
+        return [];
+      }
+      var limit = context.resultLimit || Number.MAX_VALUE;
+      var resourceString = document.uri;
+      if (resourceString === "vscode://defaultsettings/keybindings.json" || endsWith(resourceString.toLowerCase(), "/user/keybindings.json")) {
+        if (root.type === "array") {
+          var result_2 = [];
+          for (var _i = 0, _a = root.items; _i < _a.length; _i++) {
+            var item = _a[_i];
+            if (item.type === "object") {
+              for (var _b = 0, _c = item.properties; _b < _c.length; _b++) {
+                var property = _c[_b];
+                if (property.keyNode.value === "key" && property.valueNode) {
+                  var range = getRange(document, item);
+                  var selectionRange = getRange(document, property.keyNode);
+                  result_2.push({ name: getNodeValue3(property.valueNode), kind: SymbolKind.Function, range, selectionRange });
+                  limit--;
+                  if (limit <= 0) {
+                    if (context && context.onResultLimitExceeded) {
+                      context.onResultLimitExceeded(resourceString);
+                    }
+                    return result_2;
+                  }
+                }
+              }
+            }
+          }
+          return result_2;
+        }
+      }
+      var result = [];
+      var toVisit = [
+        { node: root, result }
+      ];
+      var nextToVisit = 0;
+      var limitExceeded = false;
+      var collectOutlineEntries = function(node, result2) {
+        if (node.type === "array") {
+          node.items.forEach(function(node2, index) {
+            if (node2) {
+              if (limit > 0) {
+                limit--;
+                var range2 = getRange(document, node2);
+                var selectionRange2 = range2;
+                var name = String(index);
+                var symbol = { name, kind: _this.getSymbolKind(node2.type), range: range2, selectionRange: selectionRange2, children: [] };
+                result2.push(symbol);
+                toVisit.push({ result: symbol.children, node: node2 });
+              } else {
+                limitExceeded = true;
+              }
+            }
+          });
+        } else if (node.type === "object") {
+          node.properties.forEach(function(property2) {
+            var valueNode = property2.valueNode;
+            if (valueNode) {
+              if (limit > 0) {
+                limit--;
+                var range2 = getRange(document, property2);
+                var selectionRange2 = getRange(document, property2.keyNode);
+                var children = [];
+                var symbol = { name: _this.getKeyLabel(property2), kind: _this.getSymbolKind(valueNode.type), range: range2, selectionRange: selectionRange2, children, detail: _this.getDetail(valueNode) };
+                result2.push(symbol);
+                toVisit.push({ result: children, node: valueNode });
+              } else {
+                limitExceeded = true;
+              }
+            }
+          });
+        }
+      };
+      while (nextToVisit < toVisit.length) {
+        var next = toVisit[nextToVisit++];
+        collectOutlineEntries(next.node, next.result);
+      }
+      if (limitExceeded && context && context.onResultLimitExceeded) {
+        context.onResultLimitExceeded(resourceString);
+      }
+      return result;
+    };
+    JSONDocumentSymbols2.prototype.getSymbolKind = function(nodeType) {
+      switch (nodeType) {
+        case "object":
+          return SymbolKind.Module;
+        case "string":
+          return SymbolKind.String;
+        case "number":
+          return SymbolKind.Number;
+        case "array":
+          return SymbolKind.Array;
+        case "boolean":
+          return SymbolKind.Boolean;
+        default:
+          return SymbolKind.Variable;
+      }
+    };
+    JSONDocumentSymbols2.prototype.getKeyLabel = function(property) {
+      var name = property.keyNode.value;
+      if (name) {
+        name = name.replace(/[\n]/g, "\u21B5");
+      }
+      if (name && name.trim()) {
+        return name;
+      }
+      return '"'.concat(name, '"');
+    };
+    JSONDocumentSymbols2.prototype.getDetail = function(node) {
+      if (!node) {
+        return void 0;
+      }
+      if (node.type === "boolean" || node.type === "number" || node.type === "null" || node.type === "string") {
+        return String(node.value);
+      } else {
+        if (node.type === "array") {
+          return node.children.length ? void 0 : "[]";
+        } else if (node.type === "object") {
+          return node.children.length ? void 0 : "{}";
+        }
+      }
+      return void 0;
+    };
+    JSONDocumentSymbols2.prototype.findDocumentColors = function(document, doc, context) {
+      return this.schemaService.getSchemaForResource(document.uri, doc).then(function(schema) {
+        var result = [];
+        if (schema) {
+          var limit = context && typeof context.resultLimit === "number" ? context.resultLimit : Number.MAX_VALUE;
+          var matchingSchemas = doc.getMatchingSchemas(schema.schema);
+          var visitedNode = {};
+          for (var _i = 0, matchingSchemas_1 = matchingSchemas; _i < matchingSchemas_1.length; _i++) {
+            var s = matchingSchemas_1[_i];
+            if (!s.inverted && s.schema && (s.schema.format === "color" || s.schema.format === "color-hex") && s.node && s.node.type === "string") {
+              var nodeId = String(s.node.offset);
+              if (!visitedNode[nodeId]) {
+                var color = colorFromHex(getNodeValue3(s.node));
+                if (color) {
+                  var range = getRange(document, s.node);
+                  result.push({ color, range });
+                }
+                visitedNode[nodeId] = true;
+                limit--;
+                if (limit <= 0) {
+                  if (context && context.onResultLimitExceeded) {
+                    context.onResultLimitExceeded(document.uri);
+                  }
+                  return result;
+                }
+              }
+            }
+          }
+        }
+        return result;
+      });
+    };
+    JSONDocumentSymbols2.prototype.getColorPresentations = function(document, doc, color, range) {
+      var result = [];
+      var red256 = Math.round(color.red * 255), green256 = Math.round(color.green * 255), blue256 = Math.round(color.blue * 255);
+      function toTwoDigitHex(n) {
+        var r = n.toString(16);
+        return r.length !== 2 ? "0" + r : r;
+      }
+      var label;
+      if (color.alpha === 1) {
+        label = "#".concat(toTwoDigitHex(red256)).concat(toTwoDigitHex(green256)).concat(toTwoDigitHex(blue256));
+      } else {
+        label = "#".concat(toTwoDigitHex(red256)).concat(toTwoDigitHex(green256)).concat(toTwoDigitHex(blue256)).concat(toTwoDigitHex(Math.round(color.alpha * 255)));
+      }
+      result.push({ label, textEdit: TextEdit.replace(range, JSON.stringify(label)) });
+      return result;
+    };
+    return JSONDocumentSymbols2;
+  }()
+);
 function getRange(document, node) {
   return Range.create(document.positionAt(node.offset), document.positionAt(node.offset + node.length));
 }
@@ -22887,9 +23993,11 @@ var localize5 = loadMessageBundle();
 var schemaContributions = {
   schemaAssociations: [],
   schemas: {
+    // refer to the latest schema
     "http://json-schema.org/schema#": {
       $ref: "http://json-schema.org/draft-07/schema#"
     },
+    // bundle the schema-schema to include (localized) descriptions
     "http://json-schema.org/draft-04/schema#": {
       "$schema": "http://json-schema.org/draft-04/schema#",
       "definitions": {
@@ -23620,7 +24728,7 @@ LIB = (() => {
     }
     var l = "", p = "/", g = /^(([^:/?#]+?):)?(\/\/([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?/, d = function() {
       function t3(t4, e3, r3, n2, o2, i2) {
-        void 0 === i2 && (i2 = false), "object" == typeof t4 ? (this.scheme = t4.scheme || l, this.authority = t4.authority || l, this.path = t4.path || l, this.query = t4.query || l, this.fragment = t4.fragment || l) : (this.scheme = function(t5, e4) {
+        void 0 === i2 && (i2 = false), "object" == typeof t4 ? (this.scheme = t4.scheme || l, this.authority = t4.authority || l, this.path = t4.path || l, this.query = t4.query || l, this.fragment = t4.fragment || l) : (this.scheme = /* @__PURE__ */ function(t5, e4) {
           return t5 || e4 ? t5 : "file";
         }(t4, i2), this.authority = e3 || l, this.path = function(t5, e4) {
           switch (t5) {
@@ -23876,554 +24984,569 @@ function createRegex(glob, opts) {
 var localize6 = loadMessageBundle();
 var BANG = "!";
 var PATH_SEP = "/";
-var FilePatternAssociation = function() {
-  function FilePatternAssociation2(pattern, uris) {
-    this.globWrappers = [];
-    try {
-      for (var _i = 0, pattern_1 = pattern; _i < pattern_1.length; _i++) {
-        var patternString = pattern_1[_i];
-        var include = patternString[0] !== BANG;
-        if (!include) {
-          patternString = patternString.substring(1);
-        }
-        if (patternString.length > 0) {
-          if (patternString[0] === PATH_SEP) {
+var FilePatternAssociation = (
+  /** @class */
+  function() {
+    function FilePatternAssociation2(pattern, uris) {
+      this.globWrappers = [];
+      try {
+        for (var _i = 0, pattern_1 = pattern; _i < pattern_1.length; _i++) {
+          var patternString = pattern_1[_i];
+          var include = patternString[0] !== BANG;
+          if (!include) {
             patternString = patternString.substring(1);
           }
-          this.globWrappers.push({
-            regexp: createRegex("**/" + patternString, { extended: true, globstar: true }),
-            include
+          if (patternString.length > 0) {
+            if (patternString[0] === PATH_SEP) {
+              patternString = patternString.substring(1);
+            }
+            this.globWrappers.push({
+              regexp: createRegex("**/" + patternString, { extended: true, globstar: true }),
+              include
+            });
+          }
+        }
+        ;
+        this.uris = uris;
+      } catch (e) {
+        this.globWrappers.length = 0;
+        this.uris = [];
+      }
+    }
+    FilePatternAssociation2.prototype.matchesPattern = function(fileName) {
+      var match = false;
+      for (var _i = 0, _a = this.globWrappers; _i < _a.length; _i++) {
+        var _b = _a[_i], regexp = _b.regexp, include = _b.include;
+        if (regexp.test(fileName)) {
+          match = include;
+        }
+      }
+      return match;
+    };
+    FilePatternAssociation2.prototype.getURIs = function() {
+      return this.uris;
+    };
+    return FilePatternAssociation2;
+  }()
+);
+var SchemaHandle = (
+  /** @class */
+  function() {
+    function SchemaHandle2(service, uri, unresolvedSchemaContent) {
+      this.service = service;
+      this.uri = uri;
+      this.dependencies = /* @__PURE__ */ new Set();
+      this.anchors = void 0;
+      if (unresolvedSchemaContent) {
+        this.unresolvedSchema = this.service.promise.resolve(new UnresolvedSchema(unresolvedSchemaContent));
+      }
+    }
+    SchemaHandle2.prototype.getUnresolvedSchema = function() {
+      if (!this.unresolvedSchema) {
+        this.unresolvedSchema = this.service.loadSchema(this.uri);
+      }
+      return this.unresolvedSchema;
+    };
+    SchemaHandle2.prototype.getResolvedSchema = function() {
+      var _this = this;
+      if (!this.resolvedSchema) {
+        this.resolvedSchema = this.getUnresolvedSchema().then(function(unresolved) {
+          return _this.service.resolveSchemaContent(unresolved, _this);
+        });
+      }
+      return this.resolvedSchema;
+    };
+    SchemaHandle2.prototype.clearSchema = function() {
+      var hasChanges = !!this.unresolvedSchema;
+      this.resolvedSchema = void 0;
+      this.unresolvedSchema = void 0;
+      this.dependencies.clear();
+      this.anchors = void 0;
+      return hasChanges;
+    };
+    return SchemaHandle2;
+  }()
+);
+var UnresolvedSchema = (
+  /** @class */
+  /* @__PURE__ */ function() {
+    function UnresolvedSchema2(schema, errors) {
+      if (errors === void 0) {
+        errors = [];
+      }
+      this.schema = schema;
+      this.errors = errors;
+    }
+    return UnresolvedSchema2;
+  }()
+);
+var ResolvedSchema = (
+  /** @class */
+  function() {
+    function ResolvedSchema2(schema, errors) {
+      if (errors === void 0) {
+        errors = [];
+      }
+      this.schema = schema;
+      this.errors = errors;
+    }
+    ResolvedSchema2.prototype.getSection = function(path) {
+      var schemaRef = this.getSectionRecursive(path, this.schema);
+      if (schemaRef) {
+        return asSchema(schemaRef);
+      }
+      return void 0;
+    };
+    ResolvedSchema2.prototype.getSectionRecursive = function(path, schema) {
+      if (!schema || typeof schema === "boolean" || path.length === 0) {
+        return schema;
+      }
+      var next = path.shift();
+      if (schema.properties && typeof schema.properties[next]) {
+        return this.getSectionRecursive(path, schema.properties[next]);
+      } else if (schema.patternProperties) {
+        for (var _i = 0, _a = Object.keys(schema.patternProperties); _i < _a.length; _i++) {
+          var pattern = _a[_i];
+          var regex = extendedRegExp(pattern);
+          if (regex === null || regex === void 0 ? void 0 : regex.test(next)) {
+            return this.getSectionRecursive(path, schema.patternProperties[pattern]);
+          }
+        }
+      } else if (typeof schema.additionalProperties === "object") {
+        return this.getSectionRecursive(path, schema.additionalProperties);
+      } else if (next.match("[0-9]+")) {
+        if (Array.isArray(schema.items)) {
+          var index = parseInt(next, 10);
+          if (!isNaN(index) && schema.items[index]) {
+            return this.getSectionRecursive(path, schema.items[index]);
+          }
+        } else if (schema.items) {
+          return this.getSectionRecursive(path, schema.items);
+        }
+      }
+      return void 0;
+    };
+    return ResolvedSchema2;
+  }()
+);
+var JSONSchemaService = (
+  /** @class */
+  function() {
+    function JSONSchemaService2(requestService, contextService, promiseConstructor) {
+      this.contextService = contextService;
+      this.requestService = requestService;
+      this.promiseConstructor = promiseConstructor || Promise;
+      this.callOnDispose = [];
+      this.contributionSchemas = {};
+      this.contributionAssociations = [];
+      this.schemasById = {};
+      this.filePatternAssociations = [];
+      this.registeredSchemasIds = {};
+    }
+    JSONSchemaService2.prototype.getRegisteredSchemaIds = function(filter) {
+      return Object.keys(this.registeredSchemasIds).filter(function(id) {
+        var scheme = URI.parse(id).scheme;
+        return scheme !== "schemaservice" && (!filter || filter(scheme));
+      });
+    };
+    Object.defineProperty(JSONSchemaService2.prototype, "promise", {
+      get: function() {
+        return this.promiseConstructor;
+      },
+      enumerable: false,
+      configurable: true
+    });
+    JSONSchemaService2.prototype.dispose = function() {
+      while (this.callOnDispose.length > 0) {
+        this.callOnDispose.pop()();
+      }
+    };
+    JSONSchemaService2.prototype.onResourceChange = function(uri) {
+      var _this = this;
+      this.cachedSchemaForResource = void 0;
+      var hasChanges = false;
+      uri = normalizeId(uri);
+      var toWalk = [uri];
+      var all = Object.keys(this.schemasById).map(function(key) {
+        return _this.schemasById[key];
+      });
+      while (toWalk.length) {
+        var curr = toWalk.pop();
+        for (var i = 0; i < all.length; i++) {
+          var handle = all[i];
+          if (handle && (handle.uri === curr || handle.dependencies.has(curr))) {
+            if (handle.uri !== curr) {
+              toWalk.push(handle.uri);
+            }
+            if (handle.clearSchema()) {
+              hasChanges = true;
+            }
+            all[i] = void 0;
+          }
+        }
+      }
+      return hasChanges;
+    };
+    JSONSchemaService2.prototype.setSchemaContributions = function(schemaContributions2) {
+      if (schemaContributions2.schemas) {
+        var schemas = schemaContributions2.schemas;
+        for (var id in schemas) {
+          var normalizedId = normalizeId(id);
+          this.contributionSchemas[normalizedId] = this.addSchemaHandle(normalizedId, schemas[id]);
+        }
+      }
+      if (Array.isArray(schemaContributions2.schemaAssociations)) {
+        var schemaAssociations = schemaContributions2.schemaAssociations;
+        for (var _i = 0, schemaAssociations_1 = schemaAssociations; _i < schemaAssociations_1.length; _i++) {
+          var schemaAssociation = schemaAssociations_1[_i];
+          var uris = schemaAssociation.uris.map(normalizeId);
+          var association = this.addFilePatternAssociation(schemaAssociation.pattern, uris);
+          this.contributionAssociations.push(association);
+        }
+      }
+    };
+    JSONSchemaService2.prototype.addSchemaHandle = function(id, unresolvedSchemaContent) {
+      var schemaHandle = new SchemaHandle(this, id, unresolvedSchemaContent);
+      this.schemasById[id] = schemaHandle;
+      return schemaHandle;
+    };
+    JSONSchemaService2.prototype.getOrAddSchemaHandle = function(id, unresolvedSchemaContent) {
+      return this.schemasById[id] || this.addSchemaHandle(id, unresolvedSchemaContent);
+    };
+    JSONSchemaService2.prototype.addFilePatternAssociation = function(pattern, uris) {
+      var fpa = new FilePatternAssociation(pattern, uris);
+      this.filePatternAssociations.push(fpa);
+      return fpa;
+    };
+    JSONSchemaService2.prototype.registerExternalSchema = function(uri, filePatterns, unresolvedSchemaContent) {
+      var id = normalizeId(uri);
+      this.registeredSchemasIds[id] = true;
+      this.cachedSchemaForResource = void 0;
+      if (filePatterns) {
+        this.addFilePatternAssociation(filePatterns, [id]);
+      }
+      return unresolvedSchemaContent ? this.addSchemaHandle(id, unresolvedSchemaContent) : this.getOrAddSchemaHandle(id);
+    };
+    JSONSchemaService2.prototype.clearExternalSchemas = function() {
+      this.schemasById = {};
+      this.filePatternAssociations = [];
+      this.registeredSchemasIds = {};
+      this.cachedSchemaForResource = void 0;
+      for (var id in this.contributionSchemas) {
+        this.schemasById[id] = this.contributionSchemas[id];
+        this.registeredSchemasIds[id] = true;
+      }
+      for (var _i = 0, _a = this.contributionAssociations; _i < _a.length; _i++) {
+        var contributionAssociation = _a[_i];
+        this.filePatternAssociations.push(contributionAssociation);
+      }
+    };
+    JSONSchemaService2.prototype.getResolvedSchema = function(schemaId) {
+      var id = normalizeId(schemaId);
+      var schemaHandle = this.schemasById[id];
+      if (schemaHandle) {
+        return schemaHandle.getResolvedSchema();
+      }
+      return this.promise.resolve(void 0);
+    };
+    JSONSchemaService2.prototype.loadSchema = function(url) {
+      if (!this.requestService) {
+        var errorMessage = localize6("json.schema.norequestservice", "Unable to load schema from '{0}'. No schema request service available", toDisplayString(url));
+        return this.promise.resolve(new UnresolvedSchema({}, [errorMessage]));
+      }
+      return this.requestService(url).then(function(content) {
+        if (!content) {
+          var errorMessage2 = localize6("json.schema.nocontent", "Unable to load schema from '{0}': No content.", toDisplayString(url));
+          return new UnresolvedSchema({}, [errorMessage2]);
+        }
+        var schemaContent = {};
+        var jsonErrors = [];
+        schemaContent = parse2(content, jsonErrors);
+        var errors = jsonErrors.length ? [localize6("json.schema.invalidFormat", "Unable to parse content from '{0}': Parse error at offset {1}.", toDisplayString(url), jsonErrors[0].offset)] : [];
+        return new UnresolvedSchema(schemaContent, errors);
+      }, function(error) {
+        var errorMessage2 = error.toString();
+        var errorSplit = error.toString().split("Error: ");
+        if (errorSplit.length > 1) {
+          errorMessage2 = errorSplit[1];
+        }
+        if (endsWith(errorMessage2, ".")) {
+          errorMessage2 = errorMessage2.substr(0, errorMessage2.length - 1);
+        }
+        return new UnresolvedSchema({}, [localize6("json.schema.nocontent", "Unable to load schema from '{0}': {1}.", toDisplayString(url), errorMessage2)]);
+      });
+    };
+    JSONSchemaService2.prototype.resolveSchemaContent = function(schemaToResolve, handle) {
+      var _this = this;
+      var resolveErrors = schemaToResolve.errors.slice(0);
+      var schema = schemaToResolve.schema;
+      if (schema.$schema) {
+        var id = normalizeId(schema.$schema);
+        if (id === "http://json-schema.org/draft-03/schema") {
+          return this.promise.resolve(new ResolvedSchema({}, [localize6("json.schema.draft03.notsupported", "Draft-03 schemas are not supported.")]));
+        } else if (id === "https://json-schema.org/draft/2019-09/schema") {
+          resolveErrors.push(localize6("json.schema.draft201909.notsupported", "Draft 2019-09 schemas are not yet fully supported."));
+        } else if (id === "https://json-schema.org/draft/2020-12/schema") {
+          resolveErrors.push(localize6("json.schema.draft202012.notsupported", "Draft 2020-12 schemas are not yet fully supported."));
+        }
+      }
+      var contextService = this.contextService;
+      var findSectionByJSONPointer = function(schema2, path) {
+        path = decodeURIComponent(path);
+        var current = schema2;
+        if (path[0] === "/") {
+          path = path.substring(1);
+        }
+        path.split("/").some(function(part) {
+          part = part.replace(/~1/g, "/").replace(/~0/g, "~");
+          current = current[part];
+          return !current;
+        });
+        return current;
+      };
+      var findSchemaById = function(schema2, handle2, id2) {
+        if (!handle2.anchors) {
+          handle2.anchors = collectAnchors(schema2);
+        }
+        return handle2.anchors.get(id2);
+      };
+      var merge = function(target, section) {
+        for (var key in section) {
+          if (section.hasOwnProperty(key) && !target.hasOwnProperty(key) && key !== "id" && key !== "$id") {
+            target[key] = section[key];
+          }
+        }
+      };
+      var mergeRef = function(target, sourceRoot, sourceHandle, refSegment) {
+        var section;
+        if (refSegment === void 0 || refSegment.length === 0) {
+          section = sourceRoot;
+        } else if (refSegment.charAt(0) === "/") {
+          section = findSectionByJSONPointer(sourceRoot, refSegment);
+        } else {
+          section = findSchemaById(sourceRoot, sourceHandle, refSegment);
+        }
+        if (section) {
+          merge(target, section);
+        } else {
+          resolveErrors.push(localize6("json.schema.invalidid", "$ref '{0}' in '{1}' can not be resolved.", refSegment, sourceHandle.uri));
+        }
+      };
+      var resolveExternalLink = function(node, uri, refSegment, parentHandle) {
+        if (contextService && !/^[A-Za-z][A-Za-z0-9+\-.+]*:\/\/.*/.test(uri)) {
+          uri = contextService.resolveRelativePath(uri, parentHandle.uri);
+        }
+        uri = normalizeId(uri);
+        var referencedHandle = _this.getOrAddSchemaHandle(uri);
+        return referencedHandle.getUnresolvedSchema().then(function(unresolvedSchema) {
+          parentHandle.dependencies.add(uri);
+          if (unresolvedSchema.errors.length) {
+            var loc = refSegment ? uri + "#" + refSegment : uri;
+            resolveErrors.push(localize6("json.schema.problemloadingref", "Problems loading reference '{0}': {1}", loc, unresolvedSchema.errors[0]));
+          }
+          mergeRef(node, unresolvedSchema.schema, referencedHandle, refSegment);
+          return resolveRefs(node, unresolvedSchema.schema, referencedHandle);
+        });
+      };
+      var resolveRefs = function(node, parentSchema, parentHandle) {
+        var openPromises = [];
+        _this.traverseNodes(node, function(next) {
+          var seenRefs = /* @__PURE__ */ new Set();
+          while (next.$ref) {
+            var ref = next.$ref;
+            var segments = ref.split("#", 2);
+            delete next.$ref;
+            if (segments[0].length > 0) {
+              openPromises.push(resolveExternalLink(next, segments[0], segments[1], parentHandle));
+              return;
+            } else {
+              if (!seenRefs.has(ref)) {
+                var id2 = segments[1];
+                mergeRef(next, parentSchema, parentHandle, id2);
+                seenRefs.add(ref);
+              }
+            }
+          }
+        });
+        return _this.promise.all(openPromises);
+      };
+      var collectAnchors = function(root) {
+        var result = /* @__PURE__ */ new Map();
+        _this.traverseNodes(root, function(next) {
+          var id2 = next.$id || next.id;
+          if (typeof id2 === "string" && id2.charAt(0) === "#") {
+            var anchor = id2.substring(1);
+            if (result.has(anchor)) {
+              resolveErrors.push(localize6("json.schema.duplicateid", "Duplicate id declaration: '{0}'", id2));
+            } else {
+              result.set(anchor, next);
+            }
+          }
+        });
+        return result;
+      };
+      return resolveRefs(schema, schema, handle).then(function(_) {
+        return new ResolvedSchema(schema, resolveErrors);
+      });
+    };
+    JSONSchemaService2.prototype.traverseNodes = function(root, handle) {
+      if (!root || typeof root !== "object") {
+        return Promise.resolve(null);
+      }
+      var seen = /* @__PURE__ */ new Set();
+      var collectEntries = function() {
+        var entries = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+          entries[_i] = arguments[_i];
+        }
+        for (var _a = 0, entries_1 = entries; _a < entries_1.length; _a++) {
+          var entry = entries_1[_a];
+          if (typeof entry === "object") {
+            toWalk.push(entry);
+          }
+        }
+      };
+      var collectMapEntries = function() {
+        var maps = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+          maps[_i] = arguments[_i];
+        }
+        for (var _a = 0, maps_1 = maps; _a < maps_1.length; _a++) {
+          var map = maps_1[_a];
+          if (typeof map === "object") {
+            for (var k in map) {
+              var key = k;
+              var entry = map[key];
+              if (typeof entry === "object") {
+                toWalk.push(entry);
+              }
+            }
+          }
+        }
+      };
+      var collectArrayEntries = function() {
+        var arrays = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+          arrays[_i] = arguments[_i];
+        }
+        for (var _a = 0, arrays_1 = arrays; _a < arrays_1.length; _a++) {
+          var array = arrays_1[_a];
+          if (Array.isArray(array)) {
+            for (var _b = 0, array_1 = array; _b < array_1.length; _b++) {
+              var entry = array_1[_b];
+              if (typeof entry === "object") {
+                toWalk.push(entry);
+              }
+            }
+          }
+        }
+      };
+      var toWalk = [root];
+      var next = toWalk.pop();
+      while (next) {
+        if (!seen.has(next)) {
+          seen.add(next);
+          handle(next);
+          collectEntries(next.items, next.additionalItems, next.additionalProperties, next.not, next.contains, next.propertyNames, next.if, next.then, next.else);
+          collectMapEntries(next.definitions, next.properties, next.patternProperties, next.dependencies);
+          collectArrayEntries(next.anyOf, next.allOf, next.oneOf, next.items);
+        }
+        next = toWalk.pop();
+      }
+    };
+    ;
+    JSONSchemaService2.prototype.getSchemaFromProperty = function(resource, document) {
+      var _a, _b;
+      if (((_a = document.root) === null || _a === void 0 ? void 0 : _a.type) === "object") {
+        for (var _i = 0, _c = document.root.properties; _i < _c.length; _i++) {
+          var p = _c[_i];
+          if (p.keyNode.value === "$schema" && ((_b = p.valueNode) === null || _b === void 0 ? void 0 : _b.type) === "string") {
+            var schemaId = p.valueNode.value;
+            if (this.contextService && !/^\w[\w\d+.-]*:/.test(schemaId)) {
+              schemaId = this.contextService.resolveRelativePath(schemaId, resource);
+            }
+            return schemaId;
+          }
+        }
+      }
+      return void 0;
+    };
+    JSONSchemaService2.prototype.getAssociatedSchemas = function(resource) {
+      var seen = /* @__PURE__ */ Object.create(null);
+      var schemas = [];
+      var normalizedResource = normalizeResourceForMatching(resource);
+      for (var _i = 0, _a = this.filePatternAssociations; _i < _a.length; _i++) {
+        var entry = _a[_i];
+        if (entry.matchesPattern(normalizedResource)) {
+          for (var _b = 0, _c = entry.getURIs(); _b < _c.length; _b++) {
+            var schemaId = _c[_b];
+            if (!seen[schemaId]) {
+              schemas.push(schemaId);
+              seen[schemaId] = true;
+            }
+          }
+        }
+      }
+      return schemas;
+    };
+    JSONSchemaService2.prototype.getSchemaURIsForResource = function(resource, document) {
+      var schemeId = document && this.getSchemaFromProperty(resource, document);
+      if (schemeId) {
+        return [schemeId];
+      }
+      return this.getAssociatedSchemas(resource);
+    };
+    JSONSchemaService2.prototype.getSchemaForResource = function(resource, document) {
+      if (document) {
+        var schemeId = this.getSchemaFromProperty(resource, document);
+        if (schemeId) {
+          var id = normalizeId(schemeId);
+          return this.getOrAddSchemaHandle(id).getResolvedSchema();
+        }
+      }
+      if (this.cachedSchemaForResource && this.cachedSchemaForResource.resource === resource) {
+        return this.cachedSchemaForResource.resolvedSchema;
+      }
+      var schemas = this.getAssociatedSchemas(resource);
+      var resolvedSchema = schemas.length > 0 ? this.createCombinedSchema(resource, schemas).getResolvedSchema() : this.promise.resolve(void 0);
+      this.cachedSchemaForResource = { resource, resolvedSchema };
+      return resolvedSchema;
+    };
+    JSONSchemaService2.prototype.createCombinedSchema = function(resource, schemaIds) {
+      if (schemaIds.length === 1) {
+        return this.getOrAddSchemaHandle(schemaIds[0]);
+      } else {
+        var combinedSchemaId = "schemaservice://combinedSchema/" + encodeURIComponent(resource);
+        var combinedSchema = {
+          allOf: schemaIds.map(function(schemaId) {
+            return { $ref: schemaId };
+          })
+        };
+        return this.addSchemaHandle(combinedSchemaId, combinedSchema);
+      }
+    };
+    JSONSchemaService2.prototype.getMatchingSchemas = function(document, jsonDocument, schema) {
+      if (schema) {
+        var id = schema.id || "schemaservice://untitled/matchingSchemas/" + idCounter2++;
+        var handle = this.addSchemaHandle(id, schema);
+        return handle.getResolvedSchema().then(function(resolvedSchema) {
+          return jsonDocument.getMatchingSchemas(resolvedSchema.schema).filter(function(s) {
+            return !s.inverted;
+          });
+        });
+      }
+      return this.getSchemaForResource(document.uri, jsonDocument).then(function(schema2) {
+        if (schema2) {
+          return jsonDocument.getMatchingSchemas(schema2.schema).filter(function(s) {
+            return !s.inverted;
           });
         }
-      }
-      ;
-      this.uris = uris;
-    } catch (e) {
-      this.globWrappers.length = 0;
-      this.uris = [];
-    }
-  }
-  FilePatternAssociation2.prototype.matchesPattern = function(fileName) {
-    var match = false;
-    for (var _i = 0, _a = this.globWrappers; _i < _a.length; _i++) {
-      var _b = _a[_i], regexp = _b.regexp, include = _b.include;
-      if (regexp.test(fileName)) {
-        match = include;
-      }
-    }
-    return match;
-  };
-  FilePatternAssociation2.prototype.getURIs = function() {
-    return this.uris;
-  };
-  return FilePatternAssociation2;
-}();
-var SchemaHandle = function() {
-  function SchemaHandle2(service, uri, unresolvedSchemaContent) {
-    this.service = service;
-    this.uri = uri;
-    this.dependencies = /* @__PURE__ */ new Set();
-    this.anchors = void 0;
-    if (unresolvedSchemaContent) {
-      this.unresolvedSchema = this.service.promise.resolve(new UnresolvedSchema(unresolvedSchemaContent));
-    }
-  }
-  SchemaHandle2.prototype.getUnresolvedSchema = function() {
-    if (!this.unresolvedSchema) {
-      this.unresolvedSchema = this.service.loadSchema(this.uri);
-    }
-    return this.unresolvedSchema;
-  };
-  SchemaHandle2.prototype.getResolvedSchema = function() {
-    var _this = this;
-    if (!this.resolvedSchema) {
-      this.resolvedSchema = this.getUnresolvedSchema().then(function(unresolved) {
-        return _this.service.resolveSchemaContent(unresolved, _this);
-      });
-    }
-    return this.resolvedSchema;
-  };
-  SchemaHandle2.prototype.clearSchema = function() {
-    var hasChanges = !!this.unresolvedSchema;
-    this.resolvedSchema = void 0;
-    this.unresolvedSchema = void 0;
-    this.dependencies.clear();
-    this.anchors = void 0;
-    return hasChanges;
-  };
-  return SchemaHandle2;
-}();
-var UnresolvedSchema = function() {
-  function UnresolvedSchema2(schema, errors) {
-    if (errors === void 0) {
-      errors = [];
-    }
-    this.schema = schema;
-    this.errors = errors;
-  }
-  return UnresolvedSchema2;
-}();
-var ResolvedSchema = function() {
-  function ResolvedSchema2(schema, errors) {
-    if (errors === void 0) {
-      errors = [];
-    }
-    this.schema = schema;
-    this.errors = errors;
-  }
-  ResolvedSchema2.prototype.getSection = function(path) {
-    var schemaRef = this.getSectionRecursive(path, this.schema);
-    if (schemaRef) {
-      return asSchema(schemaRef);
-    }
-    return void 0;
-  };
-  ResolvedSchema2.prototype.getSectionRecursive = function(path, schema) {
-    if (!schema || typeof schema === "boolean" || path.length === 0) {
-      return schema;
-    }
-    var next = path.shift();
-    if (schema.properties && typeof schema.properties[next]) {
-      return this.getSectionRecursive(path, schema.properties[next]);
-    } else if (schema.patternProperties) {
-      for (var _i = 0, _a = Object.keys(schema.patternProperties); _i < _a.length; _i++) {
-        var pattern = _a[_i];
-        var regex = extendedRegExp(pattern);
-        if (regex === null || regex === void 0 ? void 0 : regex.test(next)) {
-          return this.getSectionRecursive(path, schema.patternProperties[pattern]);
-        }
-      }
-    } else if (typeof schema.additionalProperties === "object") {
-      return this.getSectionRecursive(path, schema.additionalProperties);
-    } else if (next.match("[0-9]+")) {
-      if (Array.isArray(schema.items)) {
-        var index = parseInt(next, 10);
-        if (!isNaN(index) && schema.items[index]) {
-          return this.getSectionRecursive(path, schema.items[index]);
-        }
-      } else if (schema.items) {
-        return this.getSectionRecursive(path, schema.items);
-      }
-    }
-    return void 0;
-  };
-  return ResolvedSchema2;
-}();
-var JSONSchemaService = function() {
-  function JSONSchemaService2(requestService, contextService, promiseConstructor) {
-    this.contextService = contextService;
-    this.requestService = requestService;
-    this.promiseConstructor = promiseConstructor || Promise;
-    this.callOnDispose = [];
-    this.contributionSchemas = {};
-    this.contributionAssociations = [];
-    this.schemasById = {};
-    this.filePatternAssociations = [];
-    this.registeredSchemasIds = {};
-  }
-  JSONSchemaService2.prototype.getRegisteredSchemaIds = function(filter) {
-    return Object.keys(this.registeredSchemasIds).filter(function(id) {
-      var scheme = URI.parse(id).scheme;
-      return scheme !== "schemaservice" && (!filter || filter(scheme));
-    });
-  };
-  Object.defineProperty(JSONSchemaService2.prototype, "promise", {
-    get: function() {
-      return this.promiseConstructor;
-    },
-    enumerable: false,
-    configurable: true
-  });
-  JSONSchemaService2.prototype.dispose = function() {
-    while (this.callOnDispose.length > 0) {
-      this.callOnDispose.pop()();
-    }
-  };
-  JSONSchemaService2.prototype.onResourceChange = function(uri) {
-    var _this = this;
-    this.cachedSchemaForResource = void 0;
-    var hasChanges = false;
-    uri = normalizeId(uri);
-    var toWalk = [uri];
-    var all = Object.keys(this.schemasById).map(function(key) {
-      return _this.schemasById[key];
-    });
-    while (toWalk.length) {
-      var curr = toWalk.pop();
-      for (var i = 0; i < all.length; i++) {
-        var handle = all[i];
-        if (handle && (handle.uri === curr || handle.dependencies.has(curr))) {
-          if (handle.uri !== curr) {
-            toWalk.push(handle.uri);
-          }
-          if (handle.clearSchema()) {
-            hasChanges = true;
-          }
-          all[i] = void 0;
-        }
-      }
-    }
-    return hasChanges;
-  };
-  JSONSchemaService2.prototype.setSchemaContributions = function(schemaContributions2) {
-    if (schemaContributions2.schemas) {
-      var schemas = schemaContributions2.schemas;
-      for (var id in schemas) {
-        var normalizedId = normalizeId(id);
-        this.contributionSchemas[normalizedId] = this.addSchemaHandle(normalizedId, schemas[id]);
-      }
-    }
-    if (Array.isArray(schemaContributions2.schemaAssociations)) {
-      var schemaAssociations = schemaContributions2.schemaAssociations;
-      for (var _i = 0, schemaAssociations_1 = schemaAssociations; _i < schemaAssociations_1.length; _i++) {
-        var schemaAssociation = schemaAssociations_1[_i];
-        var uris = schemaAssociation.uris.map(normalizeId);
-        var association = this.addFilePatternAssociation(schemaAssociation.pattern, uris);
-        this.contributionAssociations.push(association);
-      }
-    }
-  };
-  JSONSchemaService2.prototype.addSchemaHandle = function(id, unresolvedSchemaContent) {
-    var schemaHandle = new SchemaHandle(this, id, unresolvedSchemaContent);
-    this.schemasById[id] = schemaHandle;
-    return schemaHandle;
-  };
-  JSONSchemaService2.prototype.getOrAddSchemaHandle = function(id, unresolvedSchemaContent) {
-    return this.schemasById[id] || this.addSchemaHandle(id, unresolvedSchemaContent);
-  };
-  JSONSchemaService2.prototype.addFilePatternAssociation = function(pattern, uris) {
-    var fpa = new FilePatternAssociation(pattern, uris);
-    this.filePatternAssociations.push(fpa);
-    return fpa;
-  };
-  JSONSchemaService2.prototype.registerExternalSchema = function(uri, filePatterns, unresolvedSchemaContent) {
-    var id = normalizeId(uri);
-    this.registeredSchemasIds[id] = true;
-    this.cachedSchemaForResource = void 0;
-    if (filePatterns) {
-      this.addFilePatternAssociation(filePatterns, [id]);
-    }
-    return unresolvedSchemaContent ? this.addSchemaHandle(id, unresolvedSchemaContent) : this.getOrAddSchemaHandle(id);
-  };
-  JSONSchemaService2.prototype.clearExternalSchemas = function() {
-    this.schemasById = {};
-    this.filePatternAssociations = [];
-    this.registeredSchemasIds = {};
-    this.cachedSchemaForResource = void 0;
-    for (var id in this.contributionSchemas) {
-      this.schemasById[id] = this.contributionSchemas[id];
-      this.registeredSchemasIds[id] = true;
-    }
-    for (var _i = 0, _a = this.contributionAssociations; _i < _a.length; _i++) {
-      var contributionAssociation = _a[_i];
-      this.filePatternAssociations.push(contributionAssociation);
-    }
-  };
-  JSONSchemaService2.prototype.getResolvedSchema = function(schemaId) {
-    var id = normalizeId(schemaId);
-    var schemaHandle = this.schemasById[id];
-    if (schemaHandle) {
-      return schemaHandle.getResolvedSchema();
-    }
-    return this.promise.resolve(void 0);
-  };
-  JSONSchemaService2.prototype.loadSchema = function(url) {
-    if (!this.requestService) {
-      var errorMessage = localize6("json.schema.norequestservice", "Unable to load schema from '{0}'. No schema request service available", toDisplayString(url));
-      return this.promise.resolve(new UnresolvedSchema({}, [errorMessage]));
-    }
-    return this.requestService(url).then(function(content) {
-      if (!content) {
-        var errorMessage2 = localize6("json.schema.nocontent", "Unable to load schema from '{0}': No content.", toDisplayString(url));
-        return new UnresolvedSchema({}, [errorMessage2]);
-      }
-      var schemaContent = {};
-      var jsonErrors = [];
-      schemaContent = parse2(content, jsonErrors);
-      var errors = jsonErrors.length ? [localize6("json.schema.invalidFormat", "Unable to parse content from '{0}': Parse error at offset {1}.", toDisplayString(url), jsonErrors[0].offset)] : [];
-      return new UnresolvedSchema(schemaContent, errors);
-    }, function(error) {
-      var errorMessage2 = error.toString();
-      var errorSplit = error.toString().split("Error: ");
-      if (errorSplit.length > 1) {
-        errorMessage2 = errorSplit[1];
-      }
-      if (endsWith(errorMessage2, ".")) {
-        errorMessage2 = errorMessage2.substr(0, errorMessage2.length - 1);
-      }
-      return new UnresolvedSchema({}, [localize6("json.schema.nocontent", "Unable to load schema from '{0}': {1}.", toDisplayString(url), errorMessage2)]);
-    });
-  };
-  JSONSchemaService2.prototype.resolveSchemaContent = function(schemaToResolve, handle) {
-    var _this = this;
-    var resolveErrors = schemaToResolve.errors.slice(0);
-    var schema = schemaToResolve.schema;
-    if (schema.$schema) {
-      var id = normalizeId(schema.$schema);
-      if (id === "http://json-schema.org/draft-03/schema") {
-        return this.promise.resolve(new ResolvedSchema({}, [localize6("json.schema.draft03.notsupported", "Draft-03 schemas are not supported.")]));
-      } else if (id === "https://json-schema.org/draft/2019-09/schema") {
-        resolveErrors.push(localize6("json.schema.draft201909.notsupported", "Draft 2019-09 schemas are not yet fully supported."));
-      } else if (id === "https://json-schema.org/draft/2020-12/schema") {
-        resolveErrors.push(localize6("json.schema.draft202012.notsupported", "Draft 2020-12 schemas are not yet fully supported."));
-      }
-    }
-    var contextService = this.contextService;
-    var findSectionByJSONPointer = function(schema2, path) {
-      path = decodeURIComponent(path);
-      var current = schema2;
-      if (path[0] === "/") {
-        path = path.substring(1);
-      }
-      path.split("/").some(function(part) {
-        part = part.replace(/~1/g, "/").replace(/~0/g, "~");
-        current = current[part];
-        return !current;
-      });
-      return current;
-    };
-    var findSchemaById = function(schema2, handle2, id2) {
-      if (!handle2.anchors) {
-        handle2.anchors = collectAnchors(schema2);
-      }
-      return handle2.anchors.get(id2);
-    };
-    var merge = function(target, section) {
-      for (var key in section) {
-        if (section.hasOwnProperty(key) && !target.hasOwnProperty(key) && key !== "id" && key !== "$id") {
-          target[key] = section[key];
-        }
-      }
-    };
-    var mergeRef = function(target, sourceRoot, sourceHandle, refSegment) {
-      var section;
-      if (refSegment === void 0 || refSegment.length === 0) {
-        section = sourceRoot;
-      } else if (refSegment.charAt(0) === "/") {
-        section = findSectionByJSONPointer(sourceRoot, refSegment);
-      } else {
-        section = findSchemaById(sourceRoot, sourceHandle, refSegment);
-      }
-      if (section) {
-        merge(target, section);
-      } else {
-        resolveErrors.push(localize6("json.schema.invalidid", "$ref '{0}' in '{1}' can not be resolved.", refSegment, sourceHandle.uri));
-      }
-    };
-    var resolveExternalLink = function(node, uri, refSegment, parentHandle) {
-      if (contextService && !/^[A-Za-z][A-Za-z0-9+\-.+]*:\/\/.*/.test(uri)) {
-        uri = contextService.resolveRelativePath(uri, parentHandle.uri);
-      }
-      uri = normalizeId(uri);
-      var referencedHandle = _this.getOrAddSchemaHandle(uri);
-      return referencedHandle.getUnresolvedSchema().then(function(unresolvedSchema) {
-        parentHandle.dependencies.add(uri);
-        if (unresolvedSchema.errors.length) {
-          var loc = refSegment ? uri + "#" + refSegment : uri;
-          resolveErrors.push(localize6("json.schema.problemloadingref", "Problems loading reference '{0}': {1}", loc, unresolvedSchema.errors[0]));
-        }
-        mergeRef(node, unresolvedSchema.schema, referencedHandle, refSegment);
-        return resolveRefs(node, unresolvedSchema.schema, referencedHandle);
+        return [];
       });
     };
-    var resolveRefs = function(node, parentSchema, parentHandle) {
-      var openPromises = [];
-      _this.traverseNodes(node, function(next) {
-        var seenRefs = /* @__PURE__ */ new Set();
-        while (next.$ref) {
-          var ref = next.$ref;
-          var segments = ref.split("#", 2);
-          delete next.$ref;
-          if (segments[0].length > 0) {
-            openPromises.push(resolveExternalLink(next, segments[0], segments[1], parentHandle));
-            return;
-          } else {
-            if (!seenRefs.has(ref)) {
-              var id2 = segments[1];
-              mergeRef(next, parentSchema, parentHandle, id2);
-              seenRefs.add(ref);
-            }
-          }
-        }
-      });
-      return _this.promise.all(openPromises);
-    };
-    var collectAnchors = function(root) {
-      var result = /* @__PURE__ */ new Map();
-      _this.traverseNodes(root, function(next) {
-        var id2 = next.$id || next.id;
-        if (typeof id2 === "string" && id2.charAt(0) === "#") {
-          var anchor = id2.substring(1);
-          if (result.has(anchor)) {
-            resolveErrors.push(localize6("json.schema.duplicateid", "Duplicate id declaration: '{0}'", id2));
-          } else {
-            result.set(anchor, next);
-          }
-        }
-      });
-      return result;
-    };
-    return resolveRefs(schema, schema, handle).then(function(_) {
-      return new ResolvedSchema(schema, resolveErrors);
-    });
-  };
-  JSONSchemaService2.prototype.traverseNodes = function(root, handle) {
-    if (!root || typeof root !== "object") {
-      return Promise.resolve(null);
-    }
-    var seen = /* @__PURE__ */ new Set();
-    var collectEntries = function() {
-      var entries = [];
-      for (var _i = 0; _i < arguments.length; _i++) {
-        entries[_i] = arguments[_i];
-      }
-      for (var _a = 0, entries_1 = entries; _a < entries_1.length; _a++) {
-        var entry = entries_1[_a];
-        if (typeof entry === "object") {
-          toWalk.push(entry);
-        }
-      }
-    };
-    var collectMapEntries = function() {
-      var maps = [];
-      for (var _i = 0; _i < arguments.length; _i++) {
-        maps[_i] = arguments[_i];
-      }
-      for (var _a = 0, maps_1 = maps; _a < maps_1.length; _a++) {
-        var map = maps_1[_a];
-        if (typeof map === "object") {
-          for (var k in map) {
-            var key = k;
-            var entry = map[key];
-            if (typeof entry === "object") {
-              toWalk.push(entry);
-            }
-          }
-        }
-      }
-    };
-    var collectArrayEntries = function() {
-      var arrays = [];
-      for (var _i = 0; _i < arguments.length; _i++) {
-        arrays[_i] = arguments[_i];
-      }
-      for (var _a = 0, arrays_1 = arrays; _a < arrays_1.length; _a++) {
-        var array = arrays_1[_a];
-        if (Array.isArray(array)) {
-          for (var _b = 0, array_1 = array; _b < array_1.length; _b++) {
-            var entry = array_1[_b];
-            if (typeof entry === "object") {
-              toWalk.push(entry);
-            }
-          }
-        }
-      }
-    };
-    var toWalk = [root];
-    var next = toWalk.pop();
-    while (next) {
-      if (!seen.has(next)) {
-        seen.add(next);
-        handle(next);
-        collectEntries(next.items, next.additionalItems, next.additionalProperties, next.not, next.contains, next.propertyNames, next.if, next.then, next.else);
-        collectMapEntries(next.definitions, next.properties, next.patternProperties, next.dependencies);
-        collectArrayEntries(next.anyOf, next.allOf, next.oneOf, next.items);
-      }
-      next = toWalk.pop();
-    }
-  };
-  ;
-  JSONSchemaService2.prototype.getSchemaFromProperty = function(resource, document) {
-    var _a, _b;
-    if (((_a = document.root) === null || _a === void 0 ? void 0 : _a.type) === "object") {
-      for (var _i = 0, _c = document.root.properties; _i < _c.length; _i++) {
-        var p = _c[_i];
-        if (p.keyNode.value === "$schema" && ((_b = p.valueNode) === null || _b === void 0 ? void 0 : _b.type) === "string") {
-          var schemaId = p.valueNode.value;
-          if (this.contextService && !/^\w[\w\d+.-]*:/.test(schemaId)) {
-            schemaId = this.contextService.resolveRelativePath(schemaId, resource);
-          }
-          return schemaId;
-        }
-      }
-    }
-    return void 0;
-  };
-  JSONSchemaService2.prototype.getAssociatedSchemas = function(resource) {
-    var seen = /* @__PURE__ */ Object.create(null);
-    var schemas = [];
-    var normalizedResource = normalizeResourceForMatching(resource);
-    for (var _i = 0, _a = this.filePatternAssociations; _i < _a.length; _i++) {
-      var entry = _a[_i];
-      if (entry.matchesPattern(normalizedResource)) {
-        for (var _b = 0, _c = entry.getURIs(); _b < _c.length; _b++) {
-          var schemaId = _c[_b];
-          if (!seen[schemaId]) {
-            schemas.push(schemaId);
-            seen[schemaId] = true;
-          }
-        }
-      }
-    }
-    return schemas;
-  };
-  JSONSchemaService2.prototype.getSchemaURIsForResource = function(resource, document) {
-    var schemeId = document && this.getSchemaFromProperty(resource, document);
-    if (schemeId) {
-      return [schemeId];
-    }
-    return this.getAssociatedSchemas(resource);
-  };
-  JSONSchemaService2.prototype.getSchemaForResource = function(resource, document) {
-    if (document) {
-      var schemeId = this.getSchemaFromProperty(resource, document);
-      if (schemeId) {
-        var id = normalizeId(schemeId);
-        return this.getOrAddSchemaHandle(id).getResolvedSchema();
-      }
-    }
-    if (this.cachedSchemaForResource && this.cachedSchemaForResource.resource === resource) {
-      return this.cachedSchemaForResource.resolvedSchema;
-    }
-    var schemas = this.getAssociatedSchemas(resource);
-    var resolvedSchema = schemas.length > 0 ? this.createCombinedSchema(resource, schemas).getResolvedSchema() : this.promise.resolve(void 0);
-    this.cachedSchemaForResource = { resource, resolvedSchema };
-    return resolvedSchema;
-  };
-  JSONSchemaService2.prototype.createCombinedSchema = function(resource, schemaIds) {
-    if (schemaIds.length === 1) {
-      return this.getOrAddSchemaHandle(schemaIds[0]);
-    } else {
-      var combinedSchemaId = "schemaservice://combinedSchema/" + encodeURIComponent(resource);
-      var combinedSchema = {
-        allOf: schemaIds.map(function(schemaId) {
-          return { $ref: schemaId };
-        })
-      };
-      return this.addSchemaHandle(combinedSchemaId, combinedSchema);
-    }
-  };
-  JSONSchemaService2.prototype.getMatchingSchemas = function(document, jsonDocument, schema) {
-    if (schema) {
-      var id = schema.id || "schemaservice://untitled/matchingSchemas/" + idCounter2++;
-      var handle = this.addSchemaHandle(id, schema);
-      return handle.getResolvedSchema().then(function(resolvedSchema) {
-        return jsonDocument.getMatchingSchemas(resolvedSchema.schema).filter(function(s) {
-          return !s.inverted;
-        });
-      });
-    }
-    return this.getSchemaForResource(document.uri, jsonDocument).then(function(schema2) {
-      if (schema2) {
-        return jsonDocument.getMatchingSchemas(schema2.schema).filter(function(s) {
-          return !s.inverted;
-        });
-      }
-      return [];
-    });
-  };
-  return JSONSchemaService2;
-}();
+    return JSONSchemaService2;
+  }()
+);
 var idCounter2 = 0;
 function normalizeId(id) {
   try {
@@ -24590,7 +25713,11 @@ function getSelectionRanges(document, positions, doc) {
           break;
       }
       if (node.type === "property" || node.parent && node.parent.type === "array") {
-        var afterCommaOffset = getOffsetAfterNextToken(node.offset + node.length, 5);
+        var afterCommaOffset = getOffsetAfterNextToken(
+          node.offset + node.length,
+          5
+          /* CommaToken */
+        );
         if (afterCommaOffset !== -1) {
           result.push(newRange(node.offset, afterCommaOffset));
         }
@@ -24759,10 +25886,6 @@ if (typeof fetch !== "undefined") {
   };
 }
 var JSONWorker = class {
-  _ctx;
-  _languageService;
-  _languageSettings;
-  _languageId;
   constructor(ctx, createData) {
     this._ctx = ctx;
     this._languageSettings = createData.languageSettings;
@@ -24774,7 +25897,8 @@ var JSONWorker = class {
           return resolvePath(base, relativePath);
         }
       },
-      schemaRequestService: createData.enableSchemaRequest ? defaultSchemaRequestService : void 0
+      schemaRequestService: createData.enableSchemaRequest ? defaultSchemaRequestService : void 0,
+      clientCapabilities: ClientCapabilities.LATEST
     });
     this._languageService.configure(this._languageSettings);
   }
@@ -24822,7 +25946,7 @@ var JSONWorker = class {
       return [];
     }
     let jsonDocument = this._languageService.parseJSONDocument(document);
-    let symbols = this._languageService.findDocumentSymbols(document, jsonDocument);
+    let symbols = this._languageService.findDocumentSymbols2(document, jsonDocument);
     return Promise.resolve(symbols);
   }
   async findDocumentColors(uri) {
@@ -24840,7 +25964,12 @@ var JSONWorker = class {
       return [];
     }
     let jsonDocument = this._languageService.parseJSONDocument(document);
-    let colorPresentations = this._languageService.getColorPresentations(document, jsonDocument, color, range);
+    let colorPresentations = this._languageService.getColorPresentations(
+      document,
+      jsonDocument,
+      color,
+      range
+    );
     return Promise.resolve(colorPresentations);
   }
   async getFoldingRanges(uri, context) {
@@ -24860,11 +25989,32 @@ var JSONWorker = class {
     let ranges = this._languageService.getSelectionRanges(document, positions, jsonDocument);
     return Promise.resolve(ranges);
   }
+  async parseJSONDocument(uri) {
+    let document = this._getTextDocument(uri);
+    if (!document) {
+      return null;
+    }
+    let jsonDocument = this._languageService.parseJSONDocument(document);
+    return Promise.resolve(jsonDocument);
+  }
+  async getMatchingSchemas(uri) {
+    let document = this._getTextDocument(uri);
+    if (!document) {
+      return [];
+    }
+    let jsonDocument = this._languageService.parseJSONDocument(document);
+    return Promise.resolve(this._languageService.getMatchingSchemas(document, jsonDocument));
+  }
   _getTextDocument(uri) {
     let models = this._ctx.getMirrorModels();
     for (let model of models) {
       if (model.uri.toString() === uri) {
-        return TextDocument2.create(uri, this._languageId, model.version, model.getValue());
+        return TextDocument2.create(
+          uri,
+          this._languageId,
+          model.version,
+          model.getValue()
+        );
       }
     }
     return null;
