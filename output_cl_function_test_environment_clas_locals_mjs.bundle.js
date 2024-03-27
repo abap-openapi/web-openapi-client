@@ -46,9 +46,9 @@ class lcl_input_arguments {
       usesTableLine: false,
       withKeySimple: {"name": name}});
     if (abap.compare.ne(abap.builtin.sy.get().subrc, abap.IntegerFactory.get(0))) {
-      const unique230 = await (new abap.Classes['CX_FTD_PARAMETER_NOT_FOUND']()).constructor_();
-      unique230.EXTRA_CX = {"INTERNAL_FILENAME": "cl_function_test_environment.clas.locals_imp.abap","INTERNAL_LINE": 19};
-      throw unique230;
+      const unique232 = await (new abap.Classes['CX_FTD_PARAMETER_NOT_FOUND']()).constructor_();
+      unique232.EXTRA_CX = {"INTERNAL_FILENAME": "cl_function_test_environment.clas.locals_imp.abap","INTERNAL_LINE": 19};
+      throw unique232;
     }
     result.set(ls_row.get().value);
     return result;
@@ -65,9 +65,9 @@ class lcl_input_arguments {
       usesTableLine: false,
       withKeySimple: {"name": name}});
     if (abap.compare.ne(abap.builtin.sy.get().subrc, abap.IntegerFactory.get(0))) {
-      const unique231 = await (new abap.Classes['CX_FTD_PARAMETER_NOT_FOUND']()).constructor_();
-      unique231.EXTRA_CX = {"INTERNAL_FILENAME": "cl_function_test_environment.clas.locals_imp.abap","INTERNAL_LINE": 28};
-      throw unique231;
+      const unique233 = await (new abap.Classes['CX_FTD_PARAMETER_NOT_FOUND']()).constructor_();
+      unique233.EXTRA_CX = {"INTERNAL_FILENAME": "cl_function_test_environment.clas.locals_imp.abap","INTERNAL_LINE": 28};
+      throw unique233;
     }
     result.set(ls_row.get().value);
     return result;
@@ -170,12 +170,12 @@ class lcl_invoker {
       abap.statements.insertInternal({data: ls_table, table: lo_arguments.get().mt_tables});
     }
     await answer.get().if_ftd_invocation_answer$answer({arguments_: li_arguments, result: li_result});
-    for await (const unique232 of abap.statements.loop(lo_result.get().mt_exporting)) {
-      ls_exporting.set(unique232);
+    for await (const unique234 of abap.statements.loop(lo_result.get().mt_exporting)) {
+      ls_exporting.set(unique234);
       fminput.importing[ls_exporting.get().name.get().toLowerCase().trimEnd()].set(ls_exporting.get().value.dereference());
     }
-    for await (const unique233 of abap.statements.loop(lo_result.get().mt_tables)) {
-      ls_table.set(unique233);
+    for await (const unique235 of abap.statements.loop(lo_result.get().mt_tables)) {
+      ls_table.set(unique235);
       fminput.tables[ls_table.get().name.get().toLowerCase().trimEnd()].set(ls_table.get().value.dereference());
     }
   }
