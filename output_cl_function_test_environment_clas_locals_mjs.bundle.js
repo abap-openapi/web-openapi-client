@@ -169,7 +169,7 @@ class lcl_invoker {
         ls_table.get().value.pointer = fminput.tables[table];
       abap.statements.insertInternal({data: ls_table, table: lo_arguments.get().mt_tables});
     }
-    await answer.get().if_ftd_invocation_answer$answer({arguments_: li_arguments, result: li_result});
+    await answer.get().if_ftd_invocation_answer$answer({arguments: li_arguments, result: li_result});
     for await (const unique251 of abap.statements.loop(lo_result.get().mt_exporting)) {
       ls_exporting.set(unique251);
       fminput.importing[ls_exporting.get().name.get().toLowerCase().trimEnd()].set(ls_exporting.get().value.dereference());
