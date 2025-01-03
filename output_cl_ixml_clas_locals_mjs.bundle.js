@@ -1347,7 +1347,7 @@ class lcl_ostream {
     this.mv_pretty_print.set(pretty_print);
   }
   async if_ixml_ostream$get_pretty_print() {
-    let rval = new abap.types.Character(1, {"qualifiedName":"BOOLEAN","ddicName":"BOOLEAN"});
+    let rval = new abap.types.Character(1, {"qualifiedName":"BOOLEAN","ddicName":"BOOLEAN","description":""});
     rval.set(this.mv_pretty_print);
     return rval;
   }
@@ -1363,7 +1363,7 @@ class lcl_ostream {
     return rval;
   }
   async if_ixml_ostream$set_encoding(INPUT) {
-    let rval = new abap.types.Character(1, {"qualifiedName":"BOOLEAN","ddicName":"BOOLEAN"});
+    let rval = new abap.types.Character(1, {"qualifiedName":"BOOLEAN","ddicName":"BOOLEAN","description":""});
     let encoding = INPUT?.encoding;
     if (encoding?.getQualifiedName === undefined || encoding.getQualifiedName() !== "IF_IXML_ENCODING") { encoding = undefined; }
     if (encoding === undefined) { encoding = new abap.types.ABAPObject({qualifiedName: "IF_IXML_ENCODING", RTTIName: "\\INTERFACE=IF_IXML_ENCODING"}).set(INPUT.encoding); }

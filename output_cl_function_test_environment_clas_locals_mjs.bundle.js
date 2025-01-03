@@ -185,17 +185,17 @@ class lcl_double {
   static INTERNAL_TYPE = 'CLAS';
   static INTERNAL_NAME = 'CLAS-CL_FUNCTION_TEST_ENVIRONMENT-LCL_DOUBLE';
   static IMPLEMENTED_INTERFACES = ["IF_FUNCTION_TESTDOUBLE","IF_FTD_INPUT_CONFIG_SETTER","IF_FTD_OUTPUT_CONFIG_SETTER"];
-  static ATTRIBUTES = {"MV_NAME": {"type": () => {return new abap.types.Character(30, {"qualifiedName":"SXCO_FM_NAME","ddicName":"SXCO_FM_NAME"});}, "visibility": "I", "is_constant": " ", "is_class": " "}};
-  static METHODS = {"CONSTRUCTOR": {"visibility": "U", "parameters": {"IV_NAME": {"type": () => {return new abap.types.Character(30, {"qualifiedName":"SXCO_FM_NAME","ddicName":"SXCO_FM_NAME"});}, "is_optional": " "}}}};
+  static ATTRIBUTES = {"MV_NAME": {"type": () => {return new abap.types.Character(30, {"qualifiedName":"SXCO_FM_NAME","ddicName":"SXCO_FM_NAME","description":"Function module name"});}, "visibility": "I", "is_constant": " ", "is_class": " "}};
+  static METHODS = {"CONSTRUCTOR": {"visibility": "U", "parameters": {"IV_NAME": {"type": () => {return new abap.types.Character(30, {"qualifiedName":"SXCO_FM_NAME","ddicName":"SXCO_FM_NAME","description":"Function module name"});}, "is_optional": " "}}}};
   constructor() {
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
-    this.mv_name = new abap.types.Character(30, {"qualifiedName":"SXCO_FM_NAME","ddicName":"SXCO_FM_NAME"});
+    this.mv_name = new abap.types.Character(30, {"qualifiedName":"SXCO_FM_NAME","ddicName":"SXCO_FM_NAME","description":"Function module name"});
   }
   async constructor_(INPUT) {
     let iv_name = INPUT?.iv_name;
     if (iv_name?.getQualifiedName === undefined || iv_name.getQualifiedName() !== "SXCO_FM_NAME") { iv_name = undefined; }
-    if (iv_name === undefined) { iv_name = new abap.types.Character(30, {"qualifiedName":"SXCO_FM_NAME","ddicName":"SXCO_FM_NAME"}).set(INPUT.iv_name); }
+    if (iv_name === undefined) { iv_name = new abap.types.Character(30, {"qualifiedName":"SXCO_FM_NAME","ddicName":"SXCO_FM_NAME","description":"Function module name"}).set(INPUT.iv_name); }
     abap.statements.assert(abap.compare.initial(iv_name) === false);
     this.mv_name.set(iv_name);
     return this;
