@@ -20,6 +20,7 @@ class lcl_stream {
   static IMPLEMENTED_INTERFACES = [];
   static ATTRIBUTES = {"CRC32_MAP": {"type": () => {return new abap.types.XString({qualifiedName: "XSTRING"});}, "visibility": "I", "is_constant": " ", "is_class": "X"},
   "MV_XSTR": {"type": () => {return new abap.types.XString({qualifiedName: "XSTRING"});}, "visibility": "I", "is_constant": " ", "is_class": " "}};
+  static FRIENDS_ACCESS_STATIC = {}; // todo
   static METHODS = {"APPEND": {"visibility": "U", "parameters": {"IV_XSTR": {"type": () => {return new abap.types.Hex();}, "is_optional": " "}}},
   "GET": {"visibility": "U", "parameters": {"RV_XSTR": {"type": () => {return new abap.types.XString({qualifiedName: "XSTRING"});}, "is_optional": " "}}},
   "APPEND_DATE": {"visibility": "U", "parameters": {"IV_DATE": {"type": () => {return new abap.types.Date({qualifiedName: "D"});}, "is_optional": " "}}},
@@ -30,6 +31,16 @@ class lcl_stream {
   constructor() {
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
+    this.INTERNAL_ID = abap.internalIdCounter++;
+    this.FRIENDS_ACCESS_INSTANCE = {
+      "append": this.append.bind(this),
+      "get": this.get.bind(this),
+      "append_date": this.append_date.bind(this),
+      "append_time": this.append_time.bind(this),
+      "append_int4": this.append_int4.bind(this),
+      "append_int2": this.append_int2.bind(this),
+      "append_crc": this.append_crc.bind(this),
+    };
     this.crc32_map = lcl_stream.crc32_map;
     this.mv_xstr = new abap.types.XString({qualifiedName: "XSTRING"});
   }
