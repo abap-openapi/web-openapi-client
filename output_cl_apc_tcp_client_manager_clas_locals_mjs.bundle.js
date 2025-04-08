@@ -21,7 +21,6 @@ class lcl_message {
   static INTERNAL_NAME = 'CLAS-CL_APC_TCP_CLIENT_MANAGER-LCL_MESSAGE';
   static IMPLEMENTED_INTERFACES = ["IF_APC_WSP_MESSAGE"];
   static ATTRIBUTES = {"MV_DATA": {"type": () => {return new abap.types.XString({qualifiedName: "XSTRING"});}, "visibility": "I", "is_constant": " ", "is_class": " "}};
-  static FRIENDS_ACCESS_STATIC = {}; // todo
   static METHODS = {};
   constructor() {
     this.me = new abap.types.ABAPObject();
@@ -59,7 +58,6 @@ class lcl_client {
   "MV_PORT": {"type": () => {return new abap.types.Integer({qualifiedName: "I"});}, "visibility": "I", "is_constant": " ", "is_class": " "},
   "MO_HANDLER": {"type": () => {return new abap.types.ABAPObject({qualifiedName: "IF_APC_WSP_EVENT_HANDLER", RTTIName: "\\INTERFACE=IF_APC_WSP_EVENT_HANDLER"});}, "visibility": "I", "is_constant": " ", "is_class": " "},
   "MV_PROTOCOL": {"type": () => {return new abap.types.Integer({qualifiedName: "I"});}, "visibility": "I", "is_constant": " ", "is_class": " "}};
-  static FRIENDS_ACCESS_STATIC = {}; // todo
   static METHODS = {"CONSTRUCTOR": {"visibility": "U", "parameters": {"IV_HOST": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " "}, "IV_PORT": {"type": () => {return new abap.types.Integer({qualifiedName: "I"});}, "is_optional": " "}, "IO_HANDLER": {"type": () => {return new abap.types.ABAPObject({qualifiedName: "IF_APC_WSP_EVENT_HANDLER", RTTIName: "\\INTERFACE=IF_APC_WSP_EVENT_HANDLER"});}, "is_optional": " "}, "IV_PROTOCOL": {"type": () => {return new abap.types.Integer({qualifiedName: "I"});}, "is_optional": " "}}}};
   constructor() {
     this.me = new abap.types.ABAPObject();
@@ -104,8 +102,8 @@ class lcl_client {
         await msg.if_apc_wsp_message$set_binary({iv_binary: data.toString("hex").toUpperCase()});
         await this.mo_handler.get().if_apc_wsp_event_handler$on_message({i_message: msg});
     });
-    this.client.on("end",   async () => {this.mo_handler.get().if_apc_wsp_event_handler$on_close();});
-    this.client.on("error", async (e) => {this.mo_handler.get().if_apc_wsp_event_handler$on_error();});
+    this.client.on("end",   async () => {this.mo_handler.get().if_apc_wsp_event_handler$on_close({"i_reason": "connection closed"});});
+    this.client.on("error", async (e) => {console.dir("IF_APC_WSP_CLIENT~CONNECT"); console.dir(e); this.mo_handler.get().if_apc_wsp_event_handler$on_error({"i_reason": e.toString()});});
     await new Promise(resolve => this.client.once("connect", resolve));
   }
   async if_apc_wsp_client$close() {

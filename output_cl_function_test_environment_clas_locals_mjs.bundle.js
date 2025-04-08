@@ -23,7 +23,6 @@ class lcl_input_arguments {
   static IMPLEMENTED_INTERFACES = ["IF_FTD_INPUT_ARGUMENTS"];
   static ATTRIBUTES = {"MT_IMPORTING": {"type": () => {return abap.types.TableFactory.construct(new abap.types.Structure({"name": new abap.types.Character(30, {"qualifiedName":"abap_parmname"}), "value": new abap.types.DataReference(new abap.types.Character(4))}, "lcl_input_arguments=>ty_name_value", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "");}, "visibility": "U", "is_constant": " ", "is_class": " "},
   "MT_TABLES": {"type": () => {return abap.types.TableFactory.construct(new abap.types.Structure({"name": new abap.types.Character(30, {"qualifiedName":"abap_parmname"}), "value": new abap.types.DataReference(new abap.types.Character(4))}, "lcl_input_arguments=>ty_name_value", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "");}, "visibility": "U", "is_constant": " ", "is_class": " "}};
-  static FRIENDS_ACCESS_STATIC = {}; // todo
   static METHODS = {};
   constructor() {
     this.me = new abap.types.ABAPObject();
@@ -50,9 +49,9 @@ class lcl_input_arguments {
       usesTableLine: false,
       withKeySimple: {"name": name}});
     if (abap.compare.ne(abap.builtin.sy.get().subrc, abap.IntegerFactory.get(0))) {
-      const unique261 = await (new abap.Classes['CX_FTD_PARAMETER_NOT_FOUND']()).constructor_();
-      unique261.EXTRA_CX = {"INTERNAL_FILENAME": "cl_function_test_environment.clas.locals_imp.abap","INTERNAL_LINE": 19};
-      throw unique261;
+      const unique262 = await (new abap.Classes['CX_FTD_PARAMETER_NOT_FOUND']()).constructor_();
+      unique262.EXTRA_CX = {"INTERNAL_FILENAME": "cl_function_test_environment.clas.locals_imp.abap","INTERNAL_LINE": 19};
+      throw unique262;
     }
     result.set(ls_row.get().value);
     return result;
@@ -69,9 +68,9 @@ class lcl_input_arguments {
       usesTableLine: false,
       withKeySimple: {"name": name}});
     if (abap.compare.ne(abap.builtin.sy.get().subrc, abap.IntegerFactory.get(0))) {
-      const unique262 = await (new abap.Classes['CX_FTD_PARAMETER_NOT_FOUND']()).constructor_();
-      unique262.EXTRA_CX = {"INTERNAL_FILENAME": "cl_function_test_environment.clas.locals_imp.abap","INTERNAL_LINE": 28};
-      throw unique262;
+      const unique263 = await (new abap.Classes['CX_FTD_PARAMETER_NOT_FOUND']()).constructor_();
+      unique263.EXTRA_CX = {"INTERNAL_FILENAME": "cl_function_test_environment.clas.locals_imp.abap","INTERNAL_LINE": 28};
+      throw unique263;
     }
     result.set(ls_row.get().value);
     return result;
@@ -85,7 +84,6 @@ class lcl_invocation_result {
   static IMPLEMENTED_INTERFACES = ["IF_FTD_INVOCATION_RESULT","IF_FTD_OUTPUT_CONFIGURATION"];
   static ATTRIBUTES = {"MT_EXPORTING": {"type": () => {return abap.types.TableFactory.construct(new abap.types.Structure({"name": new abap.types.Character(30, {"qualifiedName":"abap_parmname"}), "value": new abap.types.DataReference(new abap.types.Character(4))}, "lcl_invocation_result=>ty_name_value", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "");}, "visibility": "U", "is_constant": " ", "is_class": " "},
   "MT_TABLES": {"type": () => {return abap.types.TableFactory.construct(new abap.types.Structure({"name": new abap.types.Character(30, {"qualifiedName":"abap_parmname"}), "value": new abap.types.DataReference(new abap.types.Character(4))}, "lcl_invocation_result=>ty_name_value", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "");}, "visibility": "U", "is_constant": " ", "is_class": " "}};
-  static FRIENDS_ACCESS_STATIC = {}; // todo
   static METHODS = {};
   constructor() {
     this.me = new abap.types.ABAPObject();
@@ -139,7 +137,6 @@ class lcl_invoker {
   static INTERNAL_NAME = 'CLAS-CL_FUNCTION_TEST_ENVIRONMENT-LCL_INVOKER';
   static IMPLEMENTED_INTERFACES = [];
   static ATTRIBUTES = {};
-  static FRIENDS_ACCESS_STATIC = {}; // todo
   static METHODS = {"INVOKE": {"visibility": "U", "parameters": {"FMINPUT": {"type": () => {return new abap.types.Character(4);}, "is_optional": " "}, "ANSWER": {"type": () => {return new abap.types.ABAPObject({qualifiedName: "IF_FTD_INVOCATION_ANSWER", RTTIName: "\\INTERFACE=IF_FTD_INVOCATION_ANSWER"});}, "is_optional": " "}}}};
   constructor() {
     this.me = new abap.types.ABAPObject();
@@ -182,12 +179,12 @@ class lcl_invoker {
       abap.statements.insertInternal({data: ls_table, table: lo_arguments.get().mt_tables});
     }
     await answer.get().if_ftd_invocation_answer$answer({arguments: li_arguments, result: li_result});
-    for await (const unique263 of abap.statements.loop(lo_result.get().mt_exporting)) {
-      ls_exporting.set(unique263);
+    for await (const unique264 of abap.statements.loop(lo_result.get().mt_exporting)) {
+      ls_exporting.set(unique264);
       fminput.importing[ls_exporting.get().name.get().toLowerCase().trimEnd()].set(ls_exporting.get().value.dereference());
     }
-    for await (const unique264 of abap.statements.loop(lo_result.get().mt_tables)) {
-      ls_table.set(unique264);
+    for await (const unique265 of abap.statements.loop(lo_result.get().mt_tables)) {
+      ls_table.set(unique265);
       fminput.tables[ls_table.get().name.get().toLowerCase().trimEnd()].set(ls_table.get().value.dereference());
     }
   }
@@ -198,7 +195,6 @@ class lcl_double {
   static INTERNAL_NAME = 'CLAS-CL_FUNCTION_TEST_ENVIRONMENT-LCL_DOUBLE';
   static IMPLEMENTED_INTERFACES = ["IF_FUNCTION_TESTDOUBLE","IF_FTD_INPUT_CONFIG_SETTER","IF_FTD_OUTPUT_CONFIG_SETTER"];
   static ATTRIBUTES = {"MV_NAME": {"type": () => {return new abap.types.Character(30, {"qualifiedName":"SXCO_FM_NAME","ddicName":"SXCO_FM_NAME","description":"Function module name"});}, "visibility": "I", "is_constant": " ", "is_class": " "}};
-  static FRIENDS_ACCESS_STATIC = {}; // todo
   static METHODS = {"CONSTRUCTOR": {"visibility": "U", "parameters": {"IV_NAME": {"type": () => {return new abap.types.Character(30, {"qualifiedName":"SXCO_FM_NAME","ddicName":"SXCO_FM_NAME","description":"Function module name"});}, "is_optional": " "}}}};
   constructor() {
     this.me = new abap.types.ABAPObject();
