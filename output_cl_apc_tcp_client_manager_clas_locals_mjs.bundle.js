@@ -41,7 +41,7 @@ class lcl_message {
   }
   async if_apc_wsp_message$get_text() {
     let r_message = new abap.types.String({qualifiedName: "STRING"});
-    abap.statements.assert(abap.compare.eq(abap.IntegerFactory.get(1), new abap.types.Character(4).set('todo')));
+    abap.statements.assert(abap.compare.eq(abap.IntegerFactory.get(1), abap.CharacterFactory.get(4, 'todo')));
     return r_message;
   }
   async if_apc_wsp_message$set_binary(INPUT) {
@@ -96,7 +96,7 @@ class lcl_client {
     let lv_tls = new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"});
     lv_tls.set(abap.builtin.boolc(abap.compare.eq(this.mv_protocol, abap.Classes['CL_APC_TCP_CLIENT_MANAGER'].co_protocol_type_tcps)));
     const connect = lv_tls.get() === "X" ? await __webpack_require__.e(/*! import() */ "_9db4").then(__webpack_require__.t.bind(__webpack_require__, /*! tls */ "?9db4", 19)) : await __webpack_require__.e(/*! import() */ "_4f35").then(__webpack_require__.t.bind(__webpack_require__, /*! net */ "?4f35", 19));
-    this.client = connect.connect({ port: this.mv_port.get(), host: this.mv_host.get()}, () => {this.mo_handler.get().if_apc_wsp_event_handler$on_open();});
+    this.client = connect.connect({ port: this.mv_port.get(), host: this.mv_host.get(), servername: this.mv_host.get()}, () => {this.mo_handler.get().if_apc_wsp_event_handler$on_open();});
     this.client.on("data", async (data) => {
         const msg = await (new lcl_message().constructor_());
         await msg.if_apc_wsp_message$set_binary({iv_binary: data.toString("hex").toUpperCase()});

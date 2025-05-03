@@ -60,13 +60,13 @@ class lcl_stream {
     let iv_date = INPUT?.iv_date;
     if (iv_date?.getQualifiedName === undefined || iv_date.getQualifiedName() !== "D") { iv_date = undefined; }
     if (iv_date === undefined) { iv_date = new abap.types.Date({qualifiedName: "D"}).set(INPUT.iv_date); }
-    abap.statements.assert(abap.compare.eq(abap.IntegerFactory.get(1), new abap.types.Character(4).set('todo')));
+    abap.statements.assert(abap.compare.eq(abap.IntegerFactory.get(1), abap.CharacterFactory.get(4, 'todo')));
   }
   async append_time(INPUT) {
     let iv_time = INPUT?.iv_time;
     if (iv_time?.getQualifiedName === undefined || iv_time.getQualifiedName() !== "T") { iv_time = undefined; }
     if (iv_time === undefined) { iv_time = new abap.types.Time({qualifiedName: "T"}).set(INPUT.iv_time); }
-    abap.statements.assert(abap.compare.eq(abap.IntegerFactory.get(1), new abap.types.Character(4).set('todo')));
+    abap.statements.assert(abap.compare.eq(abap.IntegerFactory.get(1), abap.CharacterFactory.get(4, 'todo')));
   }
   async append_int2(INPUT) {
     let iv_int = INPUT?.iv_int;
@@ -124,7 +124,7 @@ class lcl_stream {
         const unique92 = abap.IntegerFactory.get(8).get();
         for (let unique93 = 0; unique93 < unique92; unique93++) {
           abap.builtin.sy.get().index.set(unique93 + 1);
-          low_bit.set(new abap.types.Character(8).set('00000001'));
+          low_bit.set(abap.CharacterFactory.get(8, '00000001'));
           low_bit.set(abap.operators.bitand(cindex,low_bit));
           cindex.set(abap.operators.div(cindex,abap.IntegerFactory.get(2)));
           cindex.set(abap.operators.bitand(cindex,m7fffffff));

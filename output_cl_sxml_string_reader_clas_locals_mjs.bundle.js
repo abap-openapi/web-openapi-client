@@ -63,13 +63,13 @@ class lcl_json_parser {
         lv_error.set("X")
     }
     if (abap.compare.eq(lv_error, abap.builtin.abap_true)) {
-      abap.statements.find(lv_error_message, {regex: new abap.types.Character(15).set(' position (\\d+)'), submatches: [lv_xml_offset]});
+      abap.statements.find(lv_error_message, {regex: abap.CharacterFactory.get(15, ' position (\\d+)'), submatches: [lv_xml_offset]});
       const unique226 = await (new abap.Classes['CX_SXML_PARSE_ERROR']()).constructor_({xml_offset: lv_xml_offset});
       unique226.EXTRA_CX = {"INTERNAL_FILENAME": "cl_sxml_string_reader.clas.locals_imp.abap","INTERNAL_LINE": 64};
       throw unique226;
     }
     this.mt_nodes.set(it_nodes);
-    abap.statements.clear(this.mt_nodes.dereference());
+    this.mt_nodes.dereference().clear();
     await this.#traverse({iv_json: lv_json});
   }
   async #append(INPUT) {
@@ -97,27 +97,27 @@ class lcl_json_parser {
     lv_type.set(Array.isArray(iv_json.value) ? "array" : typeof iv_json.value);
     if (iv_json.value === null) lv_type.set("null");
     let unique227 = lv_type;
-    if (abap.compare.eq(unique227, new abap.types.Character(6).set('object'))) {
+    if (abap.compare.eq(unique227, abap.CharacterFactory.get(6, 'object'))) {
       await this.#traverse_object({iv_json: iv_json, iv_key: iv_key});
-    } else if (abap.compare.eq(unique227, new abap.types.Character(5).set('array'))) {
+    } else if (abap.compare.eq(unique227, abap.CharacterFactory.get(5, 'array'))) {
       await this.#traverse_array({iv_json: iv_json, iv_key: iv_key});
-    } else if (abap.compare.eq(unique227, new abap.types.Character(6).set('string')) || abap.compare.eq(unique227, new abap.types.Character(7).set('boolean')) || abap.compare.eq(unique227, new abap.types.Character(6).set('number')) || abap.compare.eq(unique227, new abap.types.Character(4).set('null'))) {
+    } else if (abap.compare.eq(unique227, abap.CharacterFactory.get(6, 'string')) || abap.compare.eq(unique227, abap.CharacterFactory.get(7, 'boolean')) || abap.compare.eq(unique227, abap.CharacterFactory.get(6, 'number')) || abap.compare.eq(unique227, abap.CharacterFactory.get(4, 'null'))) {
       iv_json = iv_json.value + "";
       let unique228 = lv_type;
-      if (abap.compare.eq(unique228, new abap.types.Character(6).set('string'))) {
-        lv_type.set(new abap.types.Character(3).set('str'));
-      } else if (abap.compare.eq(unique228, new abap.types.Character(6).set('number'))) {
-        lv_type.set(new abap.types.Character(3).set('num'));
-      } else if (abap.compare.eq(unique228, new abap.types.Character(7).set('boolean'))) {
-        lv_type.set(new abap.types.Character(4).set('bool'));
+      if (abap.compare.eq(unique228, abap.CharacterFactory.get(6, 'string'))) {
+        lv_type.set(abap.CharacterFactory.get(3, 'str'));
+      } else if (abap.compare.eq(unique228, abap.CharacterFactory.get(6, 'number'))) {
+        lv_type.set(abap.CharacterFactory.get(3, 'num'));
+      } else if (abap.compare.eq(unique228, abap.CharacterFactory.get(7, 'boolean'))) {
+        lv_type.set(abap.CharacterFactory.get(4, 'bool'));
       }
       await this.#append({iv_type: abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_element_open, iv_name: lv_type, iv_key: iv_key});
-      if (abap.compare.ne(lv_type, new abap.types.Character(4).set('null'))) {
+      if (abap.compare.ne(lv_type, abap.CharacterFactory.get(4, 'null'))) {
         await this.#append({iv_type: abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_value, iv_value: iv_json});
       }
       await this.#append({iv_type: abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_element_close, iv_name: lv_type});
     } else {
-      abap.statements.assert(abap.compare.eq(abap.IntegerFactory.get(2), new abap.types.Character(4).set('todo')));
+      abap.statements.assert(abap.compare.eq(abap.IntegerFactory.get(2), abap.CharacterFactory.get(4, 'todo')));
     }
   }
   async #traverse_array(INPUT) {
@@ -129,7 +129,7 @@ class lcl_json_parser {
     let lv_index = new abap.types.Integer({qualifiedName: "I"});
     let parsed = iv_json.value;
     lv_length.set(parsed.length);
-    await this.#append({iv_type: abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_element_open, iv_name: new abap.types.Character(5).set('array'), iv_key: iv_key});
+    await this.#append({iv_type: abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_element_open, iv_name: abap.CharacterFactory.get(5, 'array'), iv_key: iv_key});
     const indexBackup1 = abap.builtin.sy.get().index.get();
     const unique229 = lv_length.get();
     for (let unique230 = 0; unique230 < unique229; unique230++) {
@@ -139,7 +139,7 @@ class lcl_json_parser {
       await this.#traverse({iv_json: lv_value});
     }
     abap.builtin.sy.get().index.set(indexBackup1);
-    await this.#append({iv_type: abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_element_close, iv_name: new abap.types.Character(5).set('array')});
+    await this.#append({iv_type: abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_element_close, iv_name: abap.CharacterFactory.get(5, 'array')});
   }
   async #traverse_object(INPUT) {
     let iv_json = INPUT?.iv_json;
@@ -148,13 +148,13 @@ class lcl_json_parser {
     let lv_key = new abap.types.String({qualifiedName: "STRING"});
     let lv_value = new abap.types.String({qualifiedName: "STRING"});
     let parsed = iv_json.value;
-    await this.#append({iv_type: abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_element_open, iv_name: new abap.types.Character(6).set('object'), iv_key: iv_key});
+    await this.#append({iv_type: abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_element_open, iv_name: abap.CharacterFactory.get(6, 'object'), iv_key: iv_key});
     for (const k of Object.keys(parsed)) {
         lv_key.set(k);
         lv_value = {value: parsed[k]};
       await this.#traverse({iv_json: lv_value, iv_key: lv_key});
     };
-    await this.#append({iv_type: abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_element_close, iv_name: new abap.types.Character(6).set('object')});
+    await this.#append({iv_type: abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_element_close, iv_name: abap.CharacterFactory.get(6, 'object')});
   }
 }
 abap.Classes['CLAS-CL_SXML_STRING_READER-LCL_JSON_PARSER'] = lcl_json_parser;
@@ -252,7 +252,7 @@ class lcl_open_node {
     if (name === undefined) { name = new abap.types.String({qualifiedName: "STRING"}).set(INPUT.name); }
     let nsuri = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.nsuri) {nsuri.set(INPUT.nsuri);}
-    abap.statements.assert(abap.compare.eq(abap.IntegerFactory.get(1), new abap.types.Character(4).set('todo')));
+    abap.statements.assert(abap.compare.eq(abap.IntegerFactory.get(1), abap.CharacterFactory.get(4, 'todo')));
     return value;
   }
   async if_sxml_open_element$get_attributes() {
@@ -263,7 +263,7 @@ class lcl_open_node {
   async if_sxml_open_element$set_prefix(INPUT) {
     let prefix = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.prefix) {prefix.set(INPUT.prefix);}
-    abap.statements.assert(abap.compare.eq(abap.IntegerFactory.get(1), new abap.types.Character(4).set('todo')));
+    abap.statements.assert(abap.compare.eq(abap.IntegerFactory.get(1), abap.CharacterFactory.get(4, 'todo')));
   }
   async if_sxml_open_element$set_attribute(INPUT) {
     let attribute = new abap.types.ABAPObject({qualifiedName: "IF_SXML_ATTRIBUTE", RTTIName: "\\INTERFACE=IF_SXML_ATTRIBUTE"});
@@ -276,14 +276,14 @@ class lcl_open_node {
     if (INPUT && INPUT.prefix) {prefix.set(INPUT.prefix);}
     let value = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.value) {value.set(INPUT.value);}
-    abap.statements.assert(abap.compare.eq(abap.IntegerFactory.get(1), new abap.types.Character(4).set('todo')));
+    abap.statements.assert(abap.compare.eq(abap.IntegerFactory.get(1), abap.CharacterFactory.get(4, 'todo')));
     return attribute;
   }
   async if_sxml_open_element$set_attributes(INPUT) {
     let attributes = INPUT?.attributes;
     if (attributes?.getQualifiedName === undefined || attributes.getQualifiedName() !== "IF_SXML_ATTRIBUTE=>ATTRIBUTES") { attributes = undefined; }
     if (attributes === undefined) { attributes = abap.types.TableFactory.construct(new abap.types.ABAPObject({qualifiedName: "IF_SXML_ATTRIBUTE", RTTIName: "\\INTERFACE=IF_SXML_ATTRIBUTE"}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "if_sxml_attribute=>attributes").set(INPUT.attributes); }
-    abap.statements.assert(abap.compare.eq(abap.IntegerFactory.get(1), new abap.types.Character(4).set('todo')));
+    abap.statements.assert(abap.compare.eq(abap.IntegerFactory.get(1), abap.CharacterFactory.get(4, 'todo')));
   }
 }
 abap.Classes['CLAS-CL_SXML_STRING_READER-LCL_OPEN_NODE'] = lcl_open_node;
@@ -387,20 +387,20 @@ class lcl_value_node {
   }
   async if_sxml_value_node$get_value_raw() {
     let value = new abap.types.XString({qualifiedName: "XSTRING"});
-    abap.statements.assert(abap.compare.eq(abap.IntegerFactory.get(1), new abap.types.Character(4).set('todo')));
+    abap.statements.assert(abap.compare.eq(abap.IntegerFactory.get(1), abap.CharacterFactory.get(4, 'todo')));
     return value;
   }
   async if_sxml_value_node$set_value(INPUT) {
     let value = INPUT?.value;
     if (value?.getQualifiedName === undefined || value.getQualifiedName() !== "STRING") { value = undefined; }
     if (value === undefined) { value = new abap.types.String({qualifiedName: "STRING"}).set(INPUT.value); }
-    abap.statements.assert(abap.compare.eq(abap.IntegerFactory.get(1), new abap.types.Character(4).set('todo')));
+    abap.statements.assert(abap.compare.eq(abap.IntegerFactory.get(1), abap.CharacterFactory.get(4, 'todo')));
   }
   async if_sxml_value_node$set_value_raw(INPUT) {
     let value = INPUT?.value;
     if (value?.getQualifiedName === undefined || value.getQualifiedName() !== "XSTRING") { value = undefined; }
     if (value === undefined) { value = new abap.types.XString({qualifiedName: "XSTRING"}).set(INPUT.value); }
-    abap.statements.assert(abap.compare.eq(abap.IntegerFactory.get(1), new abap.types.Character(4).set('todo')));
+    abap.statements.assert(abap.compare.eq(abap.IntegerFactory.get(1), abap.CharacterFactory.get(4, 'todo')));
   }
   async if_sxml_value_node$get_value() {
     let value = new abap.types.String({qualifiedName: "STRING"});
@@ -462,11 +462,11 @@ class lcl_reader {
     if (this.if_sxml_reader$value_raw === undefined) this.if_sxml_reader$value_raw = new abap.types.XString({qualifiedName: "XSTRING"});
   }
   async if_sxml_reader$current_node() {
-    abap.statements.assert(abap.compare.eq(abap.IntegerFactory.get(1), new abap.types.Character(4).set('todo')));
+    abap.statements.assert(abap.compare.eq(abap.IntegerFactory.get(1), abap.CharacterFactory.get(4, 'todo')));
   }
   async if_sxml_reader$read_current_node() {
     let node = new abap.types.ABAPObject({qualifiedName: "IF_SXML_NODE", RTTIName: "\\INTERFACE=IF_SXML_NODE"});
-    abap.statements.assert(abap.compare.eq(abap.IntegerFactory.get(1), new abap.types.Character(4).set('todo')));
+    abap.statements.assert(abap.compare.eq(abap.IntegerFactory.get(1), abap.CharacterFactory.get(4, 'todo')));
     return node;
   }
   async if_sxml_reader$get_nsuri_by_prefix(INPUT) {
@@ -474,7 +474,7 @@ class lcl_reader {
     let prefix = INPUT?.prefix;
     if (prefix?.getQualifiedName === undefined || prefix.getQualifiedName() !== "STRING") { prefix = undefined; }
     if (prefix === undefined) { prefix = new abap.types.String({qualifiedName: "STRING"}).set(INPUT.prefix); }
-    abap.statements.assert(abap.compare.eq(abap.IntegerFactory.get(1), new abap.types.Character(4).set('todo')));
+    abap.statements.assert(abap.compare.eq(abap.IntegerFactory.get(1), abap.CharacterFactory.get(4, 'todo')));
     return nsuri;
   }
   async if_sxml_reader$get_prefix_by_nsuri(INPUT) {
@@ -482,17 +482,17 @@ class lcl_reader {
     let nsuri = INPUT?.nsuri;
     if (nsuri?.getQualifiedName === undefined || nsuri.getQualifiedName() !== "STRING") { nsuri = undefined; }
     if (nsuri === undefined) { nsuri = new abap.types.String({qualifiedName: "STRING"}).set(INPUT.nsuri); }
-    abap.statements.assert(abap.compare.eq(abap.IntegerFactory.get(1), new abap.types.Character(4).set('todo')));
+    abap.statements.assert(abap.compare.eq(abap.IntegerFactory.get(1), abap.CharacterFactory.get(4, 'todo')));
     return prefix;
   }
   async if_sxml_reader$get_nsbindings() {
     let nsbindings = abap.types.TableFactory.construct(new abap.types.Structure({"prefix": new abap.types.String({qualifiedName: "IF_SXML_NAMED=>NSBINDING-PREFIX"}), "nsuri": new abap.types.String({qualifiedName: "IF_SXML_NAMED=>NSBINDING-NSURI"})}, "if_sxml_named=>nsbinding", undefined, {}, {}), {"withHeader":false,"keyType":"USER","primaryKey":{"name":"primary_key","type":"HASHED","isUnique":true,"keyFields":["PREFIX"]},"secondary":[]}, "if_sxml_named=>nsbindings");
-    abap.statements.assert(abap.compare.eq(abap.IntegerFactory.get(1), new abap.types.Character(4).set('todo')));
+    abap.statements.assert(abap.compare.eq(abap.IntegerFactory.get(1), abap.CharacterFactory.get(4, 'todo')));
     return nsbindings;
   }
   async if_sxml_reader$get_path() {
     let path = abap.types.TableFactory.construct(new abap.types.Structure({"qname": new abap.types.Structure({"name": new abap.types.String({qualifiedName: "IF_SXML_NAMED=>PATHNODE-QNAME-NAME"}), "namespace": new abap.types.String({qualifiedName: "IF_SXML_NAMED=>PATHNODE-QNAME-NAMESPACE"})}, "if_sxml_named=>pathnode-qname", undefined, {}, {}), "prefix": new abap.types.String({qualifiedName: "IF_SXML_NAMED=>PATHNODE-PREFIX"}), "child_position": new abap.types.Integer({qualifiedName: "IF_SXML_NAMED=>PATHNODE-CHILD_POSITION"})}, "if_sxml_named=>pathnode", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "if_sxml_named=>path");
-    abap.statements.assert(abap.compare.eq(abap.IntegerFactory.get(1), new abap.types.Character(4).set('todo')));
+    abap.statements.assert(abap.compare.eq(abap.IntegerFactory.get(1), abap.CharacterFactory.get(4, 'todo')));
     return path;
   }
   async constructor_(INPUT) {
@@ -510,7 +510,7 @@ class lcl_reader {
     let value = new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"});
     if (INPUT && INPUT.value) {value.set(INPUT.value);}
     if (INPUT === undefined || INPUT.value === undefined) {value = abap.builtin.abap_true;}
-    abap.statements.assert(abap.compare.eq(abap.IntegerFactory.get(1), new abap.types.Character(4).set('todo')));
+    abap.statements.assert(abap.compare.eq(abap.IntegerFactory.get(1), abap.CharacterFactory.get(4, 'todo')));
   }
   async #initialize() {
     let lo_json = new abap.types.ABAPObject({qualifiedName: "LCL_JSON_PARSER", RTTIName: "\\CLASS-POOL=CL_SXML_STRING_READER\\CLASS=LCL_JSON_PARSER"});
@@ -524,14 +524,14 @@ class lcl_reader {
     lo_json.set(await (new abap.Classes['CLAS-CL_SXML_STRING_READER-LCL_JSON_PARSER']()).constructor_());
     abap.statements.createData(lt_parsed);
     await lo_json.get().parse({iv_json: this.mv_json, it_nodes: lt_parsed});
-    abap.statements.clear(lo_json);
+    lo_json.clear();
     for await (const unique231 of abap.statements.loop(lt_parsed.dereference())) {
       fs_ls_parsed_.assign(unique231);
       let unique232 = fs_ls_parsed_.get().type;
       if (abap.compare.eq(unique232, abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_element_open)) {
-        abap.statements.clear(lt_attributes);
+        lt_attributes.clear();
         if (abap.compare.initial(fs_ls_parsed_.get().key) === false) {
-          li_attribute.set(await (new abap.Classes['CLAS-CL_SXML_STRING_READER-LCL_ATTRIBUTE']()).constructor_({name: new abap.types.Character(4).set('name'), value: fs_ls_parsed_.get().key, value_type: abap.Classes['IF_SXML_VALUE'].if_sxml_value$co_vt_text}));
+          li_attribute.set(await (new abap.Classes['CLAS-CL_SXML_STRING_READER-LCL_ATTRIBUTE']()).constructor_({name: abap.CharacterFactory.get(4, 'name'), value: fs_ls_parsed_.get().key, value_type: abap.Classes['IF_SXML_VALUE'].if_sxml_value$co_vt_text}));
           abap.statements.append({source: li_attribute, target: lt_attributes});
         }
         li_node.set(await (new abap.Classes['CLAS-CL_SXML_STRING_READER-LCL_OPEN_NODE']()).constructor_({name: fs_ls_parsed_.get().name, attributes: lt_attributes}));
@@ -544,13 +544,13 @@ class lcl_reader {
       }
       abap.statements.append({source: li_node, target: this.mt_nodes});
     }
-    abap.statements.clear(this.mv_json);
+    this.mv_json.clear();
     this.mv_pointer.set(abap.IntegerFactory.get(1));
   }
   async if_sxml_reader$next_attribute(INPUT) {
     let value_type = new abap.types.Integer({qualifiedName: "IF_SXML_VALUE=>VALUE_TYPE"});
     if (INPUT && INPUT.value_type) {value_type.set(INPUT.value_type);}
-    abap.statements.assert(abap.compare.eq(abap.IntegerFactory.get(1), new abap.types.Character(4).set('todo')));
+    abap.statements.assert(abap.compare.eq(abap.IntegerFactory.get(1), abap.CharacterFactory.get(4, 'todo')));
   }
   async if_sxml_reader$next_node(INPUT) {
     let value_type = new abap.types.Integer({qualifiedName: "IF_SXML_VALUE=>VALUE_TYPE"});
@@ -590,12 +590,12 @@ class lcl_reader {
       } else if (abap.compare.eq(unique233, abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_element_close)) {
         await abap.statements.cast(close, node);
         this.if_sxml_reader$name.set(close.get().if_sxml_close_element$qname.get().name);
-        abap.statements.clear(this.if_sxml_reader$value);
+        this.if_sxml_reader$value.clear();
       } else if (abap.compare.eq(unique233, abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_value)) {
         await abap.statements.cast(value, node);
         this.if_sxml_reader$value.set((await value.get().if_sxml_value_node$get_value()));
       } else {
-        abap.statements.clear(this.if_sxml_reader$name);
+        this.if_sxml_reader$name.clear();
       }
     }
     return node;
