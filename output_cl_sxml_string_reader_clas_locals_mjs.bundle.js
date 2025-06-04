@@ -23,12 +23,20 @@ class lcl_json_parser {
   static INTERNAL_TYPE = 'CLAS';
   static INTERNAL_NAME = 'CLAS-CL_SXML_STRING_READER-LCL_JSON_PARSER';
   static IMPLEMENTED_INTERFACES = [];
-  static ATTRIBUTES = {"MT_NODES": {"type": () => {return new abap.types.DataReference(abap.types.TableFactory.construct(new abap.types.Structure({"type": new abap.types.Integer({qualifiedName: "IF_SXML_NODE=>NODE_TYPE"}), "name": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-NAME"}), "key": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-KEY"}), "value": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-VALUE"})}, "lcl_json_parser=>ty_node", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "lcl_json_parser=>ty_nodes"));}, "visibility": "I", "is_constant": " ", "is_class": " "}};
+  static ATTRIBUTES = {"MT_NODES": {"type": () => {return new abap.types.DataReference(abap.types.TableFactory.construct(new abap.types.Structure({
+  "type": new abap.types.Integer({qualifiedName: "IF_SXML_NODE=>NODE_TYPE"}),
+  "name": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-NAME"}),
+  "key": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-KEY"}),
+  "value": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-VALUE"})}, "lcl_json_parser=>ty_node", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "lcl_json_parser=>ty_nodes"));}, "visibility": "I", "is_constant": " ", "is_class": " "}};
   static METHODS = {"APPEND": {"visibility": "I", "parameters": {"IV_TYPE": {"type": () => {return new abap.types.Integer({qualifiedName: "IF_SXML_NODE=>NODE_TYPE"});}, "is_optional": " "}, "IV_NAME": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " "}, "IV_KEY": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " "}, "IV_VALUE": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " "}}},
   "TRAVERSE": {"visibility": "I", "parameters": {"IV_JSON": {"type": () => {return new abap.types.Character(4);}, "is_optional": " "}, "IV_KEY": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " "}}},
   "TRAVERSE_OBJECT": {"visibility": "I", "parameters": {"IV_JSON": {"type": () => {return new abap.types.Character(4);}, "is_optional": " "}, "IV_KEY": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " "}}},
   "TRAVERSE_ARRAY": {"visibility": "I", "parameters": {"IV_JSON": {"type": () => {return new abap.types.Character(4);}, "is_optional": " "}, "IV_KEY": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " "}}},
-  "PARSE": {"visibility": "U", "parameters": {"IV_JSON": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " "}, "IT_NODES": {"type": () => {return new abap.types.DataReference(abap.types.TableFactory.construct(new abap.types.Structure({"type": new abap.types.Integer({qualifiedName: "IF_SXML_NODE=>NODE_TYPE"}), "name": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-NAME"}), "key": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-KEY"}), "value": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-VALUE"})}, "lcl_json_parser=>ty_node", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "lcl_json_parser=>ty_nodes"));}, "is_optional": " "}}}};
+  "PARSE": {"visibility": "U", "parameters": {"IV_JSON": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " "}, "IT_NODES": {"type": () => {return new abap.types.DataReference(abap.types.TableFactory.construct(new abap.types.Structure({
+  "type": new abap.types.Integer({qualifiedName: "IF_SXML_NODE=>NODE_TYPE"}),
+  "name": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-NAME"}),
+  "key": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-KEY"}),
+  "value": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-VALUE"})}, "lcl_json_parser=>ty_node", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "lcl_json_parser=>ty_nodes"));}, "is_optional": " "}}}};
   constructor() {
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
@@ -40,7 +48,11 @@ class lcl_json_parser {
       "traverse_array": this.#traverse_array.bind(this),
       "parse": this.parse.bind(this),
     };
-    this.mt_nodes = new abap.types.DataReference(abap.types.TableFactory.construct(new abap.types.Structure({"type": new abap.types.Integer({qualifiedName: "IF_SXML_NODE=>NODE_TYPE"}), "name": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-NAME"}), "key": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-KEY"}), "value": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-VALUE"})}, "lcl_json_parser=>ty_node", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "lcl_json_parser=>ty_nodes"));
+    this.mt_nodes = new abap.types.DataReference(abap.types.TableFactory.construct(new abap.types.Structure({
+    "type": new abap.types.Integer({qualifiedName: "IF_SXML_NODE=>NODE_TYPE"}),
+    "name": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-NAME"}),
+    "key": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-KEY"}),
+    "value": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-VALUE"})}, "lcl_json_parser=>ty_node", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "lcl_json_parser=>ty_nodes"));
   }
   async constructor_(INPUT) {
     if (super.constructor_) { await super.constructor_(INPUT); }
@@ -51,7 +63,11 @@ class lcl_json_parser {
     if (iv_json?.getQualifiedName === undefined || iv_json.getQualifiedName() !== "STRING") { iv_json = undefined; }
     if (iv_json === undefined) { iv_json = new abap.types.String({qualifiedName: "STRING"}).set(INPUT.iv_json); }
     let it_nodes = INPUT?.it_nodes;
-    if (it_nodes === undefined) { it_nodes = new abap.types.DataReference(abap.types.TableFactory.construct(new abap.types.Structure({"type": new abap.types.Integer({qualifiedName: "IF_SXML_NODE=>NODE_TYPE"}), "name": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-NAME"}), "key": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-KEY"}), "value": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-VALUE"})}, "lcl_json_parser=>ty_node", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "lcl_json_parser=>ty_nodes")).set(INPUT.it_nodes); }
+    if (it_nodes === undefined) { it_nodes = new abap.types.DataReference(abap.types.TableFactory.construct(new abap.types.Structure({
+    "type": new abap.types.Integer({qualifiedName: "IF_SXML_NODE=>NODE_TYPE"}),
+    "name": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-NAME"}),
+    "key": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-KEY"}),
+    "value": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-VALUE"})}, "lcl_json_parser=>ty_node", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "lcl_json_parser=>ty_nodes")).set(INPUT.it_nodes); }
     let lv_error = new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"});
     let lv_error_message = new abap.types.String({qualifiedName: "STRING"});
     let lv_xml_offset = new abap.types.Integer({qualifiedName: "I"});
@@ -64,9 +80,9 @@ class lcl_json_parser {
     }
     if (abap.compare.eq(lv_error, abap.builtin.abap_true)) {
       abap.statements.find(lv_error_message, {regex: abap.CharacterFactory.get(15, ' position (\\d+)'), submatches: [lv_xml_offset]});
-      const unique226 = await (new abap.Classes['CX_SXML_PARSE_ERROR']()).constructor_({xml_offset: lv_xml_offset});
-      unique226.EXTRA_CX = {"INTERNAL_FILENAME": "cl_sxml_string_reader.clas.locals_imp.abap","INTERNAL_LINE": 64};
-      throw unique226;
+      const unique224 = await (new abap.Classes['CX_SXML_PARSE_ERROR']()).constructor_({xml_offset: lv_xml_offset});
+      unique224.EXTRA_CX = {"INTERNAL_FILENAME": "cl_sxml_string_reader.clas.locals_imp.abap","INTERNAL_LINE": 64};
+      throw unique224;
     }
     this.mt_nodes.set(it_nodes);
     this.mt_nodes.dereference().clear();
@@ -82,7 +98,11 @@ class lcl_json_parser {
     if (INPUT && INPUT.iv_key) {iv_key.set(INPUT.iv_key);}
     let iv_value = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.iv_value) {iv_value.set(INPUT.iv_value);}
-    let ls_node = new abap.types.Structure({"type": new abap.types.Integer({qualifiedName: "IF_SXML_NODE=>NODE_TYPE"}), "name": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-NAME"}), "key": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-KEY"}), "value": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-VALUE"})}, "lcl_json_parser=>ty_node", undefined, {}, {});
+    let ls_node = new abap.types.Structure({
+    "type": new abap.types.Integer({qualifiedName: "IF_SXML_NODE=>NODE_TYPE"}),
+    "name": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-NAME"}),
+    "key": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-KEY"}),
+    "value": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-VALUE"})}, "lcl_json_parser=>ty_node", undefined, {}, {});
     ls_node.get().type.set(iv_type);
     ls_node.get().name.set(iv_name);
     ls_node.get().key.set(iv_key);
@@ -96,19 +116,19 @@ class lcl_json_parser {
     let lv_type = new abap.types.String({qualifiedName: "STRING"});
     lv_type.set(Array.isArray(iv_json.value) ? "array" : typeof iv_json.value);
     if (iv_json.value === null) lv_type.set("null");
-    let unique227 = lv_type;
-    if (abap.compare.eq(unique227, abap.CharacterFactory.get(6, 'object'))) {
+    let unique225 = lv_type;
+    if (abap.compare.eq(unique225, abap.CharacterFactory.get(6, 'object'))) {
       await this.#traverse_object({iv_json: iv_json, iv_key: iv_key});
-    } else if (abap.compare.eq(unique227, abap.CharacterFactory.get(5, 'array'))) {
+    } else if (abap.compare.eq(unique225, abap.CharacterFactory.get(5, 'array'))) {
       await this.#traverse_array({iv_json: iv_json, iv_key: iv_key});
-    } else if (abap.compare.eq(unique227, abap.CharacterFactory.get(6, 'string')) || abap.compare.eq(unique227, abap.CharacterFactory.get(7, 'boolean')) || abap.compare.eq(unique227, abap.CharacterFactory.get(6, 'number')) || abap.compare.eq(unique227, abap.CharacterFactory.get(4, 'null'))) {
+    } else if (abap.compare.eq(unique225, abap.CharacterFactory.get(6, 'string')) || abap.compare.eq(unique225, abap.CharacterFactory.get(7, 'boolean')) || abap.compare.eq(unique225, abap.CharacterFactory.get(6, 'number')) || abap.compare.eq(unique225, abap.CharacterFactory.get(4, 'null'))) {
       iv_json = iv_json.value + "";
-      let unique228 = lv_type;
-      if (abap.compare.eq(unique228, abap.CharacterFactory.get(6, 'string'))) {
+      let unique226 = lv_type;
+      if (abap.compare.eq(unique226, abap.CharacterFactory.get(6, 'string'))) {
         lv_type.set(abap.CharacterFactory.get(3, 'str'));
-      } else if (abap.compare.eq(unique228, abap.CharacterFactory.get(6, 'number'))) {
+      } else if (abap.compare.eq(unique226, abap.CharacterFactory.get(6, 'number'))) {
         lv_type.set(abap.CharacterFactory.get(3, 'num'));
-      } else if (abap.compare.eq(unique228, abap.CharacterFactory.get(7, 'boolean'))) {
+      } else if (abap.compare.eq(unique226, abap.CharacterFactory.get(7, 'boolean'))) {
         lv_type.set(abap.CharacterFactory.get(4, 'bool'));
       }
       await this.#append({iv_type: abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_element_open, iv_name: lv_type, iv_key: iv_key});
@@ -131,9 +151,9 @@ class lcl_json_parser {
     lv_length.set(parsed.length);
     await this.#append({iv_type: abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_element_open, iv_name: abap.CharacterFactory.get(5, 'array'), iv_key: iv_key});
     const indexBackup1 = abap.builtin.sy.get().index.get();
-    const unique229 = lv_length.get();
-    for (let unique230 = 0; unique230 < unique229; unique230++) {
-      abap.builtin.sy.get().index.set(unique230 + 1);
+    const unique227 = lv_length.get();
+    for (let unique228 = 0; unique228 < unique227; unique228++) {
+      abap.builtin.sy.get().index.set(unique228 + 1);
       lv_index.set(abap.operators.minus(abap.builtin.sy.get().index,abap.IntegerFactory.get(1)));
       lv_value = {value: parsed[lv_index.get()]};
       await this.#traverse({iv_json: lv_value});
@@ -158,14 +178,24 @@ class lcl_json_parser {
   }
 }
 abap.Classes['CLAS-CL_SXML_STRING_READER-LCL_JSON_PARSER'] = lcl_json_parser;
-lcl_json_parser.ty_node = new abap.types.Structure({"type": new abap.types.Integer({qualifiedName: "IF_SXML_NODE=>NODE_TYPE"}), "name": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-NAME"}), "key": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-KEY"}), "value": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-VALUE"})}, "lcl_json_parser=>ty_node", undefined, {}, {});
-lcl_json_parser.ty_nodes = abap.types.TableFactory.construct(new abap.types.Structure({"type": new abap.types.Integer({qualifiedName: "IF_SXML_NODE=>NODE_TYPE"}), "name": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-NAME"}), "key": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-KEY"}), "value": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-VALUE"})}, "lcl_json_parser=>ty_node", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "lcl_json_parser=>ty_nodes");
+lcl_json_parser.ty_node = new abap.types.Structure({
+"type": new abap.types.Integer({qualifiedName: "IF_SXML_NODE=>NODE_TYPE"}),
+"name": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-NAME"}),
+"key": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-KEY"}),
+"value": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-VALUE"})}, "lcl_json_parser=>ty_node", undefined, {}, {});
+lcl_json_parser.ty_nodes = abap.types.TableFactory.construct(new abap.types.Structure({
+"type": new abap.types.Integer({qualifiedName: "IF_SXML_NODE=>NODE_TYPE"}),
+"name": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-NAME"}),
+"key": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-KEY"}),
+"value": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-VALUE"})}, "lcl_json_parser=>ty_node", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "lcl_json_parser=>ty_nodes");
 class lcl_attribute {
   static INTERNAL_TYPE = 'CLAS';
   static INTERNAL_NAME = 'CLAS-CL_SXML_STRING_READER-LCL_ATTRIBUTE';
   static IMPLEMENTED_INTERFACES = ["IF_SXML_ATTRIBUTE"];
   static ATTRIBUTES = {"MV_VALUE": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "visibility": "I", "is_constant": " ", "is_class": " "},
-  "IF_SXML_ATTRIBUTE~QNAME": {"type": () => {return new abap.types.Structure({"name": new abap.types.String({qualifiedName: "STRING"}), "namespace": new abap.types.String({qualifiedName: "STRING"})}, undefined, undefined, {}, {});}, "visibility": "U", "is_constant": " ", "is_class": " "},
+  "IF_SXML_ATTRIBUTE~QNAME": {"type": () => {return new abap.types.Structure({
+  "name": new abap.types.String({qualifiedName: "STRING"}),
+  "namespace": new abap.types.String({qualifiedName: "STRING"})}, undefined, undefined, {}, {});}, "visibility": "U", "is_constant": " ", "is_class": " "},
   "IF_SXML_ATTRIBUTE~PREFIX": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "visibility": "U", "is_constant": " ", "is_class": " "},
   "IF_SXML_ATTRIBUTE~VALUE_TYPE": {"type": () => {return new abap.types.Integer({qualifiedName: "IF_SXML_VALUE=>VALUE_TYPE"});}, "visibility": "U", "is_constant": " ", "is_class": " "}};
   static METHODS = {"CONSTRUCTOR": {"visibility": "U", "parameters": {"NAME": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " "}, "VALUE": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " "}, "VALUE_TYPE": {"type": () => {return new abap.types.Integer({qualifiedName: "IF_SXML_VALUE=>VALUE_TYPE"});}, "is_optional": " "}}}};
@@ -176,7 +206,9 @@ class lcl_attribute {
     this.FRIENDS_ACCESS_INSTANCE = {
     };
     this.mv_value = new abap.types.String({qualifiedName: "STRING"});
-    if (this.if_sxml_attribute$qname === undefined) this.if_sxml_attribute$qname = new abap.types.Structure({"name": new abap.types.String({qualifiedName: "STRING"}), "namespace": new abap.types.String({qualifiedName: "STRING"})}, undefined, undefined, {}, {});
+    if (this.if_sxml_attribute$qname === undefined) this.if_sxml_attribute$qname = new abap.types.Structure({
+    "name": new abap.types.String({qualifiedName: "STRING"}),
+    "namespace": new abap.types.String({qualifiedName: "STRING"})}, undefined, undefined, {}, {});
     if (this.if_sxml_attribute$prefix === undefined) this.if_sxml_attribute$prefix = new abap.types.String({qualifiedName: "STRING"});
     if (this.if_sxml_attribute$value_type === undefined) this.if_sxml_attribute$value_type = new abap.types.Integer({qualifiedName: "IF_SXML_VALUE=>VALUE_TYPE"});
   }
@@ -207,7 +239,9 @@ class lcl_open_node {
   static INTERNAL_NAME = 'CLAS-CL_SXML_STRING_READER-LCL_OPEN_NODE';
   static IMPLEMENTED_INTERFACES = ["IF_SXML_OPEN_ELEMENT","IF_SXML_NODE"];
   static ATTRIBUTES = {"MT_ATTRIBUTES": {"type": () => {return abap.types.TableFactory.construct(new abap.types.ABAPObject({qualifiedName: "IF_SXML_ATTRIBUTE", RTTIName: "\\INTERFACE=IF_SXML_ATTRIBUTE"}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "if_sxml_attribute=>attributes");}, "visibility": "I", "is_constant": " ", "is_class": " "},
-  "IF_SXML_OPEN_ELEMENT~QNAME": {"type": () => {return new abap.types.Structure({"name": new abap.types.String({qualifiedName: "STRING"}), "namespace": new abap.types.String({qualifiedName: "STRING"})}, undefined, undefined, {}, {});}, "visibility": "U", "is_constant": " ", "is_class": " "},
+  "IF_SXML_OPEN_ELEMENT~QNAME": {"type": () => {return new abap.types.Structure({
+  "name": new abap.types.String({qualifiedName: "STRING"}),
+  "namespace": new abap.types.String({qualifiedName: "STRING"})}, undefined, undefined, {}, {});}, "visibility": "U", "is_constant": " ", "is_class": " "},
   "IF_SXML_OPEN_ELEMENT~PREFIX": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "visibility": "U", "is_constant": " ", "is_class": " "},
   "IF_SXML_NODE~TYPE": {"type": () => {return new abap.types.Integer({qualifiedName: "IF_SXML_NODE=>NODE_TYPE"});}, "visibility": "U", "is_constant": " ", "is_class": " "},
   "IF_SXML_NODE~CO_NT_INITIAL": {"type": () => {return new abap.types.Integer({qualifiedName: "IF_SXML_NODE=>NODE_TYPE"});}, "visibility": "U", "is_constant": "X", "is_class": "X"},
@@ -224,7 +258,9 @@ class lcl_open_node {
     this.FRIENDS_ACCESS_INSTANCE = {
     };
     this.mt_attributes = abap.types.TableFactory.construct(new abap.types.ABAPObject({qualifiedName: "IF_SXML_ATTRIBUTE", RTTIName: "\\INTERFACE=IF_SXML_ATTRIBUTE"}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "if_sxml_attribute=>attributes");
-    if (this.if_sxml_open_element$qname === undefined) this.if_sxml_open_element$qname = new abap.types.Structure({"name": new abap.types.String({qualifiedName: "STRING"}), "namespace": new abap.types.String({qualifiedName: "STRING"})}, undefined, undefined, {}, {});
+    if (this.if_sxml_open_element$qname === undefined) this.if_sxml_open_element$qname = new abap.types.Structure({
+    "name": new abap.types.String({qualifiedName: "STRING"}),
+    "namespace": new abap.types.String({qualifiedName: "STRING"})}, undefined, undefined, {}, {});
     if (this.if_sxml_open_element$prefix === undefined) this.if_sxml_open_element$prefix = new abap.types.String({qualifiedName: "STRING"});
     this.if_sxml_node$co_nt_initial = abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_initial;
     this.if_sxml_node$co_nt_element_open = abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_element_open;
@@ -303,7 +339,9 @@ class lcl_close_node {
   static INTERNAL_TYPE = 'CLAS';
   static INTERNAL_NAME = 'CLAS-CL_SXML_STRING_READER-LCL_CLOSE_NODE';
   static IMPLEMENTED_INTERFACES = ["IF_SXML_CLOSE_ELEMENT","IF_SXML_NODE"];
-  static ATTRIBUTES = {"IF_SXML_CLOSE_ELEMENT~QNAME": {"type": () => {return new abap.types.Structure({"name": new abap.types.String({qualifiedName: "STRING"}), "namespace": new abap.types.String({qualifiedName: "STRING"})}, undefined, undefined, {}, {});}, "visibility": "U", "is_constant": " ", "is_class": " "},
+  static ATTRIBUTES = {"IF_SXML_CLOSE_ELEMENT~QNAME": {"type": () => {return new abap.types.Structure({
+  "name": new abap.types.String({qualifiedName: "STRING"}),
+  "namespace": new abap.types.String({qualifiedName: "STRING"})}, undefined, undefined, {}, {});}, "visibility": "U", "is_constant": " ", "is_class": " "},
   "IF_SXML_NODE~TYPE": {"type": () => {return new abap.types.Integer({qualifiedName: "IF_SXML_NODE=>NODE_TYPE"});}, "visibility": "U", "is_constant": " ", "is_class": " "},
   "IF_SXML_NODE~CO_NT_INITIAL": {"type": () => {return new abap.types.Integer({qualifiedName: "IF_SXML_NODE=>NODE_TYPE"});}, "visibility": "U", "is_constant": "X", "is_class": "X"},
   "IF_SXML_NODE~CO_NT_ELEMENT_OPEN": {"type": () => {return new abap.types.Integer({qualifiedName: "IF_SXML_NODE=>NODE_TYPE"});}, "visibility": "U", "is_constant": "X", "is_class": "X"},
@@ -318,7 +356,9 @@ class lcl_close_node {
     this.INTERNAL_ID = abap.internalIdCounter++;
     this.FRIENDS_ACCESS_INSTANCE = {
     };
-    if (this.if_sxml_close_element$qname === undefined) this.if_sxml_close_element$qname = new abap.types.Structure({"name": new abap.types.String({qualifiedName: "STRING"}), "namespace": new abap.types.String({qualifiedName: "STRING"})}, undefined, undefined, {}, {});
+    if (this.if_sxml_close_element$qname === undefined) this.if_sxml_close_element$qname = new abap.types.Structure({
+    "name": new abap.types.String({qualifiedName: "STRING"}),
+    "namespace": new abap.types.String({qualifiedName: "STRING"})}, undefined, undefined, {}, {});
     this.if_sxml_node$co_nt_initial = abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_initial;
     this.if_sxml_node$co_nt_element_open = abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_element_open;
     this.if_sxml_node$co_nt_element_close = abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_element_close;
@@ -486,12 +526,19 @@ class lcl_reader {
     return prefix;
   }
   async if_sxml_reader$get_nsbindings() {
-    let nsbindings = abap.types.TableFactory.construct(new abap.types.Structure({"prefix": new abap.types.String({qualifiedName: "IF_SXML_NAMED=>NSBINDING-PREFIX"}), "nsuri": new abap.types.String({qualifiedName: "IF_SXML_NAMED=>NSBINDING-NSURI"})}, "if_sxml_named=>nsbinding", undefined, {}, {}), {"withHeader":false,"keyType":"USER","primaryKey":{"name":"primary_key","type":"HASHED","isUnique":true,"keyFields":["PREFIX"]},"secondary":[]}, "if_sxml_named=>nsbindings");
+    let nsbindings = abap.types.TableFactory.construct(new abap.types.Structure({
+    "prefix": new abap.types.String({qualifiedName: "IF_SXML_NAMED=>NSBINDING-PREFIX"}),
+    "nsuri": new abap.types.String({qualifiedName: "IF_SXML_NAMED=>NSBINDING-NSURI"})}, "if_sxml_named=>nsbinding", undefined, {}, {}), {"withHeader":false,"keyType":"USER","primaryKey":{"name":"primary_key","type":"HASHED","isUnique":true,"keyFields":["PREFIX"]},"secondary":[]}, "if_sxml_named=>nsbindings");
     abap.statements.assert(abap.compare.eq(abap.IntegerFactory.get(1), abap.CharacterFactory.get(4, 'todo')));
     return nsbindings;
   }
   async if_sxml_reader$get_path() {
-    let path = abap.types.TableFactory.construct(new abap.types.Structure({"qname": new abap.types.Structure({"name": new abap.types.String({qualifiedName: "IF_SXML_NAMED=>PATHNODE-QNAME-NAME"}), "namespace": new abap.types.String({qualifiedName: "IF_SXML_NAMED=>PATHNODE-QNAME-NAMESPACE"})}, "if_sxml_named=>pathnode-qname", undefined, {}, {}), "prefix": new abap.types.String({qualifiedName: "IF_SXML_NAMED=>PATHNODE-PREFIX"}), "child_position": new abap.types.Integer({qualifiedName: "IF_SXML_NAMED=>PATHNODE-CHILD_POSITION"})}, "if_sxml_named=>pathnode", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "if_sxml_named=>path");
+    let path = abap.types.TableFactory.construct(new abap.types.Structure({
+    "qname": new abap.types.Structure({
+    "name": new abap.types.String({qualifiedName: "IF_SXML_NAMED=>PATHNODE-QNAME-NAME"}),
+    "namespace": new abap.types.String({qualifiedName: "IF_SXML_NAMED=>PATHNODE-QNAME-NAMESPACE"})}, "if_sxml_named=>pathnode-qname", undefined, {}, {}),
+    "prefix": new abap.types.String({qualifiedName: "IF_SXML_NAMED=>PATHNODE-PREFIX"}),
+    "child_position": new abap.types.Integer({qualifiedName: "IF_SXML_NAMED=>PATHNODE-CHILD_POSITION"})}, "if_sxml_named=>pathnode", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "if_sxml_named=>path");
     abap.statements.assert(abap.compare.eq(abap.IntegerFactory.get(1), abap.CharacterFactory.get(4, 'todo')));
     return path;
   }
@@ -514,30 +561,38 @@ class lcl_reader {
   }
   async #initialize() {
     let lo_json = new abap.types.ABAPObject({qualifiedName: "LCL_JSON_PARSER", RTTIName: "\\CLASS-POOL=CL_SXML_STRING_READER\\CLASS=LCL_JSON_PARSER"});
-    let lt_parsed = new abap.types.DataReference(abap.types.TableFactory.construct(new abap.types.Structure({"type": new abap.types.Integer({qualifiedName: "IF_SXML_NODE=>NODE_TYPE"}), "name": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-NAME"}), "key": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-KEY"}), "value": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-VALUE"})}, "lcl_json_parser=>ty_node", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "lcl_json_parser=>ty_nodes"));
+    let lt_parsed = new abap.types.DataReference(abap.types.TableFactory.construct(new abap.types.Structure({
+    "type": new abap.types.Integer({qualifiedName: "IF_SXML_NODE=>NODE_TYPE"}),
+    "name": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-NAME"}),
+    "key": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-KEY"}),
+    "value": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-VALUE"})}, "lcl_json_parser=>ty_node", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "lcl_json_parser=>ty_nodes"));
     let li_node = new abap.types.ABAPObject({qualifiedName: "IF_SXML_NODE", RTTIName: "\\INTERFACE=IF_SXML_NODE"});
     let lt_attributes = abap.types.TableFactory.construct(new abap.types.ABAPObject({qualifiedName: "IF_SXML_ATTRIBUTE", RTTIName: "\\INTERFACE=IF_SXML_ATTRIBUTE"}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "if_sxml_attribute=>attributes");
     let li_attribute = new abap.types.ABAPObject({qualifiedName: "IF_SXML_ATTRIBUTE", RTTIName: "\\INTERFACE=IF_SXML_ATTRIBUTE"});
-    let fs_ls_parsed_ = new abap.types.FieldSymbol(new abap.types.Structure({"type": new abap.types.Integer({qualifiedName: "IF_SXML_NODE=>NODE_TYPE"}), "name": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-NAME"}), "key": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-KEY"}), "value": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-VALUE"})}, "lcl_json_parser=>ty_node", undefined, {}, {}));
+    let fs_ls_parsed_ = new abap.types.FieldSymbol(new abap.types.Structure({
+    "type": new abap.types.Integer({qualifiedName: "IF_SXML_NODE=>NODE_TYPE"}),
+    "name": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-NAME"}),
+    "key": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-KEY"}),
+    "value": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-VALUE"})}, "lcl_json_parser=>ty_node", undefined, {}, {}));
     abap.statements.assert(abap.compare.eq(this.mv_initialized, abap.builtin.abap_false));
     this.mv_initialized.set(abap.builtin.abap_true);
     lo_json.set(await (new abap.Classes['CLAS-CL_SXML_STRING_READER-LCL_JSON_PARSER']()).constructor_());
     abap.statements.createData(lt_parsed);
     await lo_json.get().parse({iv_json: this.mv_json, it_nodes: lt_parsed});
     lo_json.clear();
-    for await (const unique231 of abap.statements.loop(lt_parsed.dereference())) {
-      fs_ls_parsed_.assign(unique231);
-      let unique232 = fs_ls_parsed_.get().type;
-      if (abap.compare.eq(unique232, abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_element_open)) {
+    for await (const unique229 of abap.statements.loop(lt_parsed.dereference())) {
+      fs_ls_parsed_.assign(unique229);
+      let unique230 = fs_ls_parsed_.get().type;
+      if (abap.compare.eq(unique230, abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_element_open)) {
         lt_attributes.clear();
         if (abap.compare.initial(fs_ls_parsed_.get().key) === false) {
           li_attribute.set(await (new abap.Classes['CLAS-CL_SXML_STRING_READER-LCL_ATTRIBUTE']()).constructor_({name: abap.CharacterFactory.get(4, 'name'), value: fs_ls_parsed_.get().key, value_type: abap.Classes['IF_SXML_VALUE'].if_sxml_value$co_vt_text}));
           abap.statements.append({source: li_attribute, target: lt_attributes});
         }
         li_node.set(await (new abap.Classes['CLAS-CL_SXML_STRING_READER-LCL_OPEN_NODE']()).constructor_({name: fs_ls_parsed_.get().name, attributes: lt_attributes}));
-      } else if (abap.compare.eq(unique232, abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_element_close)) {
+      } else if (abap.compare.eq(unique230, abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_element_close)) {
         li_node.set(await (new abap.Classes['CLAS-CL_SXML_STRING_READER-LCL_CLOSE_NODE']()).constructor_({name: fs_ls_parsed_.get().name}));
-      } else if (abap.compare.eq(unique232, abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_value)) {
+      } else if (abap.compare.eq(unique230, abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_value)) {
         li_node.set(await (new abap.Classes['CLAS-CL_SXML_STRING_READER-LCL_VALUE_NODE']()).constructor_({value: fs_ls_parsed_.get().value}));
       } else {
         abap.statements.assert(abap.compare.eq(abap.IntegerFactory.get(1), abap.IntegerFactory.get(2)));
@@ -577,8 +632,8 @@ class lcl_reader {
     this.mv_pointer.set(abap.operators.add(this.mv_pointer,abap.IntegerFactory.get(1)));
     if (abap.compare.initial(node) === false) {
       this.if_sxml_reader$node_type.set(node.get().if_sxml_node$type);
-      let unique233 = this.if_sxml_reader$node_type;
-      if (abap.compare.eq(unique233, abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_element_open)) {
+      let unique231 = this.if_sxml_reader$node_type;
+      if (abap.compare.eq(unique231, abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_element_open)) {
         await abap.statements.cast(open, node);
         this.if_sxml_reader$name.set(open.get().if_sxml_open_element$qname.get().name);
         attrs.set((await open.get().if_sxml_open_element$get_attributes()));
@@ -587,11 +642,11 @@ class lcl_reader {
         if (abap.compare.eq(abap.builtin.sy.get().subrc, abap.IntegerFactory.get(0))) {
           this.if_sxml_reader$value.set((await attr.get().if_sxml_attribute$get_value()));
         }
-      } else if (abap.compare.eq(unique233, abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_element_close)) {
+      } else if (abap.compare.eq(unique231, abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_element_close)) {
         await abap.statements.cast(close, node);
         this.if_sxml_reader$name.set(close.get().if_sxml_close_element$qname.get().name);
         this.if_sxml_reader$value.clear();
-      } else if (abap.compare.eq(unique233, abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_value)) {
+      } else if (abap.compare.eq(unique231, abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_value)) {
         await abap.statements.cast(value, node);
         this.if_sxml_reader$value.set((await value.get().if_sxml_value_node$get_value()));
       } else {

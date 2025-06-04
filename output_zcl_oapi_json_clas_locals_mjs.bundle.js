@@ -20,7 +20,10 @@ class lcl_stack {
   static INTERNAL_TYPE = 'CLAS';
   static INTERNAL_NAME = 'CLAS-ZCL_OAPI_JSON-LCL_STACK';
   static IMPLEMENTED_INTERFACES = [];
-  static ATTRIBUTES = {"MT_DATA": {"type": () => {return abap.types.TableFactory.construct(new abap.types.Structure({"name": new abap.types.String({qualifiedName: "LCL_STACK=>TY_DATA-NAME"}), "is_array": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}), "array_index": new abap.types.Integer({qualifiedName: "LCL_STACK=>TY_DATA-ARRAY_INDEX"})}, "lcl_stack=>ty_data", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "");}, "visibility": "I", "is_constant": " ", "is_class": " "}};
+  static ATTRIBUTES = {"MT_DATA": {"type": () => {return abap.types.TableFactory.construct(new abap.types.Structure({
+  "name": new abap.types.String({qualifiedName: "LCL_STACK=>TY_DATA-NAME"}),
+  "is_array": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}),
+  "array_index": new abap.types.Integer({qualifiedName: "LCL_STACK=>TY_DATA-ARRAY_INDEX"})}, "lcl_stack=>ty_data", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "");}, "visibility": "I", "is_constant": " ", "is_class": " "}};
   static METHODS = {"PUSH": {"visibility": "U", "parameters": {"IV_NAME": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " "}, "IV_TYPE": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " "}}},
   "POP": {"visibility": "U", "parameters": {"RV_NAME": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " "}}},
   "IS_ARRAY": {"visibility": "U", "parameters": {"RV_ARRAY": {"type": () => {return new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"});}, "is_optional": " "}}},
@@ -37,7 +40,10 @@ class lcl_stack {
       "get_and_increase_index": this.get_and_increase_index.bind(this),
       "get_full_name": this.get_full_name.bind(this),
     };
-    this.mt_data = abap.types.TableFactory.construct(new abap.types.Structure({"name": new abap.types.String({qualifiedName: "LCL_STACK=>TY_DATA-NAME"}), "is_array": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}), "array_index": new abap.types.Integer({qualifiedName: "LCL_STACK=>TY_DATA-ARRAY_INDEX"})}, "lcl_stack=>ty_data", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "");
+    this.mt_data = abap.types.TableFactory.construct(new abap.types.Structure({
+    "name": new abap.types.String({qualifiedName: "LCL_STACK=>TY_DATA-NAME"}),
+    "is_array": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}),
+    "array_index": new abap.types.Integer({qualifiedName: "LCL_STACK=>TY_DATA-ARRAY_INDEX"})}, "lcl_stack=>ty_data", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "");
   }
   async constructor_(INPUT) {
     if (super.constructor_) { await super.constructor_(INPUT); }
@@ -50,7 +56,10 @@ class lcl_stack {
     let iv_type = INPUT?.iv_type;
     if (iv_type?.getQualifiedName === undefined || iv_type.getQualifiedName() !== "STRING") { iv_type = undefined; }
     if (iv_type === undefined) { iv_type = new abap.types.String({qualifiedName: "STRING"}).set(INPUT.iv_type); }
-    let ls_data = new abap.types.Structure({"name": new abap.types.String({qualifiedName: "LCL_STACK=>TY_DATA-NAME"}), "is_array": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}), "array_index": new abap.types.Integer({qualifiedName: "LCL_STACK=>TY_DATA-ARRAY_INDEX"})}, "lcl_stack=>ty_data", undefined, {}, {});
+    let ls_data = new abap.types.Structure({
+    "name": new abap.types.String({qualifiedName: "LCL_STACK=>TY_DATA-NAME"}),
+    "is_array": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}),
+    "array_index": new abap.types.Integer({qualifiedName: "LCL_STACK=>TY_DATA-ARRAY_INDEX"})}, "lcl_stack=>ty_data", undefined, {}, {});
     ls_data.get().name.set(iv_name);
     ls_data.get().is_array.set(abap.builtin.boolc(abap.compare.eq(iv_type, abap.CharacterFactory.get(5, 'array'))));
     abap.statements.append({source: ls_data, target: this.mt_data});
@@ -58,7 +67,10 @@ class lcl_stack {
   async is_array() {
     let rv_array = new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"});
     let lv_index = new abap.types.Integer({qualifiedName: "I"});
-    let ls_data = new abap.types.Structure({"name": new abap.types.String({qualifiedName: "LCL_STACK=>TY_DATA-NAME"}), "is_array": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}), "array_index": new abap.types.Integer({qualifiedName: "LCL_STACK=>TY_DATA-ARRAY_INDEX"})}, "lcl_stack=>ty_data", undefined, {}, {});
+    let ls_data = new abap.types.Structure({
+    "name": new abap.types.String({qualifiedName: "LCL_STACK=>TY_DATA-NAME"}),
+    "is_array": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}),
+    "array_index": new abap.types.Integer({qualifiedName: "LCL_STACK=>TY_DATA-ARRAY_INDEX"})}, "lcl_stack=>ty_data", undefined, {}, {});
     lv_index.set(abap.builtin.lines({val: this.mt_data}));
     abap.statements.readTable(this.mt_data,{index: lv_index,
       into: ls_data});
@@ -68,7 +80,10 @@ class lcl_stack {
   async get_and_increase_index() {
     let rv_index = new abap.types.String({qualifiedName: "STRING"});
     let lv_index = new abap.types.Integer({qualifiedName: "I"});
-    let fs_ls_data_ = new abap.types.FieldSymbol(new abap.types.Structure({"name": new abap.types.String({qualifiedName: "LCL_STACK=>TY_DATA-NAME"}), "is_array": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}), "array_index": new abap.types.Integer({qualifiedName: "LCL_STACK=>TY_DATA-ARRAY_INDEX"})}, "lcl_stack=>ty_data", undefined, {}, {}));
+    let fs_ls_data_ = new abap.types.FieldSymbol(new abap.types.Structure({
+    "name": new abap.types.String({qualifiedName: "LCL_STACK=>TY_DATA-NAME"}),
+    "is_array": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}),
+    "array_index": new abap.types.Integer({qualifiedName: "LCL_STACK=>TY_DATA-ARRAY_INDEX"})}, "lcl_stack=>ty_data", undefined, {}, {}));
     lv_index.set(abap.builtin.lines({val: this.mt_data}));
     abap.statements.readTable(this.mt_data,{index: lv_index,
       assigning: fs_ls_data_});
@@ -82,7 +97,10 @@ class lcl_stack {
   async pop() {
     let rv_name = new abap.types.String({qualifiedName: "STRING"});
     let lv_index = new abap.types.Integer({qualifiedName: "I"});
-    let ls_data = new abap.types.Structure({"name": new abap.types.String({qualifiedName: "LCL_STACK=>TY_DATA-NAME"}), "is_array": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}), "array_index": new abap.types.Integer({qualifiedName: "LCL_STACK=>TY_DATA-ARRAY_INDEX"})}, "lcl_stack=>ty_data", undefined, {}, {});
+    let ls_data = new abap.types.Structure({
+    "name": new abap.types.String({qualifiedName: "LCL_STACK=>TY_DATA-NAME"}),
+    "is_array": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}),
+    "array_index": new abap.types.Integer({qualifiedName: "LCL_STACK=>TY_DATA-ARRAY_INDEX"})}, "lcl_stack=>ty_data", undefined, {}, {});
     lv_index.set(abap.builtin.lines({val: this.mt_data}));
     if (abap.compare.gt(lv_index, abap.IntegerFactory.get(0))) {
       abap.statements.readTable(this.mt_data,{index: lv_index,
@@ -94,7 +112,10 @@ class lcl_stack {
   }
   async get_full_name() {
     let rv_path = new abap.types.String({qualifiedName: "STRING"});
-    let ls_data = new abap.types.Structure({"name": new abap.types.String({qualifiedName: "LCL_STACK=>TY_DATA-NAME"}), "is_array": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}), "array_index": new abap.types.Integer({qualifiedName: "LCL_STACK=>TY_DATA-ARRAY_INDEX"})}, "lcl_stack=>ty_data", undefined, {}, {});
+    let ls_data = new abap.types.Structure({
+    "name": new abap.types.String({qualifiedName: "LCL_STACK=>TY_DATA-NAME"}),
+    "is_array": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}),
+    "array_index": new abap.types.Integer({qualifiedName: "LCL_STACK=>TY_DATA-ARRAY_INDEX"})}, "lcl_stack=>ty_data", undefined, {}, {});
     for await (const unique22 of abap.statements.loop(this.mt_data)) {
       ls_data.set(unique22);
       rv_path.set(abap.operators.concat(rv_path,ls_data.get().name));
@@ -103,13 +124,20 @@ class lcl_stack {
   }
 }
 abap.Classes['CLAS-ZCL_OAPI_JSON-LCL_STACK'] = lcl_stack;
-lcl_stack.ty_data = new abap.types.Structure({"name": new abap.types.String({qualifiedName: "LCL_STACK=>TY_DATA-NAME"}), "is_array": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}), "array_index": new abap.types.Integer({qualifiedName: "LCL_STACK=>TY_DATA-ARRAY_INDEX"})}, "lcl_stack=>ty_data", undefined, {}, {});
+lcl_stack.ty_data = new abap.types.Structure({
+"name": new abap.types.String({qualifiedName: "LCL_STACK=>TY_DATA-NAME"}),
+"is_array": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}),
+"array_index": new abap.types.Integer({qualifiedName: "LCL_STACK=>TY_DATA-ARRAY_INDEX"})}, "lcl_stack=>ty_data", undefined, {}, {});
 class lcl_parser {
   static INTERNAL_TYPE = 'CLAS';
   static INTERNAL_NAME = 'CLAS-ZCL_OAPI_JSON-LCL_PARSER';
   static IMPLEMENTED_INTERFACES = [];
   static ATTRIBUTES = {};
-  static METHODS = {"PARSE": {"visibility": "U", "parameters": {"RT_DATA": {"type": () => {return abap.types.TableFactory.construct(new abap.types.Structure({"parent": new abap.types.String({qualifiedName: "TY_DATA-PARENT"}), "name": new abap.types.String({qualifiedName: "TY_DATA-NAME"}), "full_name": new abap.types.String({qualifiedName: "TY_DATA-FULL_NAME"}), "value": new abap.types.String({qualifiedName: "TY_DATA-VALUE"})}, "ty_data", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "ty_data_tt");}, "is_optional": " "}, "IV_JSON": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " "}}}};
+  static METHODS = {"PARSE": {"visibility": "U", "parameters": {"RT_DATA": {"type": () => {return abap.types.TableFactory.construct(new abap.types.Structure({
+  "parent": new abap.types.String({qualifiedName: "TY_DATA-PARENT"}),
+  "name": new abap.types.String({qualifiedName: "TY_DATA-NAME"}),
+  "full_name": new abap.types.String({qualifiedName: "TY_DATA-FULL_NAME"}),
+  "value": new abap.types.String({qualifiedName: "TY_DATA-VALUE"})}, "ty_data", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "ty_data_tt");}, "is_optional": " "}, "IV_JSON": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " "}}}};
   constructor() {
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
@@ -123,7 +151,11 @@ class lcl_parser {
     return this;
   }
   async parse(INPUT) {
-    let rt_data = abap.types.TableFactory.construct(new abap.types.Structure({"parent": new abap.types.String({qualifiedName: "TY_DATA-PARENT"}), "name": new abap.types.String({qualifiedName: "TY_DATA-NAME"}), "full_name": new abap.types.String({qualifiedName: "TY_DATA-FULL_NAME"}), "value": new abap.types.String({qualifiedName: "TY_DATA-VALUE"})}, "ty_data", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "ty_data_tt");
+    let rt_data = abap.types.TableFactory.construct(new abap.types.Structure({
+    "parent": new abap.types.String({qualifiedName: "TY_DATA-PARENT"}),
+    "name": new abap.types.String({qualifiedName: "TY_DATA-NAME"}),
+    "full_name": new abap.types.String({qualifiedName: "TY_DATA-FULL_NAME"}),
+    "value": new abap.types.String({qualifiedName: "TY_DATA-VALUE"})}, "ty_data", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "ty_data_tt");
     let iv_json = INPUT?.iv_json;
     if (iv_json?.getQualifiedName === undefined || iv_json.getQualifiedName() !== "STRING") { iv_json = undefined; }
     if (iv_json === undefined) { iv_json = new abap.types.String({qualifiedName: "STRING"}).set(INPUT.iv_json); }
@@ -138,7 +170,11 @@ class lcl_parser {
     let lv_push = new abap.types.String({qualifiedName: "STRING"});
     let lv_name = new abap.types.String({qualifiedName: "STRING"});
     let lo_stack = new abap.types.ABAPObject({qualifiedName: "LCL_STACK", RTTIName: "\\CLASS-POOL=ZCL_OAPI_JSON\\CLASS=LCL_STACK"});
-    let ls_data = new abap.types.Structure({"parent": new abap.types.String({qualifiedName: "TY_DATA-PARENT"}), "name": new abap.types.String({qualifiedName: "TY_DATA-NAME"}), "full_name": new abap.types.String({qualifiedName: "TY_DATA-FULL_NAME"}), "value": new abap.types.String({qualifiedName: "TY_DATA-VALUE"})}, "ty_data", undefined, {}, {});
+    let ls_data = new abap.types.Structure({
+    "parent": new abap.types.String({qualifiedName: "TY_DATA-PARENT"}),
+    "name": new abap.types.String({qualifiedName: "TY_DATA-NAME"}),
+    "full_name": new abap.types.String({qualifiedName: "TY_DATA-FULL_NAME"}),
+    "value": new abap.types.String({qualifiedName: "TY_DATA-VALUE"})}, "ty_data", undefined, {}, {});
     let lv_index = new abap.types.Integer({qualifiedName: "I"});
     let lt_nodes = abap.types.TableFactory.construct(new abap.types.ABAPObject({qualifiedName: "IF_SXML_NODE", RTTIName: "\\INTERFACE=IF_SXML_NODE"}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "");
     lo_stack.set(await (new abap.Classes['CLAS-ZCL_OAPI_JSON-LCL_STACK']()).constructor_());
