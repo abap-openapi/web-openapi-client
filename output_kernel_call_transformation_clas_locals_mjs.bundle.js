@@ -28,6 +28,8 @@ class lcl_heap {
   static METHODS = {"ADD_OBJECT": {"visibility": "U", "parameters": {"RV_ID": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " "}, "IV_REF": {"type": () => {return new abap.types.Character(4);}, "is_optional": " "}}},
   "ADD_DATA": {"visibility": "U", "parameters": {"RV_ID": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " "}, "IV_REF": {"type": () => {return new abap.types.Character(4);}, "is_optional": " "}}},
   "SERIALIZE": {"visibility": "U", "parameters": {"RV_XML": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " "}}}};
+  #mv_counter;
+  #mv_data;
   constructor() {
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
@@ -37,8 +39,10 @@ class lcl_heap {
       "add_data": this.add_data.bind(this),
       "serialize": this.serialize.bind(this),
     };
-    this.mv_counter = new abap.types.Integer({qualifiedName: "I"});
-    this.mv_data = new abap.types.String({qualifiedName: "STRING"});
+    this.#mv_counter = new abap.types.Integer({qualifiedName: "I"});
+    this.FRIENDS_ACCESS_INSTANCE["mv_counter"] = this.#mv_counter;
+    this.#mv_data = new abap.types.String({qualifiedName: "STRING"});
+    this.FRIENDS_ACCESS_INSTANCE["mv_data"] = this.#mv_data;
   }
   async constructor_(INPUT) {
     if (super.constructor_) { await super.constructor_(INPUT); }
@@ -46,11 +50,11 @@ class lcl_heap {
   }
   async serialize() {
     let rv_xml = new abap.types.String({qualifiedName: "STRING"});
-    if (abap.compare.eq(this.mv_counter, abap.IntegerFactory.get(0))) {
+    if (abap.compare.eq(this.#mv_counter, abap.IntegerFactory.get(0))) {
       return rv_xml;
     }
     rv_xml.set(abap.operators.concat(rv_xml,new abap.types.String().set(`<asx:heap xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:abap="http://www.sap.com/abapxml/types/built-in" xmlns:cls="http://www.sap.com/abapxml/classes/global" xmlns:dic="http://www.sap.com/abapxml/types/dictionary">`)));
-    rv_xml.set(abap.operators.concat(rv_xml,this.mv_data));
+    rv_xml.set(abap.operators.concat(rv_xml,this.#mv_data));
     rv_xml.set(abap.operators.concat(rv_xml,new abap.types.String().set(`</asx:heap>`)));
     return rv_xml;
   }
@@ -62,16 +66,16 @@ class lcl_heap {
     let lv_name = new abap.types.String({qualifiedName: "STRING"});
     let lo_data_to_xml = new abap.types.ABAPObject({qualifiedName: "LCL_DATA_TO_XML", RTTIName: "\\CLASS-POOL=KERNEL_CALL_TRANSFORMATION\\CLASS=LCL_DATA_TO_XML"});
     let lv_counter = new abap.types.Integer({qualifiedName: "I"});
-    this.mv_counter.set(abap.operators.add(this.mv_counter,abap.IntegerFactory.get(1)));
-    lv_counter.set(this.mv_counter);
+    this.#mv_counter.set(abap.operators.add(this.#mv_counter,abap.IntegerFactory.get(1)));
+    lv_counter.set(this.#mv_counter);
     await abap.statements.cast(lo_descr, (await abap.Classes['CL_ABAP_TYPEDESCR'].describe_by_data({p_data: iv_ref})));
     lv_name.set(lo_descr.get().relative_name);
     lo_data_to_xml.set(await (new abap.Classes['CLAS-KERNEL_CALL_TRANSFORMATION-LCL_DATA_TO_XML']()).constructor_({io_heap: this.me}));
     abap.statements.replace({target: lv_name, all: true, with: abap.CharacterFactory.get(1, '.'), of: abap.CharacterFactory.get(2, '=>')});
-    lv_data.set(abap.operators.concat(lv_data,new abap.types.String().set(`<prg:${abap.templateFormatting(lv_name)} xmlns:prg="http://www.sap.com/abapxml/classes/class-pool/TODO" id="d${abap.templateFormatting(this.mv_counter)}">`)));
+    lv_data.set(abap.operators.concat(lv_data,new abap.types.String().set(`<prg:${abap.templateFormatting(lv_name)} xmlns:prg="http://www.sap.com/abapxml/classes/class-pool/TODO" id="d${abap.templateFormatting(this.#mv_counter)}">`)));
     lv_data.set(abap.operators.concat(lv_data,(await lo_data_to_xml.get().run({iv_name: abap.CharacterFactory.get(7, 'DATAREF'), iv_ref: iv_ref}))));
     lv_data.set(abap.operators.concat(lv_data,new abap.types.String().set(`</prg:${abap.templateFormatting(lv_name)}>`)));
-    this.mv_data.set(abap.operators.concat(this.mv_data,lv_data));
+    this.#mv_data.set(abap.operators.concat(this.#mv_data,lv_data));
     rv_id.set(new abap.types.String().set(`${abap.templateFormatting(lv_counter)}`));
     return rv_id;
   }
@@ -103,8 +107,8 @@ class lcl_heap {
     let lv_data = new abap.types.String({qualifiedName: "STRING"});
     let lv_counter = new abap.types.Integer({qualifiedName: "I"});
     let fs_any_ = new abap.types.FieldSymbol(new abap.types.DataReference(new abap.types.Character(4)));
-    this.mv_counter.set(abap.operators.add(this.mv_counter,abap.IntegerFactory.get(1)));
-    lv_counter.set(this.mv_counter);
+    this.#mv_counter.set(abap.operators.add(this.#mv_counter,abap.IntegerFactory.get(1)));
+    lv_counter.set(this.#mv_counter);
     await abap.statements.cast(lo_descr, (await abap.Classes['CL_ABAP_TYPEDESCR'].describe_by_object_ref({p_object_ref: iv_ref})));
     lv_name.set(lo_descr.get().relative_name);
     for await (const unique153 of abap.statements.loop(lo_descr.get().interfaces)) {
@@ -116,7 +120,7 @@ class lcl_heap {
     lv_internal.set(iv_ref.get().constructor.INTERNAL_NAME);
     if (abap.compare.eq(is_serializable, abap.builtin.abap_true)) {
       lo_data_to_xml.set(await (new abap.Classes['CLAS-KERNEL_CALL_TRANSFORMATION-LCL_DATA_TO_XML']()).constructor_({io_heap: this.me}));
-      lv_data.set(abap.operators.concat(lv_data,abap.operators.concat(new abap.types.String().set(`<prg:${abap.templateFormatting(lv_name)} xmlns:prg="http://www.sap.com/abapxml/classes/class-pool/TODO" id="o${abap.templateFormatting(this.mv_counter)}" internalName="${abap.templateFormatting(lv_internal)}">`),new abap.types.String().set(`<local.${abap.templateFormatting(lv_name)}>`))));
+      lv_data.set(abap.operators.concat(lv_data,abap.operators.concat(new abap.types.String().set(`<prg:${abap.templateFormatting(lv_name)} xmlns:prg="http://www.sap.com/abapxml/classes/class-pool/TODO" id="o${abap.templateFormatting(this.#mv_counter)}" internalName="${abap.templateFormatting(lv_internal)}">`),new abap.types.String().set(`<local.${abap.templateFormatting(lv_name)}>`))));
       for await (const unique154 of abap.statements.loop(lo_descr.get().attributes,{where: async (I) => {return abap.compare.eq(I.is_class, abap.builtin.abap_false);},topEquals: {"is_class": abap.builtin.abap_false}})) {
         ls_attribute.set(unique154);
         abap.statements.assign({target: fs_any_, dynamicName: 'iv_ref' + '->' + ls_attribute.get().name.get(), dynamicSource: (() => {
@@ -130,9 +134,9 @@ class lcl_heap {
       }
       lv_data.set(abap.operators.concat(lv_data,abap.operators.concat(new abap.types.String().set(`</local.${abap.templateFormatting(lv_name)}>`),new abap.types.String().set(`</prg:${abap.templateFormatting(lv_name)}>`))));
     } else {
-      lv_data.set(abap.operators.concat(lv_data,new abap.types.String().set(`<prg:${abap.templateFormatting(lv_name)} xmlns:prg="http://www.sap.com/abapxml/classes/class-pool/TODO" id="o${abap.templateFormatting(this.mv_counter)}"/>`)));
+      lv_data.set(abap.operators.concat(lv_data,new abap.types.String().set(`<prg:${abap.templateFormatting(lv_name)} xmlns:prg="http://www.sap.com/abapxml/classes/class-pool/TODO" id="o${abap.templateFormatting(this.#mv_counter)}"/>`)));
     }
-    this.mv_data.set(abap.operators.concat(this.mv_data,lv_data));
+    this.#mv_data.set(abap.operators.concat(this.#mv_data,lv_data));
     rv_id.set(new abap.types.String().set(`${abap.templateFormatting(lv_counter)}`));
     return rv_id;
   }
@@ -151,6 +155,8 @@ class lcl_data_to_xml {
   "xml_header": new abap.types.String({qualifiedName: "KERNEL_CALL_TRANSFORMATION=>TY_OPTIONS-XML_HEADER"})}, "kernel_call_transformation=>ty_options", undefined, {}, {});}, "is_optional": " "}, "IO_HEAP": {"type": () => {return new abap.types.ABAPObject({qualifiedName: "LCL_HEAP", RTTIName: "\\CLASS-POOL=KERNEL_CALL_TRANSFORMATION\\CLASS=LCL_HEAP"});}, "is_optional": " "}}},
   "RUN": {"visibility": "U", "parameters": {"RV_XML": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " "}, "IV_NAME": {"type": () => {return new abap.types.Character();}, "is_optional": " "}, "IV_REF": {"type": () => {return new abap.types.DataReference(new abap.types.Character(4));}, "is_optional": " "}}},
   "SERIALIZE_HEAP": {"visibility": "U", "parameters": {"RV_XML": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " "}}}};
+  #mo_heap;
+  #ms_options;
   constructor() {
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
@@ -159,10 +165,12 @@ class lcl_data_to_xml {
       "run": this.run.bind(this),
       "serialize_heap": this.serialize_heap.bind(this),
     };
-    this.mo_heap = new abap.types.ABAPObject({qualifiedName: "LCL_HEAP", RTTIName: "\\CLASS-POOL=KERNEL_CALL_TRANSFORMATION\\CLASS=LCL_HEAP"});
-    this.ms_options = new abap.types.Structure({
+    this.#mo_heap = new abap.types.ABAPObject({qualifiedName: "LCL_HEAP", RTTIName: "\\CLASS-POOL=KERNEL_CALL_TRANSFORMATION\\CLASS=LCL_HEAP"});
+    this.FRIENDS_ACCESS_INSTANCE["mo_heap"] = this.#mo_heap;
+    this.#ms_options = new abap.types.Structure({
     "initial_components": new abap.types.String({qualifiedName: "KERNEL_CALL_TRANSFORMATION=>TY_OPTIONS-INITIAL_COMPONENTS"}),
     "xml_header": new abap.types.String({qualifiedName: "KERNEL_CALL_TRANSFORMATION=>TY_OPTIONS-XML_HEADER"})}, "kernel_call_transformation=>ty_options", undefined, {}, {});
+    this.FRIENDS_ACCESS_INSTANCE["ms_options"] = this.#ms_options;
   }
   async constructor_(INPUT) {
     let is_options = new abap.types.Structure({
@@ -172,16 +180,16 @@ class lcl_data_to_xml {
     let io_heap = new abap.types.ABAPObject({qualifiedName: "LCL_HEAP", RTTIName: "\\CLASS-POOL=KERNEL_CALL_TRANSFORMATION\\CLASS=LCL_HEAP"});
     if (INPUT && INPUT.io_heap) {io_heap.set(INPUT.io_heap);}
     if (abap.compare.initial(io_heap)) {
-      this.mo_heap.set(await (new abap.Classes['CLAS-KERNEL_CALL_TRANSFORMATION-LCL_HEAP']()).constructor_());
+      this.#mo_heap.set(await (new abap.Classes['CLAS-KERNEL_CALL_TRANSFORMATION-LCL_HEAP']()).constructor_());
     } else {
-      this.mo_heap.set(io_heap);
+      this.#mo_heap.set(io_heap);
     }
-    this.ms_options.set(is_options);
+    this.#ms_options.set(is_options);
     return this;
   }
   async serialize_heap() {
     let rv_xml = new abap.types.String({qualifiedName: "STRING"});
-    rv_xml.set((await this.mo_heap.get().serialize()));
+    rv_xml.set((await this.#mo_heap.get().serialize()));
     return rv_xml;
   }
   async run(INPUT) {
@@ -213,7 +221,7 @@ class lcl_data_to_xml {
       await abap.statements.cast(lo_struc, lo_type);
       lt_comps.set((await lo_struc.get().get_components()));
       abap.statements.assign({target: fs_any_, source: iv_ref.dereference()});
-      if (abap.compare.eq(this.ms_options.get().initial_components, abap.Classes['KERNEL_CALL_TRANSFORMATION'].gc_options.get().suppress) && abap.compare.initial(fs_any_)) {
+      if (abap.compare.eq(this.#ms_options.get().initial_components, abap.Classes['KERNEL_CALL_TRANSFORMATION'].gc_options.get().suppress) && abap.compare.initial(fs_any_)) {
         rv_xml.set(abap.operators.concat(rv_xml,new abap.types.String().set(`<${abap.templateFormatting(iv_name)}/>`)));
         return rv_xml;
       }
@@ -226,7 +234,7 @@ class lcl_data_to_xml {
       }
       rv_xml.set(abap.operators.concat(rv_xml,new abap.types.String().set(`</${abap.templateFormatting(iv_name)}>`)));
     } else if (abap.compare.eq(unique155, abap.Classes['CL_ABAP_TYPEDESCR'].kind_elem)) {
-      if (abap.compare.eq(this.ms_options.get().initial_components, abap.Classes['KERNEL_CALL_TRANSFORMATION'].gc_options.get().suppress) && abap.compare.initial(fs_ref_)) {
+      if (abap.compare.eq(this.#ms_options.get().initial_components, abap.Classes['KERNEL_CALL_TRANSFORMATION'].gc_options.get().suppress) && abap.compare.initial(fs_ref_)) {
         return rv_xml;
       }
       if (abap.compare.eq(lo_type.get().type_kind, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_string) && abap.compare.initial(fs_ref_)) {
@@ -236,7 +244,7 @@ class lcl_data_to_xml {
       }
     } else if (abap.compare.eq(unique155, abap.Classes['CL_ABAP_TYPEDESCR'].kind_table)) {
       abap.statements.assign({target: fs_table_, source: iv_ref.dereference()});
-      if (abap.compare.eq(this.ms_options.get().initial_components, abap.Classes['KERNEL_CALL_TRANSFORMATION'].gc_options.get().suppress) && abap.compare.initial(fs_table_)) {
+      if (abap.compare.eq(this.#ms_options.get().initial_components, abap.Classes['KERNEL_CALL_TRANSFORMATION'].gc_options.get().suppress) && abap.compare.initial(fs_table_)) {
         rv_xml.set(abap.operators.concat(rv_xml,new abap.types.String().set(`<${abap.templateFormatting(iv_name)}/>`)));
         return rv_xml;
       }
@@ -253,13 +261,13 @@ class lcl_data_to_xml {
         if (abap.compare.initial(fs_ref_)) {
           rv_xml.set(new abap.types.String().set(`<${abap.templateFormatting(iv_name)}/>`));
         } else {
-          rv_xml.set(new abap.types.String().set(`<${abap.templateFormatting(iv_name)} href="#o${abap.templateFormatting((await this.mo_heap.get().add_object({iv_ref: fs_ref_})))}"/>`));
+          rv_xml.set(new abap.types.String().set(`<${abap.templateFormatting(iv_name)} href="#o${abap.templateFormatting((await this.#mo_heap.get().add_object({iv_ref: fs_ref_})))}"/>`));
         }
       } else {
         if (abap.compare.initial(fs_ref_)) {
           rv_xml.set(new abap.types.String().set(`<${abap.templateFormatting(iv_name)}/>`));
         } else {
-          rv_xml.set(new abap.types.String().set(`<${abap.templateFormatting(iv_name)} href="#d${abap.templateFormatting((await this.mo_heap.get().add_data({iv_ref: fs_ref_})))}"/>`));
+          rv_xml.set(new abap.types.String().set(`<${abap.templateFormatting(iv_name)} href="#d${abap.templateFormatting((await this.#mo_heap.get().add_data({iv_ref: fs_ref_})))}"/>`));
         }
       }
     } else {
@@ -277,6 +285,7 @@ class lcl_object_to_sxml {
   static METHODS = {"TRAVERSE_WRITE": {"visibility": "I", "parameters": {"IV_REF": {"type": () => {return new abap.types.DataReference(new abap.types.Character(4));}, "is_optional": " "}}},
   "TRAVERSE_WRITE_TYPE": {"visibility": "I", "parameters": {"RV_TYPE": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " "}, "IV_REF": {"type": () => {return new abap.types.DataReference(new abap.types.Character(4));}, "is_optional": " "}}},
   "RUN": {"visibility": "U", "parameters": {"II_WRITER": {"type": () => {return new abap.types.ABAPObject({qualifiedName: "IF_SXML_WRITER", RTTIName: "\\INTERFACE=IF_SXML_WRITER"});}, "is_optional": " "}, "SOURCE": {"type": () => {return new abap.types.Character(4);}, "is_optional": " "}}}};
+  #mi_writer;
   constructor() {
     this.me = new abap.types.ABAPObject();
     this.me.set(this);

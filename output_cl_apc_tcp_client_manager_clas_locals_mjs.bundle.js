@@ -22,13 +22,15 @@ class lcl_message {
   static IMPLEMENTED_INTERFACES = ["IF_APC_WSP_MESSAGE"];
   static ATTRIBUTES = {"MV_DATA": {"type": () => {return new abap.types.XString({qualifiedName: "XSTRING"});}, "visibility": "I", "is_constant": " ", "is_class": " "}};
   static METHODS = {};
+  #mv_data;
   constructor() {
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
     this.INTERNAL_ID = abap.internalIdCounter++;
     this.FRIENDS_ACCESS_INSTANCE = {
     };
-    this.mv_data = new abap.types.XString({qualifiedName: "XSTRING"});
+    this.#mv_data = new abap.types.XString({qualifiedName: "XSTRING"});
+    this.FRIENDS_ACCESS_INSTANCE["mv_data"] = this.#mv_data;
   }
   async constructor_(INPUT) {
     if (super.constructor_) { await super.constructor_(INPUT); }
@@ -36,7 +38,7 @@ class lcl_message {
   }
   async if_apc_wsp_message$get_binary() {
     let rv_binary = new abap.types.XString({qualifiedName: "XSTRING"});
-    rv_binary.set(this.mv_data);
+    rv_binary.set(this.#mv_data);
     return rv_binary;
   }
   async if_apc_wsp_message$get_text() {
@@ -46,7 +48,7 @@ class lcl_message {
   }
   async if_apc_wsp_message$set_binary(INPUT) {
     let iv_binary = INPUT?.iv_binary;
-    this.mv_data.set(iv_binary);
+    this.#mv_data.set(iv_binary);
   }
 }
 abap.Classes['CLAS-CL_APC_TCP_CLIENT_MANAGER-LCL_MESSAGE'] = lcl_message;
@@ -54,10 +56,10 @@ class lcl_client {
   static INTERNAL_TYPE = 'CLAS';
   static INTERNAL_NAME = 'CLAS-CL_APC_TCP_CLIENT_MANAGER-LCL_CLIENT';
   static IMPLEMENTED_INTERFACES = ["IF_APC_WSP_CLIENT","IF_APC_WSP_MESSAGE_MANAGER"];
-  static ATTRIBUTES = {"MV_HOST": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "visibility": "I", "is_constant": " ", "is_class": " "},
-  "MV_PORT": {"type": () => {return new abap.types.Integer({qualifiedName: "I"});}, "visibility": "I", "is_constant": " ", "is_class": " "},
-  "MO_HANDLER": {"type": () => {return new abap.types.ABAPObject({qualifiedName: "IF_APC_WSP_EVENT_HANDLER", RTTIName: "\\INTERFACE=IF_APC_WSP_EVENT_HANDLER"});}, "visibility": "I", "is_constant": " ", "is_class": " "},
-  "MV_PROTOCOL": {"type": () => {return new abap.types.Integer({qualifiedName: "I"});}, "visibility": "I", "is_constant": " ", "is_class": " "}};
+  static ATTRIBUTES = {"MV_HOST": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "visibility": "U", "is_constant": " ", "is_class": " "},
+  "MV_PORT": {"type": () => {return new abap.types.Integer({qualifiedName: "I"});}, "visibility": "U", "is_constant": " ", "is_class": " "},
+  "MO_HANDLER": {"type": () => {return new abap.types.ABAPObject({qualifiedName: "IF_APC_WSP_EVENT_HANDLER", RTTIName: "\\INTERFACE=IF_APC_WSP_EVENT_HANDLER"});}, "visibility": "U", "is_constant": " ", "is_class": " "},
+  "MV_PROTOCOL": {"type": () => {return new abap.types.Integer({qualifiedName: "I"});}, "visibility": "U", "is_constant": " ", "is_class": " "}};
   static METHODS = {"CONSTRUCTOR": {"visibility": "U", "parameters": {"IV_HOST": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " "}, "IV_PORT": {"type": () => {return new abap.types.Integer({qualifiedName: "I"});}, "is_optional": " "}, "IO_HANDLER": {"type": () => {return new abap.types.ABAPObject({qualifiedName: "IF_APC_WSP_EVENT_HANDLER", RTTIName: "\\INTERFACE=IF_APC_WSP_EVENT_HANDLER"});}, "is_optional": " "}, "IV_PROTOCOL": {"type": () => {return new abap.types.Integer({qualifiedName: "I"});}, "is_optional": " "}}}};
   constructor() {
     this.me = new abap.types.ABAPObject();

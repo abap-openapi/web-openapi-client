@@ -27,6 +27,8 @@ class lcl_stream {
   "APPEND_INT4": {"visibility": "U", "parameters": {"IV_INT": {"type": () => {return new abap.types.Integer({qualifiedName: "I"});}, "is_optional": " "}}},
   "APPEND_INT2": {"visibility": "U", "parameters": {"IV_INT": {"type": () => {return new abap.types.Integer({qualifiedName: "I"});}, "is_optional": " "}}},
   "APPEND_CRC": {"visibility": "U", "parameters": {"RV_CRC": {"type": () => {return new abap.types.XString({qualifiedName: "XSTRING"});}, "is_optional": " "}, "IV_LITTLE_ENDIAN": {"type": () => {return new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"});}, "is_optional": " "}, "IV_XSTRING": {"type": () => {return new abap.types.XString({qualifiedName: "XSTRING"});}, "is_optional": " "}}}};
+  #crc32_map;
+  #mv_xstr;
   constructor() {
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
@@ -41,7 +43,8 @@ class lcl_stream {
       "append_crc": this.append_crc.bind(this),
     };
     this.crc32_map = lcl_stream.crc32_map;
-    this.mv_xstr = new abap.types.XString({qualifiedName: "XSTRING"});
+    this.#mv_xstr = new abap.types.XString({qualifiedName: "XSTRING"});
+    this.FRIENDS_ACCESS_INSTANCE["mv_xstr"] = this.#mv_xstr;
   }
   async constructor_(INPUT) {
     if (super.constructor_) { await super.constructor_(INPUT); }
@@ -49,11 +52,11 @@ class lcl_stream {
   }
   async append(INPUT) {
     let iv_xstr = INPUT?.iv_xstr;
-    abap.statements.concatenate({source: [this.mv_xstr, iv_xstr], target: this.mv_xstr});
+    abap.statements.concatenate({source: [this.#mv_xstr, iv_xstr], target: this.#mv_xstr});
   }
   async get() {
     let rv_xstr = new abap.types.XString({qualifiedName: "XSTRING"});
-    rv_xstr.set(this.mv_xstr);
+    rv_xstr.set(this.#mv_xstr);
     return rv_xstr;
   }
   async append_date(INPUT) {

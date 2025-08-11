@@ -230,20 +230,22 @@ class lcl_double {
   static IMPLEMENTED_INTERFACES = ["IF_FUNCTION_TESTDOUBLE","IF_FTD_INPUT_CONFIG_SETTER","IF_FTD_OUTPUT_CONFIG_SETTER"];
   static ATTRIBUTES = {"MV_NAME": {"type": () => {return new abap.types.Character(30, {"qualifiedName":"SXCO_FM_NAME","ddicName":"SXCO_FM_NAME","description":"Function module name"});}, "visibility": "I", "is_constant": " ", "is_class": " "}};
   static METHODS = {"CONSTRUCTOR": {"visibility": "U", "parameters": {"IV_NAME": {"type": () => {return new abap.types.Character(30, {"qualifiedName":"SXCO_FM_NAME","ddicName":"SXCO_FM_NAME","description":"Function module name"});}, "is_optional": " "}}}};
+  #mv_name;
   constructor() {
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
     this.INTERNAL_ID = abap.internalIdCounter++;
     this.FRIENDS_ACCESS_INSTANCE = {
     };
-    this.mv_name = new abap.types.Character(30, {"qualifiedName":"SXCO_FM_NAME","ddicName":"SXCO_FM_NAME","description":"Function module name"});
+    this.#mv_name = new abap.types.Character(30, {"qualifiedName":"SXCO_FM_NAME","ddicName":"SXCO_FM_NAME","description":"Function module name"});
+    this.FRIENDS_ACCESS_INSTANCE["mv_name"] = this.#mv_name;
   }
   async constructor_(INPUT) {
     let iv_name = INPUT?.iv_name;
     if (iv_name?.getQualifiedName === undefined || iv_name.getQualifiedName() !== "SXCO_FM_NAME") { iv_name = undefined; }
     if (iv_name === undefined) { iv_name = new abap.types.Character(30, {"qualifiedName":"SXCO_FM_NAME","ddicName":"SXCO_FM_NAME","description":"Function module name"}).set(INPUT.iv_name); }
     abap.statements.assert(abap.compare.initial(iv_name) === false);
-    this.mv_name.set(iv_name);
+    this.#mv_name.set(iv_name);
     return this;
   }
   async if_function_testdouble$configure_call() {
@@ -261,7 +263,9 @@ class lcl_double {
     let answer = INPUT?.answer;
     if (answer?.getQualifiedName === undefined || answer.getQualifiedName() !== "IF_FTD_INVOCATION_ANSWER") { answer = undefined; }
     if (answer === undefined) { answer = new abap.types.ABAPObject({qualifiedName: "IF_FTD_INVOCATION_ANSWER", RTTIName: "\\INTERFACE=IF_FTD_INVOCATION_ANSWER"}).set(INPUT.answer); }
-    abap.FunctionModules[this.mv_name.get().trimEnd()] = (INPUT) => lcl_invoker.invoke({fminput: INPUT, answer});
+    let name = new abap.types.Character(30, {"qualifiedName":"SXCO_FM_NAME","ddicName":"SXCO_FM_NAME","description":"Function module name"});
+    name.set(this.#mv_name);
+    abap.FunctionModules[name.get().trimEnd()] = (INPUT) => lcl_invoker.invoke({fminput: INPUT, answer});
     return self;
   }
 }

@@ -29,6 +29,7 @@ class lcl_stack {
   "IS_ARRAY": {"visibility": "U", "parameters": {"RV_ARRAY": {"type": () => {return new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"});}, "is_optional": " "}}},
   "GET_AND_INCREASE_INDEX": {"visibility": "U", "parameters": {"RV_INDEX": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " "}}},
   "GET_FULL_NAME": {"visibility": "U", "parameters": {"RV_PATH": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " "}}}};
+  #mt_data;
   constructor() {
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
@@ -40,10 +41,11 @@ class lcl_stack {
       "get_and_increase_index": this.get_and_increase_index.bind(this),
       "get_full_name": this.get_full_name.bind(this),
     };
-    this.mt_data = abap.types.TableFactory.construct(new abap.types.Structure({
+    this.#mt_data = abap.types.TableFactory.construct(new abap.types.Structure({
     "name": new abap.types.String({qualifiedName: "LCL_STACK=>TY_DATA-NAME"}),
     "is_array": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}),
     "array_index": new abap.types.Integer({qualifiedName: "LCL_STACK=>TY_DATA-ARRAY_INDEX"})}, "lcl_stack=>ty_data", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "");
+    this.FRIENDS_ACCESS_INSTANCE["mt_data"] = this.#mt_data;
   }
   async constructor_(INPUT) {
     if (super.constructor_) { await super.constructor_(INPUT); }
@@ -62,7 +64,7 @@ class lcl_stack {
     "array_index": new abap.types.Integer({qualifiedName: "LCL_STACK=>TY_DATA-ARRAY_INDEX"})}, "lcl_stack=>ty_data", undefined, {}, {});
     ls_data.get().name.set(iv_name);
     ls_data.get().is_array.set(abap.builtin.boolc(abap.compare.eq(iv_type, abap.CharacterFactory.get(5, 'array'))));
-    abap.statements.append({source: ls_data, target: this.mt_data});
+    abap.statements.append({source: ls_data, target: this.#mt_data});
   }
   async is_array() {
     let rv_array = new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"});
@@ -71,8 +73,8 @@ class lcl_stack {
     "name": new abap.types.String({qualifiedName: "LCL_STACK=>TY_DATA-NAME"}),
     "is_array": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}),
     "array_index": new abap.types.Integer({qualifiedName: "LCL_STACK=>TY_DATA-ARRAY_INDEX"})}, "lcl_stack=>ty_data", undefined, {}, {});
-    lv_index.set(abap.builtin.lines({val: this.mt_data}));
-    abap.statements.readTable(this.mt_data,{index: lv_index,
+    lv_index.set(abap.builtin.lines({val: this.#mt_data}));
+    abap.statements.readTable(this.#mt_data,{index: lv_index,
       into: ls_data});
     rv_array.set(ls_data.get().is_array);
     return rv_array;
@@ -84,8 +86,8 @@ class lcl_stack {
     "name": new abap.types.String({qualifiedName: "LCL_STACK=>TY_DATA-NAME"}),
     "is_array": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}),
     "array_index": new abap.types.Integer({qualifiedName: "LCL_STACK=>TY_DATA-ARRAY_INDEX"})}, "lcl_stack=>ty_data", undefined, {}, {}));
-    lv_index.set(abap.builtin.lines({val: this.mt_data}));
-    abap.statements.readTable(this.mt_data,{index: lv_index,
+    lv_index.set(abap.builtin.lines({val: this.#mt_data}));
+    abap.statements.readTable(this.#mt_data,{index: lv_index,
       assigning: fs_ls_data_});
     if (abap.compare.eq(abap.builtin.sy.get().subrc, abap.IntegerFactory.get(0))) {
       fs_ls_data_.get().array_index.set(abap.operators.add(fs_ls_data_.get().array_index,abap.IntegerFactory.get(1)));
@@ -101,12 +103,12 @@ class lcl_stack {
     "name": new abap.types.String({qualifiedName: "LCL_STACK=>TY_DATA-NAME"}),
     "is_array": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}),
     "array_index": new abap.types.Integer({qualifiedName: "LCL_STACK=>TY_DATA-ARRAY_INDEX"})}, "lcl_stack=>ty_data", undefined, {}, {});
-    lv_index.set(abap.builtin.lines({val: this.mt_data}));
+    lv_index.set(abap.builtin.lines({val: this.#mt_data}));
     if (abap.compare.gt(lv_index, abap.IntegerFactory.get(0))) {
-      abap.statements.readTable(this.mt_data,{index: lv_index,
+      abap.statements.readTable(this.#mt_data,{index: lv_index,
         into: ls_data});
       rv_name.set(ls_data.get().name);
-      await abap.statements.deleteInternal(this.mt_data,{index: lv_index});
+      await abap.statements.deleteInternal(this.#mt_data,{index: lv_index});
     }
     return rv_name;
   }
@@ -116,7 +118,7 @@ class lcl_stack {
     "name": new abap.types.String({qualifiedName: "LCL_STACK=>TY_DATA-NAME"}),
     "is_array": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}),
     "array_index": new abap.types.Integer({qualifiedName: "LCL_STACK=>TY_DATA-ARRAY_INDEX"})}, "lcl_stack=>ty_data", undefined, {}, {});
-    for await (const unique22 of abap.statements.loop(this.mt_data)) {
+    for await (const unique22 of abap.statements.loop(this.#mt_data)) {
       ls_data.set(unique22);
       rv_path.set(abap.operators.concat(rv_path,ls_data.get().name));
     }
