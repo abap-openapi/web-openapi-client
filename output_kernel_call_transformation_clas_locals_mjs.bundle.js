@@ -25,9 +25,9 @@ class lcl_heap {
   static IMPLEMENTED_INTERFACES = [];
   static ATTRIBUTES = {"MV_COUNTER": {"type": () => {return new abap.types.Integer({qualifiedName: "I"});}, "visibility": "I", "is_constant": " ", "is_class": " "},
   "MV_DATA": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "visibility": "I", "is_constant": " ", "is_class": " "}};
-  static METHODS = {"ADD_OBJECT": {"visibility": "U", "parameters": {"RV_ID": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " "}, "IV_REF": {"type": () => {return new abap.types.Character(4);}, "is_optional": " "}}},
-  "ADD_DATA": {"visibility": "U", "parameters": {"RV_ID": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " "}, "IV_REF": {"type": () => {return new abap.types.Character(4);}, "is_optional": " "}}},
-  "SERIALIZE": {"visibility": "U", "parameters": {"RV_XML": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " "}}}};
+  static METHODS = {"ADD_OBJECT": {"visibility": "U", "parameters": {"RV_ID": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "R", "type_name": "StringType"}, "IV_REF": {"type": () => {return new abap.types.Character(4);}, "is_optional": " ", "parm_kind": "I", "type_name": "AnyType"}}},
+  "ADD_DATA": {"visibility": "U", "parameters": {"RV_ID": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "R", "type_name": "StringType"}, "IV_REF": {"type": () => {return new abap.types.Character(4);}, "is_optional": " ", "parm_kind": "I", "type_name": "AnyType"}}},
+  "SERIALIZE": {"visibility": "U", "parameters": {"RV_XML": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "R", "type_name": "StringType"}}}};
   #mv_counter;
   #mv_data;
   constructor() {
@@ -129,7 +129,7 @@ class lcl_heap {
         })()});
         abap.statements.assert(abap.compare.eq(abap.builtin.sy.get().subrc, abap.IntegerFactory.get(0)));
         abap.statements.replace({target: ls_attribute.get().name, all: false, with: abap.CharacterFactory.get(1, '.'), of: abap.CharacterFactory.get(1, '~')});
-        lv_ref.assign(fs_any_.getPointer());
+        abap.statements.getReference(lv_ref, fs_any_);
         lv_data.set(abap.operators.concat(lv_data,(await lo_data_to_xml.get().run({iv_name: ls_attribute.get().name, iv_ref: lv_ref}))));
       }
       lv_data.set(abap.operators.concat(lv_data,abap.operators.concat(new abap.types.String().set(`</local.${abap.templateFormatting(lv_name)}>`),new abap.types.String().set(`</prg:${abap.templateFormatting(lv_name)}>`))));
@@ -152,9 +152,9 @@ class lcl_data_to_xml {
   "xml_header": new abap.types.String({qualifiedName: "KERNEL_CALL_TRANSFORMATION=>TY_OPTIONS-XML_HEADER"})}, "kernel_call_transformation=>ty_options", undefined, {}, {});}, "visibility": "I", "is_constant": " ", "is_class": " "}};
   static METHODS = {"CONSTRUCTOR": {"visibility": "U", "parameters": {"IS_OPTIONS": {"type": () => {return new abap.types.Structure({
   "initial_components": new abap.types.String({qualifiedName: "KERNEL_CALL_TRANSFORMATION=>TY_OPTIONS-INITIAL_COMPONENTS"}),
-  "xml_header": new abap.types.String({qualifiedName: "KERNEL_CALL_TRANSFORMATION=>TY_OPTIONS-XML_HEADER"})}, "kernel_call_transformation=>ty_options", undefined, {}, {});}, "is_optional": " "}, "IO_HEAP": {"type": () => {return new abap.types.ABAPObject({qualifiedName: "LCL_HEAP", RTTIName: "\\CLASS-POOL=KERNEL_CALL_TRANSFORMATION\\CLASS=LCL_HEAP"});}, "is_optional": " "}}},
-  "RUN": {"visibility": "U", "parameters": {"RV_XML": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " "}, "IV_NAME": {"type": () => {return new abap.types.Character();}, "is_optional": " "}, "IV_REF": {"type": () => {return new abap.types.DataReference(new abap.types.Character(4));}, "is_optional": " "}}},
-  "SERIALIZE_HEAP": {"visibility": "U", "parameters": {"RV_XML": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " "}}}};
+  "xml_header": new abap.types.String({qualifiedName: "KERNEL_CALL_TRANSFORMATION=>TY_OPTIONS-XML_HEADER"})}, "kernel_call_transformation=>ty_options", undefined, {}, {});}, "is_optional": " ", "parm_kind": "I", "type_name": "StructureType"}, "IO_HEAP": {"type": () => {return new abap.types.ABAPObject({qualifiedName: "LCL_HEAP", RTTIName: "\\CLASS-POOL=KERNEL_CALL_TRANSFORMATION\\CLASS=LCL_HEAP"});}, "is_optional": " ", "parm_kind": "I", "type_name": "ObjectReferenceType"}}},
+  "RUN": {"visibility": "U", "parameters": {"RV_XML": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "R", "type_name": "StringType"}, "IV_NAME": {"type": () => {return new abap.types.Character();}, "is_optional": " ", "parm_kind": "I", "type_name": "CLikeType"}, "IV_REF": {"type": () => {return new abap.types.DataReference(new abap.types.Character(4));}, "is_optional": " ", "parm_kind": "I", "type_name": "DataReference"}}},
+  "SERIALIZE_HEAP": {"visibility": "U", "parameters": {"RV_XML": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "R", "type_name": "StringType"}}}};
   #mo_heap;
   #ms_options;
   constructor() {
@@ -229,7 +229,7 @@ class lcl_data_to_xml {
       for await (const unique156 of abap.statements.loop(lt_comps)) {
         ls_compo.set(unique156);
         abap.statements.assign({component: ls_compo.get().name, target: fs_field_, source: fs_any_});
-        lv_ref.assign(fs_field_.getPointer());
+        abap.statements.getReference(lv_ref, fs_field_);
         rv_xml.set(abap.operators.concat(rv_xml,(await this.run({iv_name: abap.builtin.to_upper({val: ls_compo.get().name}), iv_ref: lv_ref}))));
       }
       rv_xml.set(abap.operators.concat(rv_xml,new abap.types.String().set(`</${abap.templateFormatting(iv_name)}>`)));
@@ -251,7 +251,7 @@ class lcl_data_to_xml {
       rv_xml.set(abap.operators.concat(rv_xml,new abap.types.String().set(`<${abap.templateFormatting(iv_name)}>`)));
       for await (const unique157 of abap.statements.loop(fs_table_)) {
         fs_any_.assign(unique157);
-        lv_ref.assign(fs_any_.getPointer());
+        abap.statements.getReference(lv_ref, fs_any_);
         rv_xml.set(abap.operators.concat(rv_xml,(await this.run({iv_name: new abap.types.String().set(`item`), iv_ref: lv_ref}))));
       }
       rv_xml.set(abap.operators.concat(rv_xml,new abap.types.String().set(`</${abap.templateFormatting(iv_name)}>`)));
@@ -282,9 +282,9 @@ class lcl_object_to_sxml {
   static INTERNAL_NAME = 'CLAS-KERNEL_CALL_TRANSFORMATION-LCL_OBJECT_TO_SXML';
   static IMPLEMENTED_INTERFACES = [];
   static ATTRIBUTES = {"MI_WRITER": {"type": () => {return new abap.types.ABAPObject({qualifiedName: "IF_SXML_WRITER", RTTIName: "\\INTERFACE=IF_SXML_WRITER"});}, "visibility": "I", "is_constant": " ", "is_class": "X"}};
-  static METHODS = {"TRAVERSE_WRITE": {"visibility": "I", "parameters": {"IV_REF": {"type": () => {return new abap.types.DataReference(new abap.types.Character(4));}, "is_optional": " "}}},
-  "TRAVERSE_WRITE_TYPE": {"visibility": "I", "parameters": {"RV_TYPE": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " "}, "IV_REF": {"type": () => {return new abap.types.DataReference(new abap.types.Character(4));}, "is_optional": " "}}},
-  "RUN": {"visibility": "U", "parameters": {"II_WRITER": {"type": () => {return new abap.types.ABAPObject({qualifiedName: "IF_SXML_WRITER", RTTIName: "\\INTERFACE=IF_SXML_WRITER"});}, "is_optional": " "}, "SOURCE": {"type": () => {return new abap.types.Character(4);}, "is_optional": " "}}}};
+  static METHODS = {"TRAVERSE_WRITE": {"visibility": "I", "parameters": {"IV_REF": {"type": () => {return new abap.types.DataReference(new abap.types.Character(4));}, "is_optional": " ", "parm_kind": "I", "type_name": "DataReference"}}},
+  "TRAVERSE_WRITE_TYPE": {"visibility": "I", "parameters": {"RV_TYPE": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "R", "type_name": "StringType"}, "IV_REF": {"type": () => {return new abap.types.DataReference(new abap.types.Character(4));}, "is_optional": " ", "parm_kind": "I", "type_name": "DataReference"}}},
+  "RUN": {"visibility": "U", "parameters": {"II_WRITER": {"type": () => {return new abap.types.ABAPObject({qualifiedName: "IF_SXML_WRITER", RTTIName: "\\INTERFACE=IF_SXML_WRITER"});}, "is_optional": " ", "parm_kind": "I", "type_name": "ObjectReferenceType"}, "SOURCE": {"type": () => {return new abap.types.Character(4);}, "is_optional": " ", "parm_kind": "I", "type_name": "AnyType"}}}};
   #mi_writer;
   constructor() {
     this.me = new abap.types.ABAPObject();
@@ -375,7 +375,7 @@ class lcl_object_to_sxml {
           for await (const unique161 of abap.statements.loop(lt_comps)) {
             ls_compo.set(unique161);
             abap.statements.assign({component: ls_compo.get().name, target: fs_field_, source: fs_any_});
-            lv_ref.assign(fs_field_.getPointer());
+            abap.statements.getReference(lv_ref, fs_field_);
             await lcl_object_to_sxml.mi_writer.get().if_sxml_writer$open_element({name: (await this.traverse_write_type({iv_ref: lv_ref}))});
             await lcl_object_to_sxml.mi_writer.get().if_sxml_writer$write_attribute({name: abap.CharacterFactory.get(4, 'name'), value: abap.builtin.to_upper({val: ls_compo.get().name})});
             await this.traverse_write({iv_ref: lv_ref});
@@ -389,7 +389,7 @@ class lcl_object_to_sxml {
           abap.statements.assign({target: fs_table_, source: iv_ref.dereference()});
           for await (const unique162 of abap.statements.loop(fs_table_)) {
             fs_any_.assign(unique162);
-            lv_ref.assign(fs_any_.getPointer());
+            abap.statements.getReference(lv_ref, fs_any_);
             if (abap.compare.eq(((await abap.Classes['CL_ABAP_TYPEDESCR'].describe_by_data({p_data: fs_any_}))).get().kind, abap.Classes['CL_ABAP_TYPEDESCR'].kind_elem)) {
               await lcl_object_to_sxml.mi_writer.get().if_sxml_writer$open_element({name: (await this.traverse_write_type({iv_ref: lv_ref}))});
             }
@@ -411,9 +411,9 @@ class lcl_object_to_sxml {
       static INTERNAL_NAME = 'CLAS-KERNEL_CALL_TRANSFORMATION-LCL_OBJECT_TO_STRING';
       static IMPLEMENTED_INTERFACES = [];
       static ATTRIBUTES = {};
-      static METHODS = {"RUN": {"visibility": "U", "parameters": {"RV_RESULT": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " "}, "IS_OPTIONS": {"type": () => {return new abap.types.Structure({
+      static METHODS = {"RUN": {"visibility": "U", "parameters": {"RV_RESULT": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "R", "type_name": "StringType"}, "IS_OPTIONS": {"type": () => {return new abap.types.Structure({
       "initial_components": new abap.types.String({qualifiedName: "KERNEL_CALL_TRANSFORMATION=>TY_OPTIONS-INITIAL_COMPONENTS"}),
-      "xml_header": new abap.types.String({qualifiedName: "KERNEL_CALL_TRANSFORMATION=>TY_OPTIONS-XML_HEADER"})}, "kernel_call_transformation=>ty_options", undefined, {}, {});}, "is_optional": " "}, "SOURCE": {"type": () => {return new abap.types.Character(4);}, "is_optional": " "}}}};
+      "xml_header": new abap.types.String({qualifiedName: "KERNEL_CALL_TRANSFORMATION=>TY_OPTIONS-XML_HEADER"})}, "kernel_call_transformation=>ty_options", undefined, {}, {});}, "is_optional": " ", "parm_kind": "I", "type_name": "StructureType"}, "SOURCE": {"type": () => {return new abap.types.Character(4);}, "is_optional": " ", "parm_kind": "I", "type_name": "AnyType"}}}};
       constructor() {
         this.me = new abap.types.ABAPObject();
         this.me.set(this);
@@ -470,8 +470,8 @@ class lcl_object_to_sxml {
               static INTERNAL_NAME = 'CLAS-KERNEL_CALL_TRANSFORMATION-LCL_OBJECT_TO_IXML';
               static IMPLEMENTED_INTERFACES = [];
               static ATTRIBUTES = {};
-              static METHODS = {"TRAVERSE": {"visibility": "I", "parameters": {"II_PARENT": {"type": () => {return new abap.types.ABAPObject({qualifiedName: "IF_IXML_ELEMENT", RTTIName: "\\INTERFACE=IF_IXML_ELEMENT"});}, "is_optional": " "}, "II_DOC": {"type": () => {return new abap.types.ABAPObject({qualifiedName: "IF_IXML_DOCUMENT", RTTIName: "\\INTERFACE=IF_IXML_DOCUMENT"});}, "is_optional": " "}, "IV_REF": {"type": () => {return new abap.types.DataReference(new abap.types.Character(4));}, "is_optional": " "}}},
-              "RUN": {"visibility": "U", "parameters": {"II_DOC": {"type": () => {return new abap.types.ABAPObject({qualifiedName: "IF_IXML_DOCUMENT", RTTIName: "\\INTERFACE=IF_IXML_DOCUMENT"});}, "is_optional": " "}, "SOURCE": {"type": () => {return new abap.types.Character(4);}, "is_optional": " "}}}};
+              static METHODS = {"TRAVERSE": {"visibility": "I", "parameters": {"II_PARENT": {"type": () => {return new abap.types.ABAPObject({qualifiedName: "IF_IXML_ELEMENT", RTTIName: "\\INTERFACE=IF_IXML_ELEMENT"});}, "is_optional": " ", "parm_kind": "I", "type_name": "ObjectReferenceType"}, "II_DOC": {"type": () => {return new abap.types.ABAPObject({qualifiedName: "IF_IXML_DOCUMENT", RTTIName: "\\INTERFACE=IF_IXML_DOCUMENT"});}, "is_optional": " ", "parm_kind": "I", "type_name": "ObjectReferenceType"}, "IV_REF": {"type": () => {return new abap.types.DataReference(new abap.types.Character(4));}, "is_optional": " ", "parm_kind": "I", "type_name": "DataReference"}}},
+              "RUN": {"visibility": "U", "parameters": {"II_DOC": {"type": () => {return new abap.types.ABAPObject({qualifiedName: "IF_IXML_DOCUMENT", RTTIName: "\\INTERFACE=IF_IXML_DOCUMENT"});}, "is_optional": " ", "parm_kind": "I", "type_name": "ObjectReferenceType"}, "SOURCE": {"type": () => {return new abap.types.Character(4);}, "is_optional": " ", "parm_kind": "I", "type_name": "AnyType"}}}};
               constructor() {
                 this.me = new abap.types.ABAPObject();
                 this.me.set(this);
@@ -558,7 +558,7 @@ class lcl_object_to_sxml {
                     ls_compo.set(unique165);
                     li_element.set((await ii_doc.get().if_ixml_document$create_element({name: ls_compo.get().name})));
                     abap.statements.assign({component: ls_compo.get().name, target: fs_field_, source: fs_any_});
-                    lv_ref.assign(fs_field_.getPointer());
+                    abap.statements.getReference(lv_ref, fs_field_);
                     await this.traverse({ii_parent: li_element, ii_doc: ii_doc, iv_ref: lv_ref});
                     await ii_parent.get().if_ixml_element$append_child({new_child: li_element});
                   }
@@ -569,7 +569,7 @@ class lcl_object_to_sxml {
                   for await (const unique166 of abap.statements.loop(fs_table_)) {
                     fs_any_.assign(unique166);
                     li_element.set((await ii_doc.get().if_ixml_document$create_element({name: abap.CharacterFactory.get(4, 'item')})));
-                    lv_ref.assign(fs_any_.getPointer());
+                    abap.statements.getReference(lv_ref, fs_any_);
                     await this.traverse({ii_parent: li_element, ii_doc: ii_doc, iv_ref: lv_ref});
                     await ii_parent.get().if_ixml_element$append_child({new_child: li_element});
                   }
@@ -584,9 +584,9 @@ class lcl_object_to_sxml {
               static INTERNAL_NAME = 'CLAS-KERNEL_CALL_TRANSFORMATION-LCL_STRING_TO_STRING';
               static IMPLEMENTED_INTERFACES = [];
               static ATTRIBUTES = {};
-              static METHODS = {"RUN": {"visibility": "U", "parameters": {"RESULT": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " "}, "SOURCE": {"type": () => {return new abap.types.Character(4);}, "is_optional": " "}, "OPTIONS": {"type": () => {return new abap.types.Structure({
+              static METHODS = {"RUN": {"visibility": "U", "parameters": {"RESULT": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "R", "type_name": "StringType"}, "SOURCE": {"type": () => {return new abap.types.Character(4);}, "is_optional": " ", "parm_kind": "I", "type_name": "AnyType"}, "OPTIONS": {"type": () => {return new abap.types.Structure({
               "initial_components": new abap.types.String({qualifiedName: "KERNEL_CALL_TRANSFORMATION=>TY_OPTIONS-INITIAL_COMPONENTS"}),
-              "xml_header": new abap.types.String({qualifiedName: "KERNEL_CALL_TRANSFORMATION=>TY_OPTIONS-XML_HEADER"})}, "kernel_call_transformation=>ty_options", undefined, {}, {});}, "is_optional": " "}}}};
+              "xml_header": new abap.types.String({qualifiedName: "KERNEL_CALL_TRANSFORMATION=>TY_OPTIONS-XML_HEADER"})}, "kernel_call_transformation=>ty_options", undefined, {}, {});}, "is_optional": " ", "parm_kind": "I", "type_name": "StructureType"}}}};
               constructor() {
                 this.me = new abap.types.ABAPObject();
                 this.me.set(this);

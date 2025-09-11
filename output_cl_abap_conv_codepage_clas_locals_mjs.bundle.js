@@ -20,7 +20,7 @@ class lcl_in {
   static INTERNAL_NAME = 'CLAS-CL_ABAP_CONV_CODEPAGE-LCL_IN';
   static IMPLEMENTED_INTERFACES = ["IF_ABAP_CONV_IN"];
   static ATTRIBUTES = {"MV_ENCODING": {"type": () => {return new abap.types.Character(20, {"qualifiedName":"abap_encoding"});}, "visibility": "I", "is_constant": " ", "is_class": " "}};
-  static METHODS = {"CONSTRUCTOR": {"visibility": "U", "parameters": {"CODEPAGE": {"type": () => {return new abap.types.Character(20, {"qualifiedName":"abap_encoding"});}, "is_optional": " "}}}};
+  static METHODS = {"CONSTRUCTOR": {"visibility": "U", "parameters": {"CODEPAGE": {"type": () => {return new abap.types.Character(20, {"qualifiedName":"abap_encoding"});}, "is_optional": " ", "parm_kind": "I", "type_name": "CharacterType"}}}};
   #mv_encoding;
   constructor() {
     this.me = new abap.types.ABAPObject();
@@ -55,7 +55,7 @@ class lcl_out {
   static INTERNAL_NAME = 'CLAS-CL_ABAP_CONV_CODEPAGE-LCL_OUT';
   static IMPLEMENTED_INTERFACES = ["IF_ABAP_CONV_OUT"];
   static ATTRIBUTES = {"MV_ENCODING": {"type": () => {return new abap.types.Character(20, {"qualifiedName":"abap_encoding"});}, "visibility": "I", "is_constant": " ", "is_class": " "}};
-  static METHODS = {"CONSTRUCTOR": {"visibility": "U", "parameters": {"CODEPAGE": {"type": () => {return new abap.types.Character(20, {"qualifiedName":"abap_encoding"});}, "is_optional": " "}}}};
+  static METHODS = {"CONSTRUCTOR": {"visibility": "U", "parameters": {"CODEPAGE": {"type": () => {return new abap.types.Character(20, {"qualifiedName":"abap_encoding"});}, "is_optional": " ", "parm_kind": "I", "type_name": "CharacterType"}}}};
   #mv_encoding;
   constructor() {
     this.me = new abap.types.ABAPObject();
