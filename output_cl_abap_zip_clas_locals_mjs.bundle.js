@@ -15,6 +15,7 @@ __webpack_require__.r(__webpack_exports__);
 const {cx_root} = await Promise.resolve(/*! import() */).then(__webpack_require__.bind(__webpack_require__, /*! ./cx_root.clas.mjs */ "../output/cx_root.clas.mjs"));
 // cl_abap_zip.clas.locals_imp.abap
 class lcl_stream {
+  static STATIC_SUPER = undefined;
   static INTERNAL_TYPE = 'CLAS';
   static INTERNAL_NAME = 'CLAS-CL_ABAP_ZIP-LCL_STREAM';
   static IMPLEMENTED_INTERFACES = [];

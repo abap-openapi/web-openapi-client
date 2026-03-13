@@ -16,6 +16,7 @@ __webpack_require__.r(__webpack_exports__);
 const {cx_root} = await Promise.resolve(/*! import() */).then(__webpack_require__.bind(__webpack_require__, /*! ./cx_root.clas.mjs */ "../output/cx_root.clas.mjs"));
 // cl_abap_conv_codepage.clas.locals_imp.abap
 class lcl_in {
+  static STATIC_SUPER = undefined;
   static INTERNAL_TYPE = 'CLAS';
   static INTERNAL_NAME = 'CLAS-CL_ABAP_CONV_CODEPAGE-LCL_IN';
   static IMPLEMENTED_INTERFACES = ["IF_ABAP_CONV_IN"];
@@ -51,6 +52,7 @@ class lcl_in {
 }
 abap.Classes['CLAS-CL_ABAP_CONV_CODEPAGE-LCL_IN'] = lcl_in;
 class lcl_out {
+  static STATIC_SUPER = undefined;
   static INTERNAL_TYPE = 'CLAS';
   static INTERNAL_NAME = 'CLAS-CL_ABAP_CONV_CODEPAGE-LCL_OUT';
   static IMPLEMENTED_INTERFACES = ["IF_ABAP_CONV_OUT"];

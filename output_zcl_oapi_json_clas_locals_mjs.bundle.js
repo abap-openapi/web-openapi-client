@@ -17,6 +17,7 @@ const {cx_root} = await Promise.resolve(/*! import() */).then(__webpack_require_
 // zcl_oapi_json.clas.locals_def.abap
 // zcl_oapi_json.clas.locals_imp.abap
 class lcl_stack {
+  static STATIC_SUPER = undefined;
   static INTERNAL_TYPE = 'CLAS';
   static INTERNAL_NAME = 'CLAS-ZCL_OAPI_JSON-LCL_STACK';
   static IMPLEMENTED_INTERFACES = [];
@@ -131,6 +132,7 @@ lcl_stack.ty_data = new abap.types.Structure({
 "is_array": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}),
 "array_index": new abap.types.Integer({qualifiedName: "LCL_STACK=>TY_DATA-ARRAY_INDEX"})}, "lcl_stack=>ty_data", undefined, {}, {});
 class lcl_parser {
+  static STATIC_SUPER = undefined;
   static INTERNAL_TYPE = 'CLAS';
   static INTERNAL_NAME = 'CLAS-ZCL_OAPI_JSON-LCL_PARSER';
   static IMPLEMENTED_INTERFACES = [];

@@ -17,6 +17,7 @@ __webpack_require__.r(__webpack_exports__);
 const {cx_root} = await Promise.resolve(/*! import() */).then(__webpack_require__.bind(__webpack_require__, /*! ./cx_root.clas.mjs */ "../output/cx_root.clas.mjs"));
 // cl_apc_tcp_client_manager.clas.locals_imp.abap
 class lcl_message {
+  static STATIC_SUPER = undefined;
   static INTERNAL_TYPE = 'CLAS';
   static INTERNAL_NAME = 'CLAS-CL_APC_TCP_CLIENT_MANAGER-LCL_MESSAGE';
   static IMPLEMENTED_INTERFACES = ["IF_APC_WSP_MESSAGE"];
@@ -53,6 +54,7 @@ class lcl_message {
 }
 abap.Classes['CLAS-CL_APC_TCP_CLIENT_MANAGER-LCL_MESSAGE'] = lcl_message;
 class lcl_client {
+  static STATIC_SUPER = undefined;
   static INTERNAL_TYPE = 'CLAS';
   static INTERNAL_NAME = 'CLAS-CL_APC_TCP_CLIENT_MANAGER-LCL_CLIENT';
   static IMPLEMENTED_INTERFACES = ["IF_APC_WSP_CLIENT","IF_APC_WSP_MESSAGE_MANAGER"];
@@ -112,20 +114,20 @@ class lcl_client {
     this.client.destroy();
   }
   async if_apc_wsp_client$get_message_manager() {
-    let ri_manager = new abap.types.ABAPObject({qualifiedName: "IF_APC_WSP_MESSAGE_MANAGER", RTTIName: "\\INTERFACE=IF_APC_WSP_MESSAGE_MANAGER"});
-    ri_manager.set(this.me);
-    return ri_manager;
+    let r_message_manager = new abap.types.ABAPObject({qualifiedName: "IF_APC_WSP_MESSAGE_MANAGER", RTTIName: "\\INTERFACE=IF_APC_WSP_MESSAGE_MANAGER"});
+    r_message_manager.set(this.me);
+    return r_message_manager;
   }
   async if_apc_wsp_message_manager$create_message() {
-    let ri_message = new abap.types.ABAPObject({qualifiedName: "IF_APC_WSP_MESSAGE", RTTIName: "\\INTERFACE=IF_APC_WSP_MESSAGE"});
-    ri_message.set(await (new abap.Classes['CLAS-CL_APC_TCP_CLIENT_MANAGER-LCL_MESSAGE']()).constructor_());
-    return ri_message;
+    let r_message = new abap.types.ABAPObject({qualifiedName: "IF_APC_WSP_MESSAGE", RTTIName: "\\INTERFACE=IF_APC_WSP_MESSAGE"});
+    r_message.set(await (new abap.Classes['CLAS-CL_APC_TCP_CLIENT_MANAGER-LCL_MESSAGE']()).constructor_());
+    return r_message;
   }
   async if_apc_wsp_message_manager$send(INPUT) {
-    let ii_message = INPUT?.ii_message;
-    if (ii_message?.getQualifiedName === undefined || ii_message.getQualifiedName() !== "IF_APC_WSP_MESSAGE") { ii_message = undefined; }
-    if (ii_message === undefined) { ii_message = new abap.types.ABAPObject({qualifiedName: "IF_APC_WSP_MESSAGE", RTTIName: "\\INTERFACE=IF_APC_WSP_MESSAGE"}).set(INPUT.ii_message); }
-    const val = await ii_message.get().if_apc_wsp_message$get_binary();
+    let i_message = INPUT?.i_message;
+    if (i_message?.getQualifiedName === undefined || i_message.getQualifiedName() !== "IF_APC_WSP_MESSAGE") { i_message = undefined; }
+    if (i_message === undefined) { i_message = new abap.types.ABAPObject({qualifiedName: "IF_APC_WSP_MESSAGE", RTTIName: "\\INTERFACE=IF_APC_WSP_MESSAGE"}).set(INPUT.i_message); }
+    const val = await i_message.get().if_apc_wsp_message$get_binary();
     this.client.write(Buffer.from(val.get(), "hex"), "binary");
   }
 }

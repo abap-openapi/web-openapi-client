@@ -18,6 +18,7 @@ __webpack_require__.r(__webpack_exports__);
 const {cx_root} = await Promise.resolve(/*! import() */).then(__webpack_require__.bind(__webpack_require__, /*! ./cx_root.clas.mjs */ "../output/cx_root.clas.mjs"));
 // cl_function_test_environment.clas.locals_imp.abap
 class lcl_input_arguments {
+  static STATIC_SUPER = undefined;
   static INTERNAL_TYPE = 'CLAS';
   static INTERNAL_NAME = 'CLAS-CL_FUNCTION_TEST_ENVIRONMENT-LCL_INPUT_ARGUMENTS';
   static IMPLEMENTED_INTERFACES = ["IF_FTD_INPUT_ARGUMENTS"];
@@ -59,9 +60,9 @@ class lcl_input_arguments {
       usesTableLine: false,
       withKeySimple: {"name": name}});
     if (abap.compare.ne(abap.builtin.sy.get().subrc, abap.IntegerFactory.get(0))) {
-      const unique262 = await (new abap.Classes['CX_FTD_PARAMETER_NOT_FOUND']()).constructor_();
-      unique262.EXTRA_CX = {"INTERNAL_FILENAME": "cl_function_test_environment.clas.locals_imp.abap","INTERNAL_LINE": 19};
-      throw unique262;
+      const unique273 = await (new abap.Classes['CX_FTD_PARAMETER_NOT_FOUND']()).constructor_();
+      unique273.EXTRA_CX = {"INTERNAL_FILENAME": "cl_function_test_environment.clas.locals_imp.abap","INTERNAL_LINE": 19};
+      throw unique273;
     }
     result.set(ls_row.get().value);
     return result;
@@ -80,9 +81,9 @@ class lcl_input_arguments {
       usesTableLine: false,
       withKeySimple: {"name": name}});
     if (abap.compare.ne(abap.builtin.sy.get().subrc, abap.IntegerFactory.get(0))) {
-      const unique263 = await (new abap.Classes['CX_FTD_PARAMETER_NOT_FOUND']()).constructor_();
-      unique263.EXTRA_CX = {"INTERNAL_FILENAME": "cl_function_test_environment.clas.locals_imp.abap","INTERNAL_LINE": 28};
-      throw unique263;
+      const unique274 = await (new abap.Classes['CX_FTD_PARAMETER_NOT_FOUND']()).constructor_();
+      unique274.EXTRA_CX = {"INTERNAL_FILENAME": "cl_function_test_environment.clas.locals_imp.abap","INTERNAL_LINE": 28};
+      throw unique274;
     }
     result.set(ls_row.get().value);
     return result;
@@ -93,6 +94,7 @@ lcl_input_arguments.ty_name_value = new abap.types.Structure({
 "name": new abap.types.Character(30, {"qualifiedName":"abap_parmname"}),
 "value": new abap.types.DataReference(new abap.types.Character(4))}, "lcl_input_arguments=>ty_name_value", undefined, {}, {});
 class lcl_invocation_result {
+  static STATIC_SUPER = undefined;
   static INTERNAL_TYPE = 'CLAS';
   static INTERNAL_NAME = 'CLAS-CL_FUNCTION_TEST_ENVIRONMENT-LCL_INVOCATION_RESULT';
   static IMPLEMENTED_INTERFACES = ["IF_FTD_INVOCATION_RESULT","IF_FTD_OUTPUT_CONFIGURATION"];
@@ -161,6 +163,7 @@ lcl_invocation_result.ty_name_value = new abap.types.Structure({
 "name": new abap.types.Character(30, {"qualifiedName":"abap_parmname"}),
 "value": new abap.types.DataReference(new abap.types.Character(4))}, "lcl_invocation_result=>ty_name_value", undefined, {}, {});
 class lcl_invoker {
+  static STATIC_SUPER = undefined;
   static INTERNAL_TYPE = 'CLAS';
   static INTERNAL_NAME = 'CLAS-CL_FUNCTION_TEST_ENVIRONMENT-LCL_INVOKER';
   static IMPLEMENTED_INTERFACES = [];
@@ -213,18 +216,19 @@ class lcl_invoker {
       abap.statements.insertInternal({data: ls_table, table: lo_arguments.get().mt_tables});
     }
     await answer.get().if_ftd_invocation_answer$answer({arguments: li_arguments, result: li_result});
-    for await (const unique264 of abap.statements.loop(lo_result.get().mt_exporting)) {
-      ls_exporting.set(unique264);
+    for await (const unique275 of abap.statements.loop(lo_result.get().mt_exporting)) {
+      ls_exporting.set(unique275);
       fminput.importing[ls_exporting.get().name.get().toLowerCase().trimEnd()].set(ls_exporting.get().value.dereference());
     }
-    for await (const unique265 of abap.statements.loop(lo_result.get().mt_tables)) {
-      ls_table.set(unique265);
+    for await (const unique276 of abap.statements.loop(lo_result.get().mt_tables)) {
+      ls_table.set(unique276);
       fminput.tables[ls_table.get().name.get().toLowerCase().trimEnd()].set(ls_table.get().value.dereference());
     }
   }
 }
 abap.Classes['CLAS-CL_FUNCTION_TEST_ENVIRONMENT-LCL_INVOKER'] = lcl_invoker;
 class lcl_double {
+  static STATIC_SUPER = undefined;
   static INTERNAL_TYPE = 'CLAS';
   static INTERNAL_NAME = 'CLAS-CL_FUNCTION_TEST_ENVIRONMENT-LCL_DOUBLE';
   static IMPLEMENTED_INTERFACES = ["IF_FUNCTION_TESTDOUBLE","IF_FTD_INPUT_CONFIG_SETTER","IF_FTD_OUTPUT_CONFIG_SETTER"];
