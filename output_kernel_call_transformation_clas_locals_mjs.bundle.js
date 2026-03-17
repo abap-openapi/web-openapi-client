@@ -474,15 +474,21 @@ class lcl_object_to_sxml {
               static INTERNAL_TYPE = 'CLAS';
               static INTERNAL_NAME = 'CLAS-KERNEL_CALL_TRANSFORMATION-LCL_OBJECT_TO_IXML';
               static IMPLEMENTED_INTERFACES = [];
-              static ATTRIBUTES = {};
+              static ATTRIBUTES = {"MS_OPTIONS": {"type": () => {return new abap.types.Structure({
+              "initial_components": new abap.types.String({qualifiedName: "KERNEL_CALL_TRANSFORMATION=>TY_OPTIONS-INITIAL_COMPONENTS"}),
+              "xml_header": new abap.types.String({qualifiedName: "KERNEL_CALL_TRANSFORMATION=>TY_OPTIONS-XML_HEADER"})}, "kernel_call_transformation=>ty_options", undefined, {}, {});}, "visibility": "I", "is_constant": " ", "is_class": "X"}};
               static METHODS = {"TRAVERSE": {"visibility": "I", "parameters": {"II_PARENT": {"type": () => {return new abap.types.ABAPObject({qualifiedName: "IF_IXML_ELEMENT", RTTIName: "\\INTERFACE=IF_IXML_ELEMENT"});}, "is_optional": " ", "parm_kind": "I", "type_name": "ObjectReferenceType"}, "II_DOC": {"type": () => {return new abap.types.ABAPObject({qualifiedName: "IF_IXML_DOCUMENT", RTTIName: "\\INTERFACE=IF_IXML_DOCUMENT"});}, "is_optional": " ", "parm_kind": "I", "type_name": "ObjectReferenceType"}, "IV_REF": {"type": () => {return new abap.types.DataReference(new abap.types.Character(4));}, "is_optional": " ", "parm_kind": "I", "type_name": "DataReference"}}},
-              "RUN": {"visibility": "U", "parameters": {"II_DOC": {"type": () => {return new abap.types.ABAPObject({qualifiedName: "IF_IXML_DOCUMENT", RTTIName: "\\INTERFACE=IF_IXML_DOCUMENT"});}, "is_optional": " ", "parm_kind": "I", "type_name": "ObjectReferenceType"}, "SOURCE": {"type": () => {return new abap.types.Character(4);}, "is_optional": " ", "parm_kind": "I", "type_name": "AnyType"}}}};
+              "RUN": {"visibility": "U", "parameters": {"II_DOC": {"type": () => {return new abap.types.ABAPObject({qualifiedName: "IF_IXML_DOCUMENT", RTTIName: "\\INTERFACE=IF_IXML_DOCUMENT"});}, "is_optional": " ", "parm_kind": "I", "type_name": "ObjectReferenceType"}, "SOURCE": {"type": () => {return new abap.types.Character(4);}, "is_optional": " ", "parm_kind": "I", "type_name": "AnyType"}, "IS_OPTIONS": {"type": () => {return new abap.types.Structure({
+              "initial_components": new abap.types.String({qualifiedName: "KERNEL_CALL_TRANSFORMATION=>TY_OPTIONS-INITIAL_COMPONENTS"}),
+              "xml_header": new abap.types.String({qualifiedName: "KERNEL_CALL_TRANSFORMATION=>TY_OPTIONS-XML_HEADER"})}, "kernel_call_transformation=>ty_options", undefined, {}, {});}, "is_optional": " ", "parm_kind": "I", "type_name": "StructureType"}}}};
+              #ms_options;
               constructor() {
                 this.me = new abap.types.ABAPObject();
                 this.me.set(this);
                 this.INTERNAL_ID = abap.internalIdCounter++;
                 this.FRIENDS_ACCESS_INSTANCE = {
                 };
+                this.ms_options = lcl_object_to_ixml.ms_options;
               }
               async constructor_(INPUT) {
                 if (super.constructor_) { await super.constructor_(INPUT); }
@@ -496,6 +502,10 @@ class lcl_object_to_sxml {
                 if (ii_doc?.getQualifiedName === undefined || ii_doc.getQualifiedName() !== "IF_IXML_DOCUMENT") { ii_doc = undefined; }
                 if (ii_doc === undefined) { ii_doc = new abap.types.ABAPObject({qualifiedName: "IF_IXML_DOCUMENT", RTTIName: "\\INTERFACE=IF_IXML_DOCUMENT"}).set(INPUT.ii_doc); }
                 let source = INPUT?.source;
+                let is_options = new abap.types.Structure({
+                "initial_components": new abap.types.String({qualifiedName: "KERNEL_CALL_TRANSFORMATION=>TY_OPTIONS-INITIAL_COMPONENTS"}),
+                "xml_header": new abap.types.String({qualifiedName: "KERNEL_CALL_TRANSFORMATION=>TY_OPTIONS-XML_HEADER"})}, "kernel_call_transformation=>ty_options", undefined, {}, {});
+                if (INPUT && INPUT.is_options) {is_options.set(INPUT.is_options);}
                 let lv_name = new abap.types.String({qualifiedName: "STRING"});
                 let result = new abap.types.DataReference(new abap.types.Character(4));
                 let li_element = new abap.types.ABAPObject({qualifiedName: "IF_IXML_ELEMENT", RTTIName: "\\INTERFACE=IF_IXML_ELEMENT"});
@@ -507,6 +517,7 @@ class lcl_object_to_sxml {
                 let ls_stab = new abap.types.Structure({
                 "name": new abap.types.String({qualifiedName: "NAME"}),
                 "value": new abap.types.DataReference(new abap.types.Character(4))}, "abap_trans_srcbind", undefined, {}, {});
+                lcl_object_to_ixml.ms_options.set(is_options);
                 if (INPUT.source.constructor.name === "Table") {
                     lt_stab = INPUT.source;
                 }
@@ -561,8 +572,11 @@ class lcl_object_to_sxml {
                   lt_comps.set((await lo_struc.get().get_components()));
                   for await (const unique176 of abap.statements.loop(lt_comps)) {
                     ls_compo.set(unique176);
-                    li_element.set((await ii_doc.get().if_ixml_document$create_element({name: ls_compo.get().name})));
                     abap.statements.assign({component: ls_compo.get().name, target: fs_field_, source: fs_any_});
+                    if (abap.compare.eq(lcl_object_to_ixml.ms_options.get().initial_components, abap.Classes['KERNEL_CALL_TRANSFORMATION'].gc_options.get().suppress) && abap.compare.initial(fs_field_)) {
+                      continue;
+                    }
+                    li_element.set((await ii_doc.get().if_ixml_document$create_element({name: ls_compo.get().name})));
                     abap.statements.getReference(lv_ref, fs_field_);
                     await this.traverse({ii_parent: li_element, ii_doc: ii_doc, iv_ref: lv_ref});
                     await ii_parent.get().if_ixml_element$append_child({new_child: li_element});
@@ -584,6 +598,9 @@ class lcl_object_to_sxml {
               }
             }
             abap.Classes['CLAS-KERNEL_CALL_TRANSFORMATION-LCL_OBJECT_TO_IXML'] = lcl_object_to_ixml;
+            lcl_object_to_ixml.ms_options = new abap.types.Structure({
+            "initial_components": new abap.types.String({qualifiedName: "KERNEL_CALL_TRANSFORMATION=>TY_OPTIONS-INITIAL_COMPONENTS"}),
+            "xml_header": new abap.types.String({qualifiedName: "KERNEL_CALL_TRANSFORMATION=>TY_OPTIONS-XML_HEADER"})}, "kernel_call_transformation=>ty_options", undefined, {}, {});
             class lcl_string_to_string {
               static STATIC_SUPER = undefined;
               static INTERNAL_TYPE = 'CLAS';

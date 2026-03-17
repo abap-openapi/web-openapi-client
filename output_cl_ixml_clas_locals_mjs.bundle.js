@@ -220,7 +220,7 @@ class lcl_named_node_map {
     let name = INPUT?.name;
     if (name?.getQualifiedName === undefined || name.getQualifiedName() !== "STRING") { name = undefined; }
     if (name === undefined) { name = new abap.types.String({qualifiedName: "STRING"}).set(INPUT.name); }
-    abap.statements.assert(abap.compare.eq(abap.IntegerFactory.get(1), abap.CharacterFactory.get(4, 'todo')));
+    val.set((await this.if_ixml_named_node_map$get_named_item_ns({name: name})));
     return val;
   }
   async if_ixml_named_node_map$remove_named_item(INPUT) {
@@ -596,7 +596,7 @@ class lcl_node {
     if (name === undefined) { name = new abap.types.String({qualifiedName: "STRING"}).set(INPUT.name); }
     let namespace = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.namespace) {namespace.set(INPUT.namespace);}
-    abap.statements.assert(abap.compare.eq(abap.IntegerFactory.get(1), abap.CharacterFactory.get(4, 'todo')));
+    val.set((await this.if_ixml_element$get_attribute_ns({name: name})));
     return val;
   }
   async if_ixml_element$get_children() {
@@ -648,8 +648,12 @@ class lcl_node {
     let rv_has = new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"});
     let li_children = new abap.types.ABAPObject({qualifiedName: "IF_IXML_NODE_LIST", RTTIName: "\\INTERFACE=IF_IXML_NODE_LIST"});
     let li_child = new abap.types.ABAPObject({qualifiedName: "IF_IXML_NODE", RTTIName: "\\INTERFACE=IF_IXML_NODE"});
-    li_children.set((await this.if_ixml_node$get_children()));
     rv_has.set(abap.builtin.abap_false);
+    if (abap.compare.initial(this.#mv_value) === false) {
+      rv_has.set(abap.builtin.abap_true);
+      return rv_has;
+    }
+    li_children.set((await this.if_ixml_node$get_children()));
     if (abap.compare.ne((await li_children.get().if_ixml_node_list$get_length()), abap.IntegerFactory.get(1))) {
       return rv_has;
     }
