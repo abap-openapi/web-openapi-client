@@ -27,6 +27,9 @@ class lcl_input_arguments {
   "value": new abap.types.DataReference(new abap.types.Character(4))}, "lcl_input_arguments=>ty_name_value", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "");}, "visibility": "U", "is_constant": " ", "is_class": " "},
   "MT_TABLES": {"type": () => {return abap.types.TableFactory.construct(new abap.types.Structure({
   "name": new abap.types.Character(30, {"qualifiedName":"abap_parmname"}),
+  "value": new abap.types.DataReference(new abap.types.Character(4))}, "lcl_input_arguments=>ty_name_value", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "");}, "visibility": "U", "is_constant": " ", "is_class": " "},
+  "MT_CHANGING": {"type": () => {return abap.types.TableFactory.construct(new abap.types.Structure({
+  "name": new abap.types.Character(30, {"qualifiedName":"abap_parmname"}),
   "value": new abap.types.DataReference(new abap.types.Character(4))}, "lcl_input_arguments=>ty_name_value", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "");}, "visibility": "U", "is_constant": " ", "is_class": " "}};
   static METHODS = {};
   constructor() {
@@ -39,6 +42,9 @@ class lcl_input_arguments {
     "name": new abap.types.Character(30, {"qualifiedName":"abap_parmname"}),
     "value": new abap.types.DataReference(new abap.types.Character(4))}, "lcl_input_arguments=>ty_name_value", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "");
     this.mt_tables = abap.types.TableFactory.construct(new abap.types.Structure({
+    "name": new abap.types.Character(30, {"qualifiedName":"abap_parmname"}),
+    "value": new abap.types.DataReference(new abap.types.Character(4))}, "lcl_input_arguments=>ty_name_value", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "");
+    this.mt_changing = abap.types.TableFactory.construct(new abap.types.Structure({
     "name": new abap.types.Character(30, {"qualifiedName":"abap_parmname"}),
     "value": new abap.types.DataReference(new abap.types.Character(4))}, "lcl_input_arguments=>ty_name_value", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "");
   }
@@ -61,7 +67,7 @@ class lcl_input_arguments {
       withKeySimple: {"name": name}});
     if (abap.compare.ne(abap.builtin.sy.get().subrc, abap.IntegerFactory.get(0))) {
       const unique273 = await (new abap.Classes['CX_FTD_PARAMETER_NOT_FOUND']()).constructor_();
-      unique273.EXTRA_CX = {"INTERNAL_FILENAME": "cl_function_test_environment.clas.locals_imp.abap","INTERNAL_LINE": 19};
+      unique273.EXTRA_CX = {"INTERNAL_FILENAME": "cl_function_test_environment.clas.locals_imp.abap","INTERNAL_LINE": 20};
       throw unique273;
     }
     result.set(ls_row.get().value);
@@ -82,8 +88,29 @@ class lcl_input_arguments {
       withKeySimple: {"name": name}});
     if (abap.compare.ne(abap.builtin.sy.get().subrc, abap.IntegerFactory.get(0))) {
       const unique274 = await (new abap.Classes['CX_FTD_PARAMETER_NOT_FOUND']()).constructor_();
-      unique274.EXTRA_CX = {"INTERNAL_FILENAME": "cl_function_test_environment.clas.locals_imp.abap","INTERNAL_LINE": 28};
+      unique274.EXTRA_CX = {"INTERNAL_FILENAME": "cl_function_test_environment.clas.locals_imp.abap","INTERNAL_LINE": 29};
       throw unique274;
+    }
+    result.set(ls_row.get().value);
+    return result;
+  }
+  async if_ftd_input_arguments$get_changing_parameter(INPUT) {
+    let result = new abap.types.DataReference(new abap.types.Character(4));
+    let name = INPUT?.name;
+    if (name?.getQualifiedName === undefined || name.getQualifiedName() !== "ABAP_PARMNAME") { name = undefined; }
+    if (name === undefined) { name = new abap.types.Character(30, {"qualifiedName":"abap_parmname"}).set(INPUT.name); }
+    let ls_row = new abap.types.Structure({
+    "name": new abap.types.Character(30, {"qualifiedName":"abap_parmname"}),
+    "value": new abap.types.DataReference(new abap.types.Character(4))}, "lcl_input_arguments=>ty_name_value", undefined, {}, {});
+    abap.statements.readTable(this.mt_changing,{into: ls_row,
+      withKey: (i) => {return abap.compare.eq(i.name, name);},
+      withKeyValue: [{key: (i) => {return i.name}, value: name}],
+      usesTableLine: false,
+      withKeySimple: {"name": name}});
+    if (abap.compare.ne(abap.builtin.sy.get().subrc, abap.IntegerFactory.get(0))) {
+      const unique275 = await (new abap.Classes['CX_FTD_PARAMETER_NOT_FOUND']()).constructor_();
+      unique275.EXTRA_CX = {"INTERNAL_FILENAME": "cl_function_test_environment.clas.locals_imp.abap","INTERNAL_LINE": 38};
+      throw unique275;
     }
     result.set(ls_row.get().value);
     return result;
@@ -201,6 +228,9 @@ class lcl_invoker {
     let ls_table = new abap.types.Structure({
     "name": new abap.types.Character(30, {"qualifiedName":"abap_parmname"}),
     "value": new abap.types.DataReference(new abap.types.Character(4))}, "lcl_input_arguments=>ty_name_value", undefined, {}, {});
+    let ls_changing = new abap.types.Structure({
+    "name": new abap.types.Character(30, {"qualifiedName":"abap_parmname"}),
+    "value": new abap.types.DataReference(new abap.types.Character(4))}, "lcl_input_arguments=>ty_name_value", undefined, {}, {});
     lo_result.set(await (new abap.Classes['CLAS-CL_FUNCTION_TEST_ENVIRONMENT-LCL_INVOCATION_RESULT']()).constructor_());
     li_result.set(lo_result);
     lo_arguments.set(await (new abap.Classes['CLAS-CL_FUNCTION_TEST_ENVIRONMENT-LCL_INPUT_ARGUMENTS']()).constructor_());
@@ -215,13 +245,18 @@ class lcl_invoker {
         ls_table.get().value.pointer = fminput.tables[table];
       abap.statements.insertInternal({data: ls_table, table: lo_arguments.get().mt_tables});
     }
+    for (const changing in fminput?.changing || []) {
+        ls_changing.get().name.set(changing.toUpperCase());
+        ls_changing.get().value.pointer = fminput.changing[changing];
+      abap.statements.insertInternal({data: ls_changing, table: lo_arguments.get().mt_changing});
+    }
     await answer.get().if_ftd_invocation_answer$answer({arguments: li_arguments, result: li_result});
-    for await (const unique275 of abap.statements.loop(lo_result.get().mt_exporting)) {
-      ls_exporting.set(unique275);
+    for await (const unique276 of abap.statements.loop(lo_result.get().mt_exporting)) {
+      ls_exporting.set(unique276);
       fminput.importing[ls_exporting.get().name.get().toLowerCase().trimEnd()].set(ls_exporting.get().value.dereference());
     }
-    for await (const unique276 of abap.statements.loop(lo_result.get().mt_tables)) {
-      ls_table.set(unique276);
+    for await (const unique277 of abap.statements.loop(lo_result.get().mt_tables)) {
+      ls_table.set(unique277);
       fminput.tables[ls_table.get().name.get().toLowerCase().trimEnd()].set(ls_table.get().value.dereference());
     }
   }
