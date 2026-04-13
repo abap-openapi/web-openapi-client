@@ -1,11 +1,11 @@
 "use strict";
 (self["webpackChunkweb"] = self["webpackChunkweb"] || []).push([["output_cl_ixml_clas_locals_mjs"],{
 
-/***/ "../output/cl_ixml.clas.locals.mjs":
+/***/ "../output/cl_ixml.clas.locals.mjs"
 /*!*****************************************!*\
   !*** ../output/cl_ixml.clas.locals.mjs ***!
   \*****************************************/
-/***/ ((__webpack_module__, __webpack_exports__, __webpack_require__) => {
+(__webpack_module__, __webpack_exports__, __webpack_require__) {
 
 __webpack_require__.a(__webpack_module__, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
 __webpack_require__.r(__webpack_exports__);
@@ -1797,7 +1797,8 @@ class lcl_parser {
   async if_ixml_parser$num_errors() {
     let errors = new abap.types.Integer({qualifiedName: "I"});
     return errors;
-    return errors;
+    // removed by dead control flow
+
   }
   async if_ixml_parser$add_strip_space_element() {
     return;
@@ -1811,7 +1812,8 @@ class lcl_parser {
     if (INPUT && INPUT.min_severity) {min_severity.set(INPUT.min_severity);}
     if (INPUT === undefined || INPUT.min_severity === undefined) {min_severity = abap.Classes['IF_IXML_PARSE_ERROR'].if_ixml_parse_error$co_error;}
     return error;
-    return error;
+    // removed by dead control flow
+
   }
 }
 abap.Classes['CLAS-CL_IXML-LCL_PARSER'] = lcl_parser;
@@ -1827,7 +1829,7 @@ lcl_parser.if_ixml_parser$co_validate_if_dtd.set(2);
 __webpack_async_result__();
 } catch(e) { __webpack_async_result__(e); } }, 1);
 
-/***/ })
+/***/ }
 
 }]);
 //# sourceMappingURL=output_cl_ixml_clas_locals_mjs.bundle.js.map

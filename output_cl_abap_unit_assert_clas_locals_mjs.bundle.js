@@ -1,11 +1,11 @@
 "use strict";
 (self["webpackChunkweb"] = self["webpackChunkweb"] || []).push([["output_cl_abap_unit_assert_clas_locals_mjs"],{
 
-/***/ "../output/cl_abap_unit_assert.clas.locals.mjs":
+/***/ "../output/cl_abap_unit_assert.clas.locals.mjs"
 /*!*****************************************************!*\
   !*** ../output/cl_abap_unit_assert.clas.locals.mjs ***!
   \*****************************************************/
-/***/ ((__webpack_module__, __webpack_exports__, __webpack_require__) => {
+(__webpack_module__, __webpack_exports__, __webpack_require__) {
 
 __webpack_require__.a(__webpack_module__, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
 __webpack_require__.r(__webpack_exports__);
@@ -84,7 +84,7 @@ abap.Classes['CLAS-CL_ABAP_UNIT_ASSERT-LCL_DUMP'] = lcl_dump;
 __webpack_async_result__();
 } catch(e) { __webpack_async_result__(e); } }, 1);
 
-/***/ })
+/***/ }
 
 }]);
 //# sourceMappingURL=output_cl_abap_unit_assert_clas_locals_mjs.bundle.js.map

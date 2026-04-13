@@ -1,11 +1,11 @@
 "use strict";
 (self["webpackChunkweb"] = self["webpackChunkweb"] || []).push([["output_kernel_call_transformation_clas_locals_mjs"],{
 
-/***/ "../output/kernel_call_transformation.clas.locals.mjs":
+/***/ "../output/kernel_call_transformation.clas.locals.mjs"
 /*!************************************************************!*\
   !*** ../output/kernel_call_transformation.clas.locals.mjs ***!
   \************************************************************/
-/***/ ((__webpack_module__, __webpack_exports__, __webpack_require__) => {
+(__webpack_module__, __webpack_exports__, __webpack_require__) {
 
 __webpack_require__.a(__webpack_module__, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
 __webpack_require__.r(__webpack_exports__);
@@ -87,21 +87,21 @@ class lcl_heap {
     let is_serializable = new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"});
     let lo_descr = new abap.types.ABAPObject({qualifiedName: "CL_ABAP_CLASSDESCR", RTTIName: "\\CLASS=CL_ABAP_CLASSDESCR"});
     let ls_interface = new abap.types.Structure({
-    "name": new abap.types.Character(30, {"qualifiedName":"abap_intfname"}),
-    "is_inherited": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"})}, "abap_intfdescr", undefined, {}, {});
+    "name": new abap.types.Character(30, {"qualifiedName":"name"}),
+    "is_inherited": new abap.types.Character(1, {"qualifiedName":"is_inherited","ddicName":"ABAP_BOOL"})}, "abap_intfdescr", undefined, {}, {});
     let ls_attribute = new abap.types.Structure({
     "length": new abap.types.Integer({qualifiedName: "LENGTH"}),
     "decimals": new abap.types.Integer({qualifiedName: "DECIMALS"}),
-    "name": new abap.types.Character(61, {"qualifiedName":"abap_attrname"}),
-    "type_kind": new abap.types.Character(1, {"qualifiedName":"abap_typekind"}),
-    "visibility": new abap.types.Character(1, {"qualifiedName":"abap_visibility"}),
-    "is_interface": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}),
-    "is_inherited": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}),
-    "is_class": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}),
-    "is_constant": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}),
-    "is_virtual": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}),
-    "is_read_only": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}),
-    "alias_for": new abap.types.Character(61, {"qualifiedName":"abap_attrname"})}, "abap_attrdescr", undefined, {}, {});
+    "name": new abap.types.Character(61, {"qualifiedName":"name"}),
+    "type_kind": new abap.types.Character(1, {"qualifiedName":"type_kind"}),
+    "visibility": new abap.types.Character(1, {"qualifiedName":"visibility"}),
+    "is_interface": new abap.types.Character(1, {"qualifiedName":"is_interface","ddicName":"ABAP_BOOL"}),
+    "is_inherited": new abap.types.Character(1, {"qualifiedName":"is_inherited","ddicName":"ABAP_BOOL"}),
+    "is_class": new abap.types.Character(1, {"qualifiedName":"is_class","ddicName":"ABAP_BOOL"}),
+    "is_constant": new abap.types.Character(1, {"qualifiedName":"is_constant","ddicName":"ABAP_BOOL"}),
+    "is_virtual": new abap.types.Character(1, {"qualifiedName":"is_virtual","ddicName":"ABAP_BOOL"}),
+    "is_read_only": new abap.types.Character(1, {"qualifiedName":"is_read_only","ddicName":"ABAP_BOOL"}),
+    "alias_for": new abap.types.Character(61, {"qualifiedName":"alias_for"})}, "abap_attrdescr", undefined, {}, {});
     let lo_data_to_xml = new abap.types.ABAPObject({qualifiedName: "LCL_DATA_TO_XML", RTTIName: "\\CLASS-POOL=KERNEL_CALL_TRANSFORMATION\\CLASS=LCL_DATA_TO_XML"});
     let lv_ref = new abap.types.DataReference(new abap.types.Character(4));
     let lv_internal = new abap.types.String({qualifiedName: "STRING"});
@@ -204,16 +204,16 @@ class lcl_data_to_xml {
     let lt_comps = abap.types.TableFactory.construct(new abap.types.Structure({
     "name": new abap.types.String({qualifiedName: "NAME"}),
     "type": new abap.types.ABAPObject({qualifiedName: "CL_ABAP_DATADESCR", RTTIName: "\\CLASS=CL_ABAP_DATADESCR"}),
-    "as_include": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}),
+    "as_include": new abap.types.Character(1, {"qualifiedName":"as_include","ddicName":"ABAP_BOOL"}),
     "suffix": new abap.types.String({qualifiedName: "SUFFIX"})}, "abap_componentdescr", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "abap_component_tab");
     let ls_compo = new abap.types.Structure({
     "name": new abap.types.String({qualifiedName: "NAME"}),
     "type": new abap.types.ABAPObject({qualifiedName: "CL_ABAP_DATADESCR", RTTIName: "\\CLASS=CL_ABAP_DATADESCR"}),
-    "as_include": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}),
+    "as_include": new abap.types.Character(1, {"qualifiedName":"as_include","ddicName":"ABAP_BOOL"}),
     "suffix": new abap.types.String({qualifiedName: "SUFFIX"})}, "abap_componentdescr", undefined, {}, {});
     let lv_ref = new abap.types.DataReference(new abap.types.Character(4));
     let fs_any_ = new abap.types.FieldSymbol(new abap.types.Character(4));
-    let fs_table_ = new abap.types.FieldSymbol(abap.types.TableFactory.construct(new abap.types.Character(4), {"withHeader":false,"keyType":"DEFAULT"}));
+    let fs_table_ = new abap.types.FieldSymbol(abap.types.TableFactory.construct(new abap.types.Character(4), {"withHeader":false,"keyType":"USER"}));
     let fs_field_ = new abap.types.FieldSymbol(new abap.types.Character(4));
     let fs_ref_ = new abap.types.FieldSymbol(new abap.types.Character(4));
     abap.statements.assign({target: fs_ref_, source: iv_ref.dereference()});
@@ -357,16 +357,16 @@ class lcl_object_to_sxml {
         let lt_comps = abap.types.TableFactory.construct(new abap.types.Structure({
         "name": new abap.types.String({qualifiedName: "NAME"}),
         "type": new abap.types.ABAPObject({qualifiedName: "CL_ABAP_DATADESCR", RTTIName: "\\CLASS=CL_ABAP_DATADESCR"}),
-        "as_include": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}),
+        "as_include": new abap.types.Character(1, {"qualifiedName":"as_include","ddicName":"ABAP_BOOL"}),
         "suffix": new abap.types.String({qualifiedName: "SUFFIX"})}, "abap_componentdescr", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "abap_component_tab");
         let ls_compo = new abap.types.Structure({
         "name": new abap.types.String({qualifiedName: "NAME"}),
         "type": new abap.types.ABAPObject({qualifiedName: "CL_ABAP_DATADESCR", RTTIName: "\\CLASS=CL_ABAP_DATADESCR"}),
-        "as_include": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}),
+        "as_include": new abap.types.Character(1, {"qualifiedName":"as_include","ddicName":"ABAP_BOOL"}),
         "suffix": new abap.types.String({qualifiedName: "SUFFIX"})}, "abap_componentdescr", undefined, {}, {});
         let lv_ref = new abap.types.DataReference(new abap.types.Character(4));
         let fs_any_ = new abap.types.FieldSymbol(new abap.types.Character(4));
-        let fs_table_ = new abap.types.FieldSymbol(abap.types.TableFactory.construct(new abap.types.Character(4), {"withHeader":false,"keyType":"DEFAULT"}));
+        let fs_table_ = new abap.types.FieldSymbol(abap.types.TableFactory.construct(new abap.types.Character(4), {"withHeader":false,"keyType":"USER"}));
         let fs_field_ = new abap.types.FieldSymbol(new abap.types.Character(4));
         abap.statements.assign({target: fs_any_, source: iv_ref.dereference()});
         lo_type.set((await abap.Classes['CL_ABAP_TYPEDESCR'].describe_by_data({p_data: fs_any_})));
@@ -552,17 +552,17 @@ class lcl_object_to_sxml {
                 let lt_comps = abap.types.TableFactory.construct(new abap.types.Structure({
                 "name": new abap.types.String({qualifiedName: "NAME"}),
                 "type": new abap.types.ABAPObject({qualifiedName: "CL_ABAP_DATADESCR", RTTIName: "\\CLASS=CL_ABAP_DATADESCR"}),
-                "as_include": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}),
+                "as_include": new abap.types.Character(1, {"qualifiedName":"as_include","ddicName":"ABAP_BOOL"}),
                 "suffix": new abap.types.String({qualifiedName: "SUFFIX"})}, "abap_componentdescr", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "abap_component_tab");
                 let ls_compo = new abap.types.Structure({
                 "name": new abap.types.String({qualifiedName: "NAME"}),
                 "type": new abap.types.ABAPObject({qualifiedName: "CL_ABAP_DATADESCR", RTTIName: "\\CLASS=CL_ABAP_DATADESCR"}),
-                "as_include": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}),
+                "as_include": new abap.types.Character(1, {"qualifiedName":"as_include","ddicName":"ABAP_BOOL"}),
                 "suffix": new abap.types.String({qualifiedName: "SUFFIX"})}, "abap_componentdescr", undefined, {}, {});
                 let lv_ref = new abap.types.DataReference(new abap.types.Character(4));
                 let li_element = new abap.types.ABAPObject({qualifiedName: "IF_IXML_ELEMENT", RTTIName: "\\INTERFACE=IF_IXML_ELEMENT"});
                 let fs_any_ = new abap.types.FieldSymbol(new abap.types.Character(4));
-                let fs_table_ = new abap.types.FieldSymbol(abap.types.TableFactory.construct(new abap.types.Character(4), {"withHeader":false,"keyType":"DEFAULT"}));
+                let fs_table_ = new abap.types.FieldSymbol(abap.types.TableFactory.construct(new abap.types.Character(4), {"withHeader":false,"keyType":"USER"}));
                 let fs_field_ = new abap.types.FieldSymbol(new abap.types.Character(4));
                 abap.statements.assign({target: fs_any_, source: iv_ref.dereference()});
                 lo_type.set((await abap.Classes['CL_ABAP_TYPEDESCR'].describe_by_data({p_data: fs_any_})));
@@ -661,7 +661,7 @@ class lcl_object_to_sxml {
 __webpack_async_result__();
 } catch(e) { __webpack_async_result__(e); } }, 1);
 
-/***/ })
+/***/ }
 
 }]);
 //# sourceMappingURL=output_kernel_call_transformation_clas_locals_mjs.bundle.js.map

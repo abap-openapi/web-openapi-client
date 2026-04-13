@@ -1,11 +1,11 @@
 "use strict";
 (self["webpackChunkweb"] = self["webpackChunkweb"] || []).push([["output_cl_apc_tcp_client_manager_clas_locals_mjs"],{
 
-/***/ "../output/cl_apc_tcp_client_manager.clas.locals.mjs":
+/***/ "../output/cl_apc_tcp_client_manager.clas.locals.mjs"
 /*!***********************************************************!*\
   !*** ../output/cl_apc_tcp_client_manager.clas.locals.mjs ***!
   \***********************************************************/
-/***/ ((__webpack_module__, __webpack_exports__, __webpack_require__) => {
+(__webpack_module__, __webpack_exports__, __webpack_require__) {
 
 __webpack_require__.a(__webpack_module__, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
 __webpack_require__.r(__webpack_exports__);
@@ -136,7 +136,7 @@ abap.Classes['CLAS-CL_APC_TCP_CLIENT_MANAGER-LCL_CLIENT'] = lcl_client;
 __webpack_async_result__();
 } catch(e) { __webpack_async_result__(e); } }, 1);
 
-/***/ })
+/***/ }
 
 }]);
 //# sourceMappingURL=output_cl_apc_tcp_client_manager_clas_locals_mjs.bundle.js.map

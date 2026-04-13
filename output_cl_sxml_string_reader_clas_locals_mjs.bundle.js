@@ -1,11 +1,11 @@
 "use strict";
 (self["webpackChunkweb"] = self["webpackChunkweb"] || []).push([["output_cl_sxml_string_reader_clas_locals_mjs"],{
 
-/***/ "../output/cl_sxml_string_reader.clas.locals.mjs":
+/***/ "../output/cl_sxml_string_reader.clas.locals.mjs"
 /*!*******************************************************!*\
   !*** ../output/cl_sxml_string_reader.clas.locals.mjs ***!
   \*******************************************************/
-/***/ ((__webpack_module__, __webpack_exports__, __webpack_require__) => {
+(__webpack_module__, __webpack_exports__, __webpack_require__) {
 
 __webpack_require__.a(__webpack_module__, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
 __webpack_require__.r(__webpack_exports__);
@@ -692,7 +692,7 @@ lcl_reader.ty_nodes = abap.types.TableFactory.construct(new abap.types.ABAPObjec
 __webpack_async_result__();
 } catch(e) { __webpack_async_result__(e); } }, 1);
 
-/***/ })
+/***/ }
 
 }]);
 //# sourceMappingURL=output_cl_sxml_string_reader_clas_locals_mjs.bundle.js.map

@@ -1,11 +1,11 @@
 "use strict";
 (self["webpackChunkweb"] = self["webpackChunkweb"] || []).push([["output_cl_function_test_environment_clas_locals_mjs"],{
 
-/***/ "../output/cl_function_test_environment.clas.locals.mjs":
+/***/ "../output/cl_function_test_environment.clas.locals.mjs"
 /*!**************************************************************!*\
   !*** ../output/cl_function_test_environment.clas.locals.mjs ***!
   \**************************************************************/
-/***/ ((__webpack_module__, __webpack_exports__, __webpack_require__) => {
+(__webpack_module__, __webpack_exports__, __webpack_require__) {
 
 __webpack_require__.a(__webpack_module__, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
 __webpack_require__.r(__webpack_exports__);
@@ -313,7 +313,7 @@ abap.Classes['CLAS-CL_FUNCTION_TEST_ENVIRONMENT-LCL_DOUBLE'] = lcl_double;
 __webpack_async_result__();
 } catch(e) { __webpack_async_result__(e); } }, 1);
 
-/***/ })
+/***/ }
 
 }]);
 //# sourceMappingURL=output_cl_function_test_environment_clas_locals_mjs.bundle.js.map

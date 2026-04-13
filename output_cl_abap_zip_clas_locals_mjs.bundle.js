@@ -1,11 +1,11 @@
 "use strict";
 (self["webpackChunkweb"] = self["webpackChunkweb"] || []).push([["output_cl_abap_zip_clas_locals_mjs"],{
 
-/***/ "../output/cl_abap_zip.clas.locals.mjs":
+/***/ "../output/cl_abap_zip.clas.locals.mjs"
 /*!*********************************************!*\
   !*** ../output/cl_abap_zip.clas.locals.mjs ***!
   \*********************************************/
-/***/ ((__webpack_module__, __webpack_exports__, __webpack_require__) => {
+(__webpack_module__, __webpack_exports__, __webpack_require__) {
 
 __webpack_require__.a(__webpack_module__, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
 __webpack_require__.r(__webpack_exports__);
@@ -171,7 +171,7 @@ lcl_stream.crc32_map = new abap.types.XString({qualifiedName: "XSTRING"});
 __webpack_async_result__();
 } catch(e) { __webpack_async_result__(e); } }, 1);
 
-/***/ })
+/***/ }
 
 }]);
 //# sourceMappingURL=output_cl_abap_zip_clas_locals_mjs.bundle.js.map

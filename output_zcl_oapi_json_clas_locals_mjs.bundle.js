@@ -1,11 +1,11 @@
 "use strict";
 (self["webpackChunkweb"] = self["webpackChunkweb"] || []).push([["output_zcl_oapi_json_clas_locals_mjs"],{
 
-/***/ "../output/zcl_oapi_json.clas.locals.mjs":
+/***/ "../output/zcl_oapi_json.clas.locals.mjs"
 /*!***********************************************!*\
   !*** ../output/zcl_oapi_json.clas.locals.mjs ***!
   \***********************************************/
-/***/ ((__webpack_module__, __webpack_exports__, __webpack_require__) => {
+(__webpack_module__, __webpack_exports__, __webpack_require__) {
 
 __webpack_require__.a(__webpack_module__, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
 __webpack_require__.r(__webpack_exports__);
@@ -247,7 +247,7 @@ abap.Classes['CLAS-ZCL_OAPI_JSON-LCL_PARSER'] = lcl_parser;
 __webpack_async_result__();
 } catch(e) { __webpack_async_result__(e); } }, 1);
 
-/***/ })
+/***/ }
 
 }]);
 //# sourceMappingURL=output_zcl_oapi_json_clas_locals_mjs.bundle.js.map
