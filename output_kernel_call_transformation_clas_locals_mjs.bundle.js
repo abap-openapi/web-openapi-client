@@ -525,7 +525,7 @@ class lcl_object_to_sxml {
                 li_top.set((await ii_doc.get().if_ixml_document$create_element_ns({prefix: abap.CharacterFactory.get(3, 'asx'), name: abap.CharacterFactory.get(4, 'abap')})));
                 await li_top.get().if_ixml_element$set_attribute({name: abap.CharacterFactory.get(9, 'xmlns:asx'), value: abap.CharacterFactory.get(26, 'http://www.sap.com/abapxml')});
                 await li_top.get().if_ixml_element$set_attribute({name: abap.CharacterFactory.get(7, 'version'), value: abap.CharacterFactory.get(3, '1.0')});
-                await ii_doc.get().if_ixml_document$append_child({new_child: li_top});
+                await ii_doc.get().if_ixml_node$append_child({new_child: li_top});
                 li_sub.set((await ii_doc.get().if_ixml_document$create_element_ns({prefix: abap.CharacterFactory.get(3, 'asx'), name: abap.CharacterFactory.get(6, 'values')})));
                 await li_top.get().if_ixml_element$append_child({new_child: li_sub});
                 for await (const unique174 of abap.statements.loop(lt_stab)) {
