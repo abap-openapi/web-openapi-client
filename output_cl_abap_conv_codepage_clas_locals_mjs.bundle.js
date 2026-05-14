@@ -21,7 +21,7 @@ class lcl_in {
   static INTERNAL_NAME = 'CLAS-CL_ABAP_CONV_CODEPAGE-LCL_IN';
   static IMPLEMENTED_INTERFACES = ["IF_ABAP_CONV_IN"];
   static ATTRIBUTES = {"MV_ENCODING": {"type": () => {return new abap.types.Character(20, {"qualifiedName":"abap_encoding"});}, "visibility": "I", "is_constant": " ", "is_class": " "}};
-  static METHODS = {"CONSTRUCTOR": {"visibility": "U", "parameters": {"CODEPAGE": {"type": () => {return new abap.types.Character(20, {"qualifiedName":"abap_encoding"});}, "is_optional": " ", "parm_kind": "I", "type_name": "CharacterType"}}}};
+  static METHODS = {"CONSTRUCTOR": {"visibility": "U", "parameters": {"CODEPAGE": {"type": () => {return new abap.types.Character();}, "is_optional": " ", "parm_kind": "I", "type_name": "CLikeType"}}}};
   #mv_encoding;
   constructor() {
     this.me = new abap.types.ABAPObject();
@@ -34,8 +34,6 @@ class lcl_in {
   }
   async constructor_(INPUT) {
     let codepage = INPUT?.codepage;
-    if (codepage?.getQualifiedName === undefined || codepage.getQualifiedName() !== "ABAP_ENCODING") { codepage = undefined; }
-    if (codepage === undefined) { codepage = new abap.types.Character(20, {"qualifiedName":"abap_encoding"}).set(INPUT.codepage); }
     this.#mv_encoding.set(codepage);
     return this;
   }
@@ -57,7 +55,7 @@ class lcl_out {
   static INTERNAL_NAME = 'CLAS-CL_ABAP_CONV_CODEPAGE-LCL_OUT';
   static IMPLEMENTED_INTERFACES = ["IF_ABAP_CONV_OUT"];
   static ATTRIBUTES = {"MV_ENCODING": {"type": () => {return new abap.types.Character(20, {"qualifiedName":"abap_encoding"});}, "visibility": "I", "is_constant": " ", "is_class": " "}};
-  static METHODS = {"CONSTRUCTOR": {"visibility": "U", "parameters": {"CODEPAGE": {"type": () => {return new abap.types.Character(20, {"qualifiedName":"abap_encoding"});}, "is_optional": " ", "parm_kind": "I", "type_name": "CharacterType"}}}};
+  static METHODS = {"CONSTRUCTOR": {"visibility": "U", "parameters": {"CODEPAGE": {"type": () => {return new abap.types.Character();}, "is_optional": " ", "parm_kind": "I", "type_name": "CLikeType"}}}};
   #mv_encoding;
   constructor() {
     this.me = new abap.types.ABAPObject();
@@ -70,8 +68,6 @@ class lcl_out {
   }
   async constructor_(INPUT) {
     let codepage = INPUT?.codepage;
-    if (codepage?.getQualifiedName === undefined || codepage.getQualifiedName() !== "ABAP_ENCODING") { codepage = undefined; }
-    if (codepage === undefined) { codepage = new abap.types.Character(20, {"qualifiedName":"abap_encoding"}).set(INPUT.codepage); }
     this.#mv_encoding.set(codepage);
     return this;
   }

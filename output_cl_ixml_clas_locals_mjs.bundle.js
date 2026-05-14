@@ -361,6 +361,8 @@ class lcl_node {
     this.if_ixml_element$create_iterator_filtered = this.if_ixml_node$create_iterator_filtered;
     this.if_ixml_element$create_filter_name = this.if_ixml_node$create_filter_name;
     this.if_ixml_element$create_filter_parent = this.if_ixml_node$create_filter_parent;
+    this.if_ixml_element$get_namespace_uri = this.if_ixml_node$get_namespace_uri;
+    this.if_ixml_element$query_interface = this.if_ixml_node$query_interface;
   }
   async if_ixml_node$create_filter_name(INPUT) {
     let rval = new abap.types.ABAPObject({qualifiedName: "IF_IXML_NODE_FILTER", RTTIName: "\\INTERFACE=IF_IXML_NODE_FILTER"});
