@@ -49,7 +49,7 @@ class lcl_heap {
     if (super.constructor_) { await super.constructor_(INPUT); }
     return this;
   }
-  async serialize() {
+  async serialize(INPUT) {
     let rv_xml = new abap.types.String({qualifiedName: "STRING"});
     if (abap.compare.eq(this.#mv_counter, abap.IntegerFactory.get(0))) {
       return rv_xml;
@@ -69,12 +69,12 @@ class lcl_heap {
     let lv_counter = new abap.types.Integer({qualifiedName: "I"});
     this.#mv_counter.set(abap.operators.add(this.#mv_counter,abap.IntegerFactory.get(1)));
     lv_counter.set(this.#mv_counter);
-    await abap.statements.cast(lo_descr, (await abap.Classes['CL_ABAP_TYPEDESCR'].describe_by_data({p_data: iv_ref})));
+    await abap.statements.cast(lo_descr, (await abap.Classes['CL_ABAP_TYPEDESCR'].describe_by_data({p_data: iv_ref, type: 1})));
     lv_name.set(lo_descr.get().relative_name);
     lo_data_to_xml.set(await (new abap.Classes['CLAS-KERNEL_CALL_TRANSFORMATION-LCL_DATA_TO_XML']()).constructor_({io_heap: this.me}));
     abap.statements.replace({target: lv_name, all: true, with: abap.CharacterFactory.get(1, '.'), of: abap.CharacterFactory.get(2, '=>')});
     lv_data.set(abap.operators.concat(lv_data,new abap.types.String().set(`<prg:${abap.templateFormatting(lv_name)} xmlns:prg="http://www.sap.com/abapxml/classes/class-pool/TODO" id="d${abap.templateFormatting(this.#mv_counter)}">`)));
-    lv_data.set(abap.operators.concat(lv_data,(await lo_data_to_xml.get().run({iv_name: abap.CharacterFactory.get(7, 'DATAREF'), iv_ref: iv_ref}))));
+    lv_data.set(abap.operators.concat(lv_data,(await lo_data_to_xml.get().run({iv_name: abap.CharacterFactory.get(7, 'DATAREF'), iv_ref: iv_ref, rv_xml: 1}))));
     lv_data.set(abap.operators.concat(lv_data,new abap.types.String().set(`</prg:${abap.templateFormatting(lv_name)}>`)));
     this.#mv_data.set(abap.operators.concat(this.#mv_data,lv_data));
     rv_id.set(new abap.types.String().set(`${abap.templateFormatting(lv_counter)}`));
@@ -110,10 +110,10 @@ class lcl_heap {
     let fs_any_ = new abap.types.FieldSymbol(new abap.types.DataReference(new abap.types.Character(4)));
     this.#mv_counter.set(abap.operators.add(this.#mv_counter,abap.IntegerFactory.get(1)));
     lv_counter.set(this.#mv_counter);
-    await abap.statements.cast(lo_descr, (await abap.Classes['CL_ABAP_TYPEDESCR'].describe_by_object_ref({p_object_ref: iv_ref})));
+    await abap.statements.cast(lo_descr, (await abap.Classes['CL_ABAP_TYPEDESCR'].describe_by_object_ref({p_object_ref: iv_ref, p_descr_ref: 1})));
     lv_name.set(lo_descr.get().relative_name);
-    for await (const unique164 of abap.statements.loop(lo_descr.get().interfaces)) {
-      ls_interface.set(unique164);
+    for await (const unique230 of abap.statements.loop(lo_descr.get().interfaces)) {
+      ls_interface.set(unique230);
       if (abap.compare.eq(ls_interface.get().name, abap.CharacterFactory.get(22, 'IF_SERIALIZABLE_OBJECT'))) {
         is_serializable.set(abap.builtin.abap_true);
       }
@@ -122,16 +122,16 @@ class lcl_heap {
     if (abap.compare.eq(is_serializable, abap.builtin.abap_true)) {
       lo_data_to_xml.set(await (new abap.Classes['CLAS-KERNEL_CALL_TRANSFORMATION-LCL_DATA_TO_XML']()).constructor_({io_heap: this.me}));
       lv_data.set(abap.operators.concat(lv_data,abap.operators.concat(new abap.types.String().set(`<prg:${abap.templateFormatting(lv_name)} xmlns:prg="http://www.sap.com/abapxml/classes/class-pool/TODO" id="o${abap.templateFormatting(this.#mv_counter)}" internalName="${abap.templateFormatting(lv_internal)}">`),new abap.types.String().set(`<local.${abap.templateFormatting(lv_name)}>`))));
-      for await (const unique165 of abap.statements.loop(lo_descr.get().attributes,{where: async (I) => {return abap.compare.eq(I.is_class, abap.builtin.abap_false);},topEquals: {"is_class": abap.builtin.abap_false}})) {
-        ls_attribute.set(unique165);
-        abap.statements.assign({target: fs_any_, dynamicName: 'iv_ref' + '->' + ls_attribute.get().name.get(), dynamicSource: (() => {
+      for await (const unique231 of abap.statements.loop(lo_descr.get().attributes,{where: async (I) => {return abap.compare.eq(I.is_class, abap.builtin.abap_false);},topEquals: {"is_class": abap.builtin.abap_false}})) {
+        ls_attribute.set(unique231);
+        abap.statements.assign({target: fs_any_, dynamicName: '->' + ls_attribute.get().name.get(), dynamicSource: (() => {
             try { return iv_ref; } catch {}
             try { return this.iv_ref; } catch {}
         })()});
         abap.statements.assert(abap.compare.eq(abap.builtin.sy.get().subrc, abap.IntegerFactory.get(0)));
         abap.statements.replace({target: ls_attribute.get().name, all: false, with: abap.CharacterFactory.get(1, '.'), of: abap.CharacterFactory.get(1, '~')});
         abap.statements.getReference(lv_ref, fs_any_);
-        lv_data.set(abap.operators.concat(lv_data,(await lo_data_to_xml.get().run({iv_name: ls_attribute.get().name, iv_ref: lv_ref}))));
+        lv_data.set(abap.operators.concat(lv_data,(await lo_data_to_xml.get().run({iv_name: ls_attribute.get().name, iv_ref: lv_ref, rv_xml: 1}))));
       }
       lv_data.set(abap.operators.concat(lv_data,abap.operators.concat(new abap.types.String().set(`</local.${abap.templateFormatting(lv_name)}>`),new abap.types.String().set(`</prg:${abap.templateFormatting(lv_name)}>`))));
     } else {
@@ -189,9 +189,9 @@ class lcl_data_to_xml {
     this.#ms_options.set(is_options);
     return this;
   }
-  async serialize_heap() {
+  async serialize_heap(INPUT) {
     let rv_xml = new abap.types.String({qualifiedName: "STRING"});
-    rv_xml.set((await this.#mo_heap.get().serialize()));
+    rv_xml.set((await this.#mo_heap.get().serialize({rv_xml: 1})));
     return rv_xml;
   }
   async run(INPUT) {
@@ -217,25 +217,25 @@ class lcl_data_to_xml {
     let fs_field_ = new abap.types.FieldSymbol(new abap.types.Character(4));
     let fs_ref_ = new abap.types.FieldSymbol(new abap.types.Character(4));
     abap.statements.assign({target: fs_ref_, source: iv_ref.dereference()});
-    lo_type.set((await abap.Classes['CL_ABAP_TYPEDESCR'].describe_by_data({p_data: fs_ref_})));
-    let unique166 = lo_type.get().kind;
-    if (abap.compare.eq(unique166, abap.Classes['CL_ABAP_TYPEDESCR'].kind_struct)) {
+    lo_type.set((await abap.Classes['CL_ABAP_TYPEDESCR'].describe_by_data({p_data: fs_ref_, type: 1})));
+    let unique232 = lo_type.get().kind;
+    if (abap.compare.eq(unique232, abap.Classes['CL_ABAP_TYPEDESCR'].kind_struct)) {
       await abap.statements.cast(lo_struc, lo_type);
-      lt_comps.set((await lo_struc.get().get_components()));
+      lt_comps.set((await lo_struc.get().get_components({rt_components: 1})));
       abap.statements.assign({target: fs_any_, source: iv_ref.dereference()});
       if (abap.compare.eq(this.#ms_options.get().initial_components, abap.Classes['KERNEL_CALL_TRANSFORMATION'].gc_options.get().suppress) && abap.compare.initial(fs_any_)) {
         rv_xml.set(abap.operators.concat(rv_xml,new abap.types.String().set(`<${abap.templateFormatting(iv_name)}/>`)));
         return rv_xml;
       }
       rv_xml.set(abap.operators.concat(rv_xml,new abap.types.String().set(`<${abap.templateFormatting(iv_name)}>`)));
-      for await (const unique167 of abap.statements.loop(lt_comps)) {
-        ls_compo.set(unique167);
+      for await (const unique233 of abap.statements.loop(lt_comps)) {
+        ls_compo.set(unique233);
         abap.statements.assign({component: ls_compo.get().name, target: fs_field_, source: fs_any_});
         abap.statements.getReference(lv_ref, fs_field_);
-        rv_xml.set(abap.operators.concat(rv_xml,(await this.run({iv_name: abap.builtin.to_upper({val: ls_compo.get().name}), iv_ref: lv_ref}))));
+        rv_xml.set(abap.operators.concat(rv_xml,(await this.run({iv_name: abap.builtin.to_upper({val: ls_compo.get().name}), iv_ref: lv_ref, rv_xml: 1}))));
       }
       rv_xml.set(abap.operators.concat(rv_xml,new abap.types.String().set(`</${abap.templateFormatting(iv_name)}>`)));
-    } else if (abap.compare.eq(unique166, abap.Classes['CL_ABAP_TYPEDESCR'].kind_elem)) {
+    } else if (abap.compare.eq(unique232, abap.Classes['CL_ABAP_TYPEDESCR'].kind_elem)) {
       if (abap.compare.eq(this.#ms_options.get().initial_components, abap.Classes['KERNEL_CALL_TRANSFORMATION'].gc_options.get().suppress) && abap.compare.initial(fs_ref_)) {
         return rv_xml;
       }
@@ -244,32 +244,32 @@ class lcl_data_to_xml {
       } else {
         rv_xml.set(abap.operators.concat(rv_xml,abap.operators.concat(new abap.types.String().set(`<${abap.templateFormatting(iv_name)}>`),abap.operators.concat(fs_ref_,new abap.types.String().set(`</${abap.templateFormatting(iv_name)}>`)))));
       }
-    } else if (abap.compare.eq(unique166, abap.Classes['CL_ABAP_TYPEDESCR'].kind_table)) {
+    } else if (abap.compare.eq(unique232, abap.Classes['CL_ABAP_TYPEDESCR'].kind_table)) {
       abap.statements.assign({target: fs_table_, source: iv_ref.dereference()});
       if (abap.compare.eq(this.#ms_options.get().initial_components, abap.Classes['KERNEL_CALL_TRANSFORMATION'].gc_options.get().suppress) && abap.compare.initial(fs_table_)) {
         rv_xml.set(abap.operators.concat(rv_xml,new abap.types.String().set(`<${abap.templateFormatting(iv_name)}/>`)));
         return rv_xml;
       }
       rv_xml.set(abap.operators.concat(rv_xml,new abap.types.String().set(`<${abap.templateFormatting(iv_name)}>`)));
-      for await (const unique168 of abap.statements.loop(fs_table_)) {
-        fs_any_.assign(unique168);
+      for await (const unique234 of abap.statements.loop(fs_table_)) {
+        fs_any_.assign(unique234);
         abap.statements.getReference(lv_ref, fs_any_);
-        rv_xml.set(abap.operators.concat(rv_xml,(await this.run({iv_name: new abap.types.String().set(`item`), iv_ref: lv_ref}))));
+        rv_xml.set(abap.operators.concat(rv_xml,(await this.run({iv_name: new abap.types.String().set(`item`), iv_ref: lv_ref, rv_xml: 1}))));
       }
       rv_xml.set(abap.operators.concat(rv_xml,new abap.types.String().set(`</${abap.templateFormatting(iv_name)}>`)));
-    } else if (abap.compare.eq(unique166, abap.Classes['CL_ABAP_TYPEDESCR'].kind_ref)) {
-      let unique169 = lo_type.get().type_kind;
-      if (abap.compare.eq(unique169, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_oref)) {
+    } else if (abap.compare.eq(unique232, abap.Classes['CL_ABAP_TYPEDESCR'].kind_ref)) {
+      let unique235 = lo_type.get().type_kind;
+      if (abap.compare.eq(unique235, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_oref)) {
         if (abap.compare.initial(fs_ref_)) {
           rv_xml.set(new abap.types.String().set(`<${abap.templateFormatting(iv_name)}/>`));
         } else {
-          rv_xml.set(new abap.types.String().set(`<${abap.templateFormatting(iv_name)} href="#o${abap.templateFormatting((await this.#mo_heap.get().add_object({iv_ref: fs_ref_})))}"/>`));
+          rv_xml.set(new abap.types.String().set(`<${abap.templateFormatting(iv_name)} href="#o${abap.templateFormatting((await this.#mo_heap.get().add_object({iv_ref: fs_ref_, rv_id: 1})))}"/>`));
         }
       } else {
         if (abap.compare.initial(fs_ref_)) {
           rv_xml.set(new abap.types.String().set(`<${abap.templateFormatting(iv_name)}/>`));
         } else {
-          rv_xml.set(new abap.types.String().set(`<${abap.templateFormatting(iv_name)} href="#d${abap.templateFormatting((await this.#mo_heap.get().add_data({iv_ref: fs_ref_})))}"/>`));
+          rv_xml.set(new abap.types.String().set(`<${abap.templateFormatting(iv_name)} href="#d${abap.templateFormatting((await this.#mo_heap.get().add_data({iv_ref: fs_ref_, rv_id: 1})))}"/>`));
         }
       }
     } else {
@@ -296,6 +296,7 @@ class lcl_object_to_sxml {
     this.FRIENDS_ACCESS_INSTANCE = {
     };
     this.mi_writer = lcl_object_to_sxml.mi_writer;
+    this.FRIENDS_ACCESS_INSTANCE["mi_writer"] = this.mi_writer;
   }
   async constructor_(INPUT) {
     if (super.constructor_) { await super.constructor_(INPUT); }
@@ -337,9 +338,9 @@ class lcl_object_to_sxml {
         let lo_type = new abap.types.ABAPObject({qualifiedName: "CL_ABAP_TYPEDESCR", RTTIName: "\\CLASS=CL_ABAP_TYPEDESCR"});
         let fs_any_ = new abap.types.FieldSymbol(new abap.types.Character(4));
         abap.statements.assign({target: fs_any_, source: iv_ref.dereference()});
-        lo_type.set((await abap.Classes['CL_ABAP_TYPEDESCR'].describe_by_data({p_data: fs_any_})));
-        let unique170 = lo_type.get().type_kind;
-        if (abap.compare.eq(unique170, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_int) || abap.compare.eq(unique170, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_int1) || abap.compare.eq(unique170, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_int2) || abap.compare.eq(unique170, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_int8) || abap.compare.eq(unique170, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_decfloat) || abap.compare.eq(unique170, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_decfloat16) || abap.compare.eq(unique170, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_decfloat34)) {
+        lo_type.set((await abap.Classes['CL_ABAP_TYPEDESCR'].describe_by_data({p_data: fs_any_, type: 1})));
+        let unique236 = lo_type.get().type_kind;
+        if (abap.compare.eq(unique236, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_int) || abap.compare.eq(unique236, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_int1) || abap.compare.eq(unique236, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_int2) || abap.compare.eq(unique236, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_int8) || abap.compare.eq(unique236, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_decfloat) || abap.compare.eq(unique236, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_decfloat16) || abap.compare.eq(unique236, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_decfloat34)) {
           rv_type.set(abap.CharacterFactory.get(3, 'num'));
         } else {
           rv_type.set(abap.CharacterFactory.get(3, 'str'));
@@ -369,35 +370,35 @@ class lcl_object_to_sxml {
         let fs_table_ = new abap.types.FieldSymbol(abap.types.TableFactory.construct(new abap.types.Character(4), {"withHeader":false,"keyType":"USER"}));
         let fs_field_ = new abap.types.FieldSymbol(new abap.types.Character(4));
         abap.statements.assign({target: fs_any_, source: iv_ref.dereference()});
-        lo_type.set((await abap.Classes['CL_ABAP_TYPEDESCR'].describe_by_data({p_data: fs_any_})));
-        let unique171 = lo_type.get().kind;
-        if (abap.compare.eq(unique171, abap.Classes['CL_ABAP_TYPEDESCR'].kind_struct)) {
+        lo_type.set((await abap.Classes['CL_ABAP_TYPEDESCR'].describe_by_data({p_data: fs_any_, type: 1})));
+        let unique237 = lo_type.get().kind;
+        if (abap.compare.eq(unique237, abap.Classes['CL_ABAP_TYPEDESCR'].kind_struct)) {
           await lcl_object_to_sxml.mi_writer.get().if_sxml_writer$open_element({name: abap.CharacterFactory.get(6, 'object')});
           await abap.statements.cast(lo_struc, lo_type);
-          lt_comps.set((await lo_struc.get().get_components()));
-          for await (const unique172 of abap.statements.loop(lt_comps)) {
-            ls_compo.set(unique172);
+          lt_comps.set((await lo_struc.get().get_components({rt_components: 1})));
+          for await (const unique238 of abap.statements.loop(lt_comps)) {
+            ls_compo.set(unique238);
             abap.statements.assign({component: ls_compo.get().name, target: fs_field_, source: fs_any_});
             abap.statements.getReference(lv_ref, fs_field_);
-            await lcl_object_to_sxml.mi_writer.get().if_sxml_writer$open_element({name: (await this.traverse_write_type({iv_ref: lv_ref}))});
+            await lcl_object_to_sxml.mi_writer.get().if_sxml_writer$open_element({name: (await this.traverse_write_type({iv_ref: lv_ref, rv_type: 1}))});
             await lcl_object_to_sxml.mi_writer.get().if_sxml_writer$write_attribute({name: abap.CharacterFactory.get(4, 'name'), value: abap.builtin.to_upper({val: ls_compo.get().name})});
             await this.traverse_write({iv_ref: lv_ref});
             await lcl_object_to_sxml.mi_writer.get().if_sxml_writer$close_element();
           }
           await lcl_object_to_sxml.mi_writer.get().if_sxml_writer$close_element();
-        } else if (abap.compare.eq(unique171, abap.Classes['CL_ABAP_TYPEDESCR'].kind_elem)) {
+        } else if (abap.compare.eq(unique237, abap.Classes['CL_ABAP_TYPEDESCR'].kind_elem)) {
           await lcl_object_to_sxml.mi_writer.get().if_sxml_writer$write_value({value: fs_any_});
-        } else if (abap.compare.eq(unique171, abap.Classes['CL_ABAP_TYPEDESCR'].kind_table)) {
+        } else if (abap.compare.eq(unique237, abap.Classes['CL_ABAP_TYPEDESCR'].kind_table)) {
           await lcl_object_to_sxml.mi_writer.get().if_sxml_writer$open_element({name: abap.CharacterFactory.get(5, 'array')});
           abap.statements.assign({target: fs_table_, source: iv_ref.dereference()});
-          for await (const unique173 of abap.statements.loop(fs_table_)) {
-            fs_any_.assign(unique173);
+          for await (const unique239 of abap.statements.loop(fs_table_)) {
+            fs_any_.assign(unique239);
             abap.statements.getReference(lv_ref, fs_any_);
-            if (abap.compare.eq(((await abap.Classes['CL_ABAP_TYPEDESCR'].describe_by_data({p_data: fs_any_}))).get().kind, abap.Classes['CL_ABAP_TYPEDESCR'].kind_elem)) {
-              await lcl_object_to_sxml.mi_writer.get().if_sxml_writer$open_element({name: (await this.traverse_write_type({iv_ref: lv_ref}))});
+            if (abap.compare.eq(((await abap.Classes['CL_ABAP_TYPEDESCR'].describe_by_data({p_data: fs_any_, type: 1}))).get().kind, abap.Classes['CL_ABAP_TYPEDESCR'].kind_elem)) {
+              await lcl_object_to_sxml.mi_writer.get().if_sxml_writer$open_element({name: (await this.traverse_write_type({iv_ref: lv_ref, rv_type: 1}))});
             }
             await this.traverse_write({iv_ref: lv_ref});
-            if (abap.compare.eq(((await abap.Classes['CL_ABAP_TYPEDESCR'].describe_by_data({p_data: fs_any_}))).get().kind, abap.Classes['CL_ABAP_TYPEDESCR'].kind_elem)) {
+            if (abap.compare.eq(((await abap.Classes['CL_ABAP_TYPEDESCR'].describe_by_data({p_data: fs_any_, type: 1}))).get().kind, abap.Classes['CL_ABAP_TYPEDESCR'].kind_elem)) {
               await lcl_object_to_sxml.mi_writer.get().if_sxml_writer$close_element();
             }
           }
@@ -453,18 +454,18 @@ class lcl_object_to_sxml {
                   } else {
                       result.assign(INPUT.source[name]);
                     }
-                rv_result.set(abap.operators.concat(rv_result,(await lo_data_to_xml.get().run({iv_name: abap.builtin.to_upper({val: lv_name}), iv_ref: result}))));
+                rv_result.set(abap.operators.concat(rv_result,(await lo_data_to_xml.get().run({iv_name: abap.builtin.to_upper({val: lv_name}), iv_ref: result, rv_xml: 1}))));
                   }
               } else if (INPUT.source.constructor.name === "Table") {
                   for (const row of INPUT.source.array()) {
                       lv_name.set(row.get().name.get());
                       result.assign(row.get().value.dereference());
-                  rv_result.set(abap.operators.concat(rv_result,(await lo_data_to_xml.get().run({iv_name: abap.builtin.to_upper({val: lv_name}), iv_ref: result}))));
+                  rv_result.set(abap.operators.concat(rv_result,(await lo_data_to_xml.get().run({iv_name: abap.builtin.to_upper({val: lv_name}), iv_ref: result, rv_xml: 1}))));
                     }
                 } else {
                   abap.statements.assert(abap.compare.eq(abap.IntegerFactory.get(1), abap.CharacterFactory.get(13, 'invalid input')));
                 }
-                rv_result.set(abap.operators.concat(rv_result,new abap.types.String().set(`</asx:values>${abap.templateFormatting((await lo_data_to_xml.get().serialize_heap()))}</asx:abap>`)));
+                rv_result.set(abap.operators.concat(rv_result,new abap.types.String().set(`</asx:values>${abap.templateFormatting((await lo_data_to_xml.get().serialize_heap({rv_xml: 1})))}</asx:abap>`)));
                 return rv_result;
               }
             }
@@ -489,6 +490,7 @@ class lcl_object_to_sxml {
                 this.FRIENDS_ACCESS_INSTANCE = {
                 };
                 this.ms_options = lcl_object_to_ixml.ms_options;
+                this.FRIENDS_ACCESS_INSTANCE["ms_options"] = this.ms_options;
               }
               async constructor_(INPUT) {
                 if (super.constructor_) { await super.constructor_(INPUT); }
@@ -522,15 +524,15 @@ class lcl_object_to_sxml {
                     lt_stab = INPUT.source;
                 }
                 abap.statements.assert(abap.compare.gt(abap.builtin.lines({val: lt_stab}), abap.IntegerFactory.get(0)));
-                li_top.set((await ii_doc.get().if_ixml_document$create_element_ns({prefix: abap.CharacterFactory.get(3, 'asx'), name: abap.CharacterFactory.get(4, 'abap')})));
+                li_top.set((await ii_doc.get().if_ixml_document$create_element_ns({prefix: abap.CharacterFactory.get(3, 'asx'), name: abap.CharacterFactory.get(4, 'abap'), element: 1})));
                 await li_top.get().if_ixml_element$set_attribute({name: abap.CharacterFactory.get(9, 'xmlns:asx'), value: abap.CharacterFactory.get(26, 'http://www.sap.com/abapxml')});
                 await li_top.get().if_ixml_element$set_attribute({name: abap.CharacterFactory.get(7, 'version'), value: abap.CharacterFactory.get(3, '1.0')});
                 await ii_doc.get().if_ixml_node$append_child({new_child: li_top});
-                li_sub.set((await ii_doc.get().if_ixml_document$create_element_ns({prefix: abap.CharacterFactory.get(3, 'asx'), name: abap.CharacterFactory.get(6, 'values')})));
+                li_sub.set((await ii_doc.get().if_ixml_document$create_element_ns({prefix: abap.CharacterFactory.get(3, 'asx'), name: abap.CharacterFactory.get(6, 'values'), element: 1})));
                 await li_top.get().if_ixml_element$append_child({new_child: li_sub});
-                for await (const unique174 of abap.statements.loop(lt_stab)) {
-                  ls_stab.set(unique174);
-                  li_element.set((await ii_doc.get().if_ixml_document$create_element({name: ls_stab.get().name})));
+                for await (const unique240 of abap.statements.loop(lt_stab)) {
+                  ls_stab.set(unique240);
+                  li_element.set((await ii_doc.get().if_ixml_document$create_element({name: ls_stab.get().name, element: 1})));
                   await this.traverse({ii_parent: li_element, ii_doc: ii_doc, iv_ref: ls_stab.get().value});
                   await li_sub.get().if_ixml_element$append_child({new_child: li_element});
                 }
@@ -565,29 +567,29 @@ class lcl_object_to_sxml {
                 let fs_table_ = new abap.types.FieldSymbol(abap.types.TableFactory.construct(new abap.types.Character(4), {"withHeader":false,"keyType":"USER"}));
                 let fs_field_ = new abap.types.FieldSymbol(new abap.types.Character(4));
                 abap.statements.assign({target: fs_any_, source: iv_ref.dereference()});
-                lo_type.set((await abap.Classes['CL_ABAP_TYPEDESCR'].describe_by_data({p_data: fs_any_})));
-                let unique175 = lo_type.get().kind;
-                if (abap.compare.eq(unique175, abap.Classes['CL_ABAP_TYPEDESCR'].kind_struct)) {
+                lo_type.set((await abap.Classes['CL_ABAP_TYPEDESCR'].describe_by_data({p_data: fs_any_, type: 1})));
+                let unique241 = lo_type.get().kind;
+                if (abap.compare.eq(unique241, abap.Classes['CL_ABAP_TYPEDESCR'].kind_struct)) {
                   await abap.statements.cast(lo_struc, lo_type);
-                  lt_comps.set((await lo_struc.get().get_components()));
-                  for await (const unique176 of abap.statements.loop(lt_comps)) {
-                    ls_compo.set(unique176);
+                  lt_comps.set((await lo_struc.get().get_components({rt_components: 1})));
+                  for await (const unique242 of abap.statements.loop(lt_comps)) {
+                    ls_compo.set(unique242);
                     abap.statements.assign({component: ls_compo.get().name, target: fs_field_, source: fs_any_});
                     if (abap.compare.eq(lcl_object_to_ixml.ms_options.get().initial_components, abap.Classes['KERNEL_CALL_TRANSFORMATION'].gc_options.get().suppress) && abap.compare.initial(fs_field_)) {
                       continue;
                     }
-                    li_element.set((await ii_doc.get().if_ixml_document$create_element({name: ls_compo.get().name})));
+                    li_element.set((await ii_doc.get().if_ixml_document$create_element({name: ls_compo.get().name, element: 1})));
                     abap.statements.getReference(lv_ref, fs_field_);
                     await this.traverse({ii_parent: li_element, ii_doc: ii_doc, iv_ref: lv_ref});
                     await ii_parent.get().if_ixml_element$append_child({new_child: li_element});
                   }
-                } else if (abap.compare.eq(unique175, abap.Classes['CL_ABAP_TYPEDESCR'].kind_elem)) {
+                } else if (abap.compare.eq(unique241, abap.Classes['CL_ABAP_TYPEDESCR'].kind_elem)) {
                   await ii_parent.get().if_ixml_element$set_value({value: new abap.types.String().set(`${abap.templateFormatting(fs_any_)}`)});
-                } else if (abap.compare.eq(unique175, abap.Classes['CL_ABAP_TYPEDESCR'].kind_table)) {
+                } else if (abap.compare.eq(unique241, abap.Classes['CL_ABAP_TYPEDESCR'].kind_table)) {
                   abap.statements.assign({target: fs_table_, source: iv_ref.dereference()});
-                  for await (const unique177 of abap.statements.loop(fs_table_)) {
-                    fs_any_.assign(unique177);
-                    li_element.set((await ii_doc.get().if_ixml_document$create_element({name: abap.CharacterFactory.get(4, 'item')})));
+                  for await (const unique243 of abap.statements.loop(fs_table_)) {
+                    fs_any_.assign(unique243);
+                    li_element.set((await ii_doc.get().if_ixml_document$create_element({name: abap.CharacterFactory.get(4, 'item'), element: 1})));
                     abap.statements.getReference(lv_ref, fs_any_);
                     await this.traverse({ii_parent: li_element, ii_doc: ii_doc, iv_ref: lv_ref});
                     await ii_parent.get().if_ixml_element$append_child({new_child: li_element});
@@ -636,7 +638,7 @@ class lcl_object_to_sxml {
                 let lv_hex_bom = new abap.types.XString({qualifiedName: "XSTRING"});
                 result.set(INPUT.source.get());
                 lv_hex_bom.set(abap.Classes['CL_ABAP_CHAR_UTILITIES'].byte_order_mark_little);
-                lv_str_bom.set((await abap.Classes['CL_ABAP_CODEPAGE'].convert_from({source: lv_hex_bom, codepage: abap.CharacterFactory.get(6, 'UTF-16')})));
+                lv_str_bom.set((await abap.Classes['CL_ABAP_CODEPAGE'].convert_from({source: lv_hex_bom, codepage: abap.CharacterFactory.get(6, 'UTF-16'), output: 1})));
                 if (abap.compare.eq(options.get().xml_header, abap.CharacterFactory.get(2, 'no'))) {
                   abap.statements.replace({target: result, all: false, with: abap.CharacterFactory.get(1, ''), regex: abap.CharacterFactory.get(8, '<\\?.*\\?>')});
                   if (abap.compare.eq(abap.builtin.sy.get().subrc, abap.IntegerFactory.get(0))) {

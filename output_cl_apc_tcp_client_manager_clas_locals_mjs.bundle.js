@@ -37,18 +37,20 @@ class lcl_message {
     if (super.constructor_) { await super.constructor_(INPUT); }
     return this;
   }
-  async if_apc_wsp_message$get_binary() {
+  async if_apc_wsp_message$get_binary(INPUT) {
     let rv_binary = new abap.types.XString({qualifiedName: "XSTRING"});
     rv_binary.set(this.#mv_data);
     return rv_binary;
   }
-  async if_apc_wsp_message$get_text() {
+  async if_apc_wsp_message$get_text(INPUT) {
     let r_message = new abap.types.String({qualifiedName: "STRING"});
     abap.statements.assert(abap.compare.eq(abap.IntegerFactory.get(1), abap.CharacterFactory.get(4, 'todo')));
     return r_message;
   }
   async if_apc_wsp_message$set_binary(INPUT) {
     let iv_binary = INPUT?.iv_binary;
+    if (iv_binary?.getQualifiedName === undefined || iv_binary.getQualifiedName() !== "XSTRING") { iv_binary = undefined; }
+    if (iv_binary === undefined) { iv_binary = new abap.types.XString({qualifiedName: "XSTRING"}).set(INPUT.iv_binary); }
     this.#mv_data.set(iv_binary);
   }
 }
@@ -113,12 +115,12 @@ class lcl_client {
   async if_apc_wsp_client$close() {
     this.client.destroy();
   }
-  async if_apc_wsp_client$get_message_manager() {
+  async if_apc_wsp_client$get_message_manager(INPUT) {
     let r_message_manager = new abap.types.ABAPObject({qualifiedName: "IF_APC_WSP_MESSAGE_MANAGER", RTTIName: "\\INTERFACE=IF_APC_WSP_MESSAGE_MANAGER"});
     r_message_manager.set(this.me);
     return r_message_manager;
   }
-  async if_apc_wsp_message_manager$create_message() {
+  async if_apc_wsp_message_manager$create_message(INPUT) {
     let r_message = new abap.types.ABAPObject({qualifiedName: "IF_APC_WSP_MESSAGE", RTTIName: "\\INTERFACE=IF_APC_WSP_MESSAGE"});
     r_message.set(await (new abap.Classes['CLAS-CL_APC_TCP_CLIENT_MANAGER-LCL_MESSAGE']()).constructor_());
     return r_message;

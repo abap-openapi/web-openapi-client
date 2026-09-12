@@ -42,12 +42,12 @@ class lcl_dump {
     let lv_type = new abap.types.Character(1, {});
     let lv_name = new abap.types.String({qualifiedName: "STRING"});
     abap.statements.describe({field: iv_val, type: lv_type});
-    let unique248 = lv_type;
-    if (abap.compare.eq(unique248, abap.CharacterFactory.get(1, 'u')) || abap.compare.eq(unique248, abap.CharacterFactory.get(1, 'v'))) {
-      rv_str.set((await this.dump_structure({iv_val: iv_val})));
-    } else if (abap.compare.eq(unique248, abap.CharacterFactory.get(1, 'h'))) {
+    let unique98 = lv_type;
+    if (abap.compare.eq(unique98, abap.CharacterFactory.get(1, 'u')) || abap.compare.eq(unique98, abap.CharacterFactory.get(1, 'v'))) {
+      rv_str.set((await this.dump_structure({iv_val: iv_val, rv_str: 1})));
+    } else if (abap.compare.eq(unique98, abap.CharacterFactory.get(1, 'h'))) {
       rv_str.set(new abap.types.String().set(`[itab]`));
-    } else if (abap.compare.eq(unique248, abap.CharacterFactory.get(1, 'r'))) {
+    } else if (abap.compare.eq(unique98, abap.CharacterFactory.get(1, 'r'))) {
       lv_name.set(iv_val.get().constructor.name);
       rv_str.set(new abap.types.String().set(`[object, ${abap.templateFormatting(lv_name)}]`));
     } else {
@@ -66,14 +66,14 @@ class lcl_dump {
     let lv_str = new abap.types.String({qualifiedName: "STRING"});
     let fs_fs_ = new abap.types.FieldSymbol(new abap.types.Character(4));
     Object.keys(iv_val.get()).forEach((name) => lt_components.append(new abap.types.String().set(name)));
-    for await (const unique249 of abap.statements.loop(lt_components)) {
-      lv_name.set(unique249);
+    for await (const unique99 of abap.statements.loop(lt_components)) {
+      lv_name.set(unique99);
       if (abap.compare.ne(rv_str, abap.CharacterFactory.get(1, ''))) {
         rv_str.set(abap.operators.concat(rv_str,new abap.types.String().set(`, `)));
       }
       abap.statements.assign({component: lv_name, target: fs_fs_, source: iv_val});
       abap.statements.assert(abap.compare.eq(abap.builtin.sy.get().subrc, abap.IntegerFactory.get(0)));
-      lv_str.set((await this.to_string({iv_val: fs_fs_})));
+      lv_str.set((await this.to_string({iv_val: fs_fs_, rv_str: 1})));
       rv_str.set(abap.operators.concat(rv_str,abap.operators.concat(lv_name,abap.operators.concat(new abap.types.String().set(`: `),new abap.types.String().set(`${abap.templateFormatting(lv_str)}`)))));
     }
     return rv_str;

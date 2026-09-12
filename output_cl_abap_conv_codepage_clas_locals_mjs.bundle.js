@@ -43,7 +43,7 @@ class lcl_in {
     if (source?.getQualifiedName === undefined || source.getQualifiedName() !== "XSTRING") { source = undefined; }
     if (source === undefined) { source = new abap.types.XString({qualifiedName: "XSTRING"}).set(INPUT.source); }
     let conv = new abap.types.ABAPObject({qualifiedName: "CL_ABAP_CONV_IN_CE", RTTIName: "\\CLASS=CL_ABAP_CONV_IN_CE"});
-    conv.set((await abap.Classes['CL_ABAP_CONV_IN_CE'].create({encoding: this.#mv_encoding})));
+    conv.set((await abap.Classes['CL_ABAP_CONV_IN_CE'].create({encoding: this.#mv_encoding, ret: 1})));
     await conv.get().convert({input: source, data: result});
     return result;
   }
@@ -77,7 +77,7 @@ class lcl_out {
     if (source?.getQualifiedName === undefined || source.getQualifiedName() !== "STRING") { source = undefined; }
     if (source === undefined) { source = new abap.types.String({qualifiedName: "STRING"}).set(INPUT.source); }
     let conv = new abap.types.ABAPObject({qualifiedName: "CL_ABAP_CONV_OUT_CE", RTTIName: "\\CLASS=CL_ABAP_CONV_OUT_CE"});
-    conv.set((await abap.Classes['CL_ABAP_CONV_OUT_CE'].create({encoding: this.#mv_encoding})));
+    conv.set((await abap.Classes['CL_ABAP_CONV_OUT_CE'].create({encoding: this.#mv_encoding, ret: 1})));
     await conv.get().convert({data: source, buffer: result});
     return result;
   }
