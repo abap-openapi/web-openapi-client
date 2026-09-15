@@ -75,9 +75,9 @@ class lcl_stream {
     lv_factor.set(1);
     let lv_pos = new abap.types.Integer({qualifiedName: "I"});
     const indexBackup1 = abap.builtin.sy.get().index.get();
-    const unique328 = abap.IntegerFactory.get(2).get();
-    for (let unique329 = 0; unique329 < unique328; unique329++) {
-      abap.builtin.sy.get().index.set(unique329 + 1);
+    const unique338 = abap.IntegerFactory.get(2).get();
+    for (let unique339 = 0; unique339 < unique338; unique339++) {
+      abap.builtin.sy.get().index.set(unique339 + 1);
       lv_pos.set(abap.operators.minus(abap.operators.add(iv_offset,abap.builtin.sy.get().index),abap.IntegerFactory.get(1)));
       lv_byte.set(iv_xstr.getOffset({offset: lv_pos, length: 1}));
       lv_val.set(lv_byte);
@@ -104,9 +104,9 @@ class lcl_stream {
     lv_factor.set(1);
     let lv_pos = new abap.types.Integer({qualifiedName: "I"});
     const indexBackup1 = abap.builtin.sy.get().index.get();
-    const unique330 = abap.IntegerFactory.get(4).get();
-    for (let unique331 = 0; unique331 < unique330; unique331++) {
-      abap.builtin.sy.get().index.set(unique331 + 1);
+    const unique340 = abap.IntegerFactory.get(4).get();
+    for (let unique341 = 0; unique341 < unique340; unique341++) {
+      abap.builtin.sy.get().index.set(unique341 + 1);
       lv_pos.set(abap.operators.minus(abap.operators.add(iv_offset,abap.builtin.sy.get().index),abap.IntegerFactory.get(1)));
       lv_byte.set(iv_xstr.getOffset({offset: lv_pos, length: 1}));
       lv_val.set(lv_byte);
@@ -181,14 +181,14 @@ class lcl_stream {
     let idx = new abap.types.Hex({length: 4});
     if (abap.compare.eq(abap.builtin.xstrlen({val: lcl_stream.crc32_map}), abap.IntegerFactory.get(0))) {
       const indexBackup1 = abap.builtin.sy.get().index.get();
-      const unique332 = new abap.types.Integer().set(256).get();
-      for (let unique333 = 0; unique333 < unique332; unique333++) {
-        abap.builtin.sy.get().index.set(unique333 + 1);
+      const unique342 = new abap.types.Integer().set(256).get();
+      for (let unique343 = 0; unique343 < unique342; unique343++) {
+        abap.builtin.sy.get().index.set(unique343 + 1);
         cindex.set(abap.operators.minus(abap.builtin.sy.get().index,abap.IntegerFactory.get(1)));
         const indexBackup2 = abap.builtin.sy.get().index.get();
-        const unique334 = abap.IntegerFactory.get(8).get();
-        for (let unique335 = 0; unique335 < unique334; unique335++) {
-          abap.builtin.sy.get().index.set(unique335 + 1);
+        const unique344 = abap.IntegerFactory.get(8).get();
+        for (let unique345 = 0; unique345 < unique344; unique345++) {
+          abap.builtin.sy.get().index.set(unique345 + 1);
           low_bit.set(abap.CharacterFactory.get(8, '00000001'));
           low_bit.set(abap.operators.bitand(cindex,low_bit));
           cindex.set(abap.operators.div(cindex,abap.IntegerFactory.get(2)));
@@ -204,9 +204,9 @@ class lcl_stream {
     }
     len.set(abap.builtin.xstrlen({val: iv_xstring}));
     const indexBackup3 = abap.builtin.sy.get().index.get();
-    const unique336 = len.get();
-    for (let unique337 = 0; unique337 < unique336; unique337++) {
-      abap.builtin.sy.get().index.set(unique337 + 1);
+    const unique346 = len.get();
+    for (let unique347 = 0; unique347 < unique346; unique347++) {
+      abap.builtin.sy.get().index.set(unique347 + 1);
       nindex.set(abap.operators.minus(abap.builtin.sy.get().index,abap.IntegerFactory.get(1)));
       abap.statements.concatenate({source: [m000000, iv_xstring.getOffset({offset: nindex, length: 1})], target: idx, byteMode: true});
       idx.set(abap.operators.bitand(abap.operators.bitxor(crc,idx),m000000ff));
