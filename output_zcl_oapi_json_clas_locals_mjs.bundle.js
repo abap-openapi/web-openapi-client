@@ -119,8 +119,8 @@ class lcl_stack {
     "name": new abap.types.String({qualifiedName: "LCL_STACK=>TY_DATA-NAME"}),
     "is_array": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}),
     "array_index": new abap.types.Integer({qualifiedName: "LCL_STACK=>TY_DATA-ARRAY_INDEX"})}, "lcl_stack=>ty_data", undefined, {}, {});
-    for await (const unique59 of abap.statements.loop(this.#mt_data)) {
-      ls_data.set(unique59);
+    for await (const unique67 of abap.statements.loop(this.#mt_data)) {
+      ls_data.set(unique67);
       rv_path.set(abap.operators.concat(rv_path,ls_data.get().name));
     }
     return rv_path;
@@ -184,9 +184,9 @@ class lcl_parser {
     lo_stack.set(await (new abap.Classes['CLAS-ZCL_OAPI_JSON-LCL_STACK']()).constructor_());
     li_reader.set((await abap.Classes['CL_SXML_STRING_READER'].create({input: (await abap.Classes['CL_ABAP_CODEPAGE'].convert_to({source: iv_json, output: 1})), reader: 1})));
     const indexBackup1 = abap.builtin.sy.get().index.get();
-    let unique60 = 1;
+    let unique68 = 1;
     while (true) {
-      abap.builtin.sy.get().index.set(unique60++);
+      abap.builtin.sy.get().index.set(unique68++);
       li_node.set((await li_reader.get().if_sxml_reader$read_next_node({node: 1})));
       if (abap.compare.initial(li_node)) {
         break;
@@ -194,11 +194,11 @@ class lcl_parser {
       abap.statements.append({source: li_node, target: lt_nodes});
     }
     abap.builtin.sy.get().index.set(indexBackup1);
-    for await (const unique61 of abap.statements.loop(lt_nodes)) {
-      li_node.set(unique61);
+    for await (const unique69 of abap.statements.loop(lt_nodes)) {
+      li_node.set(unique69);
       lv_index.set(abap.builtin.sy.get().tabix);
-      let unique62 = li_node.get().if_sxml_node$type;
-      if (abap.compare.eq(unique62, abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_element_open)) {
+      let unique70 = li_node.get().if_sxml_node$type;
+      if (abap.compare.eq(unique70, abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_element_open)) {
         await abap.statements.cast(li_open, li_node);
         lt_attributes.set((await li_open.get().if_sxml_open_element$get_attributes({attr: 1})));
         abap.statements.readTable(lt_attributes,{index: abap.IntegerFactory.get(1),
@@ -231,7 +231,7 @@ class lcl_parser {
           abap.statements.append({source: ls_data, target: rt_data});
           await lo_stack.get().push({iv_name: abap.CharacterFactory.get(1, '/'), iv_type: li_open.get().if_sxml_open_element$qname.get().name});
         }
-      } else if (abap.compare.eq(unique62, abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_element_close)) {
+      } else if (abap.compare.eq(unique70, abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_element_close)) {
         await abap.statements.cast(li_close, li_node);
         lv_name.set((await lo_stack.get().pop({rv_name: 1})));
         if (abap.compare.eq(lv_name, abap.CharacterFactory.get(1, '/'))) {

@@ -66,9 +66,9 @@ class lcl_input_arguments {
       usesTableLine: false,
       withKeySimple: {"name": name}});
     if (abap.compare.ne(abap.builtin.sy.get().subrc, abap.IntegerFactory.get(0))) {
-      const unique128 = await (new abap.Classes['CX_FTD_PARAMETER_NOT_FOUND']()).constructor_();
-      unique128.EXTRA_CX = {"INTERNAL_FILENAME": "cl_function_test_environment.clas.locals_imp.abap","INTERNAL_LINE": 20};
-      throw unique128;
+      const unique138 = await (new abap.Classes['CX_FTD_PARAMETER_NOT_FOUND']()).constructor_();
+      unique138.EXTRA_CX = {"INTERNAL_FILENAME": "cl_function_test_environment.clas.locals_imp.abap","INTERNAL_LINE": 20};
+      throw unique138;
     }
     result.set(ls_row.get().value);
     return result;
@@ -87,9 +87,9 @@ class lcl_input_arguments {
       usesTableLine: false,
       withKeySimple: {"name": name}});
     if (abap.compare.ne(abap.builtin.sy.get().subrc, abap.IntegerFactory.get(0))) {
-      const unique129 = await (new abap.Classes['CX_FTD_PARAMETER_NOT_FOUND']()).constructor_();
-      unique129.EXTRA_CX = {"INTERNAL_FILENAME": "cl_function_test_environment.clas.locals_imp.abap","INTERNAL_LINE": 29};
-      throw unique129;
+      const unique139 = await (new abap.Classes['CX_FTD_PARAMETER_NOT_FOUND']()).constructor_();
+      unique139.EXTRA_CX = {"INTERNAL_FILENAME": "cl_function_test_environment.clas.locals_imp.abap","INTERNAL_LINE": 29};
+      throw unique139;
     }
     result.set(ls_row.get().value);
     return result;
@@ -108,9 +108,9 @@ class lcl_input_arguments {
       usesTableLine: false,
       withKeySimple: {"name": name}});
     if (abap.compare.ne(abap.builtin.sy.get().subrc, abap.IntegerFactory.get(0))) {
-      const unique130 = await (new abap.Classes['CX_FTD_PARAMETER_NOT_FOUND']()).constructor_();
-      unique130.EXTRA_CX = {"INTERNAL_FILENAME": "cl_function_test_environment.clas.locals_imp.abap","INTERNAL_LINE": 38};
-      throw unique130;
+      const unique140 = await (new abap.Classes['CX_FTD_PARAMETER_NOT_FOUND']()).constructor_();
+      unique140.EXTRA_CX = {"INTERNAL_FILENAME": "cl_function_test_environment.clas.locals_imp.abap","INTERNAL_LINE": 38};
+      throw unique140;
     }
     result.set(ls_row.get().value);
     return result;
@@ -251,12 +251,12 @@ class lcl_invoker {
       abap.statements.insertInternal({data: ls_changing, table: lo_arguments.get().mt_changing});
     }
     await answer.get().if_ftd_invocation_answer$answer({arguments: li_arguments, result: li_result});
-    for await (const unique131 of abap.statements.loop(lo_result.get().mt_exporting)) {
-      ls_exporting.set(unique131);
+    for await (const unique141 of abap.statements.loop(lo_result.get().mt_exporting)) {
+      ls_exporting.set(unique141);
       fminput.importing[ls_exporting.get().name.get().toLowerCase().trimEnd()].set(ls_exporting.get().value.dereference());
     }
-    for await (const unique132 of abap.statements.loop(lo_result.get().mt_tables)) {
-      ls_table.set(unique132);
+    for await (const unique142 of abap.statements.loop(lo_result.get().mt_tables)) {
+      ls_table.set(unique142);
       fminput.tables[ls_table.get().name.get().toLowerCase().trimEnd()].set(ls_table.get().value.dereference());
     }
   }
