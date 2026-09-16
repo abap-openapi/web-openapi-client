@@ -317570,17 +317570,62 @@ CLASS zcl_oapi_parser IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD parse_schema.
-    DATA lt_strings  TYPE string_table.
-    DATA lv_string   TYPE string.
-    DATA ls_property TYPE zif_oapi_schema=>ty_property.
-    DATA lo_names    TYPE REF TO zcl_oapi_abap_name.
+    DATA lt_strings              TYPE string_table.
+    DATA lt_composition_prefixes TYPE string_table.
+    DATA lt_composition_members  TYPE string_table.
+    DATA lv_string               TYPE string.
+    DATA lv_prefix               TYPE string.
+    DATA lv_ref                  TYPE string.
+    DATA ls_property             TYPE zif_oapi_schema=>ty_property.
+    DATA ls_composition_property TYPE zif_oapi_schema=>ty_property.
+    DATA lo_names                TYPE REF TO zcl_oapi_abap_name.
+    DATA lo_composition          TYPE REF TO zif_oapi_schema.
     CREATE OBJECT lo_names.
 
     CREATE OBJECT ri_schema TYPE zcl_oapi_schema.
     ri_schema->type = mo_json->value_string( iv_prefix && ''/type'' ).
-    IF ri_schema->type IS INITIAL.
-      ri_schema->type = ''string''. " todo, handle "allOf", "oneOf" and "anyOf"
-      RETURN.
+    IF ri_schema->type IS INITIAL
+        OR mo_json->exists( iv_prefix && ''/oneOf'' ) = abap_true
+        OR mo_json->exists( iv_prefix && ''/anyOf'' ) = abap_true
+        OR mo_json->exists( iv_prefix && ''/allOf'' ) = abap_true.
+      CONCATENATE iv_prefix ''/oneOf/'' INTO lv_prefix.
+      APPEND lv_prefix TO lt_composition_prefixes.
+      CONCATENATE iv_prefix ''/anyOf/'' INTO lv_prefix.
+      APPEND lv_prefix TO lt_composition_prefixes.
+      CONCATENATE iv_prefix ''/allOf/'' INTO lv_prefix.
+      APPEND lv_prefix TO lt_composition_prefixes.
+
+      LOOP AT lt_composition_prefixes INTO lv_prefix.
+        lt_composition_members = mo_json->members( lv_prefix ).
+        LOOP AT lt_composition_members INTO lv_string.
+          CLEAR lv_ref.
+          lv_ref = mo_json->value_string( lv_prefix && lv_string && ''/$ref'' ).
+          IF lv_ref IS INITIAL.
+            lo_composition = parse_schema( lv_prefix && lv_string ).
+          ELSE.
+            REPLACE FIRST OCCURRENCE OF ''#/components'' IN lv_ref WITH ''/components''.
+            lo_composition = parse_schema( lv_ref ).
+          ENDIF.
+
+          IF lo_composition IS NOT INITIAL.
+            ri_schema->type = ''object''.
+            LOOP AT lo_composition->properties INTO ls_composition_property.
+              READ TABLE ri_schema->properties
+                WITH KEY name = ls_composition_property-name
+                TRANSPORTING NO FIELDS.
+              IF sy-subrc <> 0.
+                APPEND ls_composition_property TO ri_schema->properties.
+              ENDIF.
+            ENDLOOP.
+          ENDIF.
+        ENDLOOP.
+        CLEAR lt_composition_members.
+      ENDLOOP.
+
+      IF ri_schema->type IS INITIAL.
+        ri_schema->type = ''string''.
+        RETURN.
+      ENDIF.
     ENDIF.
     ri_schema->format = mo_json->value_string( iv_prefix && ''/format'' ).
     ri_schema->default = mo_json->value_string( iv_prefix && ''/default'' ).
@@ -317623,7 +317668,12 @@ CLASS zcl_oapi_parser IMPLEMENTATION.
         ls_property-schema = parse_schema( iv_prefix && ''/properties/'' && lv_string ).
       ENDIF.
 
-      APPEND ls_property TO ri_schema->properties.
+      READ TABLE ri_schema->properties
+        WITH KEY name = ls_property-name
+        TRANSPORTING NO FIELDS.
+      IF sy-subrc <> 0.
+        APPEND ls_property TO ri_schema->properties.
+      ENDIF.
     ENDLOOP.
   ENDMETHOD.
 
@@ -337847,9 +337897,9 @@ class cl_abap_bigint {
     if (io_bigint?.getQualifiedName === undefined || io_bigint.getQualifiedName() !== "CL_ABAP_BIGINT") { io_bigint = undefined; }
     if (io_bigint === undefined) { io_bigint = new abap.types.ABAPObject({qualifiedName: "CL_ABAP_BIGINT", RTTIName: "\\CLASS=CL_ABAP_BIGINT"}).set(INPUT.io_bigint); }
     if (abap.compare.initial(io_bigint)) {
-      const unique327 = await (new abap.Classes['CX_SY_REF_IS_INITIAL']()).constructor_();
-      unique327.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_bigint.clas.abap","INTERNAL_LINE": 97};
-      throw unique327;
+      const unique336 = await (new abap.Classes['CX_SY_REF_IS_INITIAL']()).constructor_();
+      unique336.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_bigint.clas.abap","INTERNAL_LINE": 97};
+      throw unique336;
     }
     ro_myself.set(this.me);
     this.#mv_value.set((BigInt(this.#mv_value.get() || "0") - BigInt(io_bigint.get().#mv_value.get() || "0")).toString());
@@ -337861,9 +337911,9 @@ class cl_abap_bigint {
     if (io_bigint?.getQualifiedName === undefined || io_bigint.getQualifiedName() !== "CL_ABAP_BIGINT") { io_bigint = undefined; }
     if (io_bigint === undefined) { io_bigint = new abap.types.ABAPObject({qualifiedName: "CL_ABAP_BIGINT", RTTIName: "\\CLASS=CL_ABAP_BIGINT"}).set(INPUT.io_bigint); }
     if (abap.compare.initial(io_bigint)) {
-      const unique328 = await (new abap.Classes['CX_SY_REF_IS_INITIAL']()).constructor_();
-      unique328.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_bigint.clas.abap","INTERNAL_LINE": 106};
-      throw unique328;
+      const unique337 = await (new abap.Classes['CX_SY_REF_IS_INITIAL']()).constructor_();
+      unique337.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_bigint.clas.abap","INTERNAL_LINE": 106};
+      throw unique337;
     }
     ro_myself.set(this.me);
     this.#mv_value.set((BigInt(this.#mv_value.get() || "0") * BigInt(io_bigint.get().#mv_value.get() || "0")).toString());
@@ -337876,15 +337926,15 @@ class cl_abap_bigint {
     if (io_bigint === undefined) { io_bigint = new abap.types.ABAPObject({qualifiedName: "CL_ABAP_BIGINT", RTTIName: "\\CLASS=CL_ABAP_BIGINT"}).set(INPUT.io_bigint); }
     let lv_divisor = new abap.types.String({qualifiedName: "STRING"});
     if (abap.compare.initial(io_bigint)) {
-      const unique329 = await (new abap.Classes['CX_SY_REF_IS_INITIAL']()).constructor_();
-      unique329.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_bigint.clas.abap","INTERNAL_LINE": 117};
-      throw unique329;
+      const unique338 = await (new abap.Classes['CX_SY_REF_IS_INITIAL']()).constructor_();
+      unique338.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_bigint.clas.abap","INTERNAL_LINE": 117};
+      throw unique338;
     }
     lv_divisor.set((await io_bigint.get().to_string({rv_string: 1})));
     if (abap.compare.eq(lv_divisor, abap.CharacterFactory.get(1, '0'))) {
-      const unique330 = await (new abap.Classes['CX_SY_ZERODIVIDE']()).constructor_();
-      unique330.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_bigint.clas.abap","INTERNAL_LINE": 122};
-      throw unique330;
+      const unique339 = await (new abap.Classes['CX_SY_ZERODIVIDE']()).constructor_();
+      unique339.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_bigint.clas.abap","INTERNAL_LINE": 122};
+      throw unique339;
     }
     ro_myself.set(this.me);
     this.#mv_value.set((BigInt(this.#mv_value.get() || "0") % BigInt(lv_divisor.get())).toString());
@@ -337901,9 +337951,9 @@ class cl_abap_bigint {
     let lv_value = new abap.types.String({qualifiedName: "STRING"});
     lv_value.set((await this.to_string({rv_string: 1})));
     if (abap.compare.cp(lv_value, abap.CharacterFactory.get(2, '-*'))) {
-      const unique331 = await (new abap.Classes['CX_SY_ARG_OUT_OF_DOMAIN']()).constructor_();
-      unique331.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_bigint.clas.abap","INTERNAL_LINE": 138};
-      throw unique331;
+      const unique340 = await (new abap.Classes['CX_SY_ARG_OUT_OF_DOMAIN']()).constructor_();
+      unique340.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_bigint.clas.abap","INTERNAL_LINE": 138};
+      throw unique340;
     }
     ro_myself.set(this.me);
     { const n = BigInt(this.#mv_value.get() || "0"); if (n < 2n) { this.#mv_value.set(n.toString()); } else { let x0 = n; let x1 = (x0 + 1n) >> 1n; while (x1 < x0) { x0 = x1; x1 = (x1 + n / x1) >> 1n; } this.#mv_value.set(x0.toString()); } }
@@ -337915,9 +337965,9 @@ class cl_abap_bigint {
     if (io_bigint?.getQualifiedName === undefined || io_bigint.getQualifiedName() !== "CL_ABAP_BIGINT") { io_bigint = undefined; }
     if (io_bigint === undefined) { io_bigint = new abap.types.ABAPObject({qualifiedName: "CL_ABAP_BIGINT", RTTIName: "\\CLASS=CL_ABAP_BIGINT"}).set(INPUT.io_bigint); }
     if (abap.compare.initial(io_bigint)) {
-      const unique332 = await (new abap.Classes['CX_SY_REF_IS_INITIAL']()).constructor_();
-      unique332.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_bigint.clas.abap","INTERNAL_LINE": 147};
-      throw unique332;
+      const unique341 = await (new abap.Classes['CX_SY_REF_IS_INITIAL']()).constructor_();
+      unique341.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_bigint.clas.abap","INTERNAL_LINE": 147};
+      throw unique341;
     }
     rv_equal.set(abap.builtin.abap_false);
     rv_equal.set(BigInt(this.#mv_value.get() || "0") === BigInt(io_bigint.get().#mv_value.get() || "0") ? "X" : "");
@@ -337929,9 +337979,9 @@ class cl_abap_bigint {
     if (io_bigint?.getQualifiedName === undefined || io_bigint.getQualifiedName() !== "CL_ABAP_BIGINT") { io_bigint = undefined; }
     if (io_bigint === undefined) { io_bigint = new abap.types.ABAPObject({qualifiedName: "CL_ABAP_BIGINT", RTTIName: "\\CLASS=CL_ABAP_BIGINT"}).set(INPUT.io_bigint); }
     if (abap.compare.initial(io_bigint)) {
-      const unique333 = await (new abap.Classes['CX_SY_REF_IS_INITIAL']()).constructor_();
-      unique333.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_bigint.clas.abap","INTERNAL_LINE": 156};
-      throw unique333;
+      const unique342 = await (new abap.Classes['CX_SY_REF_IS_INITIAL']()).constructor_();
+      unique342.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_bigint.clas.abap","INTERNAL_LINE": 156};
+      throw unique342;
     }
     rv_larger.set(abap.builtin.abap_false);
     rv_larger.set(BigInt(this.#mv_value.get() || "0") > BigInt(io_bigint.get().#mv_value.get() || "0") ? "X" : "");
@@ -338529,12 +338579,12 @@ class cl_abap_conv_in_ce {
     abap.statements.assert(abap.compare.eq(replacement, abap.CharacterFactory.get(1, '#')));
     abap.statements.assert(abap.compare.initial(endian));
     ret.set(await (new abap.Classes['CL_ABAP_CONV_IN_CE']()).constructor_());
-    let unique325 = encoding;
-    if (abap.compare.eq(unique325, abap.CharacterFactory.get(6, 'UTF-16'))) {
+    let unique334 = encoding;
+    if (abap.compare.eq(unique334, abap.CharacterFactory.get(6, 'UTF-16'))) {
       ret.get().FRIENDS_ACCESS_INSTANCE["mv_js_encoding"].set(abap.CharacterFactory.get(8, 'utf-16le'));
-    } else if (abap.compare.eq(unique325, abap.CharacterFactory.get(5, 'UTF-8'))) {
+    } else if (abap.compare.eq(unique334, abap.CharacterFactory.get(5, 'UTF-8'))) {
       ret.get().FRIENDS_ACCESS_INSTANCE["mv_js_encoding"].set(abap.CharacterFactory.get(4, 'utf8'));
-    } else if (abap.compare.eq(unique325, abap.CharacterFactory.get(4, '4103'))) {
+    } else if (abap.compare.eq(unique334, abap.CharacterFactory.get(4, '4103'))) {
       ret.get().FRIENDS_ACCESS_INSTANCE["mv_js_encoding"].set(abap.CharacterFactory.get(8, 'utf-16le'));
     } else {
       abap.statements.assert(abap.compare.eq(abap.IntegerFactory.get(1), abap.CharacterFactory.get(13, 'not supported')));
@@ -338601,9 +338651,9 @@ class cl_abap_conv_in_ce {
       lv_error.set(abap.builtin.abap_true);
     }
     if (abap.compare.eq(lv_error, abap.builtin.abap_true)) {
-      const unique326 = await (new abap.Classes['CX_SY_CONVERSION_CODEPAGE']()).constructor_();
-      unique326.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_conv_in_ce.clas.abap","INTERNAL_LINE": 127};
-      throw unique326;
+      const unique335 = await (new abap.Classes['CX_SY_CONVERSION_CODEPAGE']()).constructor_();
+      unique335.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_conv_in_ce.clas.abap","INTERNAL_LINE": 127};
+      throw unique335;
     }
   }
   async read(INPUT) {
@@ -338686,10 +338736,10 @@ class cl_abap_conv_out_ce {
     let replacement = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.replacement) {replacement.set(INPUT.replacement);}
     ret.set(await (new abap.Classes['CL_ABAP_CONV_OUT_CE']()).constructor_());
-    let unique324 = encoding;
-    if (abap.compare.eq(unique324, abap.CharacterFactory.get(5, 'UTF-8')) || abap.compare.eq(unique324, abap.CharacterFactory.get(1, ''))) {
+    let unique333 = encoding;
+    if (abap.compare.eq(unique333, abap.CharacterFactory.get(5, 'UTF-8')) || abap.compare.eq(unique333, abap.CharacterFactory.get(1, ''))) {
       ret.get().FRIENDS_ACCESS_INSTANCE["mv_js_encoding"].set(abap.CharacterFactory.get(4, 'utf8'));
-    } else if (abap.compare.eq(unique324, abap.CharacterFactory.get(4, '4103'))) {
+    } else if (abap.compare.eq(unique333, abap.CharacterFactory.get(4, '4103'))) {
       ret.get().FRIENDS_ACCESS_INSTANCE["mv_js_encoding"].set(abap.CharacterFactory.get(7, 'utf16le'));
     } else {
       abap.statements.assert(abap.compare.eq(abap.IntegerFactory.get(1), abap.CharacterFactory.get(13, 'not supported')));
@@ -338888,9 +338938,9 @@ class cl_abap_datfm {
     let regex_yyyymmdd_no_dot = new abap.types.String({qualifiedName: "STRING"});
     regex_yyyymmdd_no_dot.set('^(\\d{4})(0[0-9]|1[012])(0[0-9]|[12][0-9]|3[01])$');
     if (abap.compare.ne(im_datfmdes, cl_abap_datfm.ddmmyyyy_dot_seperated) && abap.compare.ne(im_datfmdes, cl_abap_datfm.yyyymmdd_dot_seperated)) {
-      const unique317 = await (new abap.Classes['CX_ABAP_DATFM']()).constructor_();
-      unique317.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_datfm.clas.abap","INTERNAL_LINE": 50};
-      throw unique317;
+      const unique326 = await (new abap.Classes['CX_ABAP_DATFM']()).constructor_();
+      unique326.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_datfm.clas.abap","INTERNAL_LINE": 50};
+      throw unique326;
     }
     abap.statements.find(im_datext, {regex: regex_ddmmyyyy_dot_seperated, first: false});
     if (abap.compare.eq(abap.builtin.sy.get().subrc, abap.IntegerFactory.get(0))) {
@@ -338910,9 +338960,9 @@ class cl_abap_datfm {
       ex_datfmused.set(cl_abap_datfm.yyyymmdd_dot_seperated);
       return;
     }
-    const unique318 = await (new abap.Classes['CX_ABAP_DATFM']()).constructor_();
-    unique318.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_datfm.clas.abap","INTERNAL_LINE": 74};
-    throw unique318;
+    const unique327 = await (new abap.Classes['CX_ABAP_DATFM']()).constructor_();
+    unique327.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_datfm.clas.abap","INTERNAL_LINE": 74};
+    throw unique327;
   }
   async get_date_format_des(INPUT) {
     return cl_abap_datfm.get_date_format_des(INPUT);
@@ -339012,9 +339062,9 @@ class cl_abap_dyn_prg {
     lv_check.set(val_str);
     abap.statements.translate(lv_check, "UPPER");
     if (abap.compare.initial(val_str)) {
-      const unique356 = await (new abap.Classes['CX_ABAP_INVALID_NAME']()).constructor_();
-      unique356.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_dyn_prg.clas.abap","INTERNAL_LINE": 105};
-      throw unique356;
+      const unique365 = await (new abap.Classes['CX_ABAP_INVALID_NAME']()).constructor_();
+      unique365.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_dyn_prg.clas.abap","INTERNAL_LINE": 105};
+      throw unique365;
     }
     if (abap.compare.eq(strict, abap.builtin.abap_true)) {
       abap.statements.find(lv_check, {regex: abap.CharacterFactory.get(43, '^([A-Z_][A-Z0-9_]*|/[A-Z0-9_]+/[A-Z0-9_]+)$')});
@@ -339022,9 +339072,9 @@ class cl_abap_dyn_prg {
       abap.statements.find(lv_check, {regex: abap.CharacterFactory.get(88, '^([A-Z_][A-Z0-9_]*|/[A-Z0-9_]+/[A-Z0-9_]+)(~([A-Z_][A-Z0-9_]*|/[A-Z0-9_]+/[A-Z0-9_]+))?$')});
     }
     if (abap.compare.ne(abap.builtin.sy.get().subrc, abap.IntegerFactory.get(0))) {
-      const unique357 = await (new abap.Classes['CX_ABAP_INVALID_NAME']()).constructor_();
-      unique357.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_dyn_prg.clas.abap","INTERNAL_LINE": 115};
-      throw unique357;
+      const unique366 = await (new abap.Classes['CX_ABAP_INVALID_NAME']()).constructor_();
+      unique366.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_dyn_prg.clas.abap","INTERNAL_LINE": 115};
+      throw unique366;
     }
     return val_str;
   }
@@ -339065,15 +339115,15 @@ class cl_abap_dyn_prg {
     lv_check.set(val_str);
     abap.statements.translate(lv_check, "UPPER");
     if (abap.compare.initial(val_str) || abap.compare.gt(abap.builtin.strlen({val: val_str}), abap.IntegerFactory.get(30))) {
-      const unique358 = await (new abap.Classes['CX_ABAP_NOT_A_TABLE']()).constructor_();
-      unique358.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_dyn_prg.clas.abap","INTERNAL_LINE": 136};
-      throw unique358;
+      const unique367 = await (new abap.Classes['CX_ABAP_NOT_A_TABLE']()).constructor_();
+      unique367.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_dyn_prg.clas.abap","INTERNAL_LINE": 136};
+      throw unique367;
     }
     abap.statements.find(lv_check, {regex: abap.CharacterFactory.get(43, '^([A-Z_][A-Z0-9_]*|/[A-Z0-9_]+/[A-Z0-9_]+)$')});
     if (abap.compare.ne(abap.builtin.sy.get().subrc, abap.IntegerFactory.get(0))) {
-      const unique359 = await (new abap.Classes['CX_ABAP_NOT_A_TABLE']()).constructor_();
-      unique359.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_dyn_prg.clas.abap","INTERNAL_LINE": 141};
-      throw unique359;
+      const unique368 = await (new abap.Classes['CX_ABAP_NOT_A_TABLE']()).constructor_();
+      unique368.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_dyn_prg.clas.abap","INTERNAL_LINE": 141};
+      throw unique368;
     }
     return val_str;
   }
@@ -339138,9 +339188,9 @@ class cl_abap_dyn_prg {
     let lv_hex = new abap.types.String({qualifiedName: "STRING"});
     out.set(abap.CharacterFactory.get(1, ''));
     const indexBackup1 = abap.builtin.sy.get().index.get();
-    const unique360 = abap.builtin.strlen({val: val}).get();
-    for (let unique361 = 0; unique361 < unique360; unique361++) {
-      abap.builtin.sy.get().index.set(unique361 + 1);
+    const unique369 = abap.builtin.strlen({val: val}).get();
+    for (let unique370 = 0; unique370 < unique369; unique370++) {
+      abap.builtin.sy.get().index.set(unique370 + 1);
       lv_index.set(abap.operators.minus(abap.builtin.sy.get().index,abap.IntegerFactory.get(1)));
       lv_code.set(val.get().charCodeAt(lv_index.get()));
       if (abap.compare.eq(lv_code, abap.IntegerFactory.get(60))) {
@@ -339621,27 +339671,27 @@ class cl_abap_exceptional_values {
     let lv_decimal_part = new abap.types.String({qualifiedName: "STRING"});
     let fs_out_ = new abap.types.FieldSymbol(new abap.types.Character(4));
     abap.statements.describe({field: $in, type: lv_type});
-    let unique350 = lv_type;
-    if (abap.compare.eq(unique350, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_int)) {
+    let unique359 = lv_type;
+    if (abap.compare.eq(unique359, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_int)) {
       abap.statements.getReference(out, abap.Classes['CL_ABAP_MATH'].max_int4);
-    } else if (abap.compare.eq(unique350, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_packed)) {
+    } else if (abap.compare.eq(unique359, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_packed)) {
       abap.statements.describe({field: $in, length: lv_length, decimals: lv_decimals, mode: 'BYTE'});
       abap.statements.createData(out,{"typeName": "P","length": lv_length,"decimals": lv_decimals});
       abap.statements.assign({target: fs_out_, source: out.dereference()});
       lv_digits_before_decimal.set(abap.operators.minus(abap.operators.minus(abap.operators.multiply(lv_length,abap.IntegerFactory.get(2)),abap.IntegerFactory.get(1)),lv_decimals));
       const indexBackup1 = abap.builtin.sy.get().index.get();
-      const unique351 = lv_digits_before_decimal.get();
-      for (let unique352 = 0; unique352 < unique351; unique352++) {
-        abap.builtin.sy.get().index.set(unique352 + 1);
+      const unique360 = lv_digits_before_decimal.get();
+      for (let unique361 = 0; unique361 < unique360; unique361++) {
+        abap.builtin.sy.get().index.set(unique361 + 1);
         lv_integer_part.set(abap.operators.concat(lv_integer_part,abap.CharacterFactory.get(1, '9')));
       }
       abap.builtin.sy.get().index.set(indexBackup1);
       if (abap.compare.gt(lv_decimals, abap.IntegerFactory.get(0))) {
         lv_decimal_part.set(abap.CharacterFactory.get(1, '.'));
         const indexBackup2 = abap.builtin.sy.get().index.get();
-        const unique353 = lv_decimals.get();
-        for (let unique354 = 0; unique354 < unique353; unique354++) {
-          abap.builtin.sy.get().index.set(unique354 + 1);
+        const unique362 = lv_decimals.get();
+        for (let unique363 = 0; unique363 < unique362; unique363++) {
+          abap.builtin.sy.get().index.set(unique363 + 1);
           lv_decimal_part.set(abap.operators.concat(lv_decimal_part,abap.CharacterFactory.get(1, '9')));
         }
         abap.builtin.sy.get().index.set(indexBackup2);
@@ -339662,10 +339712,10 @@ class cl_abap_exceptional_values {
     let lv_type = new abap.types.Character(1, {});
     let fs_out_ = new abap.types.FieldSymbol(new abap.types.Character(4));
     abap.statements.describe({field: $in, type: lv_type});
-    let unique355 = lv_type;
-    if (abap.compare.eq(unique355, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_int)) {
+    let unique364 = lv_type;
+    if (abap.compare.eq(unique364, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_int)) {
       abap.statements.getReference(out, abap.Classes['CL_ABAP_MATH'].min_int4);
-    } else if (abap.compare.eq(unique355, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_packed)) {
+    } else if (abap.compare.eq(unique364, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_packed)) {
       out.set((await this.get_max_value({in: $in, out: 1})));
       abap.statements.assign({target: fs_out_, source: out.dereference()});
       fs_out_.set(abap.operators.multiply(fs_out_,abap.IntegerFactory.get(-1)));
@@ -341620,8 +341670,8 @@ class cl_abap_structdescr extends cl_abap_complexdescr {
     "name": new abap.types.String({qualifiedName: "NAME"}),
     "type": new abap.types.ABAPObject({qualifiedName: "CL_ABAP_DATADESCR", RTTIName: "\\CLASS=CL_ABAP_DATADESCR"})}, "abap_simple_componentdescr", undefined, {}, {}));
     lt_components.set((await this.get_components({rt_components: 1})));
-    for await (const unique190 of abap.statements.loop(lt_components)) {
-      fs_ls_component_.assign(unique190);
+    for await (const unique193 of abap.statements.loop(lt_components)) {
+      fs_ls_component_.assign(unique193);
       if (abap.compare.initial(fs_ls_component_.get().name) === false) {
         ls_symbol.get().name.set(fs_ls_component_.get().name);
         ls_symbol.get().type.set(fs_ls_component_.get().type);
@@ -341630,8 +341680,8 @@ class cl_abap_structdescr extends cl_abap_complexdescr {
       if (abap.compare.eq(fs_ls_component_.get().as_include, abap.builtin.abap_true)) {
         await abap.statements.cast(lo_structdescr, fs_ls_component_.get().type);
         lt_symbols.set((await lo_structdescr.get().get_symbols({p_result: 1})));
-        for await (const unique191 of abap.statements.loop(lt_symbols)) {
-          fs_ls_symbol_.assign(unique191);
+        for await (const unique194 of abap.statements.loop(lt_symbols)) {
+          fs_ls_symbol_.assign(unique194);
           abap.statements.concatenate({source: [fs_ls_symbol_.get().name, fs_ls_component_.get().suffix], target: ls_symbol.get().name});
           abap.statements.concatenate({source: [fs_ls_symbol_.get().name, fs_ls_component_.get().suffix], target: ls_symbol.get().name});
           ls_symbol.get().type.set(fs_ls_symbol_.get().type);
@@ -341681,29 +341731,29 @@ class cl_abap_structdescr extends cl_abap_complexdescr {
     "as_include": new abap.types.Character(1, {"qualifiedName":"as_include","ddicName":"ABAP_BOOL"}),
     "suffix": new abap.types.String({qualifiedName: "SUFFIX"})}, "abap_componentdescr", undefined, {}, {});
     if (abap.compare.eq(abap.builtin.lines({val: p_components}), abap.IntegerFactory.get(0))) {
-      const unique192 = await (new abap.Classes['CX_SY_STRUCT_ATTRIBUTES']()).constructor_();
-      unique192.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_structdescr.clas.abap","INTERNAL_LINE": 116};
-      throw unique192;
+      const unique195 = await (new abap.Classes['CX_SY_STRUCT_ATTRIBUTES']()).constructor_();
+      unique195.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_structdescr.clas.abap","INTERNAL_LINE": 116};
+      throw unique195;
     }
-    for await (const unique193 of abap.statements.loop(p_components)) {
-      ls_component.set(unique193);
+    for await (const unique196 of abap.statements.loop(p_components)) {
+      ls_component.set(unique196);
       if (abap.compare.initial(ls_component.get().name)) {
-        const unique194 = await (new abap.Classes['CX_SY_STRUCT_COMP_NAME']()).constructor_();
-        unique194.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_structdescr.clas.abap","INTERNAL_LINE": 121};
-        throw unique194;
+        const unique197 = await (new abap.Classes['CX_SY_STRUCT_COMP_NAME']()).constructor_();
+        unique197.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_structdescr.clas.abap","INTERNAL_LINE": 121};
+        throw unique197;
       } else if (abap.compare.initial(ls_component.get().type)) {
-        const unique195 = await (new abap.Classes['CX_SY_STRUCT_COMP_TYPE']()).constructor_();
-        unique195.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_structdescr.clas.abap","INTERNAL_LINE": 123};
-        throw unique195;
+        const unique198 = await (new abap.Classes['CX_SY_STRUCT_COMP_TYPE']()).constructor_();
+        unique198.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_structdescr.clas.abap","INTERNAL_LINE": 123};
+        throw unique198;
       } else if (abap.compare.gt(abap.builtin.strlen({val: ls_component.get().name}), abap.IntegerFactory.get(30))) {
-        const unique196 = await (new abap.Classes['CX_SY_STRUCT_COMP_NAME']()).constructor_();
-        unique196.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_structdescr.clas.abap","INTERNAL_LINE": 125};
-        throw unique196;
+        const unique199 = await (new abap.Classes['CX_SY_STRUCT_COMP_NAME']()).constructor_();
+        unique199.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_structdescr.clas.abap","INTERNAL_LINE": 125};
+        throw unique199;
       }
     }
     ref.set(await (new abap.Classes['CL_ABAP_STRUCTDESCR']()).constructor_());
-    for await (const unique197 of abap.statements.loop(p_components)) {
-      ls_component.set(unique197);
+    for await (const unique200 of abap.statements.loop(p_components)) {
+      ls_component.set(unique200);
       ls_ref.clear();
       ls_ref.get().name.set(ls_component.get().name);
       ls_ref.get().type.set(ls_component.get().type);
@@ -341730,8 +341780,8 @@ class cl_abap_structdescr extends cl_abap_complexdescr {
     "type": new abap.types.ABAPObject({qualifiedName: "CL_ABAP_DATADESCR", RTTIName: "\\CLASS=CL_ABAP_DATADESCR"}),
     "as_include": new abap.types.Character(1, {"qualifiedName":"as_include","ddicName":"ABAP_BOOL"}),
     "suffix": new abap.types.String({qualifiedName: "SUFFIX"})}, "abap_componentdescr", undefined, {}, {});
-    for await (const unique198 of abap.statements.loop(this.#mt_refs,{where: async (I) => {return abap.compare.eq(I.as_include, abap.builtin.abap_false);},topEquals: {"as_include": abap.builtin.abap_false}})) {
-      ls_ref.set(unique198);
+    for await (const unique201 of abap.statements.loop(this.#mt_refs,{where: async (I) => {return abap.compare.eq(I.as_include, abap.builtin.abap_false);},topEquals: {"as_include": abap.builtin.abap_false}})) {
+      ls_ref.set(unique201);
       ls_view.clear();
       ls_view.get().name.set(ls_ref.get().name);
       ls_view.get().type.set(ls_ref.get().type);
@@ -341900,8 +341950,8 @@ class cl_abap_structdescr extends cl_abap_complexdescr {
     lt_components.set((await this.get_components({rt_components: 1})));
     abap.statements.assert(abap.compare.cp(this.absolute_name, abap.CharacterFactory.get(7, '+TYPE=*')));
     lv_name.set(this.absolute_name.getOffset({offset: 6}));
-    for await (const unique199 of abap.statements.loop(lt_components)) {
-      ls_component.set(unique199);
+    for await (const unique202 of abap.statements.loop(lt_components)) {
+      ls_component.set(unique202);
       ls_return.clear();
       ls_return.get().tabname.set(lv_name);
       ls_return.get().fieldname.set(ls_component.get().name);
@@ -341985,20 +342035,20 @@ class cl_abap_structdescr extends cl_abap_complexdescr {
     "suffix": new abap.types.String({qualifiedName: "SUFFIX"})}, "abap_componentdescr", undefined, {}, {}));
     this.components.clear();
     this.#mt_refs_comp.set(this.#mt_refs);
-    for await (const unique200 of abap.statements.loop(this.#mt_refs)) {
-      fs_ls_ref_.assign(unique200);
+    for await (const unique203 of abap.statements.loop(this.#mt_refs)) {
+      fs_ls_ref_.assign(unique203);
       ls_component.get().name.set(fs_ls_ref_.get().name);
       ls_component.get().type_kind.set(fs_ls_ref_.get().type.get().type_kind);
       ls_component.get().length.set(fs_ls_ref_.get().type.get().length);
       ls_component.get().decimals.set(fs_ls_ref_.get().type.get().decimals);
       abap.statements.append({source: ls_component, target: this.components});
     }
-    for await (const unique201 of abap.statements.loop(this.#mt_refs,{where: async (I) => {return abap.compare.eq(I.as_include, abap.builtin.abap_true);},topEquals: {"as_include": abap.builtin.abap_true}})) {
-      fs_ls_ref_.assign(unique201);
+    for await (const unique204 of abap.statements.loop(this.#mt_refs,{where: async (I) => {return abap.compare.eq(I.as_include, abap.builtin.abap_true);},topEquals: {"as_include": abap.builtin.abap_true}})) {
+      fs_ls_ref_.assign(unique204);
       await abap.statements.cast(lo_structdescr, fs_ls_ref_.get().type);
       lt_components.set((await lo_structdescr.get().get_components({rt_components: 1})));
-      for await (const unique202 of abap.statements.loop(lt_components)) {
-        fs_ls_component_.assign(unique202);
+      for await (const unique205 of abap.statements.loop(lt_components)) {
+        fs_ls_component_.assign(unique205);
         abap.statements.concatenate({source: [fs_ls_component_.get().name, fs_ls_ref_.get().suffix], target: lv_name});
         await abap.statements.deleteInternal(this.#mt_refs_comp,{where: async (I) => {return abap.compare.eq(I.name, lv_name);}});
       }
@@ -342286,12 +342336,12 @@ class cl_abap_tabledescr extends cl_abap_datadescr {
     lv_flag.set(data.getOptions()?.primaryKey?.isUnique === true ? "X" : "");
     descr.get().has_unique_key.set(lv_flag);
     lv_type.set(data.getOptions()?.primaryKey?.type || "");
-    let unique188 = lv_type;
-    if (abap.compare.eq(unique188, abap.CharacterFactory.get(8, 'STANDARD'))) {
+    let unique191 = lv_type;
+    if (abap.compare.eq(unique191, abap.CharacterFactory.get(8, 'STANDARD'))) {
       descr.get().table_kind.set(cl_abap_tabledescr.tablekind_std);
-    } else if (abap.compare.eq(unique188, abap.CharacterFactory.get(6, 'SORTED'))) {
+    } else if (abap.compare.eq(unique191, abap.CharacterFactory.get(6, 'SORTED'))) {
       descr.get().table_kind.set(cl_abap_tabledescr.tablekind_sorted);
-    } else if (abap.compare.eq(unique188, abap.CharacterFactory.get(6, 'HASHED'))) {
+    } else if (abap.compare.eq(unique191, abap.CharacterFactory.get(6, 'HASHED'))) {
       descr.get().table_kind.set(cl_abap_tabledescr.tablekind_hashed);
     } else {
       descr.get().table_kind.set(cl_abap_tabledescr.tablekind_std);
@@ -342314,8 +342364,8 @@ class cl_abap_tabledescr extends cl_abap_datadescr {
       if (abap.compare.eq(((await descr.get().get_table_line_type({type: 1}))).get().kind, cl_abap_tabledescr.kind_struct)) {
         await abap.statements.cast(lo_struct, (await descr.get().get_table_line_type({type: 1})));
         lt_components.set((await lo_struct.get().get_components({rt_components: 1})));
-        for await (const unique189 of abap.statements.loop(lt_components)) {
-          ls_component.set(unique189);
+        for await (const unique192 of abap.statements.loop(lt_components)) {
+          ls_component.set(unique192);
           ls_key.get().name.set(ls_component.get().name);
           abap.statements.append({source: ls_key, target: descr.get().key});
         }
@@ -342402,9 +342452,9 @@ class cl_abap_timefm {
     abap.statements.assert(abap.compare.eq(is_24_allowed, abap.builtin.abap_true));
     abap.statements.find(time_ext, {regex: abap.CharacterFactory.get(44, '^([0-1]?[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$')});
     if (abap.compare.ne(abap.builtin.sy.get().subrc, abap.IntegerFactory.get(0))) {
-      const unique316 = await (new abap.Classes['CX_ABAP_TIMEFM_INVALID']()).constructor_();
-      unique316.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_timefm.clas.abap","INTERNAL_LINE": 42};
-      throw unique316;
+      const unique325 = await (new abap.Classes['CX_ABAP_TIMEFM_INVALID']()).constructor_();
+      unique325.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_timefm.clas.abap","INTERNAL_LINE": 42};
+      throw unique325;
     }
     lv_text.set(time_ext);
     abap.statements.replace({target: lv_text, all: true, with: abap.CharacterFactory.get(1, ''), of: abap.CharacterFactory.get(1, ':')});
@@ -342505,9 +342555,9 @@ class cl_abap_tstmp {
     let lv_date = new abap.types.Date({qualifiedName: "D"});
     let lv_time = new abap.types.Time({qualifiedName: "T"});
     if (abap.compare.initial(utclong)) {
-      const unique314 = await (new abap.Classes['CX_SY_CONVERSION_NO_DATE_TIME']()).constructor_();
-      unique314.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_tstmp.clas.abap","INTERNAL_LINE": 126};
-      throw unique314;
+      const unique323 = await (new abap.Classes['CX_SY_CONVERSION_NO_DATE_TIME']()).constructor_();
+      unique323.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_tstmp.clas.abap","INTERNAL_LINE": 126};
+      throw unique323;
     }
     abap.statements.convert({utclong: utclong,zone: abap.CharacterFactory.get(3, 'UTC')}, {date: lv_date,time: lv_time});
     abap.statements.convert({date: lv_date,time: lv_time,zone: abap.CharacterFactory.get(3, 'UTC')}, {stamp: timestamp});
@@ -342566,9 +342616,9 @@ class cl_abap_tstmp {
     if (syst_time === undefined) { syst_time = new abap.types.Time({qualifiedName: "T"}).set(INPUT.syst_time); }
     let utc_tstmp = INPUT?.utc_tstmp || new abap.types.Packed({length: 8, decimals: 0, qualifiedName: "TIMESTAMP"});
     if (abap.compare.initial(syst_date)) {
-      const unique315 = await (new abap.Classes['CX_PARAMETER_INVALID_RANGE']()).constructor_();
-      unique315.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_tstmp.clas.abap","INTERNAL_LINE": 159};
-      throw unique315;
+      const unique324 = await (new abap.Classes['CX_PARAMETER_INVALID_RANGE']()).constructor_();
+      unique324.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_tstmp.clas.abap","INTERNAL_LINE": 159};
+      throw unique324;
     }
     abap.statements.convert({date: syst_date,time: syst_time}, {stamp: utc_tstmp});
   }
@@ -342976,8 +343026,8 @@ class cl_abap_typedescr {
     let lo_current = new abap.types.ABAPObject({qualifiedName: "CL_ABAP_TYPEDESCR", RTTIName: "\\CLASS=CL_ABAP_TYPEDESCR"});
     let lo_struct = new abap.types.ABAPObject({qualifiedName: "CL_ABAP_STRUCTDESCR", RTTIName: "\\CLASS=CL_ABAP_STRUCTDESCR"});
     abap.statements.split({source: p_name, at: abap.CharacterFactory.get(1, '-'), table: lt_parts});
-    for await (const unique184 of abap.statements.loop(lt_parts)) {
-      lv_part.set(unique184);
+    for await (const unique187 of abap.statements.loop(lt_parts)) {
+      lv_part.set(unique187);
       if (abap.compare.initial(lo_current)) {
         lo_current.set((await this.describe_by_name({p_name: lv_part, type: 1})));
       } else if (abap.compare.eq(lo_current.get().kind, cl_abap_typedescr.kind_struct)) {
@@ -343016,8 +343066,8 @@ class cl_abap_typedescr {
     }
     oo_type.set(abap.Classes[p_name.get().toUpperCase().trimEnd()]?.INTERNAL_TYPE || "");
     lv_any = abap.Classes[p_name.get().toUpperCase().trimEnd()];
-    let unique185 = oo_type;
-    if (abap.compare.eq(unique185, abap.CharacterFactory.get(4, 'INTF'))) {
+    let unique188 = oo_type;
+    if (abap.compare.eq(unique188, abap.CharacterFactory.get(4, 'INTF'))) {
       type.set((await abap.Classes['CL_ABAP_INTFDESCR']._construct({p_object: lv_any, descr: 1})));
       type.get().type_kind.set(cl_abap_typedescr.typekind_intf);
       type.get().kind.set(cl_abap_typedescr.kind_intf);
@@ -343026,7 +343076,7 @@ class cl_abap_typedescr {
       await abap.statements.cast(objectdescr, type);
       objectdescr.get().mv_object_name.set(abap.builtin.to_upper({val: p_name}));
       objectdescr.get().mv_object_type.set(oo_type);
-    } else if (abap.compare.eq(unique185, abap.CharacterFactory.get(4, 'CLAS'))) {
+    } else if (abap.compare.eq(unique188, abap.CharacterFactory.get(4, 'CLAS'))) {
       type.set((await abap.Classes['CL_ABAP_CLASSDESCR']._construct({p_object: lv_any, descr: 1})));
       type.get().type_kind.set(cl_abap_typedescr.typekind_class);
       type.get().kind.set(cl_abap_typedescr.kind_class);
@@ -343127,8 +343177,8 @@ class cl_abap_typedescr {
     "suffix": new abap.types.String({qualifiedName: "SUFFIX"})}, "abap_componentdescr", undefined, {}, {}));
     lt_components.set((await io_struct.get().get_components({rt_components: 1})));
     rv_deep.set(abap.builtin.abap_false);
-    for await (const unique186 of abap.statements.loop(lt_components)) {
-      fs_ls_component_.assign(unique186);
+    for await (const unique189 of abap.statements.loop(lt_components)) {
+      fs_ls_component_.assign(unique189);
       if (abap.compare.eq(fs_ls_component_.get().type.get().kind, cl_abap_typedescr.kind_struct) || abap.compare.eq(fs_ls_component_.get().type.get().type_kind, cl_abap_typedescr.typekind_string) || abap.compare.eq(fs_ls_component_.get().type.get().type_kind, cl_abap_typedescr.typekind_xstring) || abap.compare.eq(fs_ls_component_.get().type.get().kind, cl_abap_typedescr.kind_table)) {
         rv_deep.set(abap.builtin.abap_true);
         return rv_deep;
@@ -343203,8 +343253,8 @@ class cl_abap_typedescr {
             lv_length.set(p_data.getLength ? p_data.getLength() : 0);
             lv_decimals.set(p_data.getDecimals ? p_data.getDecimals() : 0);
             lv_generic.set(p_data.constructor.name === "DataReference" && p_data.getPointer() === undefined && p_data.type?.constructor?.name === "Character" && p_data.type?.length === 4 && p_data.type?.extra === undefined ? "X" : " ");
-            let unique187 = lv_name;
-            if (abap.compare.eq(unique187, abap.CharacterFactory.get(7, 'Integer'))) {
+            let unique190 = lv_name;
+            if (abap.compare.eq(unique190, abap.CharacterFactory.get(7, 'Integer'))) {
               type.set(await (new abap.Classes['CL_ABAP_ELEMDESCR']()).constructor_());
               type.get().type_kind.set(cl_abap_typedescr.typekind_int);
               type.get().kind.set(cl_abap_typedescr.kind_elem);
@@ -343212,7 +343262,7 @@ class cl_abap_typedescr {
               await abap.statements.cast(lo_elem, type);
               lo_elem.get().output_length.set(abap.IntegerFactory.get(11));
               type.get().absolute_name.set(abap.CharacterFactory.get(1, 'I'));
-            } else if (abap.compare.eq(unique187, abap.CharacterFactory.get(8, 'Integer8'))) {
+            } else if (abap.compare.eq(unique190, abap.CharacterFactory.get(8, 'Integer8'))) {
               type.set(await (new abap.Classes['CL_ABAP_ELEMDESCR']()).constructor_());
               type.get().type_kind.set(cl_abap_typedescr.typekind_int8);
               type.get().kind.set(cl_abap_typedescr.kind_elem);
@@ -343220,21 +343270,21 @@ class cl_abap_typedescr {
               await abap.statements.cast(lo_elem, type);
               lo_elem.get().output_length.set(abap.IntegerFactory.get(20));
               type.get().absolute_name.set(abap.CharacterFactory.get(4, 'INT8'));
-            } else if (abap.compare.eq(unique187, abap.CharacterFactory.get(4, 'Numc'))) {
+            } else if (abap.compare.eq(unique190, abap.CharacterFactory.get(4, 'Numc'))) {
               type.set(await (new abap.Classes['CL_ABAP_ELEMDESCR']()).constructor_());
               type.get().type_kind.set(cl_abap_typedescr.typekind_num);
               type.get().kind.set(cl_abap_typedescr.kind_elem);
               type.get().length.set(abap.operators.multiply(lv_length,abap.IntegerFactory.get(2)));
               await abap.statements.cast(lo_elem, type);
               lo_elem.get().output_length.set(lv_length);
-            } else if (abap.compare.eq(unique187, abap.CharacterFactory.get(3, 'Hex')) || abap.compare.eq(unique187, abap.CharacterFactory.get(8, 'HexUInt8'))) {
+            } else if (abap.compare.eq(unique190, abap.CharacterFactory.get(3, 'Hex')) || abap.compare.eq(unique190, abap.CharacterFactory.get(8, 'HexUInt8'))) {
               type.set(await (new abap.Classes['CL_ABAP_ELEMDESCR']()).constructor_());
               type.get().type_kind.set(cl_abap_typedescr.typekind_hex);
               type.get().kind.set(cl_abap_typedescr.kind_elem);
               type.get().length.set(lv_length);
               await abap.statements.cast(lo_elem, type);
               lo_elem.get().output_length.set(abap.operators.multiply(lv_length,abap.IntegerFactory.get(2)));
-            } else if (abap.compare.eq(unique187, abap.CharacterFactory.get(4, 'Date'))) {
+            } else if (abap.compare.eq(unique190, abap.CharacterFactory.get(4, 'Date'))) {
               type.set(await (new abap.Classes['CL_ABAP_ELEMDESCR']()).constructor_());
               type.get().type_kind.set(cl_abap_typedescr.typekind_date);
               type.get().kind.set(cl_abap_typedescr.kind_elem);
@@ -343242,13 +343292,13 @@ class cl_abap_typedescr {
               await abap.statements.cast(lo_elem, type);
               lo_elem.get().output_length.set(abap.IntegerFactory.get(8));
               type.get().absolute_name.set(abap.CharacterFactory.get(1, 'D'));
-            } else if (abap.compare.eq(unique187, abap.CharacterFactory.get(6, 'Packed'))) {
+            } else if (abap.compare.eq(unique190, abap.CharacterFactory.get(6, 'Packed'))) {
               type.set(await (new abap.Classes['CL_ABAP_ELEMDESCR']()).constructor_());
               type.get().type_kind.set(cl_abap_typedescr.typekind_packed);
               type.get().kind.set(cl_abap_typedescr.kind_elem);
               type.get().length.set(lv_length);
               type.get().decimals.set(lv_decimals);
-            } else if (abap.compare.eq(unique187, abap.CharacterFactory.get(4, 'Time'))) {
+            } else if (abap.compare.eq(unique190, abap.CharacterFactory.get(4, 'Time'))) {
               type.set(await (new abap.Classes['CL_ABAP_ELEMDESCR']()).constructor_());
               type.get().type_kind.set(cl_abap_typedescr.typekind_time);
               type.get().kind.set(cl_abap_typedescr.kind_elem);
@@ -343256,16 +343306,16 @@ class cl_abap_typedescr {
               await abap.statements.cast(lo_elem, type);
               lo_elem.get().output_length.set(abap.IntegerFactory.get(6));
               type.get().absolute_name.set(abap.CharacterFactory.get(1, 'T'));
-            } else if (abap.compare.eq(unique187, abap.CharacterFactory.get(5, 'Float'))) {
+            } else if (abap.compare.eq(unique190, abap.CharacterFactory.get(5, 'Float'))) {
               type.set(await (new abap.Classes['CL_ABAP_ELEMDESCR']()).constructor_());
               type.get().type_kind.set(cl_abap_typedescr.typekind_float);
               type.get().kind.set(cl_abap_typedescr.kind_elem);
               type.get().absolute_name.set(abap.CharacterFactory.get(1, 'F'));
-            } else if (abap.compare.eq(unique187, abap.CharacterFactory.get(10, 'DecFloat34'))) {
+            } else if (abap.compare.eq(unique190, abap.CharacterFactory.get(10, 'DecFloat34'))) {
               type.set(await (new abap.Classes['CL_ABAP_ELEMDESCR']()).constructor_());
               type.get().type_kind.set(cl_abap_typedescr.typekind_decfloat34);
               type.get().kind.set(cl_abap_typedescr.kind_elem);
-            } else if (abap.compare.eq(unique187, abap.CharacterFactory.get(9, 'Structure'))) {
+            } else if (abap.compare.eq(unique190, abap.CharacterFactory.get(9, 'Structure'))) {
               lo_struct.set((await abap.Classes['CL_ABAP_STRUCTDESCR'].construct_from_data({data: p_data, descr: 1})));
               await abap.statements.cast(type, lo_struct);
               if (abap.compare.eq((await this.is_deep({io_struct: lo_struct, rv_deep: 1})), abap.builtin.abap_true)) {
@@ -343274,35 +343324,35 @@ class cl_abap_typedescr {
                 type.get().type_kind.set(cl_abap_typedescr.typekind_struct1);
               }
               type.get().kind.set(cl_abap_typedescr.kind_struct);
-            } else if (abap.compare.eq(unique187, abap.CharacterFactory.get(5, 'Table')) || abap.compare.eq(unique187, abap.CharacterFactory.get(11, 'HashedTable'))) {
+            } else if (abap.compare.eq(unique190, abap.CharacterFactory.get(5, 'Table')) || abap.compare.eq(unique190, abap.CharacterFactory.get(11, 'HashedTable'))) {
               await abap.statements.cast(type, (await abap.Classes['CL_ABAP_TABLEDESCR'].construct_from_data({data: p_data, descr: 1})));
               type.get().type_kind.set(cl_abap_typedescr.typekind_table);
               type.get().kind.set(cl_abap_typedescr.kind_table);
               type.get().length.set(abap.IntegerFactory.get(8));
-            } else if (abap.compare.eq(unique187, abap.CharacterFactory.get(7, 'XString'))) {
+            } else if (abap.compare.eq(unique190, abap.CharacterFactory.get(7, 'XString'))) {
               type.set(await (new abap.Classes['CL_ABAP_ELEMDESCR']()).constructor_());
               type.get().type_kind.set(cl_abap_typedescr.typekind_xstring);
               type.get().kind.set(cl_abap_typedescr.kind_elem);
               type.get().length.set(abap.IntegerFactory.get(8));
               type.get().absolute_name.set(abap.CharacterFactory.get(7, 'XSTRING'));
-            } else if (abap.compare.eq(unique187, abap.CharacterFactory.get(6, 'String'))) {
+            } else if (abap.compare.eq(unique190, abap.CharacterFactory.get(6, 'String'))) {
               type.set(await (new abap.Classes['CL_ABAP_ELEMDESCR']()).constructor_());
               type.get().type_kind.set(cl_abap_typedescr.typekind_string);
               type.get().kind.set(cl_abap_typedescr.kind_elem);
               type.get().length.set(abap.IntegerFactory.get(8));
               type.get().absolute_name.set(abap.CharacterFactory.get(6, 'STRING'));
-            } else if (abap.compare.eq(unique187, abap.CharacterFactory.get(9, 'Character'))) {
+            } else if (abap.compare.eq(unique190, abap.CharacterFactory.get(9, 'Character'))) {
               type.set(await (new abap.Classes['CL_ABAP_ELEMDESCR']()).constructor_());
               type.get().type_kind.set(cl_abap_typedescr.typekind_char);
               type.get().kind.set(cl_abap_typedescr.kind_elem);
               type.get().length.set(abap.operators.multiply(lv_length,abap.IntegerFactory.get(2)));
               await abap.statements.cast(lo_elem, type);
               lo_elem.get().output_length.set(lv_length);
-            } else if (abap.compare.eq(unique187, abap.CharacterFactory.get(11, 'FieldSymbol'))) {
+            } else if (abap.compare.eq(unique190, abap.CharacterFactory.get(11, 'FieldSymbol'))) {
               lv_name = p_data.getPointer();
               type.set((await this.describe_by_data({p_data: lv_name, type: 1})));
               return type;
-            } else if (abap.compare.eq(unique187, abap.CharacterFactory.get(10, 'ABAPObject'))) {
+            } else if (abap.compare.eq(unique190, abap.CharacterFactory.get(10, 'ABAPObject'))) {
               if (abap.compare.initial(p_data)) {
                 lv_rtti_name.set(p_data.RTTIName || "");
                 lv_name.set(p_data.qualifiedName || "");
@@ -343323,11 +343373,11 @@ class cl_abap_typedescr {
               type.set((await abap.Classes['CL_ABAP_REFDESCR'].create({p_referenced_type: lo_referenced, p_result: 1})));
               type.get().type_kind.set(cl_abap_typedescr.typekind_oref);
               type.get().kind.set(cl_abap_typedescr.kind_ref);
-            } else if (abap.compare.eq(unique187, abap.CharacterFactory.get(7, 'UTCLong'))) {
+            } else if (abap.compare.eq(unique190, abap.CharacterFactory.get(7, 'UTCLong'))) {
               type.set(await (new abap.Classes['CL_ABAP_ELEMDESCR']()).constructor_());
               type.get().type_kind.set(cl_abap_typedescr.typekind_utclong);
               type.get().kind.set(cl_abap_typedescr.kind_elem);
-            } else if (abap.compare.eq(unique187, abap.CharacterFactory.get(13, 'DataReference'))) {
+            } else if (abap.compare.eq(unique190, abap.CharacterFactory.get(13, 'DataReference'))) {
               if (abap.compare.eq(lv_generic, abap.builtin.abap_true)) {
                 lo_referenced.set(await (new abap.Classes['CL_ABAP_DATADESCR']()).constructor_());
                 lo_referenced.get().type_kind.set(cl_abap_typedescr.typekind_data);
@@ -343541,20 +343591,20 @@ class cl_abap_unit_assert {
     let fs_tab2_ = new abap.types.FieldSymbol(abap.types.TableFactory.construct(new abap.types.Character(4), {"withHeader":false,"keyType":"USER"}));
     let fs_row2_ = new abap.types.FieldSymbol(new abap.types.Character(4));
     if (abap.compare.ne(abap.builtin.lines({val: act}), abap.builtin.lines({val: exp}))) {
-      const unique116 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: new abap.types.String().set(`Expected table to contain ${abap.templateFormatting(abap.builtin.lines({val: exp}))} rows, got ${abap.templateFormatting(abap.builtin.lines({val: act}))}`)});
-      unique116.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 195};
-      throw unique116;
+      const unique119 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: new abap.types.String().set(`Expected table to contain ${abap.templateFormatting(abap.builtin.lines({val: exp}))} rows, got ${abap.templateFormatting(abap.builtin.lines({val: act}))}`)});
+      unique119.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 195};
+      throw unique119;
     }
     abap.statements.assign({target: fs_tab1_, source: act});
     abap.statements.assign({target: fs_tab2_, source: exp});
     await abap.statements.cast(type1, (await abap.Classes['CL_ABAP_TYPEDESCR'].describe_by_data({p_data: act, type: 1})));
     await abap.statements.cast(type2, (await abap.Classes['CL_ABAP_TYPEDESCR'].describe_by_data({p_data: exp, type: 1})));
     if (abap.compare.eq(type1.get().table_kind, abap.Classes['CL_ABAP_TABLEDESCR'].tablekind_hashed) || abap.compare.eq(type2.get().table_kind, abap.Classes['CL_ABAP_TABLEDESCR'].tablekind_hashed)) {
-      for await (const unique117 of abap.statements.loop(fs_tab1_)) {
-        fs_row1_.assign(unique117);
+      for await (const unique120 of abap.statements.loop(fs_tab1_)) {
+        fs_row1_.assign(unique120);
         lv_match.set(abap.builtin.abap_false);
-        for await (const unique118 of abap.statements.loop(fs_tab2_)) {
-          fs_row2_.assign(unique118);
+        for await (const unique121 of abap.statements.loop(fs_tab2_)) {
+          fs_row2_.assign(unique121);
           try {
             await this.assert_equals({act: fs_row1_, exp: fs_row2_});
             lv_match.set(abap.builtin.abap_true);
@@ -343567,16 +343617,16 @@ class cl_abap_unit_assert {
           }
         }
         if (abap.compare.eq(lv_match, abap.builtin.abap_false)) {
-          const unique119 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: new abap.types.String().set(`Hashed table contents differs`)});
-          unique119.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 221};
-          throw unique119;
+          const unique122 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: new abap.types.String().set(`Hashed table contents differs`)});
+          unique122.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 221};
+          throw unique122;
         }
       }
     } else {
       const indexBackup1 = abap.builtin.sy.get().index.get();
-      const unique120 = abap.builtin.lines({val: act}).get();
-      for (let unique121 = 0; unique121 < unique120; unique121++) {
-        abap.builtin.sy.get().index.set(unique121 + 1);
+      const unique123 = abap.builtin.lines({val: act}).get();
+      for (let unique124 = 0; unique124 < unique123; unique124++) {
+        abap.builtin.sy.get().index.set(unique124 + 1);
         index.set(abap.builtin.sy.get().index);
         abap.statements.readTable(fs_tab1_,{index: index,
           assigning: fs_row1_});
@@ -343600,9 +343650,9 @@ class cl_abap_unit_assert {
     abap.statements.describe({field: act, type: type1});
     abap.statements.describe({field: exp, type: type2});
     if ((abap.compare.eq(type1, abap.CharacterFactory.get(1, 'X')) && abap.compare.eq(type2, abap.CharacterFactory.get(1, 'y'))) || (abap.compare.eq(type1, abap.CharacterFactory.get(1, 'y')) && abap.compare.eq(type2, abap.CharacterFactory.get(1, 'X')))) {
-      const unique122 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: new abap.types.String().set(`Types are not comparable`)});
-      unique122.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 251};
-      throw unique122;
+      const unique125 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: new abap.types.String().set(`Types are not comparable`)});
+      unique125.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 251};
+      throw unique125;
     }
   }
   async assert_text_matches(INPUT) {
@@ -343620,9 +343670,9 @@ class cl_abap_unit_assert {
     let lv_match = new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"});
     lv_match.set(abap.builtin.boolc(abap.compare.eq(abap.builtin.contains({val: text, regex: pattern}), abap.builtin.abap_true)));
     if (abap.compare.eq(lv_match, abap.builtin.abap_false)) {
-      const unique123 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({expected: pattern, actual: text, msg: msg});
-      unique123.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 263};
-      throw unique123;
+      const unique126 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({expected: pattern, actual: text, msg: msg});
+      unique126.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 263};
+      throw unique126;
     }
     return assertion_failed;
   }
@@ -343649,9 +343699,9 @@ class cl_abap_unit_assert {
     let level = new abap.types.Integer({qualifiedName: "I"});
     if (INPUT && INPUT.level) {level.set(INPUT.level);}
     if (abap.compare.initial(act)) {
-      const unique124 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: new abap.types.String().set(`Expected value to be bound`)});
-      unique124.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 277};
-      throw unique124;
+      const unique127 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: new abap.types.String().set(`Expected value to be bound`)});
+      unique127.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 277};
+      throw unique127;
     }
     return assertion_failed;
   }
@@ -343667,9 +343717,9 @@ class cl_abap_unit_assert {
     let level = new abap.types.Integer({qualifiedName: "I"});
     if (INPUT && INPUT.level) {level.set(INPUT.level);}
     if (abap.compare.initial(act) === false) {
-      const unique125 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: new abap.types.String().set(`Expected value to not be bound`)});
-      unique125.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 285};
-      throw unique125;
+      const unique128 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: new abap.types.String().set(`Expected value to not be bound`)});
+      unique128.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 285};
+      throw unique128;
     }
     return assertion_failed;
   }
@@ -343687,9 +343737,9 @@ class cl_abap_unit_assert {
     let level = new abap.types.Integer({qualifiedName: "I"});
     if (INPUT && INPUT.level) {level.set(INPUT.level);}
     if (abap.compare.np(act, exp)) {
-      const unique126 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({expected: exp, actual: act, msg: msg});
-      unique126.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 293};
-      throw unique126;
+      const unique129 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({expected: exp, actual: act, msg: msg});
+      unique129.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 293};
+      throw unique129;
     }
     return assertion_failed;
   }
@@ -343706,9 +343756,9 @@ class cl_abap_unit_assert {
     let level = new abap.types.Integer({qualifiedName: "I"});
     if (INPUT && INPUT.level) {level.set(INPUT.level);}
     if (abap.compare.cp(act, exp)) {
-      const unique127 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: new abap.types.String().set(`Actual: ${abap.templateFormatting(act)}`)});
-      unique127.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 303};
-      throw unique127;
+      const unique130 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: new abap.types.String().set(`Actual: ${abap.templateFormatting(act)}`)});
+      unique130.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 303};
+      throw unique130;
     }
     return assertion_failed;
   }
@@ -343722,9 +343772,9 @@ class cl_abap_unit_assert {
     let level = new abap.types.Integer({qualifiedName: "I"});
     if (INPUT && INPUT.level) {level.set(INPUT.level);}
     let detail = INPUT?.detail || new abap.types.Character();
-    const unique128 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: msg});
-    unique128.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 310};
-    throw unique128;
+    const unique131 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: msg});
+    unique131.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 310};
+    throw unique131;
   }
   async skip(INPUT) {
     return cl_abap_unit_assert.skip(INPUT);
@@ -343749,9 +343799,9 @@ class cl_abap_unit_assert {
     await this.check_comparable({act: act, exp: exp});
     try {
       await this.assert_equals({act: act, exp: exp});
-      const unique129 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: new abap.types.String().set(`Expected different values`), actual: act, expected: exp});
-      unique129.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 327};
-      throw unique129;
+      const unique132 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: new abap.types.String().set(`Expected different values`), actual: act, expected: exp});
+      unique132.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 327};
+      throw unique132;
     } catch (e) {
       if ((abap.Classes['KERNEL_CX_ASSERT'] && e instanceof abap.Classes['KERNEL_CX_ASSERT'])) {
         return assertion_failed;
@@ -343782,9 +343832,9 @@ class cl_abap_unit_assert {
       } else {
         lv_msg.set(new abap.types.String().set(`Expected abap_true`));
       }
-      const unique130 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: lv_msg});
-      unique130.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 347};
-      throw unique130;
+      const unique133 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: lv_msg});
+      unique133.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 347};
+      throw unique133;
     }
     return assertion_failed;
   }
@@ -343808,9 +343858,9 @@ class cl_abap_unit_assert {
       } else {
         lv_msg.set(new abap.types.String().set(`Expected abap_false`));
       }
-      const unique131 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: lv_msg});
-      unique131.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 363};
-      throw unique131;
+      const unique134 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: lv_msg});
+      unique134.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 363};
+      throw unique134;
     }
     return assertion_failed;
   }
@@ -343844,16 +343894,16 @@ class cl_abap_unit_assert {
     if (abap.compare.ca(type1, abap.CharacterFactory.get(12, 'CgyIFPDTXN8e'))) {
       if (abap.compare.initial(type2) === false) {
         if (abap.compare.na(type2, abap.CharacterFactory.get(12, 'CgyIFPDTXN8e'))) {
-          const unique132 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: new abap.types.String().set(`Unexpected types`)});
-          unique132.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 393};
-          throw unique132;
+          const unique135 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: new abap.types.String().set(`Unexpected types`)});
+          unique135.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 393};
+          throw unique135;
         }
       }
     } else if (abap.compare.initial(type1) === false && abap.compare.initial(type2) === false) {
       if (abap.compare.ne(type1, type2)) {
-        const unique133 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: new abap.types.String().set(`Unexpected types`)});
-        unique133.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 401};
-        throw unique133;
+        const unique136 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: new abap.types.String().set(`Unexpected types`)});
+        unique136.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 401};
+        throw unique136;
       }
     }
     if (abap.compare.eq(type1, abap.CharacterFactory.get(1, 'h'))) {
@@ -343861,9 +343911,9 @@ class cl_abap_unit_assert {
     } else if (abap.compare.initial(tol) === false) {
       diff.set(abap.operators.minus(exp,act));
       if (abap.compare.ge(diff, tol)) {
-        const unique134 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: new abap.types.String().set(`Expected values to differ less than ${abap.templateFormatting(tol)}, got ${abap.templateFormatting(diff)}`)});
-        unique134.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 416};
-        throw unique134;
+        const unique137 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: new abap.types.String().set(`Expected values to differ less than ${abap.templateFormatting(tol)}, got ${abap.templateFormatting(diff)}`)});
+        unique137.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 416};
+        throw unique137;
       }
     } else if (abap.compare.eq(type1, abap.CharacterFactory.get(1, 'l'))) {
       abap.statements.assign({target: fs_act_, source: act.dereference()});
@@ -343888,9 +343938,9 @@ class cl_abap_unit_assert {
         } else {
           lv_msg.set(new abap.types.String().set(`Expected '${abap.templateFormatting(lv_exp)}', got '${abap.templateFormatting(lv_act)}'`));
         }
-        const unique135 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: lv_msg, actual: lv_act, expected: lv_exp});
-        unique135.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 446};
-        throw unique135;
+        const unique138 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: lv_msg, actual: lv_act, expected: lv_exp});
+        unique138.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 446};
+        throw unique138;
       }
     } else if (abap.compare.ne(act, exp)) {
       lv_act.set((await abap.Classes['CLAS-CL_ABAP_UNIT_ASSERT-LCL_DUMP'].to_string({iv_val: act, rv_str: 1})));
@@ -343900,9 +343950,9 @@ class cl_abap_unit_assert {
       } else {
         lv_msg.set(new abap.types.String().set(`Expected '${abap.templateFormatting(lv_exp)}', got '${abap.templateFormatting(lv_act)}'`));
       }
-      const unique136 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: lv_msg, actual: lv_act, expected: lv_exp});
-      unique136.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 460};
-      throw unique136;
+      const unique139 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: lv_msg, actual: lv_act, expected: lv_exp});
+      unique139.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 460};
+      throw unique139;
     }
     return assertion_failed;
   }
@@ -343923,9 +343973,9 @@ class cl_abap_unit_assert {
       if (abap.compare.initial(lv_msg)) {
         lv_msg.set(new abap.types.String().set(`Expected non initial value`));
       }
-      const unique137 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: lv_msg});
-      unique137.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 475};
-      throw unique137;
+      const unique140 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: lv_msg});
+      unique140.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 475};
+      throw unique140;
     }
     return assertion_failed;
   }
@@ -343946,9 +343996,9 @@ class cl_abap_unit_assert {
       if (abap.compare.initial(lv_msg)) {
         lv_msg.set(new abap.types.String().set(`Expected initial value`));
       }
-      const unique138 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: lv_msg});
-      unique138.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 488};
-      throw unique138;
+      const unique141 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: lv_msg});
+      unique141.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 488};
+      throw unique141;
     }
     return assertion_failed;
   }
@@ -343974,9 +344024,9 @@ class cl_abap_unit_assert {
       if (abap.compare.initial(lv_msg)) {
         lv_msg.set(new abap.types.String().set(`Expected sy-subrc to equal ${abap.templateFormatting(exp)}, got ${abap.templateFormatting(act)}`));
       }
-      const unique139 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: lv_msg});
-      unique139.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 501};
-      throw unique139;
+      const unique142 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: lv_msg});
+      unique142.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 501};
+      throw unique142;
     }
     return assertion_failed;
   }
@@ -344008,9 +344058,9 @@ class cl_abap_unit_assert {
     let lv_msg = new abap.types.String({qualifiedName: "STRING"});
     if (abap.compare.lt(number, lower) || abap.compare.gt(number, upper)) {
       lv_msg.set(msg);
-      const unique140 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: lv_msg});
-      unique140.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 512};
-      throw unique140;
+      const unique143 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: lv_msg});
+      unique143.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 512};
+      throw unique143;
     }
     return assertion_failed;
   }
@@ -344234,9 +344284,9 @@ class cl_abap_zip {
     lv_length.set(abap.builtin.xstrlen({val: zip}));
     lv_offset.set(abap.IntegerFactory.get(0));
     const indexBackup1 = abap.builtin.sy.get().index.get();
-    let unique348 = 1;
+    let unique357 = 1;
     while (abap.compare.le(abap.operators.add(lv_offset,abap.IntegerFactory.get(30)), lv_length)) {
-      abap.builtin.sy.get().index.set(unique348++);
+      abap.builtin.sy.get().index.set(unique357++);
       lv_sig.set(zip.getOffset({offset: lv_offset, length: 4}));
       if (abap.compare.ne(lv_sig, lc_local_sig)) {
         break;
@@ -344286,8 +344336,8 @@ class cl_abap_zip {
     lo_central.set(await (new abap.Classes['CLAS-CL_ABAP_ZIP-LCL_STREAM']()).constructor_());
     lo_total.set(await (new abap.Classes['CLAS-CL_ABAP_ZIP-LCL_STREAM']()).constructor_());
     lo_conv.set((await abap.Classes['CL_ABAP_CONV_OUT_CE'].create({ret: 1})));
-    for await (const unique349 of abap.statements.loop(this.#mt_contents)) {
-      ls_contents.set(unique349);
+    for await (const unique358 of abap.statements.loop(this.#mt_contents)) {
+      ls_contents.set(unique358);
       await lo_conv.get().convert({data: ls_contents.get().name, buffer: lv_buffer});
       lo_file.set(await (new abap.Classes['CLAS-CL_ABAP_ZIP-LCL_STREAM']()).constructor_());
       await lo_file.get().append({iv_xstr: abap.CharacterFactory.get(8, '504B0304')});
@@ -344933,9 +344983,9 @@ class cl_aunit_authority_check {
     if (INPUT && INPUT.test_abort_behavior) {test_abort_behavior.set(INPUT.test_abort_behavior);}
     let lo_objset = new abap.types.ABAPObject({qualifiedName: "CL_AUNIT_AUTHORITY_CHECK", RTTIName: "\\CLASS=CL_AUNIT_AUTHORITY_CHECK"});
     if (abap.compare.initial(auth_objset)) {
-      const unique153 = await (new abap.Classes['CX_ABAP_AUTH_CHECK_EXCEPTION']()).constructor_({textid: abap.Classes['CX_ABAP_AUTH_CHECK_EXCEPTION'].missing_auth_objset});
-      unique153.EXTRA_CX = {"INTERNAL_FILENAME": "cl_aunit_authority_check.clas.abap","INTERNAL_LINE": 71};
-      throw unique153;
+      const unique156 = await (new abap.Classes['CX_ABAP_AUTH_CHECK_EXCEPTION']()).constructor_({textid: abap.Classes['CX_ABAP_AUTH_CHECK_EXCEPTION'].missing_auth_objset});
+      unique156.EXTRA_CX = {"INTERNAL_FILENAME": "cl_aunit_authority_check.clas.abap","INTERNAL_LINE": 71};
+      throw unique156;
     }
     await abap.statements.cast(lo_objset, auth_objset);
     this.#mt_authorizations.set(lo_objset.get().#mt_authorizations);
@@ -344949,9 +344999,9 @@ class cl_aunit_authority_check {
     if (INPUT && INPUT.fail_execution) {fail_execution.set(INPUT.fail_execution);}
     let lo_objset = new abap.types.ABAPObject({qualifiedName: "CL_AUNIT_AUTHORITY_CHECK", RTTIName: "\\CLASS=CL_AUNIT_AUTHORITY_CHECK"});
     if (abap.compare.initial(pass_execution)) {
-      const unique154 = await (new abap.Classes['CX_ABAP_AUTH_CHECK_EXCEPTION']()).constructor_({textid: abap.Classes['CX_ABAP_AUTH_CHECK_EXCEPTION'].missing_auth_objset});
-      unique154.EXTRA_CX = {"INTERNAL_FILENAME": "cl_aunit_authority_check.clas.abap","INTERNAL_LINE": 82};
-      throw unique154;
+      const unique157 = await (new abap.Classes['CX_ABAP_AUTH_CHECK_EXCEPTION']()).constructor_({textid: abap.Classes['CX_ABAP_AUTH_CHECK_EXCEPTION'].missing_auth_objset});
+      unique157.EXTRA_CX = {"INTERNAL_FILENAME": "cl_aunit_authority_check.clas.abap","INTERNAL_LINE": 82};
+      throw unique157;
     }
     await abap.statements.cast(lo_objset, pass_execution);
     this.#mt_pass_expected.set(lo_objset.get().#mt_authorizations);
@@ -345103,9 +345153,9 @@ class cl_aunit_authority_check {
     if (auth_objset === undefined) { auth_objset = new abap.types.ABAPObject({qualifiedName: "IF_AUNIT_AUTHORITY_OBJSET", RTTIName: "\\INTERFACE=IF_AUNIT_AUTHORITY_OBJSET"}).set(INPUT.auth_objset); }
     let lo_objset = new abap.types.ABAPObject({qualifiedName: "CL_AUNIT_AUTHORITY_CHECK", RTTIName: "\\CLASS=CL_AUNIT_AUTHORITY_CHECK"});
     if (abap.compare.initial(auth_objset)) {
-      const unique155 = await (new abap.Classes['CX_ABAP_AUTH_CHECK_EXCEPTION']()).constructor_({textid: abap.Classes['CX_ABAP_AUTH_CHECK_EXCEPTION'].missing_auth_objset});
-      unique155.EXTRA_CX = {"INTERNAL_FILENAME": "cl_aunit_authority_check.clas.abap","INTERNAL_LINE": 157};
-      throw unique155;
+      const unique158 = await (new abap.Classes['CX_ABAP_AUTH_CHECK_EXCEPTION']()).constructor_({textid: abap.Classes['CX_ABAP_AUTH_CHECK_EXCEPTION'].missing_auth_objset});
+      unique158.EXTRA_CX = {"INTERNAL_FILENAME": "cl_aunit_authority_check.clas.abap","INTERNAL_LINE": 157};
+      throw unique158;
     }
     await abap.statements.cast(lo_objset, auth_objset);
     abap.statements.append({source: lo_objset.get().#mt_authorizations, lines: true, target: this.#mt_authorizations});
@@ -345327,8 +345377,8 @@ class cl_aunit_authority_check {
     "lower_value": new abap.types.Character(40, {}),
     "upper_value": new abap.types.Character(40, {})}, "AUTHVALINTERVAL", "AUTHVALINTERVAL", {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"isUnique":false,"type":"STANDARD","keyFields":[],"name":"primary_key"},"secondary":[]}, "AUTHVALINTERVAL_TAB")}, "cl_aunit_auth_check_types_def=>authfield_values", undefined, {}, {}), {"withHeader":false,"keyType":"USER","primaryKey":{"name":"primary_key","type":"HASHED","isUnique":true,"keyFields":["FIELDNAME"]},"secondary":[]}, "cl_aunit_auth_check_types_def=>authorization"), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "cl_aunit_auth_check_types_def=>authorizations")}, "cl_aunit_auth_check_types_def=>authorizations_for_object", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "cl_aunit_auth_check_types_def=>role_auth_objects"),
     "users": abap.types.TableFactory.construct(new abap.types.Character(12, {"qualifiedName":"cl_aunit_auth_check_types_def=>auth_user"}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "cl_aunit_auth_check_types_def=>auth_users")}, "cl_aunit_auth_check_types_def=>user_role_authorization", undefined, {}, {});
-    for await (const unique156 of abap.statements.loop(user_role_authorizations)) {
-      ls_user_auth.set(unique156);
+    for await (const unique159 of abap.statements.loop(user_role_authorizations)) {
+      ls_user_auth.set(unique159);
       await this.#remove_objects({role_authorizations: ls_user_auth.get().role_authorizations, users: ls_user_auth.get().users});
     }
   }
@@ -345388,14 +345438,14 @@ class cl_aunit_authority_check {
     "upper_value": new abap.types.Character(40, {})}, "AUTHVALINTERVAL", "AUTHVALINTERVAL", {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"isUnique":false,"type":"STANDARD","keyFields":[],"name":"primary_key"},"secondary":[]}, "AUTHVALINTERVAL_TAB")}, "cl_aunit_auth_check_types_def=>authfield_values", undefined, {}, {}), {"withHeader":false,"keyType":"USER","primaryKey":{"name":"primary_key","type":"HASHED","isUnique":true,"keyFields":["FIELDNAME"]},"secondary":[]}, "cl_aunit_auth_check_types_def=>authorization"), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "cl_aunit_auth_check_types_def=>authorizations")}, "cl_aunit_auth_check_types_def=>authorizations_for_object", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "cl_aunit_auth_check_types_def=>role_auth_objects"),
     "users": abap.types.TableFactory.construct(new abap.types.Character(12, {"qualifiedName":"cl_aunit_auth_check_types_def=>auth_user"}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "cl_aunit_auth_check_types_def=>auth_users")}, "cl_aunit_auth_check_types_def=>user_role_authorization", undefined, {}, {});
     let lv_index = new abap.types.Integer({qualifiedName: "I"});
-    for await (const unique157 of abap.statements.loop(this.#mt_authorizations)) {
-      ls_user_auth.set(unique157);
+    for await (const unique160 of abap.statements.loop(this.#mt_authorizations)) {
+      ls_user_auth.set(unique160);
       lv_index.set(abap.builtin.sy.get().tabix);
       if (abap.compare.initial(users) === false && abap.compare.ne(ls_user_auth.get().users, users)) {
         continue;
       }
-      for await (const unique158 of abap.statements.loop(role_authorizations)) {
-        ls_remove.set(unique158);
+      for await (const unique161 of abap.statements.loop(role_authorizations)) {
+        ls_remove.set(unique161);
         await abap.statements.deleteInternal(ls_user_auth.get().role_authorizations,{where: async (I) => {return abap.compare.eq(I.object, ls_remove.get().object);}});
       }
       abap.statements.modifyInternal(this.#mt_authorizations,{index: lv_index,from: ls_user_auth});
@@ -345459,23 +345509,23 @@ class cl_aunit_authority_check {
     "upper_value": new abap.types.Character(40, {})}, "AUTHVALINTERVAL", "AUTHVALINTERVAL", {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"isUnique":false,"type":"STANDARD","keyFields":[],"name":"primary_key"},"secondary":[]}, "AUTHVALINTERVAL_TAB")}, "cl_aunit_auth_check_types_def=>authfield_values", undefined, {}, {}), {"withHeader":false,"keyType":"USER","primaryKey":{"name":"primary_key","type":"HASHED","isUnique":true,"keyFields":["FIELDNAME"]},"secondary":[]}, "cl_aunit_auth_check_types_def=>authorization"),
     "user": new abap.types.Character(12, {"qualifiedName":"sy-uname"}),
     "description": new abap.types.String({qualifiedName: "CL_AUNIT_AUTH_CHECK_TYPES_DEF=>AUTH_CTXTSET_MSG-DESCRIPTION"})}, "cl_aunit_auth_check_types_def=>auth_ctxtset_msg", undefined, {}, {});
-    for await (const unique159 of abap.statements.loop(authorizations)) {
-      ls_user_auth.set(unique159);
+    for await (const unique162 of abap.statements.loop(authorizations)) {
+      ls_user_auth.set(unique162);
       lt_users.set(ls_user_auth.get().users);
       if (abap.compare.initial(lt_users)) {
         abap.statements.append({source: abap.builtin.sy.get().uname, target: lt_users});
       }
-      for await (const unique160 of abap.statements.loop(ls_user_auth.get().role_authorizations)) {
-        ls_role.set(unique160);
+      for await (const unique163 of abap.statements.loop(ls_user_auth.get().role_authorizations)) {
+        ls_role.set(unique163);
         lt_auths.set(ls_role.get().authorizations);
         if (abap.compare.initial(lt_auths)) {
           ls_auth.clear();
           abap.statements.append({source: ls_auth, target: lt_auths});
         }
-        for await (const unique161 of abap.statements.loop(lt_users)) {
-          lv_user.set(unique161);
-          for await (const unique162 of abap.statements.loop(lt_auths)) {
-            ls_auth.set(unique162);
+        for await (const unique164 of abap.statements.loop(lt_users)) {
+          lv_user.set(unique164);
+          for await (const unique165 of abap.statements.loop(lt_auths)) {
+            ls_auth.set(unique165);
             ls_context.clear();
             ls_context.get().object.set(ls_role.get().object);
             ls_context.get().user.set(lv_user);
@@ -345521,8 +345571,8 @@ class cl_aunit_authority_check {
     "user": new abap.types.Character(12, {"qualifiedName":"sy-uname"}),
     "description": new abap.types.String({qualifiedName: "CL_AUNIT_AUTH_CHECK_TYPES_DEF=>AUTH_CTXTSET_MSG-DESCRIPTION"})}, "cl_aunit_auth_check_types_def=>auth_ctxtset_msg", undefined, {}, {});
     result.set(abap.builtin.abap_false);
-    for await (const unique163 of abap.statements.loop(contexts)) {
-      ls_context.set(unique163);
+    for await (const unique166 of abap.statements.loop(contexts)) {
+      ls_context.set(unique166);
       if (abap.compare.eq(ls_context.get().object, context.get().object) && abap.compare.eq(ls_context.get().user, context.get().user) && abap.compare.eq(ls_context.get().authorizations, context.get().authorizations)) {
         result.set(abap.builtin.abap_true);
         return result;
@@ -345586,8 +345636,8 @@ class cl_aunit_authority_check {
     await abap.Classes['KERNEL_AUTHORITY_CHECK'].get_execution_status({passed_execution: lt_passed, failed_execution: lt_failed});
     lt_pass_expected.set((await this.#flatten({authorizations: this.#mt_pass_expected, result: 1})));
     lt_fail_expected.set((await this.#flatten({authorizations: this.#mt_fail_expected, result: 1})));
-    for await (const unique164 of abap.statements.loop(lt_pass_expected)) {
-      ls_context.set(unique164);
+    for await (const unique167 of abap.statements.loop(lt_pass_expected)) {
+      ls_context.set(unique167);
       if (abap.compare.eq((await this.#contains_context({contexts: lt_passed, context: ls_context, result: 1})), abap.builtin.abap_true)) {
         continue;
       } else if (abap.compare.eq((await this.#contains_context({contexts: lt_failed, context: ls_context, result: 1})), abap.builtin.abap_true)) {
@@ -345598,8 +345648,8 @@ class cl_aunit_authority_check {
         abap.statements.append({source: ls_context, target: this.#mt_pass_not_executed});
       }
     }
-    for await (const unique165 of abap.statements.loop(lt_fail_expected)) {
-      ls_context.set(unique165);
+    for await (const unique168 of abap.statements.loop(lt_fail_expected)) {
+      ls_context.set(unique168);
       if (abap.compare.eq((await this.#contains_context({contexts: lt_failed, context: ls_context, result: 1})), abap.builtin.abap_true)) {
         continue;
       } else if (abap.compare.eq((await this.#contains_context({contexts: lt_passed, context: ls_context, result: 1})), abap.builtin.abap_true)) {
@@ -345610,15 +345660,15 @@ class cl_aunit_authority_check {
         abap.statements.append({source: ls_context, target: this.#mt_fail_not_executed});
       }
     }
-    for await (const unique166 of abap.statements.loop(lt_passed)) {
-      ls_context.set(unique166);
+    for await (const unique169 of abap.statements.loop(lt_passed)) {
+      ls_context.set(unique169);
       if (abap.compare.eq((await this.#contains_context({contexts: lt_pass_expected, context: ls_context, result: 1})), abap.builtin.abap_false) && abap.compare.eq((await this.#contains_context({contexts: lt_fail_expected, context: ls_context, result: 1})), abap.builtin.abap_false)) {
         ls_context.get().description.set(abap.CharacterFactory.get(27, 'Passed but was not expected'));
         abap.statements.append({source: ls_context, target: this.#mt_pass_unexpected});
       }
     }
-    for await (const unique167 of abap.statements.loop(lt_failed)) {
-      ls_context.set(unique167);
+    for await (const unique170 of abap.statements.loop(lt_failed)) {
+      ls_context.set(unique170);
       if (abap.compare.eq((await this.#contains_context({contexts: lt_pass_expected, context: ls_context, result: 1})), abap.builtin.abap_false) && abap.compare.eq((await this.#contains_context({contexts: lt_fail_expected, context: ls_context, result: 1})), abap.builtin.abap_false)) {
         ls_context.get().description.set(abap.CharacterFactory.get(27, 'Failed but was not expected'));
         abap.statements.append({source: ls_context, target: this.#mt_fail_unexpected});
@@ -346332,8 +346382,8 @@ class cl_function_test_environment {
     abap.statements.assert(abap.compare.gt(abap.builtin.lines({val: function_modules}), abap.IntegerFactory.get(0)));
     function_test_environment.set(await (new abap.Classes['CL_FUNCTION_TEST_ENVIRONMENT']()).constructor_());
     function_test_environment.value.REVERT = {};
-    for await (const unique151 of abap.statements.loop(function_modules)) {
-      lv_module.set(unique151);
+    for await (const unique154 of abap.statements.loop(function_modules)) {
+      lv_module.set(unique154);
       ls_row.get().name.set(lv_module);
       ls_row.get().double.set(await (new abap.Classes['CLAS-CL_FUNCTION_TEST_ENVIRONMENT-LCL_DOUBLE']()).constructor_({iv_name: lv_module}));
       function_test_environment.value.REVERT[lv_module.get().trimEnd()] = abap.FunctionModules[lv_module.get().trimEnd()];
@@ -346362,8 +346412,8 @@ class cl_function_test_environment {
     let fs_ls_row_ = new abap.types.FieldSymbol(new abap.types.Structure({
     "name": new abap.types.Character(30, {"qualifiedName":"SXCO_FM_NAME","ddicName":"SXCO_FM_NAME","description":"Function module name"}),
     "double": new abap.types.ABAPObject({qualifiedName: "IF_FUNCTION_TESTDOUBLE", RTTIName: "\\INTERFACE=IF_FUNCTION_TESTDOUBLE"})}, "cl_function_test_environment=>ty_backup", undefined, {}, {}));
-    for await (const unique152 of abap.statements.loop(cl_function_test_environment.gt_backup)) {
-      fs_ls_row_.assign(unique152);
+    for await (const unique155 of abap.statements.loop(cl_function_test_environment.gt_backup)) {
+      fs_ls_row_.assign(unique155);
       abap.FunctionModules[fs_ls_row_.get().name.get().trimEnd()] = this.REVERT[fs_ls_row_.get().name.get().trimEnd()];
     }
     cl_function_test_environment.gt_backup.clear();
@@ -346429,10 +346479,10 @@ class cl_gdt_conversion {
     let ex_value = INPUT?.ex_value || new abap.types.typeTodoPGenericType();
     let ex_currency_code = INPUT?.ex_currency_code || new abap.types.Character(3, {"qualifiedName":"ISOCD","ddicName":"ISOCD","description":"Iso"});
     let lv_value = new abap.types.DecFloat34();
-    let unique319 = im_currency_code;
-    if (abap.compare.eq(unique319, abap.CharacterFactory.get(3, 'DKK')) || abap.compare.eq(unique319, abap.CharacterFactory.get(3, 'EUR')) || abap.compare.eq(unique319, abap.CharacterFactory.get(3, 'USD'))) {
+    let unique328 = im_currency_code;
+    if (abap.compare.eq(unique328, abap.CharacterFactory.get(3, 'DKK')) || abap.compare.eq(unique328, abap.CharacterFactory.get(3, 'EUR')) || abap.compare.eq(unique328, abap.CharacterFactory.get(3, 'USD'))) {
       ex_value.set(im_value);
-    } else if (abap.compare.eq(unique319, abap.CharacterFactory.get(3, 'VND'))) {
+    } else if (abap.compare.eq(unique328, abap.CharacterFactory.get(3, 'VND'))) {
       lv_value.set(abap.operators.multiply(im_value,abap.IntegerFactory.get(100)));
       ex_value.set(lv_value);
     } else {
@@ -346455,16 +346505,16 @@ class cl_gdt_conversion {
     if (im_value?.getQualifiedName === undefined || im_value.getQualifiedName() !== "MSEHI") { im_value = undefined; }
     if (im_value === undefined) { im_value = new abap.types.Character(3, {"qualifiedName":"MSEHI","ddicName":"MSEHI","description":"UOM"}).set(INPUT.im_value); }
     let ex_value = INPUT?.ex_value || new abap.types.Character();
-    let unique320 = im_value;
-    if (abap.compare.eq(unique320, abap.CharacterFactory.get(1, ''))) {
-      const unique321 = await (new abap.Classes['CX_GDT_CONVERSION']()).constructor_();
-      unique321.EXTRA_CX = {"INTERNAL_FILENAME": "cl_gdt_conversion.clas.abap","INTERNAL_LINE": 85};
-      throw unique321;
-    } else if (abap.compare.eq(unique320, abap.CharacterFactory.get(2, 'ST'))) {
+    let unique329 = im_value;
+    if (abap.compare.eq(unique329, abap.CharacterFactory.get(1, ''))) {
+      const unique330 = await (new abap.Classes['CX_GDT_CONVERSION']()).constructor_();
+      unique330.EXTRA_CX = {"INTERNAL_FILENAME": "cl_gdt_conversion.clas.abap","INTERNAL_LINE": 85};
+      throw unique330;
+    } else if (abap.compare.eq(unique329, abap.CharacterFactory.get(2, 'ST'))) {
       ex_value.set(abap.CharacterFactory.get(3, 'PCE'));
-    } else if (abap.compare.eq(unique320, abap.CharacterFactory.get(2, 'KG'))) {
+    } else if (abap.compare.eq(unique329, abap.CharacterFactory.get(2, 'KG'))) {
       ex_value.set(abap.CharacterFactory.get(3, 'KGM'));
-    } else if (abap.compare.eq(unique320, abap.CharacterFactory.get(3, 'CDM'))) {
+    } else if (abap.compare.eq(unique329, abap.CharacterFactory.get(3, 'CDM'))) {
       ex_value.set(abap.CharacterFactory.get(3, 'DMQ'));
     } else {
       abap.statements.assert(abap.compare.eq(abap.IntegerFactory.get(1), abap.CharacterFactory.get(4, 'todo')));
@@ -346503,14 +346553,14 @@ class cl_gdt_conversion {
   static async unit_code_inbound(INPUT) {
     let im_value = INPUT?.im_value;
     let ex_value = INPUT?.ex_value || new abap.types.Character(3, {"qualifiedName":"MSEHI","ddicName":"MSEHI","description":"UOM"});
-    let unique322 = im_value;
-    if (abap.compare.eq(unique322, abap.CharacterFactory.get(3, 'MTR'))) {
+    let unique331 = im_value;
+    if (abap.compare.eq(unique331, abap.CharacterFactory.get(3, 'MTR'))) {
       ex_value.set(abap.CharacterFactory.get(1, 'M'));
-    } else if (abap.compare.eq(unique322, abap.CharacterFactory.get(3, 'PCE'))) {
+    } else if (abap.compare.eq(unique331, abap.CharacterFactory.get(3, 'PCE'))) {
       ex_value.set(abap.CharacterFactory.get(2, 'PC'));
-    } else if (abap.compare.eq(unique322, abap.CharacterFactory.get(3, 'KGM'))) {
+    } else if (abap.compare.eq(unique331, abap.CharacterFactory.get(3, 'KGM'))) {
       ex_value.set(abap.CharacterFactory.get(2, 'KG'));
-    } else if (abap.compare.eq(unique322, abap.CharacterFactory.get(3, 'LTR'))) {
+    } else if (abap.compare.eq(unique331, abap.CharacterFactory.get(3, 'LTR'))) {
       ex_value.set(abap.CharacterFactory.get(1, 'L'));
     } else {
       abap.statements.assert(abap.compare.eq(abap.IntegerFactory.get(1), abap.CharacterFactory.get(4, 'todo')));
@@ -346539,9 +346589,9 @@ class cl_gdt_conversion {
       }
       abap.statements.translate(ex_value, "LOWER");
       if (abap.compare.ne(abap.builtin.sy.get().subrc, abap.IntegerFactory.get(0))) {
-        const unique323 = await (new abap.Classes['CX_GDT_CONVERSION']()).constructor_();
-        unique323.EXTRA_CX = {"INTERNAL_FILENAME": "cl_gdt_conversion.clas.abap","INTERNAL_LINE": 147};
-        throw unique323;
+        const unique332 = await (new abap.Classes['CX_GDT_CONVERSION']()).constructor_();
+        unique332.EXTRA_CX = {"INTERNAL_FILENAME": "cl_gdt_conversion.clas.abap","INTERNAL_LINE": 147};
+        throw unique332;
       }
     }
   }
@@ -346724,17 +346774,17 @@ class cl_http_client {
     lv_url.set(abap.operators.concat(this.#mv_host,lv_url));
     await this.if_http_client$request.get().if_http_entity$get_form_fields({fields: lt_form_fields});
     if (abap.compare.gt(abap.builtin.lines({val: lt_form_fields}), abap.IntegerFactory.get(0))) {
-      let unique310 = lv_method;
-      if (abap.compare.eq(unique310, abap.CharacterFactory.get(3, 'GET'))) {
+      let unique319 = lv_method;
+      if (abap.compare.eq(unique319, abap.CharacterFactory.get(3, 'GET'))) {
         lv_url.set(abap.operators.concat(lv_url,abap.operators.concat(abap.CharacterFactory.get(1, '?'),(await abap.Classes['CL_HTTP_UTILITY'].if_http_utility$fields_to_string({fields: lt_form_fields, string: 1})))));
-      } else if (abap.compare.eq(unique310, abap.CharacterFactory.get(4, 'POST'))) {
+      } else if (abap.compare.eq(unique319, abap.CharacterFactory.get(4, 'POST'))) {
         await this.if_http_client$request.get().if_http_entity$set_cdata({data: (await abap.Classes['CL_HTTP_UTILITY'].if_http_utility$fields_to_string({fields: lt_form_fields, string: 1}))});
       }
     }
     await this.if_http_client$request.get().if_http_entity$get_header_fields({fields: lt_header_fields});
     let headers = {};
-    for await (const unique311 of abap.statements.loop(lt_header_fields,{where: async (I) => {return abap.compare.ne(I.name, abap.CharacterFactory.get(12, '~request_uri'));}})) {
-      ls_field.set(unique311);
+    for await (const unique320 of abap.statements.loop(lt_header_fields,{where: async (I) => {return abap.compare.ne(I.name, abap.CharacterFactory.get(12, '~request_uri'));}})) {
+      ls_field.set(unique320);
       headers[ls_field.get().name.get()] = ls_field.get().value.get();
     }
     lv_content_type.set((await this.if_http_client$request.get().if_http_entity$get_content_type({content_type: 1})));
@@ -347286,8 +347336,8 @@ class cl_http_entity {
     let ls_field = new abap.types.Structure({
     "name": new abap.types.String({qualifiedName: "STRING"}),
     "value": new abap.types.String({qualifiedName: "STRING"})}, "IHTTPNVP", "IHTTPNVP", {}, {});
-    for await (const unique308 of abap.statements.loop(fields)) {
-      ls_field.set(unique308);
+    for await (const unique317 of abap.statements.loop(fields)) {
+      ls_field.set(unique317);
       await this.if_http_entity$set_header_field({name: ls_field.get().name, value: ls_field.get().value});
     }
   }
@@ -347476,8 +347526,8 @@ class cl_http_entity {
     let ls_field = new abap.types.Structure({
     "name": new abap.types.String({qualifiedName: "STRING"}),
     "value": new abap.types.String({qualifiedName: "STRING"})}, "IHTTPNVP", "IHTTPNVP", {}, {});
-    for await (const unique309 of abap.statements.loop(this.mt_form_fields)) {
-      ls_field.set(unique309);
+    for await (const unique318 of abap.statements.loop(this.mt_form_fields)) {
+      ls_field.set(unique318);
       abap.statements.translate(ls_field.get().name, "LOWER");
       abap.statements.append({source: ls_field, target: fields});
     }
@@ -348064,8 +348114,8 @@ class cl_http_utility {
     "value": new abap.types.String({qualifiedName: "STRING"})}, "IHTTPNVP", "IHTTPNVP", {}, {});
     abap.statements.assert(abap.compare.eq(ignore_parenthesis, abap.IntegerFactory.get(0)));
     abap.statements.split({source: string, at: abap.CharacterFactory.get(1, '&'), table: tab});
-    for await (const unique304 of abap.statements.loop(tab)) {
-      str.set(unique304);
+    for await (const unique313 of abap.statements.loop(tab)) {
+      str.set(unique313);
       abap.statements.split({source: str, at: abap.CharacterFactory.get(1, '='), targets: [ls_field.get().name,ls_field.get().value]});
       ls_field.get().value.set((await this.if_http_utility$unescape_url({escaped: ls_field.get().value, unescaped: 1})));
       abap.statements.append({source: ls_field, target: fields});
@@ -348110,8 +348160,8 @@ class cl_http_utility {
     let ls_field = new abap.types.Structure({
     "name": new abap.types.String({qualifiedName: "STRING"}),
     "value": new abap.types.String({qualifiedName: "STRING"})}, "IHTTPNVP", "IHTTPNVP", {}, {});
-    for await (const unique305 of abap.statements.loop(fields)) {
-      ls_field.set(unique305);
+    for await (const unique314 of abap.statements.loop(fields)) {
+      ls_field.set(unique314);
       ls_field.get().value.set((await this.if_http_utility$escape_url({unescaped: ls_field.get().value, escaped: 1})));
       str.set(abap.operators.concat(ls_field.get().name,abap.operators.concat(abap.CharacterFactory.get(1, '='),ls_field.get().value)));
       abap.statements.append({source: str, target: tab});
@@ -348168,9 +348218,9 @@ class cl_http_utility {
     let lv_index = new abap.types.Integer({qualifiedName: "I"});
     let lv_char = new abap.types.String({qualifiedName: "STRING"});
     const indexBackup1 = abap.builtin.sy.get().index.get();
-    const unique306 = abap.builtin.strlen({val: unescaped}).get();
-    for (let unique307 = 0; unique307 < unique306; unique307++) {
-      abap.builtin.sy.get().index.set(unique307 + 1);
+    const unique315 = abap.builtin.strlen({val: unescaped}).get();
+    for (let unique316 = 0; unique316 < unique315; unique316++) {
+      abap.builtin.sy.get().index.set(unique316 + 1);
       lv_index.set(abap.operators.minus(abap.builtin.sy.get().index,abap.IntegerFactory.get(1)));
       lv_char.set(unescaped.getOffset({offset: lv_index, length: 1}));
       if (abap.compare.ca(abap.builtin.to_upper({val: lv_char}), abap.builtin.sy.get().abcde) || abap.compare.ca(lv_char, abap.CharacterFactory.get(15, '0123456789.-_()'))) {
@@ -348256,90 +348306,90 @@ class cl_i18n_languages {
     let im_lang_sap2 = INPUT?.im_lang_sap2;
     if (im_lang_sap2?.getQualifiedName === undefined || im_lang_sap2.getQualifiedName() !== "LAISO") { im_lang_sap2 = undefined; }
     if (im_lang_sap2 === undefined) { im_lang_sap2 = new abap.types.Character(2, {"qualifiedName":"LAISO","ddicName":"LAISO","description":"LAISO"}).set(INPUT.im_lang_sap2); }
-    let unique103 = abap.builtin.to_upper({val: im_lang_sap2});
-    if (abap.compare.eq(unique103, abap.CharacterFactory.get(2, 'SR'))) {
+    let unique106 = abap.builtin.to_upper({val: im_lang_sap2});
+    if (abap.compare.eq(unique106, abap.CharacterFactory.get(2, 'SR'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, '0'));
-    } else if (abap.compare.eq(unique103, abap.CharacterFactory.get(2, 'ZH'))) {
+    } else if (abap.compare.eq(unique106, abap.CharacterFactory.get(2, 'ZH'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, '1'));
-    } else if (abap.compare.eq(unique103, abap.CharacterFactory.get(2, 'TH'))) {
+    } else if (abap.compare.eq(unique106, abap.CharacterFactory.get(2, 'TH'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, '2'));
-    } else if (abap.compare.eq(unique103, abap.CharacterFactory.get(2, 'KO'))) {
+    } else if (abap.compare.eq(unique106, abap.CharacterFactory.get(2, 'KO'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, '3'));
-    } else if (abap.compare.eq(unique103, abap.CharacterFactory.get(2, 'RO'))) {
+    } else if (abap.compare.eq(unique106, abap.CharacterFactory.get(2, 'RO'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, '4'));
-    } else if (abap.compare.eq(unique103, abap.CharacterFactory.get(2, 'SL'))) {
+    } else if (abap.compare.eq(unique106, abap.CharacterFactory.get(2, 'SL'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, '5'));
-    } else if (abap.compare.eq(unique103, abap.CharacterFactory.get(2, 'HR'))) {
+    } else if (abap.compare.eq(unique106, abap.CharacterFactory.get(2, 'HR'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, '6'));
-    } else if (abap.compare.eq(unique103, abap.CharacterFactory.get(2, 'MS'))) {
+    } else if (abap.compare.eq(unique106, abap.CharacterFactory.get(2, 'MS'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, '7'));
-    } else if (abap.compare.eq(unique103, abap.CharacterFactory.get(2, 'UK'))) {
+    } else if (abap.compare.eq(unique106, abap.CharacterFactory.get(2, 'UK'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, '8'));
-    } else if (abap.compare.eq(unique103, abap.CharacterFactory.get(2, 'ET'))) {
+    } else if (abap.compare.eq(unique106, abap.CharacterFactory.get(2, 'ET'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, '9'));
-    } else if (abap.compare.eq(unique103, abap.CharacterFactory.get(2, 'AR'))) {
+    } else if (abap.compare.eq(unique106, abap.CharacterFactory.get(2, 'AR'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, 'A'));
-    } else if (abap.compare.eq(unique103, abap.CharacterFactory.get(2, 'HE'))) {
+    } else if (abap.compare.eq(unique106, abap.CharacterFactory.get(2, 'HE'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, 'B'));
-    } else if (abap.compare.eq(unique103, abap.CharacterFactory.get(2, 'CS'))) {
+    } else if (abap.compare.eq(unique106, abap.CharacterFactory.get(2, 'CS'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, 'C'));
-    } else if (abap.compare.eq(unique103, abap.CharacterFactory.get(2, 'DE'))) {
+    } else if (abap.compare.eq(unique106, abap.CharacterFactory.get(2, 'DE'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, 'D'));
-    } else if (abap.compare.eq(unique103, abap.CharacterFactory.get(2, 'EN'))) {
+    } else if (abap.compare.eq(unique106, abap.CharacterFactory.get(2, 'EN'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, 'E'));
-    } else if (abap.compare.eq(unique103, abap.CharacterFactory.get(2, 'FR'))) {
+    } else if (abap.compare.eq(unique106, abap.CharacterFactory.get(2, 'FR'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, 'F'));
-    } else if (abap.compare.eq(unique103, abap.CharacterFactory.get(2, 'EL'))) {
+    } else if (abap.compare.eq(unique106, abap.CharacterFactory.get(2, 'EL'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, 'G'));
-    } else if (abap.compare.eq(unique103, abap.CharacterFactory.get(2, 'HU'))) {
+    } else if (abap.compare.eq(unique106, abap.CharacterFactory.get(2, 'HU'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, 'H'));
-    } else if (abap.compare.eq(unique103, abap.CharacterFactory.get(2, 'IT'))) {
+    } else if (abap.compare.eq(unique106, abap.CharacterFactory.get(2, 'IT'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, 'I'));
-    } else if (abap.compare.eq(unique103, abap.CharacterFactory.get(2, 'JA'))) {
+    } else if (abap.compare.eq(unique106, abap.CharacterFactory.get(2, 'JA'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, 'J'));
-    } else if (abap.compare.eq(unique103, abap.CharacterFactory.get(2, 'DA'))) {
+    } else if (abap.compare.eq(unique106, abap.CharacterFactory.get(2, 'DA'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, 'K'));
-    } else if (abap.compare.eq(unique103, abap.CharacterFactory.get(2, 'PL'))) {
+    } else if (abap.compare.eq(unique106, abap.CharacterFactory.get(2, 'PL'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, 'L'));
-    } else if (abap.compare.eq(unique103, abap.CharacterFactory.get(2, 'ZF'))) {
+    } else if (abap.compare.eq(unique106, abap.CharacterFactory.get(2, 'ZF'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, 'M'));
-    } else if (abap.compare.eq(unique103, abap.CharacterFactory.get(2, 'NL'))) {
+    } else if (abap.compare.eq(unique106, abap.CharacterFactory.get(2, 'NL'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, 'N'));
-    } else if (abap.compare.eq(unique103, abap.CharacterFactory.get(2, 'NO'))) {
+    } else if (abap.compare.eq(unique106, abap.CharacterFactory.get(2, 'NO'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, 'O'));
-    } else if (abap.compare.eq(unique103, abap.CharacterFactory.get(2, 'PT'))) {
+    } else if (abap.compare.eq(unique106, abap.CharacterFactory.get(2, 'PT'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, 'P'));
-    } else if (abap.compare.eq(unique103, abap.CharacterFactory.get(2, 'SK'))) {
+    } else if (abap.compare.eq(unique106, abap.CharacterFactory.get(2, 'SK'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, 'Q'));
-    } else if (abap.compare.eq(unique103, abap.CharacterFactory.get(2, 'RU'))) {
+    } else if (abap.compare.eq(unique106, abap.CharacterFactory.get(2, 'RU'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, 'R'));
-    } else if (abap.compare.eq(unique103, abap.CharacterFactory.get(2, 'ES'))) {
+    } else if (abap.compare.eq(unique106, abap.CharacterFactory.get(2, 'ES'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, 'S'));
-    } else if (abap.compare.eq(unique103, abap.CharacterFactory.get(2, 'TR'))) {
+    } else if (abap.compare.eq(unique106, abap.CharacterFactory.get(2, 'TR'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, 'T'));
-    } else if (abap.compare.eq(unique103, abap.CharacterFactory.get(2, 'FI'))) {
+    } else if (abap.compare.eq(unique106, abap.CharacterFactory.get(2, 'FI'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, 'U'));
-    } else if (abap.compare.eq(unique103, abap.CharacterFactory.get(2, 'SV'))) {
+    } else if (abap.compare.eq(unique106, abap.CharacterFactory.get(2, 'SV'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, 'V'));
-    } else if (abap.compare.eq(unique103, abap.CharacterFactory.get(2, 'BG'))) {
+    } else if (abap.compare.eq(unique106, abap.CharacterFactory.get(2, 'BG'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, 'W'));
-    } else if (abap.compare.eq(unique103, abap.CharacterFactory.get(2, 'LT'))) {
+    } else if (abap.compare.eq(unique106, abap.CharacterFactory.get(2, 'LT'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, 'X'));
-    } else if (abap.compare.eq(unique103, abap.CharacterFactory.get(2, 'LV'))) {
+    } else if (abap.compare.eq(unique106, abap.CharacterFactory.get(2, 'LV'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, 'Y'));
-    } else if (abap.compare.eq(unique103, abap.CharacterFactory.get(2, 'Z1'))) {
+    } else if (abap.compare.eq(unique106, abap.CharacterFactory.get(2, 'Z1'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, 'Z'));
-    } else if (abap.compare.eq(unique103, abap.CharacterFactory.get(2, 'AF'))) {
+    } else if (abap.compare.eq(unique106, abap.CharacterFactory.get(2, 'AF'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, 'a'));
-    } else if (abap.compare.eq(unique103, abap.CharacterFactory.get(2, 'IS'))) {
+    } else if (abap.compare.eq(unique106, abap.CharacterFactory.get(2, 'IS'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, 'b'));
-    } else if (abap.compare.eq(unique103, abap.CharacterFactory.get(2, 'CA'))) {
+    } else if (abap.compare.eq(unique106, abap.CharacterFactory.get(2, 'CA'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, 'c'));
-    } else if (abap.compare.eq(unique103, abap.CharacterFactory.get(2, 'SH'))) {
+    } else if (abap.compare.eq(unique106, abap.CharacterFactory.get(2, 'SH'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, 'd'));
-    } else if (abap.compare.eq(unique103, abap.CharacterFactory.get(2, 'ID'))) {
+    } else if (abap.compare.eq(unique106, abap.CharacterFactory.get(2, 'ID'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, 'i'));
-    } else if (abap.compare.eq(unique103, abap.CharacterFactory.get(2, '1Q'))) {
+    } else if (abap.compare.eq(unique106, abap.CharacterFactory.get(2, '1Q'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, ''));
     } else {
       throw new abap.ClassicError({classic: "no_assignment"});
@@ -348355,88 +348405,88 @@ class cl_i18n_languages {
     let im_lang_sap1 = INPUT?.im_lang_sap1;
     if (im_lang_sap1?.getQualifiedName === undefined || im_lang_sap1.getQualifiedName() !== "SY-LANGU") { im_lang_sap1 = undefined; }
     if (im_lang_sap1 === undefined) { im_lang_sap1 = new abap.types.Character(1, {"qualifiedName":"sy-langu","conversionExit":"ISOLA"}).set(INPUT.im_lang_sap1); }
-    let unique104 = im_lang_sap1;
-    if (abap.compare.eq(unique104, abap.CharacterFactory.get(1, '0'))) {
+    let unique107 = im_lang_sap1;
+    if (abap.compare.eq(unique107, abap.CharacterFactory.get(1, '0'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'SR'));
-    } else if (abap.compare.eq(unique104, abap.CharacterFactory.get(1, '1'))) {
+    } else if (abap.compare.eq(unique107, abap.CharacterFactory.get(1, '1'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'ZH'));
-    } else if (abap.compare.eq(unique104, abap.CharacterFactory.get(1, '2'))) {
+    } else if (abap.compare.eq(unique107, abap.CharacterFactory.get(1, '2'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'TH'));
-    } else if (abap.compare.eq(unique104, abap.CharacterFactory.get(1, '3'))) {
+    } else if (abap.compare.eq(unique107, abap.CharacterFactory.get(1, '3'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'KO'));
-    } else if (abap.compare.eq(unique104, abap.CharacterFactory.get(1, '4'))) {
+    } else if (abap.compare.eq(unique107, abap.CharacterFactory.get(1, '4'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'RO'));
-    } else if (abap.compare.eq(unique104, abap.CharacterFactory.get(1, '5'))) {
+    } else if (abap.compare.eq(unique107, abap.CharacterFactory.get(1, '5'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'SL'));
-    } else if (abap.compare.eq(unique104, abap.CharacterFactory.get(1, '6'))) {
+    } else if (abap.compare.eq(unique107, abap.CharacterFactory.get(1, '6'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'HR'));
-    } else if (abap.compare.eq(unique104, abap.CharacterFactory.get(1, '7'))) {
+    } else if (abap.compare.eq(unique107, abap.CharacterFactory.get(1, '7'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'MS'));
-    } else if (abap.compare.eq(unique104, abap.CharacterFactory.get(1, '8'))) {
+    } else if (abap.compare.eq(unique107, abap.CharacterFactory.get(1, '8'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'UK'));
-    } else if (abap.compare.eq(unique104, abap.CharacterFactory.get(1, '9'))) {
+    } else if (abap.compare.eq(unique107, abap.CharacterFactory.get(1, '9'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'ET'));
-    } else if (abap.compare.eq(unique104, abap.CharacterFactory.get(1, 'A'))) {
+    } else if (abap.compare.eq(unique107, abap.CharacterFactory.get(1, 'A'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'AR'));
-    } else if (abap.compare.eq(unique104, abap.CharacterFactory.get(1, 'B'))) {
+    } else if (abap.compare.eq(unique107, abap.CharacterFactory.get(1, 'B'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'HE'));
-    } else if (abap.compare.eq(unique104, abap.CharacterFactory.get(1, 'C'))) {
+    } else if (abap.compare.eq(unique107, abap.CharacterFactory.get(1, 'C'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'CS'));
-    } else if (abap.compare.eq(unique104, abap.CharacterFactory.get(1, 'D'))) {
+    } else if (abap.compare.eq(unique107, abap.CharacterFactory.get(1, 'D'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'DE'));
-    } else if (abap.compare.eq(unique104, abap.CharacterFactory.get(1, 'E'))) {
+    } else if (abap.compare.eq(unique107, abap.CharacterFactory.get(1, 'E'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'EN'));
-    } else if (abap.compare.eq(unique104, abap.CharacterFactory.get(1, 'F'))) {
+    } else if (abap.compare.eq(unique107, abap.CharacterFactory.get(1, 'F'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'FR'));
-    } else if (abap.compare.eq(unique104, abap.CharacterFactory.get(1, 'G'))) {
+    } else if (abap.compare.eq(unique107, abap.CharacterFactory.get(1, 'G'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'EL'));
-    } else if (abap.compare.eq(unique104, abap.CharacterFactory.get(1, 'H'))) {
+    } else if (abap.compare.eq(unique107, abap.CharacterFactory.get(1, 'H'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'HU'));
-    } else if (abap.compare.eq(unique104, abap.CharacterFactory.get(1, 'I'))) {
+    } else if (abap.compare.eq(unique107, abap.CharacterFactory.get(1, 'I'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'IT'));
-    } else if (abap.compare.eq(unique104, abap.CharacterFactory.get(1, 'J'))) {
+    } else if (abap.compare.eq(unique107, abap.CharacterFactory.get(1, 'J'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'JA'));
-    } else if (abap.compare.eq(unique104, abap.CharacterFactory.get(1, 'K'))) {
+    } else if (abap.compare.eq(unique107, abap.CharacterFactory.get(1, 'K'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'DA'));
-    } else if (abap.compare.eq(unique104, abap.CharacterFactory.get(1, 'L'))) {
+    } else if (abap.compare.eq(unique107, abap.CharacterFactory.get(1, 'L'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'PL'));
-    } else if (abap.compare.eq(unique104, abap.CharacterFactory.get(1, 'M'))) {
+    } else if (abap.compare.eq(unique107, abap.CharacterFactory.get(1, 'M'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'ZF'));
-    } else if (abap.compare.eq(unique104, abap.CharacterFactory.get(1, 'N'))) {
+    } else if (abap.compare.eq(unique107, abap.CharacterFactory.get(1, 'N'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'NL'));
-    } else if (abap.compare.eq(unique104, abap.CharacterFactory.get(1, 'O'))) {
+    } else if (abap.compare.eq(unique107, abap.CharacterFactory.get(1, 'O'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'NO'));
-    } else if (abap.compare.eq(unique104, abap.CharacterFactory.get(1, 'P'))) {
+    } else if (abap.compare.eq(unique107, abap.CharacterFactory.get(1, 'P'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'PT'));
-    } else if (abap.compare.eq(unique104, abap.CharacterFactory.get(1, 'Q'))) {
+    } else if (abap.compare.eq(unique107, abap.CharacterFactory.get(1, 'Q'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'SK'));
-    } else if (abap.compare.eq(unique104, abap.CharacterFactory.get(1, 'R'))) {
+    } else if (abap.compare.eq(unique107, abap.CharacterFactory.get(1, 'R'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'RU'));
-    } else if (abap.compare.eq(unique104, abap.CharacterFactory.get(1, 'S'))) {
+    } else if (abap.compare.eq(unique107, abap.CharacterFactory.get(1, 'S'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'ES'));
-    } else if (abap.compare.eq(unique104, abap.CharacterFactory.get(1, 'T'))) {
+    } else if (abap.compare.eq(unique107, abap.CharacterFactory.get(1, 'T'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'TR'));
-    } else if (abap.compare.eq(unique104, abap.CharacterFactory.get(1, 'U'))) {
+    } else if (abap.compare.eq(unique107, abap.CharacterFactory.get(1, 'U'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'FI'));
-    } else if (abap.compare.eq(unique104, abap.CharacterFactory.get(1, 'V'))) {
+    } else if (abap.compare.eq(unique107, abap.CharacterFactory.get(1, 'V'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'SV'));
-    } else if (abap.compare.eq(unique104, abap.CharacterFactory.get(1, 'W'))) {
+    } else if (abap.compare.eq(unique107, abap.CharacterFactory.get(1, 'W'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'BG'));
-    } else if (abap.compare.eq(unique104, abap.CharacterFactory.get(1, 'X'))) {
+    } else if (abap.compare.eq(unique107, abap.CharacterFactory.get(1, 'X'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'LT'));
-    } else if (abap.compare.eq(unique104, abap.CharacterFactory.get(1, 'Y'))) {
+    } else if (abap.compare.eq(unique107, abap.CharacterFactory.get(1, 'Y'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'LV'));
-    } else if (abap.compare.eq(unique104, abap.CharacterFactory.get(1, 'Z'))) {
+    } else if (abap.compare.eq(unique107, abap.CharacterFactory.get(1, 'Z'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'Z1'));
-    } else if (abap.compare.eq(unique104, abap.CharacterFactory.get(1, 'a'))) {
+    } else if (abap.compare.eq(unique107, abap.CharacterFactory.get(1, 'a'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'AF'));
-    } else if (abap.compare.eq(unique104, abap.CharacterFactory.get(1, 'b'))) {
+    } else if (abap.compare.eq(unique107, abap.CharacterFactory.get(1, 'b'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'IS'));
-    } else if (abap.compare.eq(unique104, abap.CharacterFactory.get(1, 'c'))) {
+    } else if (abap.compare.eq(unique107, abap.CharacterFactory.get(1, 'c'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'CA'));
-    } else if (abap.compare.eq(unique104, abap.CharacterFactory.get(1, 'd'))) {
+    } else if (abap.compare.eq(unique107, abap.CharacterFactory.get(1, 'd'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'SH'));
-    } else if (abap.compare.eq(unique104, abap.CharacterFactory.get(1, 'i'))) {
+    } else if (abap.compare.eq(unique107, abap.CharacterFactory.get(1, 'i'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'ID'));
     } else {
       throw new abap.ClassicError({classic: "no_assignment"});
@@ -348453,100 +348503,100 @@ class cl_i18n_languages {
     if (im_lang_sap2 === undefined) { im_lang_sap2 = new abap.types.Character(2, {"qualifiedName":"LAISO","ddicName":"LAISO","description":"LAISO"}).set(INPUT.im_lang_sap2); }
     let ex_lang_iso639 = INPUT?.ex_lang_iso639 || new abap.types.String({qualifiedName: "STRING"});
     let ex_country = INPUT?.ex_country || new abap.types.Character(3, {"qualifiedName":"LAND1","ddicName":"LAND1","description":"LAND1"});
-    let unique105 = im_lang_sap2;
-    if (abap.compare.eq(unique105, abap.CharacterFactory.get(2, 'SR'))) {
+    let unique108 = im_lang_sap2;
+    if (abap.compare.eq(unique108, abap.CharacterFactory.get(2, 'SR'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'sr'));
-    } else if (abap.compare.eq(unique105, abap.CharacterFactory.get(2, 'ZH'))) {
+    } else if (abap.compare.eq(unique108, abap.CharacterFactory.get(2, 'ZH'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'zh'));
       ex_country.set(abap.CharacterFactory.get(2, 'CN'));
-    } else if (abap.compare.eq(unique105, abap.CharacterFactory.get(2, 'TH'))) {
+    } else if (abap.compare.eq(unique108, abap.CharacterFactory.get(2, 'TH'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'th'));
-    } else if (abap.compare.eq(unique105, abap.CharacterFactory.get(2, 'KO'))) {
+    } else if (abap.compare.eq(unique108, abap.CharacterFactory.get(2, 'KO'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'ko'));
       ex_country.set(abap.CharacterFactory.get(2, 'KR'));
-    } else if (abap.compare.eq(unique105, abap.CharacterFactory.get(2, 'RO'))) {
+    } else if (abap.compare.eq(unique108, abap.CharacterFactory.get(2, 'RO'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'ro'));
       ex_country.set(abap.CharacterFactory.get(2, 'RO'));
-    } else if (abap.compare.eq(unique105, abap.CharacterFactory.get(2, 'SL'))) {
+    } else if (abap.compare.eq(unique108, abap.CharacterFactory.get(2, 'SL'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'sl'));
-    } else if (abap.compare.eq(unique105, abap.CharacterFactory.get(2, 'HR'))) {
+    } else if (abap.compare.eq(unique108, abap.CharacterFactory.get(2, 'HR'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'hr'));
-    } else if (abap.compare.eq(unique105, abap.CharacterFactory.get(2, 'MS'))) {
+    } else if (abap.compare.eq(unique108, abap.CharacterFactory.get(2, 'MS'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'ms'));
       ex_country.set(abap.CharacterFactory.get(2, 'MY'));
-    } else if (abap.compare.eq(unique105, abap.CharacterFactory.get(2, 'UK'))) {
+    } else if (abap.compare.eq(unique108, abap.CharacterFactory.get(2, 'UK'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'uk'));
-    } else if (abap.compare.eq(unique105, abap.CharacterFactory.get(2, 'ET'))) {
+    } else if (abap.compare.eq(unique108, abap.CharacterFactory.get(2, 'ET'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'et'));
-    } else if (abap.compare.eq(unique105, abap.CharacterFactory.get(2, 'AR'))) {
+    } else if (abap.compare.eq(unique108, abap.CharacterFactory.get(2, 'AR'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'ar'));
       ex_country.set(abap.CharacterFactory.get(2, 'SA'));
-    } else if (abap.compare.eq(unique105, abap.CharacterFactory.get(2, 'HE'))) {
+    } else if (abap.compare.eq(unique108, abap.CharacterFactory.get(2, 'HE'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'he'));
-    } else if (abap.compare.eq(unique105, abap.CharacterFactory.get(2, 'CS'))) {
+    } else if (abap.compare.eq(unique108, abap.CharacterFactory.get(2, 'CS'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'cs'));
-    } else if (abap.compare.eq(unique105, abap.CharacterFactory.get(2, 'DE'))) {
+    } else if (abap.compare.eq(unique108, abap.CharacterFactory.get(2, 'DE'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'de'));
       ex_country.set(abap.CharacterFactory.get(2, 'DE'));
-    } else if (abap.compare.eq(unique105, abap.CharacterFactory.get(2, 'EN'))) {
+    } else if (abap.compare.eq(unique108, abap.CharacterFactory.get(2, 'EN'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'en'));
       ex_country.set(abap.CharacterFactory.get(2, 'US'));
-    } else if (abap.compare.eq(unique105, abap.CharacterFactory.get(2, 'FR'))) {
+    } else if (abap.compare.eq(unique108, abap.CharacterFactory.get(2, 'FR'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'fr'));
       ex_country.set(abap.CharacterFactory.get(2, 'FR'));
-    } else if (abap.compare.eq(unique105, abap.CharacterFactory.get(2, 'EL'))) {
+    } else if (abap.compare.eq(unique108, abap.CharacterFactory.get(2, 'EL'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'el'));
-    } else if (abap.compare.eq(unique105, abap.CharacterFactory.get(2, 'HU'))) {
+    } else if (abap.compare.eq(unique108, abap.CharacterFactory.get(2, 'HU'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'hu'));
-    } else if (abap.compare.eq(unique105, abap.CharacterFactory.get(2, 'IT'))) {
+    } else if (abap.compare.eq(unique108, abap.CharacterFactory.get(2, 'IT'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'it'));
       ex_country.set(abap.CharacterFactory.get(2, 'IT'));
-    } else if (abap.compare.eq(unique105, abap.CharacterFactory.get(2, 'JA'))) {
+    } else if (abap.compare.eq(unique108, abap.CharacterFactory.get(2, 'JA'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'ja'));
-    } else if (abap.compare.eq(unique105, abap.CharacterFactory.get(2, 'DA'))) {
+    } else if (abap.compare.eq(unique108, abap.CharacterFactory.get(2, 'DA'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'da'));
-    } else if (abap.compare.eq(unique105, abap.CharacterFactory.get(2, 'PL'))) {
+    } else if (abap.compare.eq(unique108, abap.CharacterFactory.get(2, 'PL'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'pl'));
-    } else if (abap.compare.eq(unique105, abap.CharacterFactory.get(2, 'ZF'))) {
+    } else if (abap.compare.eq(unique108, abap.CharacterFactory.get(2, 'ZF'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'zh'));
       ex_country.set(abap.CharacterFactory.get(2, 'TW'));
-    } else if (abap.compare.eq(unique105, abap.CharacterFactory.get(2, 'NL'))) {
+    } else if (abap.compare.eq(unique108, abap.CharacterFactory.get(2, 'NL'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'nl'));
       ex_country.set(abap.CharacterFactory.get(2, 'NL'));
-    } else if (abap.compare.eq(unique105, abap.CharacterFactory.get(2, 'NO'))) {
+    } else if (abap.compare.eq(unique108, abap.CharacterFactory.get(2, 'NO'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'no'));
-    } else if (abap.compare.eq(unique105, abap.CharacterFactory.get(2, 'PT'))) {
+    } else if (abap.compare.eq(unique108, abap.CharacterFactory.get(2, 'PT'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'pt'));
       ex_country.set(abap.CharacterFactory.get(2, 'BR'));
-    } else if (abap.compare.eq(unique105, abap.CharacterFactory.get(2, 'SK'))) {
+    } else if (abap.compare.eq(unique108, abap.CharacterFactory.get(2, 'SK'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'sk'));
-    } else if (abap.compare.eq(unique105, abap.CharacterFactory.get(2, 'RU'))) {
+    } else if (abap.compare.eq(unique108, abap.CharacterFactory.get(2, 'RU'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'ru'));
       ex_country.set(abap.CharacterFactory.get(2, 'RU'));
-    } else if (abap.compare.eq(unique105, abap.CharacterFactory.get(2, 'ES'))) {
+    } else if (abap.compare.eq(unique108, abap.CharacterFactory.get(2, 'ES'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'es'));
       ex_country.set(abap.CharacterFactory.get(2, 'ES'));
-    } else if (abap.compare.eq(unique105, abap.CharacterFactory.get(2, 'TR'))) {
+    } else if (abap.compare.eq(unique108, abap.CharacterFactory.get(2, 'TR'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'tr'));
-    } else if (abap.compare.eq(unique105, abap.CharacterFactory.get(2, 'FI'))) {
+    } else if (abap.compare.eq(unique108, abap.CharacterFactory.get(2, 'FI'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'fi'));
-    } else if (abap.compare.eq(unique105, abap.CharacterFactory.get(2, 'SV'))) {
+    } else if (abap.compare.eq(unique108, abap.CharacterFactory.get(2, 'SV'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'sv'));
-    } else if (abap.compare.eq(unique105, abap.CharacterFactory.get(2, 'BG'))) {
+    } else if (abap.compare.eq(unique108, abap.CharacterFactory.get(2, 'BG'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'bg'));
-    } else if (abap.compare.eq(unique105, abap.CharacterFactory.get(2, 'LT'))) {
+    } else if (abap.compare.eq(unique108, abap.CharacterFactory.get(2, 'LT'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'lt'));
-    } else if (abap.compare.eq(unique105, abap.CharacterFactory.get(2, 'LV'))) {
+    } else if (abap.compare.eq(unique108, abap.CharacterFactory.get(2, 'LV'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'lv'));
-    } else if (abap.compare.eq(unique105, abap.CharacterFactory.get(2, 'AF'))) {
+    } else if (abap.compare.eq(unique108, abap.CharacterFactory.get(2, 'AF'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'af'));
-    } else if (abap.compare.eq(unique105, abap.CharacterFactory.get(2, 'IS'))) {
+    } else if (abap.compare.eq(unique108, abap.CharacterFactory.get(2, 'IS'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'is'));
-    } else if (abap.compare.eq(unique105, abap.CharacterFactory.get(2, 'CA'))) {
+    } else if (abap.compare.eq(unique108, abap.CharacterFactory.get(2, 'CA'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'ca'));
-    } else if (abap.compare.eq(unique105, abap.CharacterFactory.get(2, 'SH'))) {
+    } else if (abap.compare.eq(unique108, abap.CharacterFactory.get(2, 'SH'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'sr'));
-    } else if (abap.compare.eq(unique105, abap.CharacterFactory.get(2, 'ID'))) {
+    } else if (abap.compare.eq(unique108, abap.CharacterFactory.get(2, 'ID'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'id'));
     } else {
       throw new abap.ClassicError({classic: "no_assignment"});
@@ -348714,9 +348764,9 @@ class cl_message_helper {
     let li_t100_message = new abap.types.ABAPObject({qualifiedName: "IF_T100_MESSAGE", RTTIName: "\\INTERFACE=IF_T100_MESSAGE"});
     lx_exception.set(exception);
     const indexBackup1 = abap.builtin.sy.get().index.get();
-    let unique101 = 1;
+    let unique104 = 1;
     while (abap.compare.initial(lx_exception) === false) {
-      abap.builtin.sy.get().index.set(unique101++);
+      abap.builtin.sy.get().index.set(unique104++);
       try {
         await abap.statements.cast(li_t100_message, lx_exception);
         result.set(li_t100_message);
@@ -348795,9 +348845,9 @@ class cl_message_helper {
     if (text === undefined) { text = new abap.types.ABAPObject({qualifiedName: "IF_MESSAGE", RTTIName: "\\INTERFACE=IF_MESSAGE"}).set(INPUT.text); }
     let string = INPUT?.string || new abap.types.String({qualifiedName: "STRING"});
     if (abap.compare.initial(text)) {
-      const unique102 = await (new abap.Classes['CX_SY_MESSAGE_ILLEGAL_TEXT']()).constructor_();
-      unique102.EXTRA_CX = {"INTERNAL_FILENAME": "cl_message_helper.clas.abap","INTERNAL_LINE": 111};
-      throw unique102;
+      const unique105 = await (new abap.Classes['CX_SY_MESSAGE_ILLEGAL_TEXT']()).constructor_();
+      unique105.EXTRA_CX = {"INTERNAL_FILENAME": "cl_message_helper.clas.abap","INTERNAL_LINE": 111};
+      throw unique105;
     }
     string.set((await this.get_text_for_message({text: text, result: 1})));
     if (abap.compare.ne(string, cl_message_helper.gc_fallback)) {
@@ -349523,9 +349573,9 @@ class cl_oa2c_config_writer_api {
       usesTableLine: false,
       withKeySimple: {"configuration": i_configuration}});
     if (abap.compare.ne(abap.builtin.sy.get().subrc, abap.IntegerFactory.get(0))) {
-      const unique212 = await (new abap.Classes['CX_OA2C_CONFIG_NOT_FOUND']()).constructor_();
-      unique212.EXTRA_CX = {"INTERNAL_FILENAME": "cl_oa2c_config_writer_api.clas.abap","INTERNAL_LINE": 137};
-      throw unique212;
+      const unique215 = await (new abap.Classes['CX_OA2C_CONFIG_NOT_FOUND']()).constructor_();
+      unique215.EXTRA_CX = {"INTERNAL_FILENAME": "cl_oa2c_config_writer_api.clas.abap","INTERNAL_LINE": 137};
+      throw unique215;
     }
     ro_config_writer_api.set(await (new abap.Classes['CL_OA2C_CONFIG_WRITER_API']()).constructor_());
     ro_config_writer_api.get().FRIENDS_ACCESS_INSTANCE["ms_config"].set(ls_config);
@@ -349688,9 +349738,9 @@ class cl_oauth2_client {
         }
       }
       if (abap.compare.ne(abap.builtin.sy.get().subrc, abap.IntegerFactory.get(0))) {
-        const unique204 = await (new abap.Classes['CX_OA2C']()).constructor_();
-        unique204.EXTRA_CX = {"INTERNAL_FILENAME": "cl_oauth2_client.clas.abap","INTERNAL_LINE": 75};
-        throw unique204;
+        const unique207 = await (new abap.Classes['CX_OA2C']()).constructor_();
+        unique207.EXTRA_CX = {"INTERNAL_FILENAME": "cl_oauth2_client.clas.abap","INTERNAL_LINE": 75};
+        throw unique207;
       }
       li_http_client.get().if_http_client$propertytype_logon_popup.set(abap.Classes['IF_HTTP_CLIENT'].if_http_client$co_disabled);
       await li_http_client.get().if_http_client$request.get().if_http_request$set_method({method: abap.CharacterFactory.get(4, 'POST')});
@@ -349716,9 +349766,9 @@ class cl_oauth2_client {
           }
         }
         if (abap.compare.ne(abap.builtin.sy.get().subrc, abap.IntegerFactory.get(0))) {
-          const unique205 = await (new abap.Classes['CX_OA2C']()).constructor_();
-          unique205.EXTRA_CX = {"INTERNAL_FILENAME": "cl_oauth2_client.clas.abap","INTERNAL_LINE": 104};
-          throw unique205;
+          const unique208 = await (new abap.Classes['CX_OA2C']()).constructor_();
+          unique208.EXTRA_CX = {"INTERNAL_FILENAME": "cl_oauth2_client.clas.abap","INTERNAL_LINE": 104};
+          throw unique208;
         }
         try {
           await li_http_client.get().if_http_client$receive();
@@ -349737,24 +349787,24 @@ class cl_oauth2_client {
           }
           if (abap.compare.ne(abap.builtin.sy.get().subrc, abap.IntegerFactory.get(0))) {
             await li_http_client.get().if_http_client$get_last_error({code: lv_code, message: lv_message});
-            const unique206 = await (new abap.Classes['CX_OA2C']()).constructor_();
-            unique206.EXTRA_CX = {"INTERNAL_FILENAME": "cl_oauth2_client.clas.abap","INTERNAL_LINE": 118};
-            throw unique206;
+            const unique209 = await (new abap.Classes['CX_OA2C']()).constructor_();
+            unique209.EXTRA_CX = {"INTERNAL_FILENAME": "cl_oauth2_client.clas.abap","INTERNAL_LINE": 118};
+            throw unique209;
           }
           await li_http_client.get().if_http_client$response.get().if_http_response$get_status({code: lv_code});
           lv_cdata.set((await li_http_client.get().if_http_client$response.get().if_http_entity$get_cdata({data: 1})));
           await li_http_client.get().if_http_client$close();
           if (abap.compare.ne(lv_code, abap.IntegerFactory.get(200))) {
-            const unique207 = await (new abap.Classes['CX_OA2C']()).constructor_();
-            unique207.EXTRA_CX = {"INTERNAL_FILENAME": "cl_oauth2_client.clas.abap","INTERNAL_LINE": 126};
-            throw unique207;
+            const unique210 = await (new abap.Classes['CX_OA2C']()).constructor_();
+            unique210.EXTRA_CX = {"INTERNAL_FILENAME": "cl_oauth2_client.clas.abap","INTERNAL_LINE": 126};
+            throw unique210;
           }
           await abap.Classes['/UI2/CL_JSON'].deserialize({json: lv_cdata, data: ls_token_response});
           this.#mv_token.set(ls_token_response.get().access_token);
           if (abap.compare.initial(this.#mv_token)) {
-            const unique208 = await (new abap.Classes['CX_OA2C']()).constructor_();
-            unique208.EXTRA_CX = {"INTERNAL_FILENAME": "cl_oauth2_client.clas.abap","INTERNAL_LINE": 136};
-            throw unique208;
+            const unique211 = await (new abap.Classes['CX_OA2C']()).constructor_();
+            unique211.EXTRA_CX = {"INTERNAL_FILENAME": "cl_oauth2_client.clas.abap","INTERNAL_LINE": 136};
+            throw unique211;
           }
         }
         async if_oauth2_client$set_token(INPUT) {
@@ -349764,19 +349814,19 @@ class cl_oauth2_client {
           let i_param_kind = new abap.types.String({qualifiedName: "STRING"});
           if (INPUT && INPUT.i_param_kind) {i_param_kind.set(INPUT.i_param_kind);}
           if (abap.compare.initial(this.#mv_token)) {
-            const unique209 = await (new abap.Classes['CX_OA2C_AT_NOT_AVAILABLE']()).constructor_();
-            unique209.EXTRA_CX = {"INTERNAL_FILENAME": "cl_oauth2_client.clas.abap","INTERNAL_LINE": 143};
-            throw unique209;
+            const unique212 = await (new abap.Classes['CX_OA2C_AT_NOT_AVAILABLE']()).constructor_();
+            unique212.EXTRA_CX = {"INTERNAL_FILENAME": "cl_oauth2_client.clas.abap","INTERNAL_LINE": 143};
+            throw unique212;
           }
-          let unique210 = i_param_kind;
-          if (abap.compare.eq(unique210, abap.Classes['IF_OAUTH2_CLIENT'].if_oauth2_client$c_param_kind_form_field)) {
+          let unique213 = i_param_kind;
+          if (abap.compare.eq(unique213, abap.Classes['IF_OAUTH2_CLIENT'].if_oauth2_client$c_param_kind_form_field)) {
             await io_http_client.get().if_http_client$request.get().if_http_entity$set_form_field({name: abap.CharacterFactory.get(12, 'access_token'), value: this.#mv_token});
-          } else if (abap.compare.eq(unique210, abap.Classes['IF_OAUTH2_CLIENT'].if_oauth2_client$c_param_kind_header_field) || abap.compare.eq(unique210, abap.builtin.space)) {
+          } else if (abap.compare.eq(unique213, abap.Classes['IF_OAUTH2_CLIENT'].if_oauth2_client$c_param_kind_header_field) || abap.compare.eq(unique213, abap.builtin.space)) {
             await io_http_client.get().if_http_client$request.get().if_http_entity$set_header_field({name: abap.CharacterFactory.get(13, 'Authorization'), value: new abap.types.String().set(`Bearer ${abap.templateFormatting(this.#mv_token)}`)});
           } else {
-            const unique211 = await (new abap.Classes['CX_OA2C']()).constructor_();
-            unique211.EXTRA_CX = {"INTERNAL_FILENAME": "cl_oauth2_client.clas.abap","INTERNAL_LINE": 158};
-            throw unique211;
+            const unique214 = await (new abap.Classes['CX_OA2C']()).constructor_();
+            unique214.EXTRA_CX = {"INTERNAL_FILENAME": "cl_oauth2_client.clas.abap","INTERNAL_LINE": 158};
+            throw unique214;
           }
         }
       }
@@ -349852,9 +349902,9 @@ class cl_oo_factory {
     this.#mv_name.set(abap.builtin.to_upper({val: clif_name}));
     await abap.statements.select(ls_data, {select: "SELECT * FROM " + abap.buildDbTableName("reposrc") + " WHERE \"progname\" = '" + this.#mv_name.get() + "' UP TO 1 ROWS", primaryKey: ["progname"]});
     if (abap.compare.ne(abap.builtin.sy.get().subrc, abap.IntegerFactory.get(0))) {
-      const unique203 = await (new abap.Classes['CX_OO_CLIF_NOT_EXISTS']()).constructor_();
-      unique203.EXTRA_CX = {"INTERNAL_FILENAME": "cl_oo_factory.clas.abap","INTERNAL_LINE": 35};
-      throw unique203;
+      const unique206 = await (new abap.Classes['CX_OO_CLIF_NOT_EXISTS']()).constructor_();
+      unique206.EXTRA_CX = {"INTERNAL_FILENAME": "cl_oo_factory.clas.abap","INTERNAL_LINE": 35};
+      throw unique206;
     }
     return result;
   }
@@ -350370,9 +350420,9 @@ class cl_osql_test_environment {
     let lo_env = new abap.types.ABAPObject({qualifiedName: "CL_OSQL_TEST_ENVIRONMENT", RTTIName: "\\CLASS=CL_OSQL_TEST_ENVIRONMENT"});
     abap.statements.assert(abap.compare.eq(abap.builtin.sy.get().dbsys, abap.CharacterFactory.get(6, 'sqlite')));
     if (abap.compare.initial(cl_osql_test_environment.go_active) === false) {
-      const unique141 = await (new abap.Classes['CX_OSQL_FAILURE']()).constructor_({reason: new abap.types.String().set(`cl_osql_test_environment: environment already created, call destroy( ) before creating a new one`)});
-      unique141.EXTRA_CX = {"INTERNAL_FILENAME": "cl_osql_test_environment.clas.abap","INTERNAL_LINE": 34};
-      throw unique141;
+      const unique144 = await (new abap.Classes['CX_OSQL_FAILURE']()).constructor_({reason: new abap.types.String().set(`cl_osql_test_environment: environment already created, call destroy( ) before creating a new one`)});
+      unique144.EXTRA_CX = {"INTERNAL_FILENAME": "cl_osql_test_environment.clas.abap","INTERNAL_LINE": 34};
+      throw unique144;
     }
     lo_env.set(await (new abap.Classes['CL_OSQL_TEST_ENVIRONMENT']()).constructor_());
     lo_env.get().FRIENDS_ACCESS_INSTANCE["mt_tables"].set(i_dependency_list);
@@ -350386,8 +350436,8 @@ class cl_osql_test_environment {
     let ref = new abap.types.DataReference(new abap.types.Character(4));
     let lv_table = new abap.types.Character(30, {"qualifiedName":"abap_compname"});
     let fs_fs_ = new abap.types.FieldSymbol(new abap.types.Character(4));
-    for await (const unique142 of abap.statements.loop(this.#mt_tables)) {
-      lv_table.set(unique142);
+    for await (const unique145 of abap.statements.loop(this.#mt_tables)) {
+      lv_table.set(unique145);
       try {
         abap.statements.createData(ref,{"name": lv_table.get()});
         abap.statements.assign({target: fs_fs_, source: ref.dereference()});
@@ -350409,8 +350459,8 @@ class cl_osql_test_environment {
     if (abap.dbo.schemaPrefix !== "") throw new Error("already prefixed");
     await this.#validate();
     await this.#mo_sql.get().execute_update({statement: new abap.types.String().set(`ATTACH DATABASE ':memory:' AS ${abap.templateFormatting(cl_osql_test_environment.mv_schema)};`)});
-    for await (const unique143 of abap.statements.loop(this.#mt_tables)) {
-      lv_table.set(unique143);
+    for await (const unique146 of abap.statements.loop(this.#mt_tables)) {
+      lv_table.set(unique146);
       lv_table.set(abap.builtin.to_lower({val: lv_table}));
       lo_result.set((await this.#mo_sql.get().execute_query({statement: new abap.types.String().set(`SELECT sql FROM main.sqlite_master WHERE type='table' AND name='${abap.templateFormatting(lv_table)}';`), result_set: 1})));
       abap.statements.getReference(lr_ref, lv_sql);
@@ -350428,17 +350478,17 @@ class cl_osql_test_environment {
   }
   async if_osql_test_environment$clear_doubles() {
     let lv_table = new abap.types.Character(30, {"qualifiedName":"abap_compname"});
-    for await (const unique144 of abap.statements.loop(this.#mt_tables)) {
-      lv_table.set(unique144);
+    for await (const unique147 of abap.statements.loop(this.#mt_tables)) {
+      lv_table.set(unique147);
       lv_table.set(abap.builtin.to_lower({val: lv_table}));
       await this.#mo_sql.get().execute_update({statement: new abap.types.String().set(`DELETE FROM ${abap.templateFormatting(cl_osql_test_environment.mv_schema)}."${abap.templateFormatting(lv_table)}";`)});
     }
   }
   async if_osql_test_environment$destroy() {
     if (abap.compare.ne(cl_osql_test_environment.go_active, this.me)) {
-      const unique145 = await (new abap.Classes['CX_OSQL_FAILURE']()).constructor_({reason: new abap.types.String().set(`cl_osql_test_environment: environment already destroyed`)});
-      unique145.EXTRA_CX = {"INTERNAL_FILENAME": "cl_osql_test_environment.clas.abap","INTERNAL_LINE": 118};
-      throw unique145;
+      const unique148 = await (new abap.Classes['CX_OSQL_FAILURE']()).constructor_({reason: new abap.types.String().set(`cl_osql_test_environment: environment already destroyed`)});
+      unique148.EXTRA_CX = {"INTERNAL_FILENAME": "cl_osql_test_environment.clas.abap","INTERNAL_LINE": 118};
+      throw unique148;
     }
     await abap.statements.commit();
     await this.#mo_sql.get().execute_update({statement: new abap.types.String().set(`DETACH DATABASE ${abap.templateFormatting(cl_osql_test_environment.mv_schema)};`)});
@@ -350917,10 +350967,10 @@ class cl_sec_sxml_writer {
     if (INPUT === undefined || INPUT.algorithm === undefined) {algorithm = this.co_aes128_algorithm;}
     let result = INPUT?.result || new abap.types.XString({qualifiedName: "XSTRING"});
     let lv_algo = new abap.types.String({qualifiedName: "STRING"});
-    let unique179 = algorithm;
-    if (abap.compare.eq(unique179, cl_sec_sxml_writer.co_aes128_algorithm)) {
+    let unique182 = algorithm;
+    if (abap.compare.eq(unique182, cl_sec_sxml_writer.co_aes128_algorithm)) {
       lv_algo.set(abap.CharacterFactory.get(11, 'aes-128-ctr'));
-    } else if (abap.compare.eq(unique179, cl_sec_sxml_writer.co_aes256_algorithm)) {
+    } else if (abap.compare.eq(unique182, cl_sec_sxml_writer.co_aes256_algorithm)) {
       lv_algo.set(abap.CharacterFactory.get(11, 'aes-256-ctr'));
     } else {
       abap.statements.assert(abap.compare.eq(abap.IntegerFactory.get(1), abap.CharacterFactory.get(4, 'todo')));
@@ -351173,14 +351223,14 @@ class cl_shm_area extends cx_shm_general_error {
     if (abap.compare.eq(sneak_mode, abap.builtin.abap_false) && abap.compare.initial(cl_shm_area.mo_root)) {
       lv_name.set(area_name);
       abap.statements.replace({target: lv_name, all: false, with: abap.CharacterFactory.get(5, '_ROOT'), of: abap.CharacterFactory.get(5, '_AREA')});
-      let unique180 = abap.Classes["CLAS-CL_SHM_AREA-"+lv_name.get().trimEnd()];
-      if (unique180 === undefined) { unique180 = abap.Classes[lv_name.get().trimEnd()]; }
-      if (unique180 === undefined && abap.Classes['KERNEL_INTERNAL_NAME'] !== undefined) {
-          const unique181 = await abap.Classes['KERNEL_INTERNAL_NAME'].rtti_to_internal({iv_rtti: lv_name.get()});
-          unique180 = abap.Classes[unique181.get().trimEnd()];
+      let unique183 = abap.Classes["CLAS-CL_SHM_AREA-"+lv_name.get().trimEnd()];
+      if (unique183 === undefined) { unique183 = abap.Classes[lv_name.get().trimEnd()]; }
+      if (unique183 === undefined && abap.Classes['KERNEL_INTERNAL_NAME'] !== undefined) {
+          const unique184 = await abap.Classes['KERNEL_INTERNAL_NAME'].rtti_to_internal({iv_rtti: lv_name.get()});
+          unique183 = abap.Classes[unique184.get().trimEnd()];
       }
-      if (unique180 === undefined) { throw new abap.Classes['CX_SY_CREATE_OBJECT_ERROR']; }
-      created.set(await (new unique180()).constructor_());
+      if (unique183 === undefined) { throw new abap.Classes['CX_SY_CREATE_OBJECT_ERROR']; }
+      created.set(await (new unique183()).constructor_());
       await this._set_root({root: created});
     }
     root.set(cl_shm_area.mo_root);
@@ -351351,14 +351401,14 @@ class cl_shm_area extends cx_shm_general_error {
     let lv_name = new abap.types.String({qualifiedName: "STRING"});
     if (abap.compare.initial(cl_shm_area.mo_root)) {
       abap.statements.replace({target: lv_name, all: false, with: abap.CharacterFactory.get(5, '_ROOT'), of: abap.CharacterFactory.get(5, '_AREA')});
-      let unique182 = abap.Classes["CLAS-CL_SHM_AREA-"+lv_name.get().trimEnd()];
-      if (unique182 === undefined) { unique182 = abap.Classes[lv_name.get().trimEnd()]; }
-      if (unique182 === undefined && abap.Classes['KERNEL_INTERNAL_NAME'] !== undefined) {
-          const unique183 = await abap.Classes['KERNEL_INTERNAL_NAME'].rtti_to_internal({iv_rtti: lv_name.get()});
-          unique182 = abap.Classes[unique183.get().trimEnd()];
+      let unique185 = abap.Classes["CLAS-CL_SHM_AREA-"+lv_name.get().trimEnd()];
+      if (unique185 === undefined) { unique185 = abap.Classes[lv_name.get().trimEnd()]; }
+      if (unique185 === undefined && abap.Classes['KERNEL_INTERNAL_NAME'] !== undefined) {
+          const unique186 = await abap.Classes['KERNEL_INTERNAL_NAME'].rtti_to_internal({iv_rtti: lv_name.get()});
+          unique185 = abap.Classes[unique186.get().trimEnd()];
       }
-      if (unique182 === undefined) { throw new abap.Classes['CX_SY_CREATE_OBJECT_ERROR']; }
-      created.set(await (new unique182()).constructor_());
+      if (unique185 === undefined) { throw new abap.Classes['CX_SY_CREATE_OBJECT_ERROR']; }
+      created.set(await (new unique185()).constructor_());
       await this._set_root({root: created});
     }
     root.set(cl_shm_area.mo_root);
@@ -351862,9 +351912,9 @@ class cl_sql_statement {
       lv_sql_message.set(abap.CharacterFactory.get(19, 'not connected to db'));
     }
     if (abap.compare.initial(lv_sql_message) === false) {
-      const unique334 = await (new abap.Classes['CX_SQL_EXCEPTION']()).constructor_();
-      unique334.EXTRA_CX = {"INTERNAL_FILENAME": "cl_sql_statement.clas.abap","INTERNAL_LINE": 98};
-      throw unique334;
+      const unique343 = await (new abap.Classes['CX_SQL_EXCEPTION']()).constructor_();
+      unique343.EXTRA_CX = {"INTERNAL_FILENAME": "cl_sql_statement.clas.abap","INTERNAL_LINE": 98};
+      throw unique343;
     }
     try {
         await abap.context.databaseConnections[connection.get()].execute(statement.get());
@@ -351872,9 +351922,9 @@ class cl_sql_statement {
         lv_sql_message.set(e + "");
     }
     if (abap.compare.initial(lv_sql_message) === false) {
-      const unique335 = await (new abap.Classes['CX_SQL_EXCEPTION']()).constructor_();
-      unique335.EXTRA_CX = {"INTERNAL_FILENAME": "cl_sql_statement.clas.abap","INTERNAL_LINE": 107};
-      throw unique335;
+      const unique344 = await (new abap.Classes['CX_SQL_EXCEPTION']()).constructor_();
+      unique344.EXTRA_CX = {"INTERNAL_FILENAME": "cl_sql_statement.clas.abap","INTERNAL_LINE": 107};
+      throw unique344;
     }
     return rows_updated;
   }
@@ -351895,9 +351945,9 @@ class cl_sql_statement {
       lv_sql_message.set(abap.CharacterFactory.get(19, 'not connected to db'));
     }
     if (abap.compare.initial(lv_sql_message) === false) {
-      const unique336 = await (new abap.Classes['CX_SQL_EXCEPTION']()).constructor_({sql_message: lv_sql_message});
-      unique336.EXTRA_CX = {"INTERNAL_FILENAME": "cl_sql_statement.clas.abap","INTERNAL_LINE": 127};
-      throw unique336;
+      const unique345 = await (new abap.Classes['CX_SQL_EXCEPTION']()).constructor_({sql_message: lv_sql_message});
+      unique345.EXTRA_CX = {"INTERNAL_FILENAME": "cl_sql_statement.clas.abap","INTERNAL_LINE": 127};
+      throw unique345;
     }
     result_set.set(await (new abap.Classes['CL_SQL_RESULT_SET']()).constructor_());
     try {
@@ -351906,9 +351956,9 @@ class cl_sql_statement {
     } catch (e) {
       if ((abap.Classes['CX_SY_DYNAMIC_OSQL_SEMANTICS'] && e instanceof abap.Classes['CX_SY_DYNAMIC_OSQL_SEMANTICS'])) {
         lx_osql.set(e);
-        const unique337 = await (new abap.Classes['CX_SQL_EXCEPTION']()).constructor_({sql_message: lx_osql.get().sqlmsg});
-        unique337.EXTRA_CX = {"INTERNAL_FILENAME": "cl_sql_statement.clas.abap","INTERNAL_LINE": 137};
-        throw unique337;
+        const unique346 = await (new abap.Classes['CX_SQL_EXCEPTION']()).constructor_({sql_message: lx_osql.get().sqlmsg});
+        unique346.EXTRA_CX = {"INTERNAL_FILENAME": "cl_sql_statement.clas.abap","INTERNAL_LINE": 137};
+        throw unique346;
       } else {
         throw e;
       }
@@ -352214,10 +352264,10 @@ class cl_sxml_string_writer {
       await this.#append_text({text: abap.CharacterFactory.get(1, ',')});
     }
     abap.statements.append({source: name, target: this.#mt_stack});
-    let unique168 = name;
-    if (abap.compare.eq(unique168, abap.CharacterFactory.get(6, 'object'))) {
+    let unique171 = name;
+    if (abap.compare.eq(unique171, abap.CharacterFactory.get(6, 'object'))) {
       await this.#append_text({text: abap.CharacterFactory.get(1, '{')});
-    } else if (abap.compare.eq(unique168, abap.CharacterFactory.get(5, 'array'))) {
+    } else if (abap.compare.eq(unique171, abap.CharacterFactory.get(5, 'array'))) {
       await this.#append_text({text: abap.CharacterFactory.get(1, '[')});
     }
   }
@@ -352240,10 +352290,10 @@ class cl_sxml_string_writer {
   async #json_close_element() {
     let name = new abap.types.String({qualifiedName: "STRING"});
     name.set((await this.#remove({rv_name: 1})));
-    let unique169 = name;
-    if (abap.compare.eq(unique169, abap.CharacterFactory.get(6, 'object'))) {
+    let unique172 = name;
+    if (abap.compare.eq(unique172, abap.CharacterFactory.get(6, 'object'))) {
       await this.#append_text({text: abap.CharacterFactory.get(1, '}')});
-    } else if (abap.compare.eq(unique169, abap.CharacterFactory.get(5, 'array'))) {
+    } else if (abap.compare.eq(unique172, abap.CharacterFactory.get(5, 'array'))) {
       await this.#append_text({text: abap.CharacterFactory.get(1, ']')});
     }
   }
@@ -352295,12 +352345,12 @@ class cl_sxml_string_writer {
     if (value === undefined) { value = new abap.types.String({qualifiedName: "STRING"}).set(INPUT.value); }
     let name = new abap.types.String({qualifiedName: "STRING"});
     name.set((await this.#peek({rv_name: 1})));
-    let unique170 = name;
-    if (abap.compare.eq(unique170, abap.CharacterFactory.get(3, 'str'))) {
+    let unique173 = name;
+    if (abap.compare.eq(unique173, abap.CharacterFactory.get(3, 'str'))) {
       await this.#append_text({text: abap.CharacterFactory.get(1, '"')});
       await this.#append_text({text: abap.builtin.condense({val: value})});
       await this.#append_text({text: abap.CharacterFactory.get(1, '"')});
-    } else if (abap.compare.eq(unique170, abap.CharacterFactory.get(3, 'num'))) {
+    } else if (abap.compare.eq(unique173, abap.CharacterFactory.get(3, 'num'))) {
       await this.#append_text({text: abap.builtin.condense({val: value})});
     } else {
       console.dir(name);
@@ -364447,8 +364497,8 @@ class kernel_authority_check {
       if (abap.compare.initial(object)) {
         return result;
       }
-      for await (const unique222 of abap.statements.loop(kernel_authority_check.gt_authorizations)) {
-        ls_user_auth.set(unique222);
+      for await (const unique225 of abap.statements.loop(kernel_authority_check.gt_authorizations)) {
+        ls_user_auth.set(unique225);
         lt_users.set(ls_user_auth.get().users);
         if (abap.compare.initial(lt_users) === false) {
           abap.statements.readTable(lt_users,{withKey: (i) => {return abap.compare.eq(i.table_line, user);},
@@ -364459,14 +364509,14 @@ class kernel_authority_check {
             continue;
           }
         }
-        for await (const unique223 of abap.statements.loop(ls_user_auth.get().role_authorizations,{where: async (I) => {return abap.compare.eq(I.object, object);},topEquals: {"object": object}})) {
-          ls_object.set(unique223);
+        for await (const unique226 of abap.statements.loop(ls_user_auth.get().role_authorizations,{where: async (I) => {return abap.compare.eq(I.object, object);},topEquals: {"object": object}})) {
+          ls_object.set(unique226);
           if (abap.compare.initial(ls_object.get().authorizations)) {
             result.set(abap.builtin.abap_true);
             return result;
           }
-          for await (const unique224 of abap.statements.loop(ls_object.get().authorizations)) {
-            ls_configured.set(unique224);
+          for await (const unique227 of abap.statements.loop(ls_object.get().authorizations)) {
+            ls_configured.set(unique227);
             if (abap.compare.eq((await this.authorization_matches({configured: ls_configured, requested: authorization, result: 1})), abap.builtin.abap_true)) {
               result.set(abap.builtin.abap_true);
               return result;
@@ -364517,8 +364567,8 @@ class kernel_authority_check {
       if (abap.compare.initial(configured)) {
         return result;
       }
-      for await (const unique225 of abap.statements.loop(requested)) {
-        ls_requested.set(unique225);
+      for await (const unique228 of abap.statements.loop(requested)) {
+        ls_requested.set(unique228);
         if (abap.compare.initial(ls_requested.get().fieldvalues)) {
           continue;
         }
@@ -364533,12 +364583,12 @@ class kernel_authority_check {
           result.set(abap.builtin.abap_false);
           return result;
         }
-        for await (const unique226 of abap.statements.loop(ls_requested.get().fieldvalues)) {
-          ls_requested_value.set(unique226);
+        for await (const unique229 of abap.statements.loop(ls_requested.get().fieldvalues)) {
+          ls_requested_value.set(unique229);
           lv_value.set(ls_requested_value.get().lower_value);
           lv_matched.set(abap.builtin.abap_false);
-          for await (const unique227 of abap.statements.loop(ls_configured.get().fieldvalues)) {
-            ls_configured_value.set(unique227);
+          for await (const unique230 of abap.statements.loop(ls_configured.get().fieldvalues)) {
+            ls_configured_value.set(unique230);
             if (abap.compare.eq(ls_configured_value.get().lower_value, abap.CharacterFactory.get(1, '*')) || (abap.compare.initial(ls_configured_value.get().upper_value) && ((abap.compare.cs(ls_configured_value.get().lower_value, abap.CharacterFactory.get(1, '*')) && abap.compare.cp(lv_value, ls_configured_value.get().lower_value)) || (abap.compare.ns(ls_configured_value.get().lower_value, abap.CharacterFactory.get(1, '*')) && abap.compare.eq(lv_value, ls_configured_value.get().lower_value)))) || (abap.compare.initial(ls_configured_value.get().upper_value) === false && abap.compare.ge(lv_value, ls_configured_value.get().lower_value) && abap.compare.le(lv_value, ls_configured_value.get().upper_value))) {
               lv_matched.set(abap.builtin.abap_true);
               break;
@@ -364742,9 +364792,9 @@ class kernel_call_transformation {
         lv_type.set(abap.CharacterFactory.get(4, 'JSON'));
         kernel_call_transformation.mi_doc.set((await abap.Classes['KERNEL_JSON_TO_IXML'].build({iv_json: lv_source, ri_doc: 1})));
       } else {
-        const unique262 = await (new abap.Classes['CX_XSLT_FORMAT_ERROR']()).constructor_();
-        unique262.EXTRA_CX = {"INTERNAL_FILENAME": "kernel_call_transformation.clas.abap","INTERNAL_LINE": 85};
-        throw unique262;
+        const unique265 = await (new abap.Classes['CX_XSLT_FORMAT_ERROR']()).constructor_();
+        unique265.EXTRA_CX = {"INTERNAL_FILENAME": "kernel_call_transformation.clas.abap","INTERNAL_LINE": 85};
+        throw unique265;
       }
     }
     if (typeof INPUT.source === "object"
@@ -364787,14 +364837,14 @@ class kernel_call_transformation {
         return;
       }
       if (abap.compare.initial(lv_source) && abap.compare.initial(kernel_call_transformation.mi_doc)) {
-        const unique263 = await (new abap.Classes['CX_XSLT_RUNTIME_ERROR']()).constructor_();
-        unique263.EXTRA_CX = {"INTERNAL_FILENAME": "kernel_call_transformation.clas.abap","INTERNAL_LINE": 146};
-        throw unique263;
+        const unique266 = await (new abap.Classes['CX_XSLT_RUNTIME_ERROR']()).constructor_();
+        unique266.EXTRA_CX = {"INTERNAL_FILENAME": "kernel_call_transformation.clas.abap","INTERNAL_LINE": 146};
+        throw unique266;
       }
       if (INPUT.result.constructor.name === "Table") {
         lt_rtab = INPUT.result;
-        for await (const unique264 of abap.statements.loop(lt_rtab)) {
-          ls_rtab.set(unique264);
+        for await (const unique267 of abap.statements.loop(lt_rtab)) {
+          ls_rtab.set(unique267);
           await abap.Classes['KERNEL_IXML_XML_TO_DATA'].build({iv_name: ls_rtab.get().name, iv_ref: ls_rtab.get().value, ii_doc: kernel_call_transformation.mi_doc});
         }
       } else {
@@ -364918,26 +364968,26 @@ class kernel_create_data_handle {
     let dref = new abap.types.DataReference(new abap.types.Character(4));
     if (INPUT && INPUT.dref) {dref = INPUT.dref;}
     if (abap.compare.initial(handle)) {
-      const unique214 = await (new abap.Classes['CX_SY_REF_IS_INITIAL']()).constructor_();
-      unique214.EXTRA_CX = {"INTERNAL_FILENAME": "kernel_create_data_handle.clas.abap","INTERNAL_LINE": 36};
-      throw unique214;
+      const unique217 = await (new abap.Classes['CX_SY_REF_IS_INITIAL']()).constructor_();
+      unique217.EXTRA_CX = {"INTERNAL_FILENAME": "kernel_create_data_handle.clas.abap","INTERNAL_LINE": 36};
+      throw unique217;
     }
     if (abap.compare.eq(handle.get().type_kind, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_data) && abap.compare.eq(allow_generic, abap.builtin.abap_false)) {
-      const unique215 = await (new abap.Classes['CX_SY_CREATE_DATA_ERROR']()).constructor_();
-      unique215.EXTRA_CX = {"INTERNAL_FILENAME": "kernel_create_data_handle.clas.abap","INTERNAL_LINE": 41};
-      throw unique215;
+      const unique218 = await (new abap.Classes['CX_SY_CREATE_DATA_ERROR']()).constructor_();
+      unique218.EXTRA_CX = {"INTERNAL_FILENAME": "kernel_create_data_handle.clas.abap","INTERNAL_LINE": 41};
+      throw unique218;
     }
     if (dref.constructor.name === "FieldSymbol") {
         dref = dref.getPointer();
     }
-    let unique216 = handle.get().kind;
-    if (abap.compare.eq(unique216, abap.Classes['CL_ABAP_TYPEDESCR'].kind_elem)) {
+    let unique219 = handle.get().kind;
+    if (abap.compare.eq(unique219, abap.Classes['CL_ABAP_TYPEDESCR'].kind_elem)) {
       await this.elem({handle: handle, dref: dref});
-    } else if (abap.compare.eq(unique216, abap.Classes['CL_ABAP_TYPEDESCR'].kind_struct)) {
+    } else if (abap.compare.eq(unique219, abap.Classes['CL_ABAP_TYPEDESCR'].kind_struct)) {
       await this.struct({handle: handle, dref: dref});
-    } else if (abap.compare.eq(unique216, abap.Classes['CL_ABAP_TYPEDESCR'].kind_table)) {
+    } else if (abap.compare.eq(unique219, abap.Classes['CL_ABAP_TYPEDESCR'].kind_table)) {
       await this.table({handle: handle, dref: dref});
-    } else if (abap.compare.eq(unique216, abap.Classes['CL_ABAP_TYPEDESCR'].kind_ref)) {
+    } else if (abap.compare.eq(unique219, abap.Classes['CL_ABAP_TYPEDESCR'].kind_ref)) {
       await this.ref({handle: handle, dref: dref});
     } else {
       console.dir(handle);
@@ -364960,8 +365010,8 @@ class kernel_create_data_handle {
     let lv_relative_name = new abap.types.String({qualifiedName: "STRING"});
     let lv_absolute_name = new abap.types.String({qualifiedName: "STRING"});
     await abap.statements.cast(lo_refdescr, handle);
-    let unique217 = lo_refdescr.get().type_kind;
-    if (abap.compare.eq(unique217, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_oref)) {
+    let unique220 = lo_refdescr.get().type_kind;
+    if (abap.compare.eq(unique220, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_oref)) {
       await abap.statements.cast(lo_classdescr, (await lo_refdescr.get().get_referenced_type({type: 1})));
       lv_relative_name.set(lo_classdescr.get().relative_name);
       lv_absolute_name.set(lo_classdescr.get().absolute_name);
@@ -365000,8 +365050,8 @@ class kernel_create_data_handle {
     let obj = {};
     let suffix = {};
     let asInclude = {};
-    for await (const unique218 of abap.statements.loop(lt_components)) {
-      fs_ls_component_.assign(unique218);
+    for await (const unique221 of abap.statements.loop(lt_components)) {
+      fs_ls_component_.assign(unique221);
       await this.call({handle: (await lo_struct.get().get_component_type({p_name: fs_ls_component_.get().name, p_descr_ref: 1})), dref: field});
       lv_name.set(abap.builtin.to_lower({val: fs_ls_component_.get().name}));
       obj[lv_name.get()] = field.getPointer();
@@ -365048,8 +365098,8 @@ class kernel_create_data_handle {
     let options = {primaryKey: undefined, keyType: "DEFAULT", withHeader: false};
     options.primaryKey = {name: "primary_key", type: "STANDARD", keyFields: [], isUnique: false};
     lt_keys.set((await lo_table.get().get_keys({p_keys: 1})));
-    for await (const unique219 of abap.statements.loop(lt_keys,{where: async (I) => {return abap.compare.eq(I.is_primary, abap.builtin.abap_true);},topEquals: {"is_primary": abap.builtin.abap_true}})) {
-      fs_ls_key_.assign(unique219);
+    for await (const unique222 of abap.statements.loop(lt_keys,{where: async (I) => {return abap.compare.eq(I.is_primary, abap.builtin.abap_true);},topEquals: {"is_primary": abap.builtin.abap_true}})) {
+      fs_ls_key_.assign(unique222);
       if (abap.compare.eq(fs_ls_key_.get().access_kind, abap.Classes['CL_ABAP_TABLEDESCR'].tablekind_sorted)) {
         options.primaryKey.type = "SORTED";
       } else if (abap.compare.eq(fs_ls_key_.get().access_kind, abap.Classes['CL_ABAP_TABLEDESCR'].tablekind_hashed)) {
@@ -365058,8 +365108,8 @@ class kernel_create_data_handle {
       if (abap.compare.eq(fs_ls_key_.get().is_unique, abap.builtin.abap_true)) {
         options.primaryKey.isUnique = true;
       }
-      for await (const unique220 of abap.statements.loop(fs_ls_key_.get().components)) {
-        lv_component.set(unique220);
+      for await (const unique223 of abap.statements.loop(fs_ls_key_.get().components)) {
+        lv_component.set(unique223);
         options.primaryKey.keyFields.push(lv_component.get().toLowerCase());
       }
     }
@@ -365075,51 +365125,51 @@ class kernel_create_data_handle {
     let dref = new abap.types.DataReference(new abap.types.Character(4));
     if (INPUT && INPUT.dref) {dref = INPUT.dref;}
     let lv_half = new abap.types.Integer({qualifiedName: "I"});
-    let unique221 = handle.get().type_kind;
-    if (abap.compare.eq(unique221, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_data)) {
+    let unique224 = handle.get().type_kind;
+    if (abap.compare.eq(unique224, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_data)) {
       dref.assign(new abap.types.Character(4));
-    } else if (abap.compare.eq(unique221, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_float)) {
+    } else if (abap.compare.eq(unique224, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_float)) {
       abap.statements.createData(dref,{"typeName": "F"});
       dref.getPointer().qualifiedName = handle.get().internal_qualified_name;
-    } else if (abap.compare.eq(unique221, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_string)) {
+    } else if (abap.compare.eq(unique224, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_string)) {
       abap.statements.createData(dref,{"typeName": "STRING"});
       dref.getPointer().qualifiedName = handle.get().internal_qualified_name;
-    } else if (abap.compare.eq(unique221, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_xstring)) {
+    } else if (abap.compare.eq(unique224, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_xstring)) {
       abap.statements.createData(dref,{"typeName": "XSTRING"});
       dref.getPointer().qualifiedName = handle.get().internal_qualified_name;
-    } else if (abap.compare.eq(unique221, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_int)) {
+    } else if (abap.compare.eq(unique224, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_int)) {
       abap.statements.createData(dref,{"typeName": "I"});
       dref.getPointer().qualifiedName = handle.get().internal_qualified_name;
-    } else if (abap.compare.eq(unique221, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_utclong)) {
+    } else if (abap.compare.eq(unique224, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_utclong)) {
       abap.statements.createData(dref,{"typeName": "UTCLONG"});
       dref.getPointer().qualifiedName = handle.get().internal_qualified_name;
-    } else if (abap.compare.eq(unique221, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_date)) {
+    } else if (abap.compare.eq(unique224, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_date)) {
       abap.statements.createData(dref,{"typeName": "D"});
       dref.getPointer().qualifiedName = handle.get().internal_qualified_name;
-    } else if (abap.compare.eq(unique221, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_hex)) {
+    } else if (abap.compare.eq(unique224, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_hex)) {
       abap.statements.createData(dref,{"typeName": "X","length": handle.get().length});
       dref.getPointer().qualifiedName = handle.get().internal_qualified_name;
-    } else if (abap.compare.eq(unique221, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_packed)) {
+    } else if (abap.compare.eq(unique224, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_packed)) {
       abap.statements.createData(dref,{"typeName": "P","length": handle.get().length,"decimals": handle.get().decimals});
       dref.getPointer().qualifiedName = handle.get().internal_qualified_name;
-    } else if (abap.compare.eq(unique221, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_char)) {
+    } else if (abap.compare.eq(unique224, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_char)) {
       lv_half.set(abap.operators.divide(handle.get().length,abap.IntegerFactory.get(2)));
       abap.statements.createData(dref,{"typeName": "C","length": lv_half});
       dref.getPointer().extra = {"qualifiedName": handle.get().internal_qualified_name};
-    } else if (abap.compare.eq(unique221, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_num)) {
+    } else if (abap.compare.eq(unique224, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_num)) {
       lv_half.set(abap.operators.divide(handle.get().length,abap.IntegerFactory.get(2)));
       abap.statements.createData(dref,{"typeName": "N","length": lv_half});
       dref.getPointer().qualifiedName = handle.get().internal_qualified_name;
-    } else if (abap.compare.eq(unique221, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_time)) {
+    } else if (abap.compare.eq(unique224, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_time)) {
       abap.statements.createData(dref,{"typeName": "T"});
       dref.getPointer().qualifiedName = handle.get().internal_qualified_name;
-    } else if (abap.compare.eq(unique221, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_int8)) {
+    } else if (abap.compare.eq(unique224, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_int8)) {
       abap.statements.createData(dref,{"typeName": "INT8"});
       dref.getPointer().qualifiedName = handle.get().internal_qualified_name;
-    } else if (abap.compare.eq(unique221, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_decfloat16)) {
+    } else if (abap.compare.eq(unique224, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_decfloat16)) {
       abap.statements.createData(dref,{"typeName": "DECFLOAT16"});
       dref.getPointer().qualifiedName = handle.get().internal_qualified_name;
-    } else if (abap.compare.eq(unique221, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_decfloat34)) {
+    } else if (abap.compare.eq(unique224, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_decfloat34)) {
       abap.statements.createData(dref,{"typeName": "DECFLOAT34"});
       dref.getPointer().qualifiedName = handle.get().internal_qualified_name;
     } else {
@@ -365363,9 +365413,9 @@ class kernel_ixml_json_to_data {
     if (abap.compare.initial(attr) === false) {
       li_aiterator.set((await attr.get().if_ixml_named_node_map$create_iterator({iterator: 1})));
       const indexBackup1 = abap.builtin.sy.get().index.get();
-      let unique243 = 1;
+      let unique246 = 1;
       while (true) {
-        abap.builtin.sy.get().index.set(unique243++);
+        abap.builtin.sy.get().index.set(unique246++);
         li_anode.set((await li_aiterator.get().if_ixml_node_iterator$get_next({rval: 1})));
         if (abap.compare.initial(li_anode)) {
           break;
@@ -365398,9 +365448,9 @@ class kernel_ixml_json_to_data {
     abap.statements.assert(abap.compare.eq((await li_first.get().if_ixml_node$get_name({val: 1})), abap.CharacterFactory.get(6, 'object')));
     li_iterator.set((await (await li_first.get().if_ixml_node$get_children({val: 1})).get().if_ixml_node_list$create_iterator({rval: 1})));
     const indexBackup1 = abap.builtin.sy.get().index.get();
-    let unique244 = 1;
+    let unique247 = 1;
     while (true) {
-      abap.builtin.sy.get().index.set(unique244++);
+      abap.builtin.sy.get().index.set(unique247++);
       li_node.set((await li_iterator.get().if_ixml_node_iterator$get_next({rval: 1})));
       if (abap.compare.initial(li_node)) {
         break;
@@ -365433,14 +365483,14 @@ class kernel_ixml_json_to_data {
     let fs_tab_ = new abap.types.FieldSymbol(abap.types.TableFactory.construct(new abap.types.Character(4), {"withHeader":false,"keyType":"USER"}));
     abap.statements.assign({target: fs_any_, source: iv_ref.dereference()});
     lo_type.set((await abap.Classes['CL_ABAP_TYPEDESCR'].describe_by_data({p_data: fs_any_, type: 1})));
-    let unique245 = lo_type.get().kind;
-    if (abap.compare.eq(unique245, abap.Classes['CL_ABAP_TYPEDESCR'].kind_struct)) {
+    let unique248 = lo_type.get().kind;
+    if (abap.compare.eq(unique248, abap.Classes['CL_ABAP_TYPEDESCR'].kind_struct)) {
       abap.statements.assert(abap.compare.eq((await ii_node.get().if_ixml_node$get_name({val: 1})), abap.CharacterFactory.get(6, 'object')));
       li_iterator.set((await (await ii_node.get().if_ixml_node$get_children({val: 1})).get().if_ixml_node_list$create_iterator({rval: 1})));
       const indexBackup1 = abap.builtin.sy.get().index.get();
-      let unique246 = 1;
+      let unique249 = 1;
       while (true) {
-        abap.builtin.sy.get().index.set(unique246++);
+        abap.builtin.sy.get().index.set(unique249++);
         li_child.set((await li_iterator.get().if_ixml_node_iterator$get_next({rval: 1})));
         if (abap.compare.initial(li_child)) {
           break;
@@ -365453,21 +365503,21 @@ class kernel_ixml_json_to_data {
         }
       }
       abap.builtin.sy.get().index.set(indexBackup1);
-    } else if (abap.compare.eq(unique245, abap.Classes['CL_ABAP_TYPEDESCR'].kind_elem)) {
+    } else if (abap.compare.eq(unique248, abap.Classes['CL_ABAP_TYPEDESCR'].kind_elem)) {
       li_child.set((await ii_node.get().if_ixml_node$get_first_child({node: 1})));
       abap.statements.assert(abap.compare.eq((await li_child.get().if_ixml_node$get_name({val: 1})), abap.CharacterFactory.get(5, '#text')));
       fs_any_.set((await li_child.get().if_ixml_node$get_value({val: 1})));
       if (abap.compare.eq(lo_type.get().type_kind, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_char) || abap.compare.eq(lo_type.get().type_kind, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_clike) || abap.compare.eq(lo_type.get().type_kind, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_string)) {
         abap.statements.replace({target: fs_any_, all: true, with: abap.CharacterFactory.get(1, '"'), of: abap.CharacterFactory.get(2, '\\"')});
       }
-    } else if (abap.compare.eq(unique245, abap.Classes['CL_ABAP_TYPEDESCR'].kind_table)) {
+    } else if (abap.compare.eq(unique248, abap.Classes['CL_ABAP_TYPEDESCR'].kind_table)) {
       abap.statements.assert(abap.compare.eq((await ii_node.get().if_ixml_node$get_name({val: 1})), abap.CharacterFactory.get(5, 'array')));
       abap.statements.assign({target: fs_tab_, source: iv_ref.dereference()});
       li_iterator.set((await (await ii_node.get().if_ixml_node$get_children({val: 1})).get().if_ixml_node_list$create_iterator({rval: 1})));
       const indexBackup2 = abap.builtin.sy.get().index.get();
-      let unique247 = 1;
+      let unique250 = 1;
       while (true) {
-        abap.builtin.sy.get().index.set(unique247++);
+        abap.builtin.sy.get().index.set(unique250++);
         li_child.set((await li_iterator.get().if_ixml_node_iterator$get_next({rval: 1})));
         if (abap.compare.initial(li_child)) {
           break;
@@ -365566,9 +365616,9 @@ class kernel_ixml_xml_to_data {
     abap.statements.assert(abap.compare.initial(iv_href) === false);
     li_iterator.set((await (await kernel_ixml_xml_to_data.mi_heap.get().if_ixml_element$get_children({val: 1})).get().if_ixml_node_list$create_iterator({rval: 1})));
     const indexBackup1 = abap.builtin.sy.get().index.get();
-    let unique238 = 1;
+    let unique241 = 1;
     while (true) {
-      abap.builtin.sy.get().index.set(unique238++);
+      abap.builtin.sy.get().index.set(unique241++);
       li_child.set((await li_iterator.get().if_ixml_node_iterator$get_next({rval: 1})));
       if (abap.compare.initial(li_child)) {
         break;
@@ -365608,14 +365658,14 @@ class kernel_ixml_xml_to_data {
     let fs_ref_ = new abap.types.FieldSymbol(new abap.types.Character(4));
     abap.statements.assign({target: fs_ref_, source: iv_ref.dereference()});
     lo_type.set((await abap.Classes['CL_ABAP_TYPEDESCR'].describe_by_data({p_data: fs_ref_, type: 1})));
-    let unique239 = lo_type.get().kind;
-    if (abap.compare.eq(unique239, abap.Classes['CL_ABAP_TYPEDESCR'].kind_struct)) {
+    let unique242 = lo_type.get().kind;
+    if (abap.compare.eq(unique242, abap.Classes['CL_ABAP_TYPEDESCR'].kind_struct)) {
       abap.statements.assign({target: fs_any_, source: iv_ref.dereference()});
       li_iterator.set((await (await ii_node.get().if_ixml_node$get_children({val: 1})).get().if_ixml_node_list$create_iterator({rval: 1})));
       const indexBackup1 = abap.builtin.sy.get().index.get();
-      let unique240 = 1;
+      let unique243 = 1;
       while (true) {
-        abap.builtin.sy.get().index.set(unique240++);
+        abap.builtin.sy.get().index.set(unique243++);
         li_child.set((await li_iterator.get().if_ixml_node_iterator$get_next({rval: 1})));
         if (abap.compare.initial(li_child)) {
           break;
@@ -365628,19 +365678,19 @@ class kernel_ixml_xml_to_data {
         }
       }
       abap.builtin.sy.get().index.set(indexBackup1);
-    } else if (abap.compare.eq(unique239, abap.Classes['CL_ABAP_TYPEDESCR'].kind_elem)) {
+    } else if (abap.compare.eq(unique242, abap.Classes['CL_ABAP_TYPEDESCR'].kind_elem)) {
       li_child.set((await ii_node.get().if_ixml_node$get_first_child({node: 1})));
       if (abap.compare.initial(li_child) === false) {
         abap.statements.assign({target: fs_any_, source: iv_ref.dereference()});
         fs_any_.set((await li_child.get().if_ixml_node$get_value({val: 1})));
       }
-    } else if (abap.compare.eq(unique239, abap.Classes['CL_ABAP_TYPEDESCR'].kind_table)) {
+    } else if (abap.compare.eq(unique242, abap.Classes['CL_ABAP_TYPEDESCR'].kind_table)) {
       abap.statements.assign({target: fs_tab_, source: iv_ref.dereference()});
       li_iterator.set((await (await ii_node.get().if_ixml_node$get_children({val: 1})).get().if_ixml_node_list$create_iterator({rval: 1})));
       const indexBackup2 = abap.builtin.sy.get().index.get();
-      let unique241 = 1;
+      let unique244 = 1;
       while (true) {
-        abap.builtin.sy.get().index.set(unique241++);
+        abap.builtin.sy.get().index.set(unique244++);
         li_child.set((await li_iterator.get().if_ixml_node_iterator$get_next({rval: 1})));
         if (abap.compare.initial(li_child)) {
           break;
@@ -365651,7 +365701,7 @@ class kernel_ixml_xml_to_data {
         abap.statements.insertInternal({data: fs_any_, table: fs_tab_});
       }
       abap.builtin.sy.get().index.set(indexBackup2);
-    } else if (abap.compare.eq(unique239, abap.Classes['CL_ABAP_TYPEDESCR'].kind_ref)) {
+    } else if (abap.compare.eq(unique242, abap.Classes['CL_ABAP_TYPEDESCR'].kind_ref)) {
       abap.statements.assign({target: fs_any_, source: iv_ref.dereference()});
       if (abap.compare.initial(fs_any_)) {
         li_href.set((await (await ii_node.get().if_ixml_node$get_attributes({map: 1})).get().if_ixml_named_node_map$get_named_item_ns({name: abap.CharacterFactory.get(4, 'href'), val: 1})));
@@ -365671,9 +365721,9 @@ class kernel_ixml_xml_to_data {
           fs_any_.pointer.value = new abap.Classes[lv_value.get()]();
           li_iterator.set((await (await (await li_heap.get().if_ixml_node$get_first_child({node: 1})).get().if_ixml_node$get_children({val: 1})).get().if_ixml_node_list$create_iterator({rval: 1})));
           const indexBackup3 = abap.builtin.sy.get().index.get();
-          let unique242 = 1;
+          let unique245 = 1;
           while (true) {
-            abap.builtin.sy.get().index.set(unique242++);
+            abap.builtin.sy.get().index.set(unique245++);
             li_child.set((await li_iterator.get().if_ixml_node_iterator$get_next({rval: 1})));
             if (abap.compare.initial(li_child)) {
               break;
@@ -365769,20 +365819,20 @@ class kernel_json_to_ixml {
     ri_doc.set((await (await abap.Classes['CL_IXML'].create({xml: 1})).get().if_ixml$create_document({doc: 1})));
     li_current.set((await ri_doc.get().if_ixml_document$get_root({node: 1})));
     const indexBackup1 = abap.builtin.sy.get().index.get();
-    let unique235 = 1;
+    let unique238 = 1;
     while (true) {
-      abap.builtin.sy.get().index.set(unique235++);
+      abap.builtin.sy.get().index.set(unique238++);
       li_node.set((await li_reader.get().if_sxml_reader$read_next_node({node: 1})));
       if (abap.compare.initial(li_node)) {
         break;
       }
-      let unique236 = li_node.get().if_sxml_node$type;
-      if (abap.compare.eq(unique236, abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_element_open)) {
+      let unique239 = li_node.get().if_sxml_node$type;
+      if (abap.compare.eq(unique239, abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_element_open)) {
         await abap.statements.cast(li_open, li_node);
         lv_name.clear();
         lt_attributes.set((await li_open.get().if_sxml_open_element$get_attributes({attr: 1})));
-        for await (const unique237 of abap.statements.loop(lt_attributes)) {
-          li_attribute.set(unique237);
+        for await (const unique240 of abap.statements.loop(lt_attributes)) {
+          li_attribute.set(unique240);
           lv_name.set((await li_attribute.get().if_sxml_attribute$get_value({value: 1})));
         }
         li_element.set((await ri_doc.get().if_ixml_document$create_element_ns({name: li_open.get().if_sxml_open_element$qname.get().name, element: 1})));
@@ -365796,10 +365846,10 @@ class kernel_json_to_ixml {
           li_map.set((await li_current.get().if_ixml_node$get_attributes({map: 1})));
           await li_map.get().if_ixml_named_node_map$set_named_item_ns({node: li_new});
         }
-      } else if (abap.compare.eq(unique236, abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_element_close)) {
+      } else if (abap.compare.eq(unique239, abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_element_close)) {
         await abap.statements.cast(li_close, li_node);
         li_current.set((await li_current.get().if_ixml_node$get_parent({val: 1})));
-      } else if (abap.compare.eq(unique236, abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_value)) {
+      } else if (abap.compare.eq(unique239, abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_value)) {
         await abap.statements.cast(li_value, li_node);
         li_element.set((await ri_doc.get().if_ixml_document$create_element_ns({name: abap.CharacterFactory.get(5, '#text'), element: 1})));
         await li_element.get().if_ixml_element$set_value({value: (await li_value.get().if_sxml_value_node$get_value({value: 1}))});
@@ -366003,9 +366053,9 @@ class kernel_push_channels {
     lv_seconds.set(abap.operators.multiply(seconds,new abap.types.Integer().set(1000)));
     abap.statements.assert(abap.compare.gt(lv_seconds, abap.IntegerFactory.get(0)));
     const indexBackup1 = abap.builtin.sy.get().index.get();
-    let unique213 = 1;
+    let unique216 = 1;
     while (abap.compare.gt(lv_seconds, abap.IntegerFactory.get(0))) {
-      abap.builtin.sy.get().index.set(unique213++);
+      abap.builtin.sy.get().index.set(unique216++);
       await new Promise(resolve => setTimeout(resolve, 100));
       lv_condition = cond() ? "X" : " ";
       if (abap.compare.eq(lv_condition, abap.builtin.abap_true)) {
@@ -366215,8 +366265,8 @@ class kernel_scan_abap_source {
     "back": new abap.types.Integer({qualifiedName: "I"})}, "SSTRUC", "SSTRUC", {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"isUnique":false,"type":"STANDARD","keyFields":[],"name":"primary_key"},"secondary":[]}, "SSTRUC_TAB");
     lv_source.set(INPUT.scan_abap_source.array ? INPUT.scan_abap_source.array().map(e => e.get()).join("\n") : INPUT.scan_abap_source.get());
     await this.call_internal({source: lv_source, et_stokesx: lt_stokesx, et_sstmnt: lt_sstmnt});
-    for await (const unique228 of abap.statements.loop(lt_stokesx)) {
-      ls_stokesx.set(unique228);
+    for await (const unique231 of abap.statements.loop(lt_stokesx)) {
+      ls_stokesx.set(unique231);
       ls_stokes.clear();
       abap.statements.moveCorresponding(ls_stokesx, ls_stokes);
       abap.statements.append({source: ls_stokes, target: lt_stokes});
@@ -366358,9 +366408,9 @@ class kernel_scan_abap_source {
     "enhmt": new abap.types.Integer({qualifiedName: "I"})}, "SSTMNT", "SSTMNT", {}, {}));
     mode.set(c_mode.get().normal);
     const indexBackup1 = abap.builtin.sy.get().index.get();
-    let unique229 = 1;
+    let unique232 = 1;
     while (abap.compare.initial(source) === false) {
-      abap.builtin.sy.get().index.set(unique229++);
+      abap.builtin.sy.get().index.set(unique232++);
       character.set(source.getOffset({length: 1}));
       source.set(source.getOffset({offset: 1}));
       if (abap.compare.assigned(fs_trow_) === false && abap.compare.ne(character, abap.CharacterFactory.get(1, '')) && abap.compare.ne(character, new abap.types.String().set(`\n`))) {
@@ -366492,13 +366542,13 @@ class kernel_scan_abap_source {
     "type": new abap.types.Character(1, {})}, "STOKESX", "STOKESX", {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "kernel_scan_abap_source=>ty_stokesx");
     let lt_delete = abap.types.TableFactory.construct(new abap.types.Integer({qualifiedName: "I"}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "");
     let lv_index = new abap.types.Integer({qualifiedName: "I"});
-    for await (const unique230 of abap.statements.loop(ct_statements)) {
-      fs_ls_statement_.assign(unique230);
+    for await (const unique233 of abap.statements.loop(ct_statements)) {
+      fs_ls_statement_.assign(unique233);
       lv_statement_index.set(abap.builtin.sy.get().tabix);
       contains_comment.set(abap.builtin.abap_false);
       contains_normal.set(abap.builtin.abap_false);
-      for await (const unique231 of abap.statements.loop(ct_tokens,{from: fs_ls_statement_.get().from,to: fs_ls_statement_.get().to})) {
-        ls_token.set(unique231);
+      for await (const unique234 of abap.statements.loop(ct_tokens,{from: fs_ls_statement_.get().from,to: fs_ls_statement_.get().to})) {
+        ls_token.set(unique234);
         if (abap.compare.eq(ls_token.get().type, kernel_scan_abap_source.gc_token.get().comment)) {
           contains_comment.set(abap.builtin.abap_true);
         } else {
@@ -366509,20 +366559,20 @@ class kernel_scan_abap_source {
         lv_count.set(abap.IntegerFactory.get(0));
         lt_insert.clear();
         lt_delete.clear();
-        for await (const unique232 of abap.statements.loop(ct_tokens,{from: fs_ls_statement_.get().from,to: fs_ls_statement_.get().to})) {
-          ls_token.set(unique232);
+        for await (const unique235 of abap.statements.loop(ct_tokens,{from: fs_ls_statement_.get().from,to: fs_ls_statement_.get().to})) {
+          ls_token.set(unique235);
           if (abap.compare.eq(ls_token.get().type, kernel_scan_abap_source.gc_token.get().comment)) {
             abap.statements.insertInternal({data: abap.builtin.sy.get().tabix, index: abap.IntegerFactory.get(1), table: lt_delete});
             abap.statements.insertInternal({data: ls_token, index: abap.IntegerFactory.get(1), table: lt_insert});
             lv_count.set(abap.operators.add(lv_count,abap.IntegerFactory.get(1)));
           }
         }
-        for await (const unique233 of abap.statements.loop(lt_delete)) {
-          lv_index.set(unique233);
+        for await (const unique236 of abap.statements.loop(lt_delete)) {
+          lv_index.set(unique236);
           await abap.statements.deleteInternal(ct_tokens,{index: lv_index});
         }
-        for await (const unique234 of abap.statements.loop(lt_insert)) {
-          ls_token.set(unique234);
+        for await (const unique237 of abap.statements.loop(lt_insert)) {
+          ls_token.set(unique237);
           abap.statements.insertInternal({data: ls_token, index: fs_ls_statement_.get().from, table: ct_tokens});
         }
         ls_statement.clear();
@@ -366686,8 +366736,8 @@ class kernel_unit_runner {
     let lv_found = new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"});
     lv_stack.set(INPUT.ix_error.get().stack);
     abap.statements.split({source: lv_stack, at: new abap.types.String().set(`\n`), table: lt_lines});
-    for await (const unique107 of abap.statements.loop(lt_lines)) {
-      lv_stack.set(unique107);
+    for await (const unique110 of abap.statements.loop(lt_lines)) {
+      lv_stack.set(unique110);
       if (abap.compare.cp(lv_stack, abap.CharacterFactory.get(21, '*cl_abap_unit_assert*'))) {
         lv_found.set(abap.builtin.abap_true);
         continue;
@@ -366731,8 +366781,8 @@ class kernel_unit_runner {
     let lt_strings = abap.types.TableFactory.construct(new abap.types.String({qualifiedName: "STRING"}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "");
     let lv_string = new abap.types.String({qualifiedName: "STRING"});
     let lv_message = new abap.types.String({qualifiedName: "STRING"});
-    for await (const unique108 of abap.statements.loop(it_list)) {
-      ls_list.set(unique108);
+    for await (const unique111 of abap.statements.loop(it_list)) {
+      ls_list.set(unique111);
       lv_message.set(ls_list.get().message);
       abap.statements.replace({target: lv_message, all: true, with: new abap.types.String().set(`\\"`), of: new abap.types.String().set(`"`)});
       abap.statements.replace({target: lv_message, all: true, with: new abap.types.String().set(`\\n`), of: new abap.types.String().set(`\n`)});
@@ -366769,8 +366819,8 @@ class kernel_unit_runner {
     let ls_class = new abap.types.Structure({
     "class_name": new abap.types.Character(30, {"qualifiedName":"kernel_unit_runner=>ty_class_item-class_name"}),
     "testclass_name": new abap.types.Character(30, {"qualifiedName":"kernel_unit_runner=>ty_class_item-testclass_name"})}, "kernel_unit_runner=>ty_class_item", undefined, {}, {});
-    for await (const unique109 of abap.statements.loop(it_input)) {
-      ls_input.set(unique109);
+    for await (const unique112 of abap.statements.loop(it_input)) {
+      ls_input.set(unique112);
       abap.statements.moveCorresponding(ls_input, ls_class);
       abap.statements.insertInternal({data: ls_class, table: rt_classes});
     }
@@ -366828,17 +366878,17 @@ class kernel_unit_runner {
     "js_location": new abap.types.String({qualifiedName: "KERNEL_UNIT_RUNNER=>TY_RESULT_ITEM-JS_LOCATION"}),
     "console": new abap.types.String({qualifiedName: "KERNEL_UNIT_RUNNER=>TY_RESULT_ITEM-CONSOLE"})}, "kernel_unit_runner=>ty_result_item", undefined, {}, {}));
     lt_classes.set((await this.unique_classes({it_input: it_input, rt_classes: 1})));
-    for await (const unique110 of abap.statements.loop(lt_classes)) {
-      ls_class.set(unique110);
+    for await (const unique113 of abap.statements.loop(lt_classes)) {
+      ls_class.set(unique113);
       lv_name.set(new abap.types.String().set(`CLAS-${abap.templateFormatting(ls_class.get().class_name)}-${abap.templateFormatting(ls_class.get().testclass_name)}`));
-      let unique111 = abap.Classes["CLAS-KERNEL_UNIT_RUNNER-"+lv_name.get().trimEnd()];
-      if (unique111 === undefined) { unique111 = abap.Classes[lv_name.get().trimEnd()]; }
-      if (unique111 === undefined && abap.Classes['KERNEL_INTERNAL_NAME'] !== undefined) {
-          const unique112 = await abap.Classes['KERNEL_INTERNAL_NAME'].rtti_to_internal({iv_rtti: lv_name.get()});
-          unique111 = abap.Classes[unique112.get().trimEnd()];
+      let unique114 = abap.Classes["CLAS-KERNEL_UNIT_RUNNER-"+lv_name.get().trimEnd()];
+      if (unique114 === undefined) { unique114 = abap.Classes[lv_name.get().trimEnd()]; }
+      if (unique114 === undefined && abap.Classes['KERNEL_INTERNAL_NAME'] !== undefined) {
+          const unique115 = await abap.Classes['KERNEL_INTERNAL_NAME'].rtti_to_internal({iv_rtti: lv_name.get()});
+          unique114 = abap.Classes[unique115.get().trimEnd()];
       }
-      if (unique111 === undefined) { throw new abap.Classes['CX_SY_CREATE_OBJECT_ERROR']; }
-      lo_obj.set(await (new unique111()).constructor_());
+      if (unique114 === undefined) { throw new abap.Classes['CX_SY_CREATE_OBJECT_ERROR']; }
+      lo_obj.set(await (new unique114()).constructor_());
       try {
         await abap.dynamicCallLookup(lo_obj.get(), "class_setup")();
       } catch (e) {
@@ -366847,8 +366897,8 @@ class kernel_unit_runner {
           throw e;
         }
       }
-      for await (const unique113 of abap.statements.loop(it_input,{where: async (I) => {return abap.compare.eq(I.class_name, ls_class.get().class_name) && abap.compare.eq(I.testclass_name, ls_class.get().testclass_name);},topEquals: {"class_name": ls_class.get().class_name,"testclass_name": ls_class.get().testclass_name}})) {
-        ls_input.set(unique113);
+      for await (const unique116 of abap.statements.loop(it_input,{where: async (I) => {return abap.compare.eq(I.class_name, ls_class.get().class_name) && abap.compare.eq(I.testclass_name, ls_class.get().testclass_name);},topEquals: {"class_name": ls_class.get().class_name,"testclass_name": ls_class.get().testclass_name}})) {
+        ls_input.set(unique116);
         fs_ls_result_.assign(rs_result.get().list.appendInitial());
         abap.statements.moveCorresponding(ls_input, fs_ls_result_);
         try {
@@ -367602,9 +367652,9 @@ async function conversion_exit_isola_output(INPUT) {
     output.set(input);
     abap.statements.shift(output, {direction: 'LEFT',deletingLeading: abap.CharacterFactory.get(1, '0')});
     const indexBackup1 = abap.builtin.sy.get().index.get();
-    const unique312 = abap.operators.minus(abap.builtin.strlen({val: input}),abap.builtin.strlen({val: output}).get()).get();
-    for (let unique313 = 0; unique313 < unique312; unique313++) {
-      abap.builtin.sy.get().index.set(unique313 + 1);
+    const unique321 = abap.operators.minus(abap.builtin.strlen({val: input}),abap.builtin.strlen({val: output}).get()).get();
+    for (let unique322 = 0; unique322 < unique321; unique322++) {
+      abap.builtin.sy.get().index.set(unique322 + 1);
       output.set(abap.operators.concat(output,new abap.types.String().set(` `)));
     }
     abap.builtin.sy.get().index.set(indexBackup1);
@@ -373446,19 +373496,66 @@ class zcl_oapi_parser {
     if (iv_prefix?.getQualifiedName === undefined || iv_prefix.getQualifiedName() !== "STRING") { iv_prefix = undefined; }
     if (iv_prefix === undefined) { iv_prefix = new abap.types.String({qualifiedName: "STRING"}).set(INPUT.iv_prefix); }
     let lt_strings = abap.types.TableFactory.construct(new abap.types.String({qualifiedName: "STRING"}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"isUnique":false,"type":"STANDARD","keyFields":[],"name":"primary_key"},"secondary":[]}, "STRING_TABLE");
+    let lt_composition_prefixes = abap.types.TableFactory.construct(new abap.types.String({qualifiedName: "STRING"}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"isUnique":false,"type":"STANDARD","keyFields":[],"name":"primary_key"},"secondary":[]}, "STRING_TABLE");
+    let lt_composition_members = abap.types.TableFactory.construct(new abap.types.String({qualifiedName: "STRING"}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"isUnique":false,"type":"STANDARD","keyFields":[],"name":"primary_key"},"secondary":[]}, "STRING_TABLE");
     let lv_string = new abap.types.String({qualifiedName: "STRING"});
+    let lv_prefix = new abap.types.String({qualifiedName: "STRING"});
+    let lv_ref = new abap.types.String({qualifiedName: "STRING"});
     let ls_property = new abap.types.Structure({
     "name": new abap.types.String({qualifiedName: "ZIF_OAPI_SCHEMA=>TY_PROPERTY-NAME"}),
     "abap_name": new abap.types.String({qualifiedName: "ZIF_OAPI_SCHEMA=>TY_PROPERTY-ABAP_NAME"}),
     "ref": new abap.types.String({qualifiedName: "ZIF_OAPI_SCHEMA=>TY_PROPERTY-REF"}),
     "schema": new abap.types.ABAPObject({qualifiedName: "ZIF_OAPI_SCHEMA", RTTIName: "\\INTERFACE=ZIF_OAPI_SCHEMA"})}, "zif_oapi_schema=>ty_property", undefined, {}, {});
+    let ls_composition_property = new abap.types.Structure({
+    "name": new abap.types.String({qualifiedName: "ZIF_OAPI_SCHEMA=>TY_PROPERTY-NAME"}),
+    "abap_name": new abap.types.String({qualifiedName: "ZIF_OAPI_SCHEMA=>TY_PROPERTY-ABAP_NAME"}),
+    "ref": new abap.types.String({qualifiedName: "ZIF_OAPI_SCHEMA=>TY_PROPERTY-REF"}),
+    "schema": new abap.types.ABAPObject({qualifiedName: "ZIF_OAPI_SCHEMA", RTTIName: "\\INTERFACE=ZIF_OAPI_SCHEMA"})}, "zif_oapi_schema=>ty_property", undefined, {}, {});
     let lo_names = new abap.types.ABAPObject({qualifiedName: "ZCL_OAPI_ABAP_NAME", RTTIName: "\\CLASS=ZCL_OAPI_ABAP_NAME"});
+    let lo_composition = new abap.types.ABAPObject({qualifiedName: "ZIF_OAPI_SCHEMA", RTTIName: "\\INTERFACE=ZIF_OAPI_SCHEMA"});
     lo_names.set(await (new abap.Classes['ZCL_OAPI_ABAP_NAME']()).constructor_());
     ri_schema.set(await (new abap.Classes['ZCL_OAPI_SCHEMA']()).constructor_());
     ri_schema.get().zif_oapi_schema$type.set((await this.#mo_json.get().value_string({iv_path: abap.operators.concat(iv_prefix,abap.CharacterFactory.get(5, '/type')), rv_value: 1})));
-    if (abap.compare.initial(ri_schema.get().zif_oapi_schema$type)) {
-      ri_schema.get().zif_oapi_schema$type.set(abap.CharacterFactory.get(6, 'string'));
-      return ri_schema;
+    if (abap.compare.initial(ri_schema.get().zif_oapi_schema$type) || abap.compare.eq((await this.#mo_json.get().exists({iv_path: abap.operators.concat(iv_prefix,abap.CharacterFactory.get(6, '/oneOf')), rv_exists: 1})), abap.builtin.abap_true) || abap.compare.eq((await this.#mo_json.get().exists({iv_path: abap.operators.concat(iv_prefix,abap.CharacterFactory.get(6, '/anyOf')), rv_exists: 1})), abap.builtin.abap_true) || abap.compare.eq((await this.#mo_json.get().exists({iv_path: abap.operators.concat(iv_prefix,abap.CharacterFactory.get(6, '/allOf')), rv_exists: 1})), abap.builtin.abap_true)) {
+      abap.statements.concatenate({source: [iv_prefix, abap.CharacterFactory.get(7, '/oneOf/')], target: lv_prefix});
+      abap.statements.append({source: lv_prefix, target: lt_composition_prefixes});
+      abap.statements.concatenate({source: [iv_prefix, abap.CharacterFactory.get(7, '/anyOf/')], target: lv_prefix});
+      abap.statements.append({source: lv_prefix, target: lt_composition_prefixes});
+      abap.statements.concatenate({source: [iv_prefix, abap.CharacterFactory.get(7, '/allOf/')], target: lv_prefix});
+      abap.statements.append({source: lv_prefix, target: lt_composition_prefixes});
+      for await (const unique90 of abap.statements.loop(lt_composition_prefixes)) {
+        lv_prefix.set(unique90);
+        lt_composition_members.set((await this.#mo_json.get().members({iv_path: lv_prefix, rt_members: 1})));
+        for await (const unique91 of abap.statements.loop(lt_composition_members)) {
+          lv_string.set(unique91);
+          lv_ref.clear();
+          lv_ref.set((await this.#mo_json.get().value_string({iv_path: abap.operators.concat(lv_prefix,abap.operators.concat(lv_string,abap.CharacterFactory.get(5, '/$ref'))), rv_value: 1})));
+          if (abap.compare.initial(lv_ref)) {
+            lo_composition.set((await this.#parse_schema({iv_prefix: abap.operators.concat(lv_prefix,lv_string), ri_schema: 1})));
+          } else {
+            abap.statements.replace({target: lv_ref, all: false, with: abap.CharacterFactory.get(11, '/components'), of: abap.CharacterFactory.get(12, '#/components')});
+            lo_composition.set((await this.#parse_schema({iv_prefix: lv_ref, ri_schema: 1})));
+          }
+          if (abap.compare.initial(lo_composition) === false) {
+            ri_schema.get().zif_oapi_schema$type.set(abap.CharacterFactory.get(6, 'object'));
+            for await (const unique92 of abap.statements.loop(lo_composition.get().zif_oapi_schema$properties)) {
+              ls_composition_property.set(unique92);
+              abap.statements.readTable(ri_schema.get().zif_oapi_schema$properties,{withKey: (i) => {return abap.compare.eq(i.name, ls_composition_property.get().name);},
+                withKeyValue: [{key: (i) => {return i.name}, value: ls_composition_property.get().name}],
+                usesTableLine: false,
+                withKeySimple: {"name": ls_composition_property.get().name}});
+              if (abap.compare.ne(abap.builtin.sy.get().subrc, abap.IntegerFactory.get(0))) {
+                abap.statements.append({source: ls_composition_property, target: ri_schema.get().zif_oapi_schema$properties});
+              }
+            }
+          }
+        }
+        lt_composition_members.clear();
+      }
+      if (abap.compare.initial(ri_schema.get().zif_oapi_schema$type)) {
+        ri_schema.get().zif_oapi_schema$type.set(abap.CharacterFactory.get(6, 'string'));
+        return ri_schema;
+      }
     }
     ri_schema.get().zif_oapi_schema$format.set((await this.#mo_json.get().value_string({iv_path: abap.operators.concat(iv_prefix,abap.CharacterFactory.get(7, '/format')), rv_value: 1})));
     ri_schema.get().zif_oapi_schema$default.set((await this.#mo_json.get().value_string({iv_path: abap.operators.concat(iv_prefix,abap.CharacterFactory.get(8, '/default')), rv_value: 1})));
@@ -373472,16 +373569,16 @@ class zcl_oapi_parser {
       ri_schema.get().zif_oapi_schema$items_schema.set((await this.#parse_schema({iv_prefix: abap.operators.concat(iv_prefix,abap.CharacterFactory.get(6, '/items')), ri_schema: 1})));
     }
     lt_strings.set((await this.#mo_json.get().members({iv_path: abap.operators.concat(iv_prefix,abap.CharacterFactory.get(6, '/enum/')), rt_members: 1})));
-    for await (const unique90 of abap.statements.loop(lt_strings)) {
-      lv_string.set(unique90);
+    for await (const unique93 of abap.statements.loop(lt_strings)) {
+      lv_string.set(unique93);
       lv_string.set((await this.#mo_json.get().value_string({iv_path: abap.operators.concat(iv_prefix,abap.operators.concat(abap.CharacterFactory.get(6, '/enum/'),lv_string)), rv_value: 1})));
       if (abap.compare.initial(lv_string) === false) {
         abap.statements.insertInternal({data: lv_string, table: ri_schema.get().zif_oapi_schema$enum});
       }
     }
     lt_strings.set((await this.#mo_json.get().members({iv_path: abap.operators.concat(iv_prefix,abap.CharacterFactory.get(12, '/properties/')), rt_members: 1})));
-    for await (const unique91 of abap.statements.loop(lt_strings)) {
-      lv_string.set(unique91);
+    for await (const unique94 of abap.statements.loop(lt_strings)) {
+      lv_string.set(unique94);
       ls_property.clear();
       ls_property.get().name.set(lv_string);
       ls_property.get().abap_name.set((await lo_names.get().to_abap_name({iv_name: lv_string, rv_name: 1})));
@@ -373492,7 +373589,13 @@ class zcl_oapi_parser {
       if (abap.compare.initial(ls_property.get().ref)) {
         ls_property.get().schema.set((await this.#parse_schema({iv_prefix: abap.operators.concat(iv_prefix,abap.operators.concat(abap.CharacterFactory.get(12, '/properties/'),lv_string)), ri_schema: 1})));
       }
-      abap.statements.append({source: ls_property, target: ri_schema.get().zif_oapi_schema$properties});
+      abap.statements.readTable(ri_schema.get().zif_oapi_schema$properties,{withKey: (i) => {return abap.compare.eq(i.name, ls_property.get().name);},
+        withKeyValue: [{key: (i) => {return i.name}, value: ls_property.get().name}],
+        usesTableLine: false,
+        withKeySimple: {"name": ls_property.get().name}});
+      if (abap.compare.ne(abap.builtin.sy.get().subrc, abap.IntegerFactory.get(0))) {
+        abap.statements.append({source: ls_property, target: ri_schema.get().zif_oapi_schema$properties});
+      }
     }
     return ri_schema;
   }
@@ -373517,8 +373620,8 @@ class zcl_oapi_parser {
     "schema": new abap.types.ABAPObject({qualifiedName: "ZIF_OAPI_SCHEMA", RTTIName: "\\INTERFACE=ZIF_OAPI_SCHEMA"}),
     "schema_ref": new abap.types.String({qualifiedName: "ZIF_OAPI_SPECIFICATION_V3=>TY_MEDIA_TYPE-SCHEMA_REF"})}, "zif_oapi_specification_v3=>ty_media_type", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "zif_oapi_specification_v3=>ty_media_types")}, "zif_oapi_specification_v3=>ty_response", undefined, {}, {});
     lt_names.set((await this.#mo_json.get().members({iv_path: iv_prefix, rt_members: 1})));
-    for await (const unique92 of abap.statements.loop(lt_names)) {
-      lv_name.set(unique92);
+    for await (const unique95 of abap.statements.loop(lt_names)) {
+      lv_name.set(unique95);
       ls_response.clear();
       ls_response.get().name.set(lv_name);
       ls_response.get().description.set((await this.#mo_json.get().value_string({iv_path: abap.operators.concat(iv_prefix,abap.operators.concat(lv_name,abap.CharacterFactory.get(12, '/description'))), rv_value: 1})));
@@ -373583,8 +373686,8 @@ class zcl_oapi_parser {
     let lo_names = new abap.types.ABAPObject({qualifiedName: "ZCL_OAPI_ABAP_NAME", RTTIName: "\\CLASS=ZCL_OAPI_ABAP_NAME"});
     lo_names.set(await (new abap.Classes['ZCL_OAPI_ABAP_NAME']()).constructor_());
     lt_names.set((await this.#mo_json.get().members({iv_path: iv_prefix, rt_members: 1})));
-    for await (const unique93 of abap.statements.loop(lt_names)) {
-      lv_name.set(unique93);
+    for await (const unique96 of abap.statements.loop(lt_names)) {
+      lv_name.set(unique96);
       ls_schema.clear();
       ls_schema.get().name.set(lv_name);
       ls_schema.get().abap_name.set((await lo_names.get().to_abap_name({iv_name: ls_schema.get().name, rv_name: 1})));
@@ -373602,8 +373705,8 @@ class zcl_oapi_parser {
     let ls_server = new abap.types.Structure({
     "url": new abap.types.String({qualifiedName: "ZIF_OAPI_SPECIFICATION_V3=>TY_SERVER-URL"})}, "zif_oapi_specification_v3=>ty_server", undefined, {}, {});
     lt_array.set((await this.#mo_json.get().members({iv_path: abap.CharacterFactory.get(9, '/servers/'), rt_members: 1})));
-    for await (const unique94 of abap.statements.loop(lt_array)) {
-      lv_index.set(unique94);
+    for await (const unique97 of abap.statements.loop(lt_array)) {
+      lv_index.set(unique97);
       ls_server.clear();
       ls_server.get().url.set((await this.#mo_json.get().value_string({iv_path: abap.operators.concat(abap.CharacterFactory.get(9, '/servers/'),abap.operators.concat(lv_index,abap.CharacterFactory.get(4, '/url'))), rv_value: 1})));
       abap.statements.append({source: ls_server, target: rt_servers});
@@ -373681,13 +373784,13 @@ class zcl_oapi_parser {
     let lo_names = new abap.types.ABAPObject({qualifiedName: "ZCL_OAPI_ABAP_NAME", RTTIName: "\\CLASS=ZCL_OAPI_ABAP_NAME"});
     lo_names.set(await (new abap.Classes['ZCL_OAPI_ABAP_NAME']()).constructor_());
     lt_paths.set((await this.#mo_json.get().members({iv_path: abap.CharacterFactory.get(7, '/paths/'), rt_members: 1})));
-    for await (const unique95 of abap.statements.loop(lt_paths)) {
-      lv_path.set(unique95);
+    for await (const unique98 of abap.statements.loop(lt_paths)) {
+      lv_path.set(unique98);
       ls_operation.clear();
       ls_operation.get().path.set(lv_path);
       lt_methods.set((await this.#mo_json.get().members({iv_path: abap.operators.concat(abap.CharacterFactory.get(7, '/paths/'),abap.operators.concat(lv_path,abap.CharacterFactory.get(1, '/'))), rt_members: 1})));
-      for await (const unique96 of abap.statements.loop(lt_methods)) {
-        lv_method.set(unique96);
+      for await (const unique99 of abap.statements.loop(lt_methods)) {
+        lv_method.set(unique99);
         if (abap.compare.eq(lv_method, abap.CharacterFactory.get(7, 'summary')) || abap.compare.eq(lv_method, abap.CharacterFactory.get(11, 'description'))) {
           continue;
         }
@@ -373754,8 +373857,8 @@ class zcl_oapi_parser {
     let lo_names = new abap.types.ABAPObject({qualifiedName: "ZCL_OAPI_ABAP_NAME", RTTIName: "\\CLASS=ZCL_OAPI_ABAP_NAME"});
     let lv_name = new abap.types.String({qualifiedName: "STRING"});
     lt_members.set((await this.#mo_json.get().members({iv_path: iv_prefix, rt_members: 1})));
-    for await (const unique97 of abap.statements.loop(lt_members)) {
-      lv_member.set(unique97);
+    for await (const unique100 of abap.statements.loop(lt_members)) {
+      lv_member.set(unique100);
       ls_parameter.clear();
       ls_parameter.get().id.set(lv_member);
       ls_parameter.get().name.set((await this.#mo_json.get().value_string({iv_path: abap.operators.concat(iv_prefix,abap.operators.concat(lv_member,abap.CharacterFactory.get(5, '/name'))), rv_value: 1})));
@@ -373786,8 +373889,8 @@ class zcl_oapi_parser {
     let lv_member = new abap.types.String({qualifiedName: "STRING"});
     let lv_ref = new abap.types.String({qualifiedName: "STRING"});
     lt_members.set((await this.#mo_json.get().members({iv_path: iv_prefix, rt_members: 1})));
-    for await (const unique98 of abap.statements.loop(lt_members)) {
-      lv_member.set(unique98);
+    for await (const unique101 of abap.statements.loop(lt_members)) {
+      lv_member.set(unique101);
       lv_ref.set((await this.#mo_json.get().value_string({iv_path: abap.operators.concat(iv_prefix,abap.operators.concat(lv_member,abap.CharacterFactory.get(5, '/$ref'))), rv_value: 1})));
       if (abap.compare.initial(lv_ref) === false) {
         abap.statements.append({source: lv_ref, target: rt_parameters});
@@ -373818,8 +373921,8 @@ class zcl_oapi_parser {
     "schema_ref": new abap.types.String({qualifiedName: "ZIF_OAPI_SPECIFICATION_V3=>TY_MEDIA_TYPE-SCHEMA_REF"})}, "zif_oapi_specification_v3=>ty_media_type", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "zif_oapi_specification_v3=>ty_media_types"),
     "ref": new abap.types.String({qualifiedName: "ZIF_OAPI_SPECIFICATION_V3=>TY_OPERATION_RESPONSE-REF"})}, "zif_oapi_specification_v3=>ty_operation_response", undefined, {}, {});
     lt_members.set((await this.#mo_json.get().members({iv_path: iv_prefix, rt_members: 1})));
-    for await (const unique99 of abap.statements.loop(lt_members)) {
-      lv_member.set(unique99);
+    for await (const unique102 of abap.statements.loop(lt_members)) {
+      lv_member.set(unique102);
       ls_response.clear();
       ls_response.get().code.set(lv_member);
       ls_response.get().description.set((await this.#mo_json.get().value_string({iv_path: abap.operators.concat(iv_prefix,abap.operators.concat(lv_member,abap.CharacterFactory.get(12, '/description'))), rv_value: 1})));
@@ -373844,8 +373947,8 @@ class zcl_oapi_parser {
     "schema": new abap.types.ABAPObject({qualifiedName: "ZIF_OAPI_SCHEMA", RTTIName: "\\INTERFACE=ZIF_OAPI_SCHEMA"}),
     "schema_ref": new abap.types.String({qualifiedName: "ZIF_OAPI_SPECIFICATION_V3=>TY_MEDIA_TYPE-SCHEMA_REF"})}, "zif_oapi_specification_v3=>ty_media_type", undefined, {}, {});
     lt_members.set((await this.#mo_json.get().members({iv_path: iv_prefix, rt_members: 1})));
-    for await (const unique100 of abap.statements.loop(lt_members)) {
-      lv_member.set(unique100);
+    for await (const unique103 of abap.statements.loop(lt_members)) {
+      lv_member.set(unique103);
       ls_media_type.clear();
       ls_media_type.get().type.set(lv_member);
       ls_media_type.get().schema_ref.set((await this.#mo_json.get().value_string({iv_path: abap.operators.concat(iv_prefix,abap.operators.concat(lv_member,abap.CharacterFactory.get(12, '/schema/$ref'))), rv_value: 1})));
@@ -375570,9 +375673,9 @@ async function wwwdata_import(INPUT) {
   const __dirname = path.dirname(__filename);
   xstr.set(fs.readFileSync(__dirname + path.sep + filename.get()).toString("hex").toUpperCase());
   const indexBackup1 = abap.builtin.sy.get().index.get();
-  let unique106 = 1;
+  let unique109 = 1;
   while (abap.compare.gt(abap.builtin.xstrlen({val: xstr}), abap.IntegerFactory.get(0))) {
-    abap.builtin.sy.get().index.set(unique106++);
+    abap.builtin.sy.get().index.set(unique109++);
     len.set(new abap.types.Integer().set(255));
     if (abap.compare.lt(abap.builtin.xstrlen({val: xstr}), len)) {
       len.set(abap.builtin.xstrlen({val: xstr}));
