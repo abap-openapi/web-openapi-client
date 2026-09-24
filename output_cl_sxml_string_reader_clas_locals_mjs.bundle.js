@@ -28,15 +28,17 @@ class lcl_json_parser {
   "type": new abap.types.Integer({qualifiedName: "IF_SXML_NODE=>NODE_TYPE"}),
   "name": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-NAME"}),
   "key": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-KEY"}),
+  "has_key": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}),
   "value": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-VALUE"})}, "lcl_json_parser=>ty_node", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "lcl_json_parser=>ty_nodes"));}, "visibility": "I", "is_constant": " ", "is_class": " "}};
-  static METHODS = {"APPEND": {"visibility": "I", "parameters": {"IV_TYPE": {"type": () => {return new abap.types.Integer({qualifiedName: "IF_SXML_NODE=>NODE_TYPE"});}, "is_optional": " ", "parm_kind": "I", "type_name": "IntegerType"}, "IV_NAME": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "StringType"}, "IV_KEY": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "StringType"}, "IV_VALUE": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "StringType"}}},
-  "TRAVERSE": {"visibility": "I", "parameters": {"IV_JSON": {"type": () => {return new abap.types.Character(4);}, "is_optional": " ", "parm_kind": "I", "type_name": "AnyType"}, "IV_KEY": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "StringType"}}},
-  "TRAVERSE_OBJECT": {"visibility": "I", "parameters": {"IV_JSON": {"type": () => {return new abap.types.Character(4);}, "is_optional": " ", "parm_kind": "I", "type_name": "AnyType"}, "IV_KEY": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "StringType"}}},
-  "TRAVERSE_ARRAY": {"visibility": "I", "parameters": {"IV_JSON": {"type": () => {return new abap.types.Character(4);}, "is_optional": " ", "parm_kind": "I", "type_name": "AnyType"}, "IV_KEY": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "StringType"}}},
+  static METHODS = {"APPEND": {"visibility": "I", "parameters": {"IV_TYPE": {"type": () => {return new abap.types.Integer({qualifiedName: "IF_SXML_NODE=>NODE_TYPE"});}, "is_optional": " ", "parm_kind": "I", "type_name": "IntegerType"}, "IV_NAME": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "StringType"}, "IV_KEY": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "StringType"}, "IV_HAS_KEY": {"type": () => {return new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"});}, "is_optional": " ", "parm_kind": "I", "type_name": "CharacterType"}, "IV_VALUE": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "StringType"}}},
+  "TRAVERSE": {"visibility": "I", "parameters": {"IV_JSON": {"type": () => {return new abap.types.Character(4);}, "is_optional": " ", "parm_kind": "I", "type_name": "AnyType"}, "IV_KEY": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "StringType"}, "IV_HAS_KEY": {"type": () => {return new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"});}, "is_optional": " ", "parm_kind": "I", "type_name": "CharacterType"}}},
+  "TRAVERSE_OBJECT": {"visibility": "I", "parameters": {"IV_JSON": {"type": () => {return new abap.types.Character(4);}, "is_optional": " ", "parm_kind": "I", "type_name": "AnyType"}, "IV_KEY": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "StringType"}, "IV_HAS_KEY": {"type": () => {return new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"});}, "is_optional": " ", "parm_kind": "I", "type_name": "CharacterType"}}},
+  "TRAVERSE_ARRAY": {"visibility": "I", "parameters": {"IV_JSON": {"type": () => {return new abap.types.Character(4);}, "is_optional": " ", "parm_kind": "I", "type_name": "AnyType"}, "IV_KEY": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "StringType"}, "IV_HAS_KEY": {"type": () => {return new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"});}, "is_optional": " ", "parm_kind": "I", "type_name": "CharacterType"}}},
   "PARSE": {"visibility": "U", "parameters": {"IV_JSON": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "StringType"}, "IT_NODES": {"type": () => {return new abap.types.DataReference(abap.types.TableFactory.construct(new abap.types.Structure({
   "type": new abap.types.Integer({qualifiedName: "IF_SXML_NODE=>NODE_TYPE"}),
   "name": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-NAME"}),
   "key": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-KEY"}),
+  "has_key": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}),
   "value": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-VALUE"})}, "lcl_json_parser=>ty_node", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "lcl_json_parser=>ty_nodes"));}, "is_optional": " ", "parm_kind": "I", "type_name": "DataReference"}}}};
   #mt_nodes;
   constructor() {
@@ -54,6 +56,7 @@ class lcl_json_parser {
     "type": new abap.types.Integer({qualifiedName: "IF_SXML_NODE=>NODE_TYPE"}),
     "name": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-NAME"}),
     "key": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-KEY"}),
+    "has_key": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}),
     "value": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-VALUE"})}, "lcl_json_parser=>ty_node", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "lcl_json_parser=>ty_nodes"));
     this.FRIENDS_ACCESS_INSTANCE["mt_nodes"] = this.#mt_nodes;
   }
@@ -70,6 +73,7 @@ class lcl_json_parser {
     "type": new abap.types.Integer({qualifiedName: "IF_SXML_NODE=>NODE_TYPE"}),
     "name": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-NAME"}),
     "key": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-KEY"}),
+    "has_key": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}),
     "value": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-VALUE"})}, "lcl_json_parser=>ty_node", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "lcl_json_parser=>ty_nodes")).set(INPUT.it_nodes); }
     let lv_error = new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"});
     let lv_error_message = new abap.types.String({qualifiedName: "STRING"});
@@ -83,9 +87,9 @@ class lcl_json_parser {
     }
     if (abap.compare.eq(lv_error, abap.builtin.abap_true)) {
       abap.statements.find(lv_error_message, {regex: abap.CharacterFactory.get(15, ' position (\\d+)'), submatches: [lv_xml_offset]});
-      const unique179 = await (new abap.Classes['CX_SXML_PARSE_ERROR']()).constructor_({xml_offset: lv_xml_offset});
-      unique179.EXTRA_CX = {"INTERNAL_FILENAME": "cl_sxml_string_reader.clas.locals_imp.abap","INTERNAL_LINE": 64};
-      throw unique179;
+      const unique185 = await (new abap.Classes['CX_SXML_PARSE_ERROR']()).constructor_({xml_offset: lv_xml_offset});
+      unique185.EXTRA_CX = {"INTERNAL_FILENAME": "cl_sxml_string_reader.clas.locals_imp.abap","INTERNAL_LINE": 69};
+      throw unique185;
     }
     this.#mt_nodes.set(it_nodes);
     this.#mt_nodes.dereference().clear();
@@ -99,16 +103,21 @@ class lcl_json_parser {
     if (INPUT && INPUT.iv_name) {iv_name.set(INPUT.iv_name);}
     let iv_key = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.iv_key) {iv_key.set(INPUT.iv_key);}
+    let iv_has_key = new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"});
+    if (INPUT && INPUT.iv_has_key) {iv_has_key.set(INPUT.iv_has_key);}
+    if (INPUT === undefined || INPUT.iv_has_key === undefined) {iv_has_key = abap.builtin.abap_false;}
     let iv_value = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.iv_value) {iv_value.set(INPUT.iv_value);}
     let ls_node = new abap.types.Structure({
     "type": new abap.types.Integer({qualifiedName: "IF_SXML_NODE=>NODE_TYPE"}),
     "name": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-NAME"}),
     "key": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-KEY"}),
+    "has_key": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}),
     "value": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-VALUE"})}, "lcl_json_parser=>ty_node", undefined, {}, {});
     ls_node.get().type.set(iv_type);
     ls_node.get().name.set(iv_name);
     ls_node.get().key.set(iv_key);
+    ls_node.get().has_key.set(iv_has_key);
     ls_node.get().value.set(iv_value);
     abap.statements.append({source: ls_node, target: this.#mt_nodes.dereference()});
   }
@@ -116,25 +125,28 @@ class lcl_json_parser {
     let iv_json = INPUT?.iv_json;
     let iv_key = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.iv_key) {iv_key.set(INPUT.iv_key);}
+    let iv_has_key = new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"});
+    if (INPUT && INPUT.iv_has_key) {iv_has_key.set(INPUT.iv_has_key);}
+    if (INPUT === undefined || INPUT.iv_has_key === undefined) {iv_has_key = abap.builtin.abap_false;}
     let lv_type = new abap.types.String({qualifiedName: "STRING"});
     lv_type.set(Array.isArray(iv_json.value) ? "array" : typeof iv_json.value);
     if (iv_json.value === null) lv_type.set("null");
-    let unique180 = lv_type;
-    if (abap.compare.eq(unique180, abap.CharacterFactory.get(6, 'object'))) {
-      await this.#traverse_object({iv_json: iv_json, iv_key: iv_key});
-    } else if (abap.compare.eq(unique180, abap.CharacterFactory.get(5, 'array'))) {
-      await this.#traverse_array({iv_json: iv_json, iv_key: iv_key});
-    } else if (abap.compare.eq(unique180, abap.CharacterFactory.get(6, 'string')) || abap.compare.eq(unique180, abap.CharacterFactory.get(7, 'boolean')) || abap.compare.eq(unique180, abap.CharacterFactory.get(6, 'number')) || abap.compare.eq(unique180, abap.CharacterFactory.get(4, 'null'))) {
+    let unique186 = lv_type;
+    if (abap.compare.eq(unique186, abap.CharacterFactory.get(6, 'object'))) {
+      await this.#traverse_object({iv_json: iv_json, iv_key: iv_key, iv_has_key: iv_has_key});
+    } else if (abap.compare.eq(unique186, abap.CharacterFactory.get(5, 'array'))) {
+      await this.#traverse_array({iv_json: iv_json, iv_key: iv_key, iv_has_key: iv_has_key});
+    } else if (abap.compare.eq(unique186, abap.CharacterFactory.get(6, 'string')) || abap.compare.eq(unique186, abap.CharacterFactory.get(7, 'boolean')) || abap.compare.eq(unique186, abap.CharacterFactory.get(6, 'number')) || abap.compare.eq(unique186, abap.CharacterFactory.get(4, 'null'))) {
       iv_json = iv_json.value + "";
-      let unique181 = lv_type;
-      if (abap.compare.eq(unique181, abap.CharacterFactory.get(6, 'string'))) {
+      let unique187 = lv_type;
+      if (abap.compare.eq(unique187, abap.CharacterFactory.get(6, 'string'))) {
         lv_type.set(abap.CharacterFactory.get(3, 'str'));
-      } else if (abap.compare.eq(unique181, abap.CharacterFactory.get(6, 'number'))) {
+      } else if (abap.compare.eq(unique187, abap.CharacterFactory.get(6, 'number'))) {
         lv_type.set(abap.CharacterFactory.get(3, 'num'));
-      } else if (abap.compare.eq(unique181, abap.CharacterFactory.get(7, 'boolean'))) {
+      } else if (abap.compare.eq(unique187, abap.CharacterFactory.get(7, 'boolean'))) {
         lv_type.set(abap.CharacterFactory.get(4, 'bool'));
       }
-      await this.#append({iv_type: abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_element_open, iv_name: lv_type, iv_key: iv_key});
+      await this.#append({iv_type: abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_element_open, iv_name: lv_type, iv_key: iv_key, iv_has_key: iv_has_key});
       if (abap.compare.ne(lv_type, abap.CharacterFactory.get(4, 'null'))) {
         await this.#append({iv_type: abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_value, iv_value: iv_json});
       }
@@ -147,16 +159,19 @@ class lcl_json_parser {
     let iv_json = INPUT?.iv_json;
     let iv_key = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.iv_key) {iv_key.set(INPUT.iv_key);}
+    let iv_has_key = new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"});
+    if (INPUT && INPUT.iv_has_key) {iv_has_key.set(INPUT.iv_has_key);}
+    if (INPUT === undefined || INPUT.iv_has_key === undefined) {iv_has_key = abap.builtin.abap_false;}
     let lv_value = new abap.types.String({qualifiedName: "STRING"});
     let lv_length = new abap.types.Integer({qualifiedName: "I"});
     let lv_index = new abap.types.Integer({qualifiedName: "I"});
     let parsed = iv_json.value;
     lv_length.set(parsed.length);
-    await this.#append({iv_type: abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_element_open, iv_name: abap.CharacterFactory.get(5, 'array'), iv_key: iv_key});
+    await this.#append({iv_type: abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_element_open, iv_name: abap.CharacterFactory.get(5, 'array'), iv_key: iv_key, iv_has_key: iv_has_key});
     const indexBackup1 = abap.builtin.sy.get().index.get();
-    const unique182 = lv_length.get();
-    for (let unique183 = 0; unique183 < unique182; unique183++) {
-      abap.builtin.sy.get().index.set(unique183 + 1);
+    const unique188 = lv_length.get();
+    for (let unique189 = 0; unique189 < unique188; unique189++) {
+      abap.builtin.sy.get().index.set(unique189 + 1);
       lv_index.set(abap.operators.minus(abap.builtin.sy.get().index,abap.IntegerFactory.get(1)));
       lv_value = {value: parsed[lv_index.get()]};
       await this.#traverse({iv_json: lv_value});
@@ -168,14 +183,17 @@ class lcl_json_parser {
     let iv_json = INPUT?.iv_json;
     let iv_key = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.iv_key) {iv_key.set(INPUT.iv_key);}
+    let iv_has_key = new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"});
+    if (INPUT && INPUT.iv_has_key) {iv_has_key.set(INPUT.iv_has_key);}
+    if (INPUT === undefined || INPUT.iv_has_key === undefined) {iv_has_key = abap.builtin.abap_false;}
     let lv_key = new abap.types.String({qualifiedName: "STRING"});
     let lv_value = new abap.types.String({qualifiedName: "STRING"});
     let parsed = iv_json.value;
-    await this.#append({iv_type: abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_element_open, iv_name: abap.CharacterFactory.get(6, 'object'), iv_key: iv_key});
+    await this.#append({iv_type: abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_element_open, iv_name: abap.CharacterFactory.get(6, 'object'), iv_key: iv_key, iv_has_key: iv_has_key});
     for (const k of Object.keys(parsed)) {
         lv_key.set(k);
         lv_value = {value: parsed[k]};
-      await this.#traverse({iv_json: lv_value, iv_key: lv_key});
+      await this.#traverse({iv_json: lv_value, iv_key: lv_key, iv_has_key: abap.builtin.abap_true});
     };
     await this.#append({iv_type: abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_element_close, iv_name: abap.CharacterFactory.get(6, 'object')});
   }
@@ -185,11 +203,13 @@ lcl_json_parser.ty_node = new abap.types.Structure({
 "type": new abap.types.Integer({qualifiedName: "IF_SXML_NODE=>NODE_TYPE"}),
 "name": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-NAME"}),
 "key": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-KEY"}),
+"has_key": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}),
 "value": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-VALUE"})}, "lcl_json_parser=>ty_node", undefined, {}, {});
 lcl_json_parser.ty_nodes = abap.types.TableFactory.construct(new abap.types.Structure({
 "type": new abap.types.Integer({qualifiedName: "IF_SXML_NODE=>NODE_TYPE"}),
 "name": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-NAME"}),
 "key": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-KEY"}),
+"has_key": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}),
 "value": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-VALUE"})}, "lcl_json_parser=>ty_node", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "lcl_json_parser=>ty_nodes");
 class lcl_attribute {
   static STATIC_SUPER = undefined;
@@ -587,6 +607,7 @@ class lcl_reader {
     "type": new abap.types.Integer({qualifiedName: "IF_SXML_NODE=>NODE_TYPE"}),
     "name": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-NAME"}),
     "key": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-KEY"}),
+    "has_key": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}),
     "value": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-VALUE"})}, "lcl_json_parser=>ty_node", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "lcl_json_parser=>ty_nodes"));
     let li_node = new abap.types.ABAPObject({qualifiedName: "IF_SXML_NODE", RTTIName: "\\INTERFACE=IF_SXML_NODE"});
     let lt_attributes = abap.types.TableFactory.construct(new abap.types.ABAPObject({qualifiedName: "IF_SXML_ATTRIBUTE", RTTIName: "\\INTERFACE=IF_SXML_ATTRIBUTE"}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "if_sxml_attribute=>attributes");
@@ -595,6 +616,7 @@ class lcl_reader {
     "type": new abap.types.Integer({qualifiedName: "IF_SXML_NODE=>NODE_TYPE"}),
     "name": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-NAME"}),
     "key": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-KEY"}),
+    "has_key": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}),
     "value": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-VALUE"})}, "lcl_json_parser=>ty_node", undefined, {}, {}));
     abap.statements.assert(abap.compare.eq(this.#mv_initialized, abap.builtin.abap_false));
     this.#mv_initialized.set(abap.builtin.abap_true);
@@ -602,19 +624,19 @@ class lcl_reader {
     abap.statements.createData(lt_parsed);
     await lo_json.get().parse({iv_json: this.#mv_json, it_nodes: lt_parsed});
     lo_json.clear();
-    for await (const unique184 of abap.statements.loop(lt_parsed.dereference())) {
-      fs_ls_parsed_.assign(unique184);
-      let unique185 = fs_ls_parsed_.get().type;
-      if (abap.compare.eq(unique185, abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_element_open)) {
+    for await (const unique190 of abap.statements.loop(lt_parsed.dereference())) {
+      fs_ls_parsed_.assign(unique190);
+      let unique191 = fs_ls_parsed_.get().type;
+      if (abap.compare.eq(unique191, abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_element_open)) {
         lt_attributes.clear();
-        if (abap.compare.initial(fs_ls_parsed_.get().key) === false) {
+        if (abap.compare.eq(fs_ls_parsed_.get().has_key, abap.builtin.abap_true)) {
           li_attribute.set(await (new abap.Classes['CLAS-CL_SXML_STRING_READER-LCL_ATTRIBUTE']()).constructor_({name: abap.CharacterFactory.get(4, 'name'), value: fs_ls_parsed_.get().key, value_type: abap.Classes['IF_SXML_VALUE'].if_sxml_value$co_vt_text}));
           abap.statements.append({source: li_attribute, target: lt_attributes});
         }
         li_node.set(await (new abap.Classes['CLAS-CL_SXML_STRING_READER-LCL_OPEN_NODE']()).constructor_({name: fs_ls_parsed_.get().name, attributes: lt_attributes}));
-      } else if (abap.compare.eq(unique185, abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_element_close)) {
+      } else if (abap.compare.eq(unique191, abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_element_close)) {
         li_node.set(await (new abap.Classes['CLAS-CL_SXML_STRING_READER-LCL_CLOSE_NODE']()).constructor_({name: fs_ls_parsed_.get().name}));
-      } else if (abap.compare.eq(unique185, abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_value)) {
+      } else if (abap.compare.eq(unique191, abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_value)) {
         li_node.set(await (new abap.Classes['CLAS-CL_SXML_STRING_READER-LCL_VALUE_NODE']()).constructor_({value: fs_ls_parsed_.get().value}));
       } else {
         abap.statements.assert(abap.compare.eq(abap.IntegerFactory.get(1), abap.IntegerFactory.get(2)));
@@ -654,8 +676,8 @@ class lcl_reader {
     this.#mv_pointer.set(abap.operators.add(this.#mv_pointer,abap.IntegerFactory.get(1)));
     if (abap.compare.initial(node) === false) {
       this.if_sxml_reader$node_type.set(node.get().if_sxml_node$type);
-      let unique186 = this.if_sxml_reader$node_type;
-      if (abap.compare.eq(unique186, abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_element_open)) {
+      let unique192 = this.if_sxml_reader$node_type;
+      if (abap.compare.eq(unique192, abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_element_open)) {
         await abap.statements.cast(open, node);
         this.if_sxml_reader$name.set(open.get().if_sxml_open_element$qname.get().name);
         attrs.set((await open.get().if_sxml_open_element$get_attributes({attr: 1})));
@@ -664,11 +686,11 @@ class lcl_reader {
         if (abap.compare.eq(abap.builtin.sy.get().subrc, abap.IntegerFactory.get(0))) {
           this.if_sxml_reader$value.set((await attr.get().if_sxml_attribute$get_value({value: 1})));
         }
-      } else if (abap.compare.eq(unique186, abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_element_close)) {
+      } else if (abap.compare.eq(unique192, abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_element_close)) {
         await abap.statements.cast(close, node);
         this.if_sxml_reader$name.set(close.get().if_sxml_close_element$qname.get().name);
         this.if_sxml_reader$value.clear();
-      } else if (abap.compare.eq(unique186, abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_value)) {
+      } else if (abap.compare.eq(unique192, abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_value)) {
         await abap.statements.cast(value, node);
         this.if_sxml_reader$value.set((await value.get().if_sxml_value_node$get_value({value: 1})));
       } else {

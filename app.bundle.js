@@ -274,6 +274,36 @@ function binarySearchTo(array, left, right, keyField, keyValue) {
 
 /***/ },
 
+/***/ "../node_modules/@abaplint/runtime/build/src/builtin/_position.js"
+/*!************************************************************************!*\
+  !*** ../node_modules/@abaplint/runtime/build/src/builtin/_position.js ***!
+  \************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.position = position;
+const _parse_1 = __webpack_require__(/*! ../operators/_parse */ "../node_modules/@abaplint/runtime/build/src/operators/_parse.js");
+/** Reads an offset, length or occurrence argument as a number.
+ *
+ * parse() rather than get(): INumeric.get() promises a number, but Float and DecFloat34
+ * hand out their ABAP display form instead, ie. "1,2000000000000000E+01". Reading that
+ * back as a position keeps only the leading digit of the mantissa, so a length of 12
+ * silently becomes 1. nmin( ) and nmax( ) return a Float, and the syntax check lets them
+ * through where it rejects a declared TYPE f, so they are the way a float gets here.
+ *
+ * Rounded because ABAP converts the argument to type i, the same as assigning to one. */
+function position(input) {
+    if (input === undefined) {
+        return undefined;
+    }
+    return Math.round((0, _parse_1.parse)(input));
+}
+//# sourceMappingURL=_position.js.map
+
+/***/ },
+
 /***/ "../node_modules/@abaplint/runtime/build/src/builtin/abs.js"
 /*!******************************************************************!*\
   !*** ../node_modules/@abaplint/runtime/build/src/builtin/abs.js ***!
@@ -562,6 +592,82 @@ function contains(input) {
 
 /***/ },
 
+/***/ "../node_modules/@abaplint/runtime/build/src/builtin/contains_any_not_of.js"
+/*!**********************************************************************************!*\
+  !*** ../node_modules/@abaplint/runtime/build/src/builtin/contains_any_not_of.js ***!
+  \**********************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.contains_any_not_of = contains_any_not_of;
+const types_1 = __webpack_require__(/*! ../types */ "../node_modules/@abaplint/runtime/build/src/types/index.js");
+const throw_error_1 = __webpack_require__(/*! ../throw_error */ "../node_modules/@abaplint/runtime/build/src/throw_error.js");
+function contains_any_not_of(input) {
+    const val = typeof input.val === "string" ? input.val : input.val.get();
+    const sub = typeof input.sub === "string" ? input.sub : input.sub.get();
+    const off = typeof input.off === "number" ? input.off : input.off?.get() || 0;
+    const len = typeof input.len === "number" ? input.len : input.len?.get();
+    if (off < 0 || off > val.length) {
+        (0, throw_error_1.throwError)("CX_SY_RANGE_OUT_OF_BOUNDS");
+    }
+    if (len !== undefined && (len < 0 || off + len > val.length)) {
+        (0, throw_error_1.throwError)("CX_SY_RANGE_OUT_OF_BOUNDS");
+    }
+    const end = len === undefined ? val.length : off + len;
+    const characters = new Set(sub.split(""));
+    let found = false;
+    for (let i = off; i < end; i++) {
+        if (!characters.has(val.charAt(i))) {
+            found = true;
+            break;
+        }
+    }
+    return new types_1.String().set(found ? "X" : " ");
+}
+//# sourceMappingURL=contains_any_not_of.js.map
+
+/***/ },
+
+/***/ "../node_modules/@abaplint/runtime/build/src/builtin/contains_any_of.js"
+/*!******************************************************************************!*\
+  !*** ../node_modules/@abaplint/runtime/build/src/builtin/contains_any_of.js ***!
+  \******************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.contains_any_of = contains_any_of;
+const types_1 = __webpack_require__(/*! ../types */ "../node_modules/@abaplint/runtime/build/src/types/index.js");
+const throw_error_1 = __webpack_require__(/*! ../throw_error */ "../node_modules/@abaplint/runtime/build/src/throw_error.js");
+function contains_any_of(input) {
+    const val = typeof input.val === "string" ? input.val : input.val.get();
+    const sub = typeof input.sub === "string" ? input.sub : input.sub.get();
+    const off = typeof input.off === "number" ? input.off : input.off?.get() || 0;
+    const len = typeof input.len === "number" ? input.len : input.len?.get();
+    if (off < 0 || off > val.length) {
+        (0, throw_error_1.throwError)("CX_SY_RANGE_OUT_OF_BOUNDS");
+    }
+    if (len !== undefined && (len < 0 || off + len > val.length)) {
+        (0, throw_error_1.throwError)("CX_SY_RANGE_OUT_OF_BOUNDS");
+    }
+    const end = len === undefined ? val.length : off + len;
+    const characters = new Set(sub.split(""));
+    let found = false;
+    for (let i = off; i < end; i++) {
+        if (characters.has(val.charAt(i))) {
+            found = true;
+            break;
+        }
+    }
+    return new types_1.String().set(found ? "X" : " ");
+}
+//# sourceMappingURL=contains_any_of.js.map
+
+/***/ },
+
 /***/ "../node_modules/@abaplint/runtime/build/src/builtin/cos.js"
 /*!******************************************************************!*\
   !*** ../node_modules/@abaplint/runtime/build/src/builtin/cos.js ***!
@@ -637,15 +743,16 @@ exports.count = count;
 const abap_regex_1 = __webpack_require__(/*! ../abap_regex */ "../node_modules/@abaplint/runtime/build/src/abap_regex.js");
 const compare_1 = __webpack_require__(/*! ../compare */ "../node_modules/@abaplint/runtime/build/src/compare/index.js");
 const types_1 = __webpack_require__(/*! ../types */ "../node_modules/@abaplint/runtime/build/src/types/index.js");
+const _position_1 = __webpack_require__(/*! ./_position */ "../node_modules/@abaplint/runtime/build/src/builtin/_position.js");
 function count(input) {
     let found = 0;
     let val = input.val.get();
-    if (input.off) {
-        const off = input.off.get();
+    const off = (0, _position_1.position)(input.off);
+    if (off !== undefined) {
         val = val.substring(off);
     }
-    if (input.len) {
-        const len = input.len.get();
+    const len = (0, _position_1.position)(input.len);
+    if (len !== undefined) {
         val = val.substring(0, len);
     }
     let reg = "";
@@ -712,9 +819,10 @@ function count_any_of(input) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.escape = escape;
 const types_1 = __webpack_require__(/*! ../types */ "../node_modules/@abaplint/runtime/build/src/types/index.js");
+const _position_1 = __webpack_require__(/*! ./_position */ "../node_modules/@abaplint/runtime/build/src/builtin/_position.js");
 function escape(input) {
     let val = typeof input.val === "string" ? input.val : input.val.get();
-    const format = typeof input.format === "number" ? input.format : input.format.get();
+    const format = (0, _position_1.position)(input.format);
     // todo, optimize/cache regexes
     switch (format) {
         case 1: // e_xml_attr
@@ -799,6 +907,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.find = find;
 const throw_error_1 = __webpack_require__(/*! ../throw_error */ "../node_modules/@abaplint/runtime/build/src/throw_error.js");
 const types_1 = __webpack_require__(/*! ../types */ "../node_modules/@abaplint/runtime/build/src/types/index.js");
+const _position_1 = __webpack_require__(/*! ./_position */ "../node_modules/@abaplint/runtime/build/src/builtin/_position.js");
 function find(input) {
     let val = typeof input.val === "string" ? input.val : input.val.get();
     if (input.len !== undefined) {
@@ -828,8 +937,8 @@ function find(input) {
     }
     else {
         const sub = typeof input.sub === "string" ? input.sub : input.sub?.get();
-        let off = typeof input.off === "number" ? input.off : input.off?.get() || 0;
-        let occ = typeof input.occ === "number" ? input.occ : input.occ?.get();
+        let off = (0, _position_1.position)(input.off) || 0;
+        let occ = (0, _position_1.position)(input.occ);
         if (occ === 0) {
             (0, throw_error_1.throwError)("CX_SY_STRG_PAR_VAL");
         }
@@ -876,12 +985,13 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.find_any_not_of = find_any_not_of;
 const types_1 = __webpack_require__(/*! ../types */ "../node_modules/@abaplint/runtime/build/src/types/index.js");
 const throw_error_1 = __webpack_require__(/*! ../throw_error */ "../node_modules/@abaplint/runtime/build/src/throw_error.js");
+const _position_1 = __webpack_require__(/*! ./_position */ "../node_modules/@abaplint/runtime/build/src/builtin/_position.js");
 function find_any_not_of(input) {
     const val = typeof input.val === "string" ? input.val : input.val.get();
     const sub = typeof input.sub === "string" ? input.sub : input.sub.get();
-    const off = typeof input.off === "number" ? input.off : input.off?.get() || 0;
-    const len = typeof input.len === "number" ? input.len : input.len?.get();
-    let occ = typeof input.occ === "number" ? input.occ : input.occ?.get();
+    const off = (0, _position_1.position)(input.off) || 0;
+    const len = (0, _position_1.position)(input.len);
+    let occ = (0, _position_1.position)(input.occ);
     if (occ === 0) {
         (0, throw_error_1.throwError)("CX_SY_STRG_PAR_VAL");
     }
@@ -929,12 +1039,13 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.find_any_of = find_any_of;
 const types_1 = __webpack_require__(/*! ../types */ "../node_modules/@abaplint/runtime/build/src/types/index.js");
 const throw_error_1 = __webpack_require__(/*! ../throw_error */ "../node_modules/@abaplint/runtime/build/src/throw_error.js");
+const _position_1 = __webpack_require__(/*! ./_position */ "../node_modules/@abaplint/runtime/build/src/builtin/_position.js");
 function find_any_of(input) {
     const val = typeof input.val === "string" ? input.val : input.val.get();
     const sub = typeof input.sub === "string" ? input.sub : input.sub.get();
-    const off = typeof input.off === "number" ? input.off : input.off?.get() || 0;
-    const len = typeof input.len === "number" ? input.len : input.len?.get();
-    let occ = typeof input.occ === "number" ? input.occ : input.occ?.get();
+    const off = (0, _position_1.position)(input.off) || 0;
+    const len = (0, _position_1.position)(input.len);
+    let occ = (0, _position_1.position)(input.occ);
     if (occ === 0) {
         (0, throw_error_1.throwError)("CX_SY_STRG_PAR_VAL");
     }
@@ -1129,6 +1240,8 @@ __exportStar(__webpack_require__(/*! ./ceil */ "../node_modules/@abaplint/runtim
 __exportStar(__webpack_require__(/*! ./concat_lines_of */ "../node_modules/@abaplint/runtime/build/src/builtin/concat_lines_of.js"), exports);
 __exportStar(__webpack_require__(/*! ./condense */ "../node_modules/@abaplint/runtime/build/src/builtin/condense.js"), exports);
 __exportStar(__webpack_require__(/*! ./contains */ "../node_modules/@abaplint/runtime/build/src/builtin/contains.js"), exports);
+__exportStar(__webpack_require__(/*! ./contains_any_not_of */ "../node_modules/@abaplint/runtime/build/src/builtin/contains_any_not_of.js"), exports);
+__exportStar(__webpack_require__(/*! ./contains_any_of */ "../node_modules/@abaplint/runtime/build/src/builtin/contains_any_of.js"), exports);
 __exportStar(__webpack_require__(/*! ./cos */ "../node_modules/@abaplint/runtime/build/src/builtin/cos.js"), exports);
 __exportStar(__webpack_require__(/*! ./cosh */ "../node_modules/@abaplint/runtime/build/src/builtin/cosh.js"), exports);
 __exportStar(__webpack_require__(/*! ./count_any_of */ "../node_modules/@abaplint/runtime/build/src/builtin/count_any_of.js"), exports);
@@ -1207,10 +1320,11 @@ export const $_minchar = new Character(1).set(Buffer.from("0000", "hex").toStrin
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.insert = insert;
 const types_1 = __webpack_require__(/*! ../types */ "../node_modules/@abaplint/runtime/build/src/types/index.js");
+const _position_1 = __webpack_require__(/*! ./_position */ "../node_modules/@abaplint/runtime/build/src/builtin/_position.js");
 function insert(input) {
-    let offset = 0;
-    if (input.off) {
-        offset = input.off.get();
+    let offset = (0, _position_1.position)(input.off);
+    if (offset === undefined) {
+        offset = 0;
     }
     const value = input.val.getOffset({ offset: 0, length: offset }).get() +
         input.sub.get() +
@@ -1608,9 +1722,10 @@ function numofchar(input) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.repeat = repeat;
 const string_1 = __webpack_require__(/*! ../types/string */ "../node_modules/@abaplint/runtime/build/src/types/string.js");
+const _position_1 = __webpack_require__(/*! ./_position */ "../node_modules/@abaplint/runtime/build/src/builtin/_position.js");
 function repeat(input) {
     const val = typeof input.val === "string" ? input.val : input.val.get();
-    return new string_1.String().set(val.repeat(input.occ.get()));
+    return new string_1.String().set(val.repeat((0, _position_1.position)(input.occ)));
 }
 //# sourceMappingURL=repeat.js.map
 
@@ -1629,6 +1744,7 @@ exports.replace = replace;
 const string_1 = __webpack_require__(/*! ../types/string */ "../node_modules/@abaplint/runtime/build/src/types/string.js");
 const abap_regex_1 = __webpack_require__(/*! ../abap_regex */ "../node_modules/@abaplint/runtime/build/src/abap_regex.js");
 const types_1 = __webpack_require__(/*! ../types */ "../node_modules/@abaplint/runtime/build/src/types/index.js");
+const _position_1 = __webpack_require__(/*! ./_position */ "../node_modules/@abaplint/runtime/build/src/builtin/_position.js");
 function dereference(input) {
     if (input instanceof types_1.FieldSymbol) {
         const pointer = input.getPointer();
@@ -1683,14 +1799,12 @@ function replace(input) {
     else if (regexInput) {
         sub = new RegExp(abap_regex_1.ABAPRegExp.convert(regexInput.get()), "g");
     }
-    if (input.off && input.len && typeof source === "string") {
-        const offset = input.off.get();
-        const length = input.len.get();
+    const offset = (0, _position_1.position)(input.off);
+    const length = (0, _position_1.position)(input.len);
+    if (offset !== undefined && length !== undefined && typeof source === "string") {
         val = val.substring(0, offset) + wi + val.substring(offset + length);
     }
-    else if (input.off && input.len && !(typeof source === "string")) {
-        const offset = input.off.get();
-        const length = input.len.get();
+    else if (offset !== undefined && length !== undefined && !(typeof source === "string")) {
         val = source.getOffset({ offset: 0, length: offset }).get() +
             wi +
             source.getOffset({ offset: offset + length }).get();
@@ -1701,7 +1815,7 @@ function replace(input) {
         }
         val = val.replace(sub, wi);
     }
-    else if (input.occ && input.occ.get() === 0 && sub && wi !== undefined) {
+    else if (input.occ && (0, _position_1.position)(input.occ) === 0 && sub && wi !== undefined) {
         if (typeof sub === "string") {
             sub = new RegExp(sub, "g");
         }
@@ -1802,6 +1916,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.segment = segment;
 const throw_error_1 = __webpack_require__(/*! ../throw_error */ "../node_modules/@abaplint/runtime/build/src/throw_error.js");
 const types_1 = __webpack_require__(/*! ../types */ "../node_modules/@abaplint/runtime/build/src/types/index.js");
+const _position_1 = __webpack_require__(/*! ./_position */ "../node_modules/@abaplint/runtime/build/src/builtin/_position.js");
 function segment(input) {
     let val = input.val;
     if (typeof val !== "string") {
@@ -1811,10 +1926,7 @@ function segment(input) {
     if (typeof sep !== "string") {
         sep = sep.get();
     }
-    let index = input.index;
-    if (typeof index !== "number") {
-        index = index.get();
-    }
+    let index = (0, _position_1.position)(input.index);
     if (index === 0 || sep.length === 0) {
         (0, throw_error_1.throwError)("CX_SY_STRG_PAR_VAL");
     }
@@ -1844,6 +1956,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.shift_left = shift_left;
 const string_1 = __webpack_require__(/*! ../types/string */ "../node_modules/@abaplint/runtime/build/src/types/string.js");
 const throw_error_1 = __webpack_require__(/*! ../throw_error */ "../node_modules/@abaplint/runtime/build/src/throw_error.js");
+const _position_1 = __webpack_require__(/*! ./_position */ "../node_modules/@abaplint/runtime/build/src/builtin/_position.js");
 function shift_left(input) {
     let val = typeof input.val === "string" ? input.val : input.val.get();
     if (input.sub) {
@@ -1853,17 +1966,14 @@ function shift_left(input) {
         }
     }
     else if (input.places) {
-        let places = typeof input.places === "string" ? input.places : input.places.get();
-        if (typeof places === "string") {
-            places = parseInt(places, 10);
-        }
+        const places = (0, _position_1.position)(input.places);
         if (places > val.length) {
             (0, throw_error_1.throwError)("CX_SY_RANGE_OUT_OF_BOUNDS");
         }
         val = val.substring(places);
     }
     else if (input.circular) {
-        const leftShifts = input.circular.get() % val.length;
+        const leftShifts = (0, _position_1.position)(input.circular) % val.length;
         val = val.slice(leftShifts) + val.slice(0, leftShifts);
     }
     else {
@@ -2086,15 +2196,16 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.substring = substring;
 const string_1 = __webpack_require__(/*! ../types/string */ "../node_modules/@abaplint/runtime/build/src/types/string.js");
 const throw_error_1 = __webpack_require__(/*! ../throw_error */ "../node_modules/@abaplint/runtime/build/src/throw_error.js");
+const _position_1 = __webpack_require__(/*! ./_position */ "../node_modules/@abaplint/runtime/build/src/builtin/_position.js");
 function substring(input) {
-    let off = input?.off?.get();
+    let off = (0, _position_1.position)(input?.off);
     if (off === undefined) {
         off = 0;
     }
     else if (off < 0) {
         (0, throw_error_1.throwError)("CX_SY_RANGE_OUT_OF_BOUNDS");
     }
-    const len = input?.len?.get();
+    const len = (0, _position_1.position)(input?.len);
     if (len && len < 0) {
         (0, throw_error_1.throwError)("CX_SY_RANGE_OUT_OF_BOUNDS");
     }
@@ -3431,21 +3542,14 @@ function gt(left, right) {
     else {
         r = right.get();
     }
+    // a character operand is converted to the type of the numeric one it is
+    // compared with: '0.5' against a float is 0.5, not 0. parse() knows the
+    // rules, and an empty string is 0 there too
     if (typeof l === "string" && typeof r === "number") {
-        if (l === "") {
-            l = 0;
-        }
-        else {
-            l = parseInt(l, 10);
-        }
+        l = (0, _parse_1.parse)(l);
     }
     else if (typeof l === "number" && typeof r === "string") {
-        if (r === "") {
-            r = 0;
-        }
-        else {
-            r = parseInt(r, 10);
-        }
+        r = (0, _parse_1.parse)(r);
     }
     if (l === undefined) {
         return true; // todo, not sure this is correct
@@ -4618,6 +4722,10 @@ function parse(val) {
     else if (val instanceof types_1.Float) {
         return val.getRaw();
     }
+    else if (val instanceof types_1.Character) {
+        // constants remember what they parse to, the value cannot change
+        return val.getNumeric();
+    }
     else if (val instanceof xstring_1.XString) {
         if (val.get() === "") {
             return 0;
@@ -4675,6 +4783,14 @@ function isIntegerCharacter(value) {
 function add(left, right) {
     if (left instanceof types_1.Integer && right instanceof types_1.Integer) {
         return new types_1.Integer().set(left.get() + right.get());
+    }
+    else if (left instanceof types_1.Float && right instanceof types_1.Float) {
+        // Two floats fall through the rest of the chain to exactly this, and
+        // float arithmetic is the most common thing there is: the remaining type
+        // tests all fail, and then parse() is called on each operand, which for a
+        // Float is getRaw(). It sits after the integer branch on purpose, so that
+        // integer arithmetic pays nothing for it.
+        return new types_1.Float().set(left.getRaw() + right.getRaw());
     }
     else if (typeof left === "number" && typeof right === "number"
         && Number.isInteger(left) && Number.isInteger(right)) {
@@ -4915,14 +5031,13 @@ function div(left, right) {
                 (0, throw_error_1.throwError)("CX_SY_ZERODIVIDE");
             }
         }
+        // DIV leaves a remainder that is never negative, 0 <= l - r * div < |r|,
+        // so a truncated quotient moves down for a positive divisor and up for
+        // a negative one: 7 DIV -2 = -3, -7 DIV -2 = 4
         const remainder = l % r;
         let div = l / r;
-        if (remainder !== 0n) {
-            const sign1 = l < 0n;
-            const sign2 = r < 0n;
-            if (sign1 !== sign2) {
-                div = div - 1n;
-            }
+        if (remainder < 0n) {
+            div = r > 0n ? div - 1n : div + 1n;
         }
         return new types_1.Integer8().set(div);
     }
@@ -4937,7 +5052,9 @@ function div(left, right) {
         }
     }
     else {
-        return new types_1.Integer().set(Math.floor(l / r));
+        // floor only for a positive divisor; for a negative one the quotient
+        // rounds up, so that the remainder a - b * ( a DIV b ) is not negative
+        return new types_1.Integer().set(r > 0 ? Math.floor(l / r) : -Math.floor(l / -r));
     }
 }
 //# sourceMappingURL=div.js.map
@@ -5068,6 +5185,14 @@ function minus(left, right) {
     if (left instanceof types_1.Integer && right instanceof types_1.Integer) {
         return new types_1.Integer().set(left.get() - right.get());
     }
+    else if (left instanceof types_1.Float && right instanceof types_1.Float) {
+        // Two floats fall through the rest of the chain to exactly this, and
+        // float arithmetic is the most common thing there is: the remaining type
+        // tests all fail, and then parse() is called on each operand, which for a
+        // Float is getRaw(). It sits after the integer branch on purpose, so that
+        // integer arithmetic pays nothing for it.
+        return new types_1.Float().set(left.getRaw() - right.getRaw());
+    }
     else if (left instanceof types_1.Integer8 || right instanceof types_1.Integer8) {
         const l = left instanceof types_1.Integer8 ? left.get() : BigInt((0, _parse_1.parse)(left));
         const r = right instanceof types_1.Integer8 ? right.get() : BigInt((0, _parse_1.parse)(right));
@@ -5120,9 +5245,12 @@ function mod(left, right) {
                 (0, throw_error_1.throwError)("CX_SY_ZERODIVIDE");
             }
         }
-        let val = ((l % r) + r) % r;
-        if (val < 0) {
-            val = val * -1n;
+        // the remainder is never negative and below |r|, whatever the signs:
+        // 7 MOD -3 = 1, -7 MOD -3 = 2
+        const a = r < 0n ? -r : r;
+        let val = l % a;
+        if (val < 0n) {
+            val = val + a;
         }
         return new types_1.Integer8().set(val);
     }
@@ -5136,17 +5264,21 @@ function mod(left, right) {
             (0, throw_error_1.throwError)("CX_SY_ZERODIVIDE");
         }
     }
-    let val = ((l % r) + r) % r;
-    if (val < 0) {
-        val = val * -1;
+    // a MOD r = a - r * ( a DIV r ), with the quotient rule of DIV:
+    // 7 MOD -3 = 1, -7 MOD -3 = 2, 7.5 MOD -2 = 1.5. For f this is also what a
+    // system computes in double precision, 0.5 MOD 0.1 = 0 there, where a
+    // remainder by % gives 0.09999999999999998
+    const q = r > 0 ? Math.floor(l / r) : -Math.floor(l / -r);
+    let val = l - r * q;
+    if (val === 0) {
+        val = 0; // not -0
     }
-    // hmm, to handle field symbols?
-    if (left instanceof types_1.Integer8 || right instanceof types_1.Integer8) {
-        return new types_1.Integer8().set(val);
+    // the calculation type of the operands decides: with a float operand the
+    // remainder is a float, 2.75 MOD 1 is 0.75 and not 1
+    if (left instanceof types_1.Float || right instanceof types_1.Float) {
+        return new types_1.Float().set(val);
     }
-    else {
-        return new types_1.Integer().set(val);
-    }
+    return new types_1.Integer().set(val);
 }
 //# sourceMappingURL=mod.js.map
 
@@ -5174,6 +5306,14 @@ function multiply(left, right) {
     else if (left instanceof types_1.Integer && right instanceof types_1.Integer) {
         const val = left.get() * right.get();
         return new types_1.Integer().set(val);
+    }
+    else if (left instanceof types_1.Float && right instanceof types_1.Float) {
+        // Two floats fall through the rest of the chain to exactly this, and
+        // float arithmetic is the most common thing there is: the remaining type
+        // tests all fail, and then parse() is called on each operand, which for a
+        // Float is getRaw(). It sits after the integer branch on purpose, so that
+        // integer arithmetic pays nothing for it.
+        return new types_1.Float().set(left.getRaw() * right.getRaw());
     }
     else if (typeof left === "number" && typeof right === "number"
         && Number.isInteger(left) && Number.isInteger(right)) {
@@ -6163,6 +6303,23 @@ exports.createData = createData;
 const throw_error_1 = __webpack_require__(/*! ../throw_error */ "../node_modules/@abaplint/runtime/build/src/throw_error.js");
 const types_1 = __webpack_require__(/*! ../types */ "../node_modules/@abaplint/runtime/build/src/types/index.js");
 const tableOptions = { withHeader: false, keyType: types_1.TableKeyType.default };
+/** CREATE DATA ... TYPE REF TO <name>, both the static and the dynamic spelling.
+ * "REF TO data" is the generic case: the created data object is itself an
+ * unbound data reference, so the target points at a DataReference. Anything
+ * else names a class or interface. */
+function createDataRefTo(target, name) {
+    if (name.toUpperCase() === "DATA") {
+        // a DataReference pointing at a DataReference, same shape GET REFERENCE OF
+        // a "REF TO data" variable produces - the declared types do not model the
+        // nesting, so this mirrors get_reference's cast
+        target.assign(new types_1.DataReference(undefined));
+        return;
+    }
+    if (abap.Classes[name.toUpperCase()] === undefined) {
+        (0, throw_error_1.throwError)("CX_SY_CREATE_DATA_ERROR");
+    }
+    target.assign(new abap.types.ABAPObject({ qualifiedName: name, RTTIName: name }));
+}
 function createData(target, options) {
     // console.dir(options);
     if (target instanceof types_1.FieldSymbol) {
@@ -6229,10 +6386,7 @@ function createData(target, options) {
             target.assign(new types_1.Integer8());
         }
         else if (options.refTo === true) {
-            if (abap.Classes[options.name.toUpperCase()] === undefined) {
-                (0, throw_error_1.throwError)("CX_SY_CREATE_DATA_ERROR");
-            }
-            target.assign(new abap.types.ABAPObject({ qualifiedName: options.name, RTTIName: options.name }));
+            createDataRefTo(target, options.name);
         }
         else {
             (0, throw_error_1.throwError)("CX_SY_CREATE_DATA_ERROR");
@@ -6312,7 +6466,11 @@ function createData(target, options) {
                 target.assign(new types_1.DecFloat34());
                 break;
             default:
-                if (abap.DDIC[options.typeName.trimEnd()]) {
+                if (abap.DDIC[options.typeName.trimEnd()] && options.table) {
+                    // static "TYPE STANDARD TABLE OF <ddic>", same as the dynamic name variant above
+                    target.assign(new abap.types.Table(abap.DDIC[options.typeName.trimEnd()].type(), tableOptions));
+                }
+                else if (abap.DDIC[options.typeName.trimEnd()]) {
                     target.assign(abap.DDIC[options.typeName.trimEnd()].type().clone());
                 }
                 else if (options.typeName.includes("=>")) {
@@ -6324,6 +6482,11 @@ function createData(target, options) {
                         (0, throw_error_1.throwError)("CX_SY_CREATE_DATA_ERROR");
                     }
                     target.assign(abap.Classes[className][typeName.toLowerCase().trimEnd()].clone());
+                }
+                else if (options.refTo === true) {
+                    // statically written "TYPE REF TO ...", the dynamic "TYPE REF TO (name)"
+                    // variant is handled in the options.name branch above
+                    createDataRefTo(target, options.typeName.trimEnd());
                 }
                 else {
                     throw new Error("CREATE DATA, unknown type " + options.typeName);
@@ -6355,6 +6518,61 @@ function createData(target, options) {
     }
 }
 //# sourceMappingURL=create_data.js.map
+
+/***/ },
+
+/***/ "../node_modules/@abaplint/runtime/build/src/statements/create_object.js"
+/*!*******************************************************************************!*\
+  !*** ../node_modules/@abaplint/runtime/build/src/statements/create_object.js ***!
+  \*******************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.checkCreateObjectType = checkCreateObjectType;
+const throw_error_1 = __webpack_require__(/*! ../throw_error */ "../node_modules/@abaplint/runtime/build/src/throw_error.js");
+/**
+ * CREATE OBJECT with a DYNAMIC class name, into a reference that has a static
+ * type: the class the name resolves to has to be compatible with that type.
+ *
+ * A system raises CX_SY_CREATE_OBJECT_ERROR when it is not, and it raises it
+ * BEFORE the constructor runs - so this is checked on the class, not on an
+ * instance. Without the check an unrelated class was simply assigned to the
+ * reference and the mismatch surfaced later as a raw javascript TypeError on
+ * the first member access, which no CATCH takes: a caller that guards its
+ * dynamic CREATE OBJECT the way the ABAP documentation asks for was not
+ * guarded at all.
+ *
+ * `targetType` is the class or interface object of the reference's static
+ * type and `targetName` its upper-case name; a generic `REF TO object` target
+ * passes both as undefined, and then there is nothing to check.
+ */
+function checkCreateObjectType(clas, targetType, targetName) {
+    if (clas === undefined || targetType === undefined) {
+        return;
+    }
+    if (targetType.INTERNAL_TYPE === "CLAS") {
+        // the class itself or anything below it
+        if (clas === targetType || clas.prototype instanceof targetType) {
+            return;
+        }
+    }
+    else if (targetType.INTERNAL_TYPE === "INTF") {
+        // the same list the cast checks, and it carries the interfaces a
+        // superclass or a composed interface brings along
+        const list = clas.IMPLEMENTED_INTERFACES;
+        if (list?.some(i => i === targetName) === true) {
+            return;
+        }
+    }
+    else {
+        // not something this can decide - leave it as it was
+        return;
+    }
+    (0, throw_error_1.throwError)("CX_SY_CREATE_OBJECT_ERROR");
+}
+//# sourceMappingURL=create_object.js.map
 
 /***/ },
 
@@ -7045,6 +7263,7 @@ const find_1 = __webpack_require__(/*! ./find */ "../node_modules/@abaplint/runt
 const collect_1 = __webpack_require__(/*! ./collect */ "../node_modules/@abaplint/runtime/build/src/statements/collect.js");
 const overlay_1 = __webpack_require__(/*! ./overlay */ "../node_modules/@abaplint/runtime/build/src/statements/overlay.js");
 const cast_1 = __webpack_require__(/*! ./cast */ "../node_modules/@abaplint/runtime/build/src/statements/cast.js");
+const create_object_1 = __webpack_require__(/*! ./create_object */ "../node_modules/@abaplint/runtime/build/src/statements/create_object.js");
 const get_bit_1 = __webpack_require__(/*! ./get_bit */ "../node_modules/@abaplint/runtime/build/src/statements/get_bit.js");
 const read_report_1 = __webpack_require__(/*! ./read_report */ "../node_modules/@abaplint/runtime/build/src/statements/read_report.js");
 const get_reference_1 = __webpack_require__(/*! ./get_reference */ "../node_modules/@abaplint/runtime/build/src/statements/get_reference.js");
@@ -7091,6 +7310,7 @@ class Statements {
     assert = assert_1.assert;
     assign = assign_1.assign;
     cast = cast_1.cast;
+    checkCreateObjectType = create_object_1.checkCreateObjectType;
     collect = collect_1.collect;
     concatenate = concatenate_1.concatenate;
     condense = condense_1.condense;
@@ -7522,6 +7742,24 @@ async function* loop(table, options) {
     }
     const loopController = table.startLoop(loopFrom, loopTo, array);
     let entered = false;
+    // ABAP hands sy-tabix back the way it found it. A LOOP owns sy-tabix only
+    // for as long as it runs; leaving it, by ENDLOOP or EXIT or RETURN or an
+    // exception, puts back whatever the enclosing loop had. Without that an
+    // inner loop, or a method that happens to contain one, silently rewrites
+    // the row number the outer loop is standing on, and the outer body reads
+    // the inner loop's last index as its own.
+    const outerTabix = abap.builtin.sy.get().tabix.get();
+    // A hashed table has no row number to report, and ABAP says so by leaving
+    // sy-tabix at 0 for the whole loop rather than by inventing a position.
+    // The same goes for a loop that reads an index table through a hash
+    // secondary key. Handing out 1, 2, 3 there looks helpful and is a lie the
+    // caller cannot tell from the truth.
+    const usedKey = options?.usingKey === undefined || options.usingKey === "primary_key"
+        ? undefined
+        : table.getKeyByName(options.usingKey);
+    const hasRowNumber = usedKey !== undefined
+        ? usedKey.type !== types_1.TableAccessType.hashed
+        : !(table instanceof types_1.HashedTable);
     try {
         const isStructured = array[0] instanceof types_1.Structure;
         while (loopController.index < loopController.loopTo) {
@@ -7536,7 +7774,7 @@ async function* loop(table, options) {
                     continue;
                 }
             }
-            abap.builtin.sy.get().tabix.set(loopController.index + 1);
+            abap.builtin.sy.get().tabix.set(hasRowNumber ? loopController.index + 1 : 0);
             entered = true;
             options?.atLast?.(loopController.index + 1 >= loopController.loopTo);
             yield current;
@@ -7550,6 +7788,7 @@ async function* loop(table, options) {
     finally {
         table.unregisterLoop(loopController);
         abap.builtin.sy.get().subrc.set(entered ? 0 : 4);
+        abap.builtin.sy.get().tabix.set(outerTabix);
     }
 }
 //# sourceMappingURL=loop.js.map
@@ -9730,6 +9969,10 @@ const initialValues = {};
 class Character {
     value;
     constant = false;
+    /** the value as a number, filled by getNumeric() only when this is a constant.
+     * set() cannot invalidate it because set() throws on a constant; clear() can,
+     * and does, because it is not covered by that check. */
+    numeric = undefined;
     length;
     extra;
     constructor(length, extra) {
@@ -9806,6 +10049,21 @@ class Character {
             initialValues[this.length] = " ".repeat(this.length);
         }
         this.value = initialValues[this.length];
+        this.numeric = undefined;
+    }
+    /** The value as a number. A constant cannot change, so it is parsed once and
+     * remembered: a character literal is how ABAP writes a non integer constant,
+     * ie. "lv_x = lv_y * '0.5'", and every arithmetic operation on one used to
+     * trim the string and parse it again. */
+    getNumeric() {
+        let numeric = this.numeric;
+        if (numeric === undefined) {
+            numeric = (0, _parse_1.parse)(this.value);
+            if (this.constant === true) {
+                this.numeric = numeric;
+            }
+        }
+        return numeric;
     }
     get() {
         return this.value;
@@ -10077,7 +10335,10 @@ class DecFloat34 {
             this.value = 0;
         }
         else if (typeof value === "string") {
-            this.value = parseFloat(value);
+            // get() writes the decimal separator as a comma, and parseFloat stops
+            // at one: without this, reading back what this type just wrote gives a
+            // truncated number and no error at all
+            this.value = parseFloat(value.replace(",", "."));
         }
         else if (value instanceof DecFloat34) {
             this.value = value.getRaw();
@@ -10260,7 +10521,12 @@ const hex_1 = __webpack_require__(/*! ./hex */ "../node_modules/@abaplint/runtim
 const xstring_1 = __webpack_require__(/*! ./xstring */ "../node_modules/@abaplint/runtime/build/src/types/xstring.js");
 const integer8_1 = __webpack_require__(/*! ./integer8 */ "../node_modules/@abaplint/runtime/build/src/types/integer8.js");
 const decfloat34_1 = __webpack_require__(/*! ./decfloat34 */ "../node_modules/@abaplint/runtime/build/src/types/decfloat34.js");
-const FLOAT_DIGITS = /^\s*[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)? *$/;
+// A float writes itself out with a comma for the decimal separator, so
+// reading one back has to accept a comma. Both are allowed rather than only
+// the comma: ABAP source literals carry a point, `CONV f( '0.25' )` is
+// everywhere, and a separator that is legal on the way out and illegal on the
+// way in is not a rule, it is a trap.
+const FLOAT_DIGITS = /^\s*[+-]?(\d+[.,]?\d*|[.,]\d+)([eE][+-]?\d+)? *$/;
 /*
 function getNumberParts(x: number) {
   if(isNaN(x)) {
@@ -10321,7 +10587,7 @@ class Float {
             if (FLOAT_DIGITS.test(value) === false) {
                 (0, throw_error_1.throwError)("CX_SY_CONVERSION_NO_NUMBER");
             }
-            this.value = parseFloat(value);
+            this.value = parseFloat(value.replace(",", "."));
         }
         else if (value instanceof integer8_1.Integer8) {
             this.value = Number(value.get());
@@ -10772,6 +11038,7 @@ __exportStar(__webpack_require__(/*! ./xstring */ "../node_modules/@abaplint/run
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Integer = exports.MIN_INTEGER = exports.MAX_INTEGER = exports.DIGITS = void 0;
 exports.toInteger = toInteger;
+exports.roundHalfAwayFromZero = roundHalfAwayFromZero;
 const throw_error_1 = __webpack_require__(/*! ../throw_error */ "../node_modules/@abaplint/runtime/build/src/throw_error.js");
 const float_1 = __webpack_require__(/*! ./float */ "../node_modules/@abaplint/runtime/build/src/types/float.js");
 const hex_1 = __webpack_require__(/*! ./hex */ "../node_modules/@abaplint/runtime/build/src/types/hex.js");
@@ -10799,7 +11066,14 @@ function toInteger(value, exception = true) {
             throw new Error("CONVT_NO_NUMBER");
         }
     }
-    return Math.round(parseFloat(value));
+    return roundHalfAwayFromZero(parseFloat(value));
+}
+// ABAP rounds a half away from zero when a float is moved to an integer,
+// on both sides: 0.5 is 1 and -0.5 is -1. Math.round rounds a half towards
+// positive infinity, so -0.5 was 0 (and -0 at that)
+function roundHalfAwayFromZero(value) {
+    const rounded = value < 0 ? -Math.round(-value) : Math.round(value);
+    return rounded === 0 ? 0 : rounded;
 }
 class Integer {
     value;
@@ -10837,7 +11111,7 @@ class Integer {
             throw new Error("Changing constant");
         }
         if (typeof value === "number") {
-            this.value = Math.round(value);
+            this.value = roundHalfAwayFromZero(value);
         }
         else if (value instanceof Integer) {
             this.set(value.get());
@@ -10852,7 +11126,7 @@ class Integer {
             this.set(Number(value.get()));
         }
         else if (value instanceof float_1.Float || value instanceof decfloat34_1.DecFloat34) {
-            this.set(Math.round(value.getRaw()));
+            this.set(roundHalfAwayFromZero(value.getRaw()));
         }
         else if (value instanceof hex_1.Hex || value instanceof xstring_1.XString || value instanceof hex_uint8_1.HexUInt8) {
             const hex = value.get();
@@ -10947,7 +11221,7 @@ class Integer8 {
             this.value = BigInt(value);
         }
         else if (value instanceof float_1.Float || value instanceof decfloat34_1.DecFloat34) {
-            this.set(Math.round(value.getRaw()));
+            this.set((0, integer_1.roundHalfAwayFromZero)(value.getRaw()));
         }
         else if (value instanceof hex_1.Hex || value instanceof xstring_1.XString || value instanceof hex_uint8_1.HexUInt8) {
             if (value.get().length === 16) {
@@ -11582,6 +11856,7 @@ exports.Structure = Structure;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Table = exports.HashedTable = exports.TableFactory = exports.LoopController = exports.TableKeyType = exports.TableAccessType = void 0;
 const integer_1 = __webpack_require__(/*! ./integer */ "../node_modules/@abaplint/runtime/build/src/types/integer.js");
+const float_1 = __webpack_require__(/*! ./float */ "../node_modules/@abaplint/runtime/build/src/types/float.js");
 const abap_object_1 = __webpack_require__(/*! ./abap_object */ "../node_modules/@abaplint/runtime/build/src/types/abap_object.js");
 const string_1 = __webpack_require__(/*! ./string */ "../node_modules/@abaplint/runtime/build/src/types/string.js");
 const structure_1 = __webpack_require__(/*! ./structure */ "../node_modules/@abaplint/runtime/build/src/types/structure.js");
@@ -11874,8 +12149,12 @@ class HashedTable {
     cloneRow(item) {
         // make sure to do conversion if needed
         if (typeof item === "number") {
+            // a raw number is what the numeric built-ins return (sin, cos, sqrt,
+            // abs, floor, ...): a whole one is an integer, anything else is a
+            // float, and wrapping every one as an Integer first rounded a sine
+            // table to zeros before the row ever saw the value
             const tmp = this.getRowType().clone();
-            tmp.set(new integer_1.Integer().set(item));
+            tmp.set(Number.isInteger(item) ? new integer_1.Integer().set(item) : new float_1.Float().set(item));
             return tmp;
         }
         else if (typeof item === "string") {
@@ -12144,8 +12423,12 @@ class Table {
     cloneRow(item) {
         // make sure to do conversion if needed
         if (typeof item === "number") {
+            // a raw number is what the numeric built-ins return (sin, cos, sqrt,
+            // abs, floor, ...): a whole one is an integer, anything else is a
+            // float, and wrapping every one as an Integer first rounded a sine
+            // table to zeros before the row ever saw the value
             const tmp = this.getRowType().clone();
-            tmp.set(new integer_1.Integer().set(item));
+            tmp.set(Number.isInteger(item) ? new integer_1.Integer().set(item) : new float_1.Float().set(item));
             return tmp;
         }
         else if (typeof item === "string") {
@@ -314100,207 +314383,207 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _cl_abap_matcher_clas_mjs__WEBPACK_IMPORTED_MODULE_78__ = __webpack_require__(/*! ./cl_abap_matcher.clas.mjs */ "../output/cl_abap_matcher.clas.mjs");
 /* harmony import */ var _cl_abap_math_clas_mjs__WEBPACK_IMPORTED_MODULE_79__ = __webpack_require__(/*! ./cl_abap_math.clas.mjs */ "../output/cl_abap_math.clas.mjs");
 /* harmony import */ var _cl_abap_memory_utilities_clas_mjs__WEBPACK_IMPORTED_MODULE_80__ = __webpack_require__(/*! ./cl_abap_memory_utilities.clas.mjs */ "../output/cl_abap_memory_utilities.clas.mjs");
-/* harmony import */ var _cl_abap_message_digest_clas_mjs__WEBPACK_IMPORTED_MODULE_81__ = __webpack_require__(/*! ./cl_abap_message_digest.clas.mjs */ "../output/cl_abap_message_digest.clas.mjs");
-/* harmony import */ var _cl_abap_objectdescr_clas_mjs__WEBPACK_IMPORTED_MODULE_82__ = __webpack_require__(/*! ./cl_abap_objectdescr.clas.mjs */ "../output/cl_abap_objectdescr.clas.mjs");
-/* harmony import */ var _cl_abap_random_clas_mjs__WEBPACK_IMPORTED_MODULE_83__ = __webpack_require__(/*! ./cl_abap_random.clas.mjs */ "../output/cl_abap_random.clas.mjs");
-/* harmony import */ var _cl_abap_random_int_clas_mjs__WEBPACK_IMPORTED_MODULE_84__ = __webpack_require__(/*! ./cl_abap_random_int.clas.mjs */ "../output/cl_abap_random_int.clas.mjs");
-/* harmony import */ var _cl_abap_refdescr_clas_mjs__WEBPACK_IMPORTED_MODULE_85__ = __webpack_require__(/*! ./cl_abap_refdescr.clas.mjs */ "../output/cl_abap_refdescr.clas.mjs");
-/* harmony import */ var _cl_abap_regex_clas_mjs__WEBPACK_IMPORTED_MODULE_86__ = __webpack_require__(/*! ./cl_abap_regex.clas.mjs */ "../output/cl_abap_regex.clas.mjs");
-/* harmony import */ var _cl_abap_structdescr_clas_mjs__WEBPACK_IMPORTED_MODULE_87__ = __webpack_require__(/*! ./cl_abap_structdescr.clas.mjs */ "../output/cl_abap_structdescr.clas.mjs");
-/* harmony import */ var _cl_abap_tabledescr_clas_mjs__WEBPACK_IMPORTED_MODULE_88__ = __webpack_require__(/*! ./cl_abap_tabledescr.clas.mjs */ "../output/cl_abap_tabledescr.clas.mjs");
-/* harmony import */ var _cl_abap_timefm_clas_mjs__WEBPACK_IMPORTED_MODULE_89__ = __webpack_require__(/*! ./cl_abap_timefm.clas.mjs */ "../output/cl_abap_timefm.clas.mjs");
-/* harmony import */ var _cl_abap_tstmp_clas_mjs__WEBPACK_IMPORTED_MODULE_90__ = __webpack_require__(/*! ./cl_abap_tstmp.clas.mjs */ "../output/cl_abap_tstmp.clas.mjs");
-/* harmony import */ var _cl_abap_typedescr_clas_mjs__WEBPACK_IMPORTED_MODULE_91__ = __webpack_require__(/*! ./cl_abap_typedescr.clas.mjs */ "../output/cl_abap_typedescr.clas.mjs");
-/* harmony import */ var _cl_abap_unit_assert_clas_mjs__WEBPACK_IMPORTED_MODULE_92__ = __webpack_require__(/*! ./cl_abap_unit_assert.clas.mjs */ "../output/cl_abap_unit_assert.clas.mjs");
-/* harmony import */ var _cl_abap_weak_reference_clas_mjs__WEBPACK_IMPORTED_MODULE_93__ = __webpack_require__(/*! ./cl_abap_weak_reference.clas.mjs */ "../output/cl_abap_weak_reference.clas.mjs");
-/* harmony import */ var _cl_abap_zip_clas_mjs__WEBPACK_IMPORTED_MODULE_94__ = __webpack_require__(/*! ./cl_abap_zip.clas.mjs */ "../output/cl_abap_zip.clas.mjs");
-/* harmony import */ var _cl_apc_tcp_client_manager_clas_mjs__WEBPACK_IMPORTED_MODULE_95__ = __webpack_require__(/*! ./cl_apc_tcp_client_manager.clas.mjs */ "../output/cl_apc_tcp_client_manager.clas.mjs");
-/* harmony import */ var _cl_apc_wsp_ext_stateless_base_clas_mjs__WEBPACK_IMPORTED_MODULE_96__ = __webpack_require__(/*! ./cl_apc_wsp_ext_stateless_base.clas.mjs */ "../output/cl_apc_wsp_ext_stateless_base.clas.mjs");
-/* harmony import */ var _cl_aunit_auth_check_types_def_clas_mjs__WEBPACK_IMPORTED_MODULE_97__ = __webpack_require__(/*! ./cl_aunit_auth_check_types_def.clas.mjs */ "../output/cl_aunit_auth_check_types_def.clas.mjs");
-/* harmony import */ var _cl_aunit_authority_check_clas_mjs__WEBPACK_IMPORTED_MODULE_98__ = __webpack_require__(/*! ./cl_aunit_authority_check.clas.mjs */ "../output/cl_aunit_authority_check.clas.mjs");
-/* harmony import */ var _cl_bcs_clas_mjs__WEBPACK_IMPORTED_MODULE_99__ = __webpack_require__(/*! ./cl_bcs.clas.mjs */ "../output/cl_bcs.clas.mjs");
-/* harmony import */ var _cl_bcs_convert_clas_mjs__WEBPACK_IMPORTED_MODULE_100__ = __webpack_require__(/*! ./cl_bcs_convert.clas.mjs */ "../output/cl_bcs_convert.clas.mjs");
-/* harmony import */ var _cl_cam_address_bcs_clas_mjs__WEBPACK_IMPORTED_MODULE_101__ = __webpack_require__(/*! ./cl_cam_address_bcs.clas.mjs */ "../output/cl_cam_address_bcs.clas.mjs");
-/* harmony import */ var _cl_demo_output_clas_mjs__WEBPACK_IMPORTED_MODULE_102__ = __webpack_require__(/*! ./cl_demo_output.clas.mjs */ "../output/cl_demo_output.clas.mjs");
-/* harmony import */ var _cl_document_bcs_clas_mjs__WEBPACK_IMPORTED_MODULE_103__ = __webpack_require__(/*! ./cl_document_bcs.clas.mjs */ "../output/cl_document_bcs.clas.mjs");
-/* harmony import */ var _cl_function_test_environment_clas_mjs__WEBPACK_IMPORTED_MODULE_104__ = __webpack_require__(/*! ./cl_function_test_environment.clas.mjs */ "../output/cl_function_test_environment.clas.mjs");
-/* harmony import */ var _cl_gdt_conversion_clas_mjs__WEBPACK_IMPORTED_MODULE_105__ = __webpack_require__(/*! ./cl_gdt_conversion.clas.mjs */ "../output/cl_gdt_conversion.clas.mjs");
-/* harmony import */ var _cl_http_client_clas_mjs__WEBPACK_IMPORTED_MODULE_106__ = __webpack_require__(/*! ./cl_http_client.clas.mjs */ "../output/cl_http_client.clas.mjs");
-/* harmony import */ var _cl_http_entity_clas_mjs__WEBPACK_IMPORTED_MODULE_107__ = __webpack_require__(/*! ./cl_http_entity.clas.mjs */ "../output/cl_http_entity.clas.mjs");
-/* harmony import */ var _cl_http_server_clas_mjs__WEBPACK_IMPORTED_MODULE_108__ = __webpack_require__(/*! ./cl_http_server.clas.mjs */ "../output/cl_http_server.clas.mjs");
-/* harmony import */ var _cl_http_utility_clas_mjs__WEBPACK_IMPORTED_MODULE_109__ = __webpack_require__(/*! ./cl_http_utility.clas.mjs */ "../output/cl_http_utility.clas.mjs");
-/* harmony import */ var _cl_i18n_languages_clas_mjs__WEBPACK_IMPORTED_MODULE_110__ = __webpack_require__(/*! ./cl_i18n_languages.clas.mjs */ "../output/cl_i18n_languages.clas.mjs");
-/* harmony import */ var _cl_ixml_clas_mjs__WEBPACK_IMPORTED_MODULE_111__ = __webpack_require__(/*! ./cl_ixml.clas.mjs */ "../output/cl_ixml.clas.mjs");
-/* harmony import */ var _cl_message_helper_clas_mjs__WEBPACK_IMPORTED_MODULE_112__ = __webpack_require__(/*! ./cl_message_helper.clas.mjs */ "../output/cl_message_helper.clas.mjs");
-/* harmony import */ var _cl_mime_repository_api_clas_mjs__WEBPACK_IMPORTED_MODULE_113__ = __webpack_require__(/*! ./cl_mime_repository_api.clas.mjs */ "../output/cl_mime_repository_api.clas.mjs");
-/* harmony import */ var _cl_numberrange_intervals_clas_mjs__WEBPACK_IMPORTED_MODULE_114__ = __webpack_require__(/*! ./cl_numberrange_intervals.clas.mjs */ "../output/cl_numberrange_intervals.clas.mjs");
-/* harmony import */ var _cl_numberrange_objects_clas_mjs__WEBPACK_IMPORTED_MODULE_115__ = __webpack_require__(/*! ./cl_numberrange_objects.clas.mjs */ "../output/cl_numberrange_objects.clas.mjs");
-/* harmony import */ var _cl_numberrange_runtime_clas_mjs__WEBPACK_IMPORTED_MODULE_116__ = __webpack_require__(/*! ./cl_numberrange_runtime.clas.mjs */ "../output/cl_numberrange_runtime.clas.mjs");
-/* harmony import */ var _cl_oa2c_config_writer_api_clas_mjs__WEBPACK_IMPORTED_MODULE_117__ = __webpack_require__(/*! ./cl_oa2c_config_writer_api.clas.mjs */ "../output/cl_oa2c_config_writer_api.clas.mjs");
-/* harmony import */ var _cl_oauth2_client_clas_mjs__WEBPACK_IMPORTED_MODULE_118__ = __webpack_require__(/*! ./cl_oauth2_client.clas.mjs */ "../output/cl_oauth2_client.clas.mjs");
-/* harmony import */ var _cl_oo_factory_clas_mjs__WEBPACK_IMPORTED_MODULE_119__ = __webpack_require__(/*! ./cl_oo_factory.clas.mjs */ "../output/cl_oo_factory.clas.mjs");
-/* harmony import */ var _cl_os_ca_common_clas_mjs__WEBPACK_IMPORTED_MODULE_120__ = __webpack_require__(/*! ./cl_os_ca_common.clas.mjs */ "../output/cl_os_ca_common.clas.mjs");
-/* harmony import */ var _cl_osql_test_environment_clas_mjs__WEBPACK_IMPORTED_MODULE_121__ = __webpack_require__(/*! ./cl_osql_test_environment.clas.mjs */ "../output/cl_osql_test_environment.clas.mjs");
-/* harmony import */ var _cl_package_factory_clas_mjs__WEBPACK_IMPORTED_MODULE_122__ = __webpack_require__(/*! ./cl_package_factory.clas.mjs */ "../output/cl_package_factory.clas.mjs");
-/* harmony import */ var _cl_package_helper_clas_mjs__WEBPACK_IMPORTED_MODULE_123__ = __webpack_require__(/*! ./cl_package_helper.clas.mjs */ "../output/cl_package_helper.clas.mjs");
-/* harmony import */ var _cl_sec_sxml_writer_clas_mjs__WEBPACK_IMPORTED_MODULE_124__ = __webpack_require__(/*! ./cl_sec_sxml_writer.clas.mjs */ "../output/cl_sec_sxml_writer.clas.mjs");
-/* harmony import */ var _cl_send_request_bcs_clas_mjs__WEBPACK_IMPORTED_MODULE_125__ = __webpack_require__(/*! ./cl_send_request_bcs.clas.mjs */ "../output/cl_send_request_bcs.clas.mjs");
-/* harmony import */ var _cl_shm_area_clas_mjs__WEBPACK_IMPORTED_MODULE_126__ = __webpack_require__(/*! ./cl_shm_area.clas.mjs */ "../output/cl_shm_area.clas.mjs");
-/* harmony import */ var _cl_shm_service_clas_mjs__WEBPACK_IMPORTED_MODULE_127__ = __webpack_require__(/*! ./cl_shm_service.clas.mjs */ "../output/cl_shm_service.clas.mjs");
-/* harmony import */ var _cl_sql_connection_clas_mjs__WEBPACK_IMPORTED_MODULE_128__ = __webpack_require__(/*! ./cl_sql_connection.clas.mjs */ "../output/cl_sql_connection.clas.mjs");
-/* harmony import */ var _cl_sql_result_set_clas_mjs__WEBPACK_IMPORTED_MODULE_129__ = __webpack_require__(/*! ./cl_sql_result_set.clas.mjs */ "../output/cl_sql_result_set.clas.mjs");
-/* harmony import */ var _cl_sql_statement_clas_mjs__WEBPACK_IMPORTED_MODULE_130__ = __webpack_require__(/*! ./cl_sql_statement.clas.mjs */ "../output/cl_sql_statement.clas.mjs");
-/* harmony import */ var _cl_sxml_string_reader_clas_mjs__WEBPACK_IMPORTED_MODULE_131__ = __webpack_require__(/*! ./cl_sxml_string_reader.clas.mjs */ "../output/cl_sxml_string_reader.clas.mjs");
-/* harmony import */ var _cl_sxml_string_writer_clas_mjs__WEBPACK_IMPORTED_MODULE_132__ = __webpack_require__(/*! ./cl_sxml_string_writer.clas.mjs */ "../output/cl_sxml_string_writer.clas.mjs");
-/* harmony import */ var _cl_system_uuid_clas_mjs__WEBPACK_IMPORTED_MODULE_133__ = __webpack_require__(/*! ./cl_system_uuid.clas.mjs */ "../output/cl_system_uuid.clas.mjs");
-/* harmony import */ var _cl_web_http_utility_clas_mjs__WEBPACK_IMPORTED_MODULE_134__ = __webpack_require__(/*! ./cl_web_http_utility.clas.mjs */ "../output/cl_web_http_utility.clas.mjs");
-/* harmony import */ var _config_deprecation_code_dtel_mjs__WEBPACK_IMPORTED_MODULE_135__ = __webpack_require__(/*! ./config_deprecation_code.dtel.mjs */ "../output/config_deprecation_code.dtel.mjs");
-/* harmony import */ var _cx_abap_api_state_clas_mjs__WEBPACK_IMPORTED_MODULE_136__ = __webpack_require__(/*! ./cx_abap_api_state.clas.mjs */ "../output/cx_abap_api_state.clas.mjs");
-/* harmony import */ var _cx_abap_auth_check_exception_clas_mjs__WEBPACK_IMPORTED_MODULE_137__ = __webpack_require__(/*! ./cx_abap_auth_check_exception.clas.mjs */ "../output/cx_abap_auth_check_exception.clas.mjs");
-/* harmony import */ var _cx_abap_context_info_error_clas_mjs__WEBPACK_IMPORTED_MODULE_138__ = __webpack_require__(/*! ./cx_abap_context_info_error.clas.mjs */ "../output/cx_abap_context_info_error.clas.mjs");
-/* harmony import */ var _cx_abap_datfm_clas_mjs__WEBPACK_IMPORTED_MODULE_139__ = __webpack_require__(/*! ./cx_abap_datfm.clas.mjs */ "../output/cx_abap_datfm.clas.mjs");
-/* harmony import */ var _cx_abap_invalid_name_clas_mjs__WEBPACK_IMPORTED_MODULE_140__ = __webpack_require__(/*! ./cx_abap_invalid_name.clas.mjs */ "../output/cx_abap_invalid_name.clas.mjs");
-/* harmony import */ var _cx_abap_invalid_value_clas_mjs__WEBPACK_IMPORTED_MODULE_141__ = __webpack_require__(/*! ./cx_abap_invalid_value.clas.mjs */ "../output/cx_abap_invalid_value.clas.mjs");
-/* harmony import */ var _cx_abap_message_digest_clas_mjs__WEBPACK_IMPORTED_MODULE_142__ = __webpack_require__(/*! ./cx_abap_message_digest.clas.mjs */ "../output/cx_abap_message_digest.clas.mjs");
-/* harmony import */ var _cx_abap_not_a_table_clas_mjs__WEBPACK_IMPORTED_MODULE_143__ = __webpack_require__(/*! ./cx_abap_not_a_table.clas.mjs */ "../output/cx_abap_not_a_table.clas.mjs");
-/* harmony import */ var _cx_abap_not_in_package_clas_mjs__WEBPACK_IMPORTED_MODULE_144__ = __webpack_require__(/*! ./cx_abap_not_in_package.clas.mjs */ "../output/cx_abap_not_in_package.clas.mjs");
-/* harmony import */ var _cx_abap_not_in_whitelist_clas_mjs__WEBPACK_IMPORTED_MODULE_145__ = __webpack_require__(/*! ./cx_abap_not_in_whitelist.clas.mjs */ "../output/cx_abap_not_in_whitelist.clas.mjs");
-/* harmony import */ var _cx_abap_random_clas_mjs__WEBPACK_IMPORTED_MODULE_146__ = __webpack_require__(/*! ./cx_abap_random.clas.mjs */ "../output/cx_abap_random.clas.mjs");
-/* harmony import */ var _cx_abap_timefm_invalid_clas_mjs__WEBPACK_IMPORTED_MODULE_147__ = __webpack_require__(/*! ./cx_abap_timefm_invalid.clas.mjs */ "../output/cx_abap_timefm_invalid.clas.mjs");
-/* harmony import */ var _cx_address_bcs_clas_mjs__WEBPACK_IMPORTED_MODULE_148__ = __webpack_require__(/*! ./cx_address_bcs.clas.mjs */ "../output/cx_address_bcs.clas.mjs");
-/* harmony import */ var _cx_apc_error_clas_mjs__WEBPACK_IMPORTED_MODULE_149__ = __webpack_require__(/*! ./cx_apc_error.clas.mjs */ "../output/cx_apc_error.clas.mjs");
-/* harmony import */ var _cx_bcs_clas_mjs__WEBPACK_IMPORTED_MODULE_150__ = __webpack_require__(/*! ./cx_bcs.clas.mjs */ "../output/cx_bcs.clas.mjs");
-/* harmony import */ var _cx_document_bcs_clas_mjs__WEBPACK_IMPORTED_MODULE_151__ = __webpack_require__(/*! ./cx_document_bcs.clas.mjs */ "../output/cx_document_bcs.clas.mjs");
-/* harmony import */ var _cx_dynamic_check_clas_mjs__WEBPACK_IMPORTED_MODULE_152__ = __webpack_require__(/*! ./cx_dynamic_check.clas.mjs */ "../output/cx_dynamic_check.clas.mjs");
-/* harmony import */ var _cx_ftd_parameter_not_found_clas_mjs__WEBPACK_IMPORTED_MODULE_153__ = __webpack_require__(/*! ./cx_ftd_parameter_not_found.clas.mjs */ "../output/cx_ftd_parameter_not_found.clas.mjs");
-/* harmony import */ var _cx_gdt_conversion_clas_mjs__WEBPACK_IMPORTED_MODULE_154__ = __webpack_require__(/*! ./cx_gdt_conversion.clas.mjs */ "../output/cx_gdt_conversion.clas.mjs");
-/* harmony import */ var _cx_no_check_clas_mjs__WEBPACK_IMPORTED_MODULE_155__ = __webpack_require__(/*! ./cx_no_check.clas.mjs */ "../output/cx_no_check.clas.mjs");
-/* harmony import */ var _cx_nr_object_not_found_clas_mjs__WEBPACK_IMPORTED_MODULE_156__ = __webpack_require__(/*! ./cx_nr_object_not_found.clas.mjs */ "../output/cx_nr_object_not_found.clas.mjs");
-/* harmony import */ var _cx_number_ranges_clas_mjs__WEBPACK_IMPORTED_MODULE_157__ = __webpack_require__(/*! ./cx_number_ranges.clas.mjs */ "../output/cx_number_ranges.clas.mjs");
-/* harmony import */ var _cx_oa2c_clas_mjs__WEBPACK_IMPORTED_MODULE_158__ = __webpack_require__(/*! ./cx_oa2c.clas.mjs */ "../output/cx_oa2c.clas.mjs");
-/* harmony import */ var _cx_oa2c_at_not_available_clas_mjs__WEBPACK_IMPORTED_MODULE_159__ = __webpack_require__(/*! ./cx_oa2c_at_not_available.clas.mjs */ "../output/cx_oa2c_at_not_available.clas.mjs");
-/* harmony import */ var _cx_oa2c_config_exception_clas_mjs__WEBPACK_IMPORTED_MODULE_160__ = __webpack_require__(/*! ./cx_oa2c_config_exception.clas.mjs */ "../output/cx_oa2c_config_exception.clas.mjs");
-/* harmony import */ var _cx_oa2c_config_not_found_clas_mjs__WEBPACK_IMPORTED_MODULE_161__ = __webpack_require__(/*! ./cx_oa2c_config_not_found.clas.mjs */ "../output/cx_oa2c_config_not_found.clas.mjs");
-/* harmony import */ var _cx_oa2c_missing_authorization_clas_mjs__WEBPACK_IMPORTED_MODULE_162__ = __webpack_require__(/*! ./cx_oa2c_missing_authorization.clas.mjs */ "../output/cx_oa2c_missing_authorization.clas.mjs");
-/* harmony import */ var _cx_oo_clif_not_exists_clas_mjs__WEBPACK_IMPORTED_MODULE_163__ = __webpack_require__(/*! ./cx_oo_clif_not_exists.clas.mjs */ "../output/cx_oo_clif_not_exists.clas.mjs");
-/* harmony import */ var _cx_os_class_not_found_clas_mjs__WEBPACK_IMPORTED_MODULE_164__ = __webpack_require__(/*! ./cx_os_class_not_found.clas.mjs */ "../output/cx_os_class_not_found.clas.mjs");
-/* harmony import */ var _cx_os_error_clas_mjs__WEBPACK_IMPORTED_MODULE_165__ = __webpack_require__(/*! ./cx_os_error.clas.mjs */ "../output/cx_os_error.clas.mjs");
-/* harmony import */ var _cx_os_object_clas_mjs__WEBPACK_IMPORTED_MODULE_166__ = __webpack_require__(/*! ./cx_os_object.clas.mjs */ "../output/cx_os_object.clas.mjs");
-/* harmony import */ var _cx_os_object_existing_clas_mjs__WEBPACK_IMPORTED_MODULE_167__ = __webpack_require__(/*! ./cx_os_object_existing.clas.mjs */ "../output/cx_os_object_existing.clas.mjs");
-/* harmony import */ var _cx_os_object_not_found_clas_mjs__WEBPACK_IMPORTED_MODULE_168__ = __webpack_require__(/*! ./cx_os_object_not_found.clas.mjs */ "../output/cx_os_object_not_found.clas.mjs");
-/* harmony import */ var _cx_osql_failure_clas_mjs__WEBPACK_IMPORTED_MODULE_169__ = __webpack_require__(/*! ./cx_osql_failure.clas.mjs */ "../output/cx_osql_failure.clas.mjs");
-/* harmony import */ var _cx_parameter_invalid_clas_mjs__WEBPACK_IMPORTED_MODULE_170__ = __webpack_require__(/*! ./cx_parameter_invalid.clas.mjs */ "../output/cx_parameter_invalid.clas.mjs");
-/* harmony import */ var _cx_parameter_invalid_range_clas_mjs__WEBPACK_IMPORTED_MODULE_171__ = __webpack_require__(/*! ./cx_parameter_invalid_range.clas.mjs */ "../output/cx_parameter_invalid_range.clas.mjs");
-/* harmony import */ var _cx_parameter_invalid_type_clas_mjs__WEBPACK_IMPORTED_MODULE_172__ = __webpack_require__(/*! ./cx_parameter_invalid_type.clas.mjs */ "../output/cx_parameter_invalid_type.clas.mjs");
-/* harmony import */ var _cx_root_clas_mjs__WEBPACK_IMPORTED_MODULE_173__ = __webpack_require__(/*! ./cx_root.clas.mjs */ "../output/cx_root.clas.mjs");
-/* harmony import */ var _cx_send_req_bcs_clas_mjs__WEBPACK_IMPORTED_MODULE_174__ = __webpack_require__(/*! ./cx_send_req_bcs.clas.mjs */ "../output/cx_send_req_bcs.clas.mjs");
-/* harmony import */ var _cx_shm_already_detached_clas_mjs__WEBPACK_IMPORTED_MODULE_175__ = __webpack_require__(/*! ./cx_shm_already_detached.clas.mjs */ "../output/cx_shm_already_detached.clas.mjs");
-/* harmony import */ var _cx_shm_attach_error_clas_mjs__WEBPACK_IMPORTED_MODULE_176__ = __webpack_require__(/*! ./cx_shm_attach_error.clas.mjs */ "../output/cx_shm_attach_error.clas.mjs");
-/* harmony import */ var _cx_shm_build_failed_clas_mjs__WEBPACK_IMPORTED_MODULE_177__ = __webpack_require__(/*! ./cx_shm_build_failed.clas.mjs */ "../output/cx_shm_build_failed.clas.mjs");
-/* harmony import */ var _cx_shm_change_lock_active_clas_mjs__WEBPACK_IMPORTED_MODULE_178__ = __webpack_require__(/*! ./cx_shm_change_lock_active.clas.mjs */ "../output/cx_shm_change_lock_active.clas.mjs");
-/* harmony import */ var _cx_shm_completion_error_clas_mjs__WEBPACK_IMPORTED_MODULE_179__ = __webpack_require__(/*! ./cx_shm_completion_error.clas.mjs */ "../output/cx_shm_completion_error.clas.mjs");
-/* harmony import */ var _cx_shm_detach_error_clas_mjs__WEBPACK_IMPORTED_MODULE_180__ = __webpack_require__(/*! ./cx_shm_detach_error.clas.mjs */ "../output/cx_shm_detach_error.clas.mjs");
-/* harmony import */ var _cx_shm_error_clas_mjs__WEBPACK_IMPORTED_MODULE_181__ = __webpack_require__(/*! ./cx_shm_error.clas.mjs */ "../output/cx_shm_error.clas.mjs");
-/* harmony import */ var _cx_shm_event_execution_failed_clas_mjs__WEBPACK_IMPORTED_MODULE_182__ = __webpack_require__(/*! ./cx_shm_event_execution_failed.clas.mjs */ "../output/cx_shm_event_execution_failed.clas.mjs");
-/* harmony import */ var _cx_shm_exclusive_lock_active_clas_mjs__WEBPACK_IMPORTED_MODULE_183__ = __webpack_require__(/*! ./cx_shm_exclusive_lock_active.clas.mjs */ "../output/cx_shm_exclusive_lock_active.clas.mjs");
-/* harmony import */ var _cx_shm_general_error_clas_mjs__WEBPACK_IMPORTED_MODULE_184__ = __webpack_require__(/*! ./cx_shm_general_error.clas.mjs */ "../output/cx_shm_general_error.clas.mjs");
-/* harmony import */ var _cx_shm_inconsistent_clas_mjs__WEBPACK_IMPORTED_MODULE_185__ = __webpack_require__(/*! ./cx_shm_inconsistent.clas.mjs */ "../output/cx_shm_inconsistent.clas.mjs");
-/* harmony import */ var _cx_shm_initial_reference_clas_mjs__WEBPACK_IMPORTED_MODULE_186__ = __webpack_require__(/*! ./cx_shm_initial_reference.clas.mjs */ "../output/cx_shm_initial_reference.clas.mjs");
-/* harmony import */ var _cx_shm_no_active_version_clas_mjs__WEBPACK_IMPORTED_MODULE_187__ = __webpack_require__(/*! ./cx_shm_no_active_version.clas.mjs */ "../output/cx_shm_no_active_version.clas.mjs");
-/* harmony import */ var _cx_shm_parameter_error_clas_mjs__WEBPACK_IMPORTED_MODULE_188__ = __webpack_require__(/*! ./cx_shm_parameter_error.clas.mjs */ "../output/cx_shm_parameter_error.clas.mjs");
-/* harmony import */ var _cx_shm_pending_lock_removed_clas_mjs__WEBPACK_IMPORTED_MODULE_189__ = __webpack_require__(/*! ./cx_shm_pending_lock_removed.clas.mjs */ "../output/cx_shm_pending_lock_removed.clas.mjs");
-/* harmony import */ var _cx_shm_read_lock_active_clas_mjs__WEBPACK_IMPORTED_MODULE_190__ = __webpack_require__(/*! ./cx_shm_read_lock_active.clas.mjs */ "../output/cx_shm_read_lock_active.clas.mjs");
-/* harmony import */ var _cx_shm_secondary_commit_clas_mjs__WEBPACK_IMPORTED_MODULE_191__ = __webpack_require__(/*! ./cx_shm_secondary_commit.clas.mjs */ "../output/cx_shm_secondary_commit.clas.mjs");
-/* harmony import */ var _cx_shm_version_limit_exceeded_clas_mjs__WEBPACK_IMPORTED_MODULE_192__ = __webpack_require__(/*! ./cx_shm_version_limit_exceeded.clas.mjs */ "../output/cx_shm_version_limit_exceeded.clas.mjs");
-/* harmony import */ var _cx_shm_wrong_handle_clas_mjs__WEBPACK_IMPORTED_MODULE_193__ = __webpack_require__(/*! ./cx_shm_wrong_handle.clas.mjs */ "../output/cx_shm_wrong_handle.clas.mjs");
-/* harmony import */ var _cx_shma_dynamic_clas_mjs__WEBPACK_IMPORTED_MODULE_194__ = __webpack_require__(/*! ./cx_shma_dynamic.clas.mjs */ "../output/cx_shma_dynamic.clas.mjs");
-/* harmony import */ var _cx_shma_inconsistent_clas_mjs__WEBPACK_IMPORTED_MODULE_195__ = __webpack_require__(/*! ./cx_shma_inconsistent.clas.mjs */ "../output/cx_shma_inconsistent.clas.mjs");
-/* harmony import */ var _cx_shma_not_configured_clas_mjs__WEBPACK_IMPORTED_MODULE_196__ = __webpack_require__(/*! ./cx_shma_not_configured.clas.mjs */ "../output/cx_shma_not_configured.clas.mjs");
-/* harmony import */ var _cx_sql_exception_clas_mjs__WEBPACK_IMPORTED_MODULE_197__ = __webpack_require__(/*! ./cx_sql_exception.clas.mjs */ "../output/cx_sql_exception.clas.mjs");
-/* harmony import */ var _cx_st_error_clas_mjs__WEBPACK_IMPORTED_MODULE_198__ = __webpack_require__(/*! ./cx_st_error.clas.mjs */ "../output/cx_st_error.clas.mjs");
-/* harmony import */ var _cx_static_check_clas_mjs__WEBPACK_IMPORTED_MODULE_199__ = __webpack_require__(/*! ./cx_static_check.clas.mjs */ "../output/cx_static_check.clas.mjs");
-/* harmony import */ var _cx_sxml_error_clas_mjs__WEBPACK_IMPORTED_MODULE_200__ = __webpack_require__(/*! ./cx_sxml_error.clas.mjs */ "../output/cx_sxml_error.clas.mjs");
-/* harmony import */ var _cx_sxml_illegal_argument_error_clas_mjs__WEBPACK_IMPORTED_MODULE_201__ = __webpack_require__(/*! ./cx_sxml_illegal_argument_error.clas.mjs */ "../output/cx_sxml_illegal_argument_error.clas.mjs");
-/* harmony import */ var _cx_sxml_name_error_clas_mjs__WEBPACK_IMPORTED_MODULE_202__ = __webpack_require__(/*! ./cx_sxml_name_error.clas.mjs */ "../output/cx_sxml_name_error.clas.mjs");
-/* harmony import */ var _cx_sxml_parse_error_clas_mjs__WEBPACK_IMPORTED_MODULE_203__ = __webpack_require__(/*! ./cx_sxml_parse_error.clas.mjs */ "../output/cx_sxml_parse_error.clas.mjs");
-/* harmony import */ var _cx_sxml_state_error_clas_mjs__WEBPACK_IMPORTED_MODULE_204__ = __webpack_require__(/*! ./cx_sxml_state_error.clas.mjs */ "../output/cx_sxml_state_error.clas.mjs");
-/* harmony import */ var _cx_sy_arg_out_of_domain_clas_mjs__WEBPACK_IMPORTED_MODULE_205__ = __webpack_require__(/*! ./cx_sy_arg_out_of_domain.clas.mjs */ "../output/cx_sy_arg_out_of_domain.clas.mjs");
-/* harmony import */ var _cx_sy_arithmetic_error_clas_mjs__WEBPACK_IMPORTED_MODULE_206__ = __webpack_require__(/*! ./cx_sy_arithmetic_error.clas.mjs */ "../output/cx_sy_arithmetic_error.clas.mjs");
-/* harmony import */ var _cx_sy_arithmetic_overflow_clas_mjs__WEBPACK_IMPORTED_MODULE_207__ = __webpack_require__(/*! ./cx_sy_arithmetic_overflow.clas.mjs */ "../output/cx_sy_arithmetic_overflow.clas.mjs");
-/* harmony import */ var _cx_sy_assign_error_clas_mjs__WEBPACK_IMPORTED_MODULE_208__ = __webpack_require__(/*! ./cx_sy_assign_error.clas.mjs */ "../output/cx_sy_assign_error.clas.mjs");
-/* harmony import */ var _cx_sy_authorization_error_clas_mjs__WEBPACK_IMPORTED_MODULE_209__ = __webpack_require__(/*! ./cx_sy_authorization_error.clas.mjs */ "../output/cx_sy_authorization_error.clas.mjs");
-/* harmony import */ var _cx_sy_buffer_overflow_clas_mjs__WEBPACK_IMPORTED_MODULE_210__ = __webpack_require__(/*! ./cx_sy_buffer_overflow.clas.mjs */ "../output/cx_sy_buffer_overflow.clas.mjs");
-/* harmony import */ var _cx_sy_codepage_converter_init_clas_mjs__WEBPACK_IMPORTED_MODULE_211__ = __webpack_require__(/*! ./cx_sy_codepage_converter_init.clas.mjs */ "../output/cx_sy_codepage_converter_init.clas.mjs");
-/* harmony import */ var _cx_sy_compression_error_clas_mjs__WEBPACK_IMPORTED_MODULE_212__ = __webpack_require__(/*! ./cx_sy_compression_error.clas.mjs */ "../output/cx_sy_compression_error.clas.mjs");
-/* harmony import */ var _cx_sy_conversion_codepage_clas_mjs__WEBPACK_IMPORTED_MODULE_213__ = __webpack_require__(/*! ./cx_sy_conversion_codepage.clas.mjs */ "../output/cx_sy_conversion_codepage.clas.mjs");
-/* harmony import */ var _cx_sy_conversion_data_loss_clas_mjs__WEBPACK_IMPORTED_MODULE_214__ = __webpack_require__(/*! ./cx_sy_conversion_data_loss.clas.mjs */ "../output/cx_sy_conversion_data_loss.clas.mjs");
-/* harmony import */ var _cx_sy_conversion_error_clas_mjs__WEBPACK_IMPORTED_MODULE_215__ = __webpack_require__(/*! ./cx_sy_conversion_error.clas.mjs */ "../output/cx_sy_conversion_error.clas.mjs");
-/* harmony import */ var _cx_sy_conversion_no_date_time_clas_mjs__WEBPACK_IMPORTED_MODULE_216__ = __webpack_require__(/*! ./cx_sy_conversion_no_date_time.clas.mjs */ "../output/cx_sy_conversion_no_date_time.clas.mjs");
-/* harmony import */ var _cx_sy_conversion_no_number_clas_mjs__WEBPACK_IMPORTED_MODULE_217__ = __webpack_require__(/*! ./cx_sy_conversion_no_number.clas.mjs */ "../output/cx_sy_conversion_no_number.clas.mjs");
-/* harmony import */ var _cx_sy_conversion_overflow_clas_mjs__WEBPACK_IMPORTED_MODULE_218__ = __webpack_require__(/*! ./cx_sy_conversion_overflow.clas.mjs */ "../output/cx_sy_conversion_overflow.clas.mjs");
-/* harmony import */ var _cx_sy_create_data_error_clas_mjs__WEBPACK_IMPORTED_MODULE_219__ = __webpack_require__(/*! ./cx_sy_create_data_error.clas.mjs */ "../output/cx_sy_create_data_error.clas.mjs");
-/* harmony import */ var _cx_sy_create_object_error_clas_mjs__WEBPACK_IMPORTED_MODULE_220__ = __webpack_require__(/*! ./cx_sy_create_object_error.clas.mjs */ "../output/cx_sy_create_object_error.clas.mjs");
-/* harmony import */ var _cx_sy_data_access_error_clas_mjs__WEBPACK_IMPORTED_MODULE_221__ = __webpack_require__(/*! ./cx_sy_data_access_error.clas.mjs */ "../output/cx_sy_data_access_error.clas.mjs");
-/* harmony import */ var _cx_sy_duplicate_key_clas_mjs__WEBPACK_IMPORTED_MODULE_222__ = __webpack_require__(/*! ./cx_sy_duplicate_key.clas.mjs */ "../output/cx_sy_duplicate_key.clas.mjs");
-/* harmony import */ var _cx_sy_dyn_call_error_clas_mjs__WEBPACK_IMPORTED_MODULE_223__ = __webpack_require__(/*! ./cx_sy_dyn_call_error.clas.mjs */ "../output/cx_sy_dyn_call_error.clas.mjs");
-/* harmony import */ var _cx_sy_dyn_call_illegal_class_clas_mjs__WEBPACK_IMPORTED_MODULE_224__ = __webpack_require__(/*! ./cx_sy_dyn_call_illegal_class.clas.mjs */ "../output/cx_sy_dyn_call_illegal_class.clas.mjs");
-/* harmony import */ var _cx_sy_dyn_call_illegal_form_clas_mjs__WEBPACK_IMPORTED_MODULE_225__ = __webpack_require__(/*! ./cx_sy_dyn_call_illegal_form.clas.mjs */ "../output/cx_sy_dyn_call_illegal_form.clas.mjs");
-/* harmony import */ var _cx_sy_dyn_call_illegal_func_clas_mjs__WEBPACK_IMPORTED_MODULE_226__ = __webpack_require__(/*! ./cx_sy_dyn_call_illegal_func.clas.mjs */ "../output/cx_sy_dyn_call_illegal_func.clas.mjs");
-/* harmony import */ var _cx_sy_dyn_call_illegal_method_clas_mjs__WEBPACK_IMPORTED_MODULE_227__ = __webpack_require__(/*! ./cx_sy_dyn_call_illegal_method.clas.mjs */ "../output/cx_sy_dyn_call_illegal_method.clas.mjs");
-/* harmony import */ var _cx_sy_dyn_call_illegal_type_clas_mjs__WEBPACK_IMPORTED_MODULE_228__ = __webpack_require__(/*! ./cx_sy_dyn_call_illegal_type.clas.mjs */ "../output/cx_sy_dyn_call_illegal_type.clas.mjs");
-/* harmony import */ var _cx_sy_dyn_call_param_not_found_clas_mjs__WEBPACK_IMPORTED_MODULE_229__ = __webpack_require__(/*! ./cx_sy_dyn_call_param_not_found.clas.mjs */ "../output/cx_sy_dyn_call_param_not_found.clas.mjs");
-/* harmony import */ var _cx_sy_dyn_call_parameter_error_clas_mjs__WEBPACK_IMPORTED_MODULE_230__ = __webpack_require__(/*! ./cx_sy_dyn_call_parameter_error.clas.mjs */ "../output/cx_sy_dyn_call_parameter_error.clas.mjs");
-/* harmony import */ var _cx_sy_dynamic_osql_error_clas_mjs__WEBPACK_IMPORTED_MODULE_231__ = __webpack_require__(/*! ./cx_sy_dynamic_osql_error.clas.mjs */ "../output/cx_sy_dynamic_osql_error.clas.mjs");
-/* harmony import */ var _cx_sy_dynamic_osql_semantics_clas_mjs__WEBPACK_IMPORTED_MODULE_232__ = __webpack_require__(/*! ./cx_sy_dynamic_osql_semantics.clas.mjs */ "../output/cx_sy_dynamic_osql_semantics.clas.mjs");
-/* harmony import */ var _cx_sy_dynamic_osql_syntax_clas_mjs__WEBPACK_IMPORTED_MODULE_233__ = __webpack_require__(/*! ./cx_sy_dynamic_osql_syntax.clas.mjs */ "../output/cx_sy_dynamic_osql_syntax.clas.mjs");
-/* harmony import */ var _cx_sy_file_access_error_clas_mjs__WEBPACK_IMPORTED_MODULE_234__ = __webpack_require__(/*! ./cx_sy_file_access_error.clas.mjs */ "../output/cx_sy_file_access_error.clas.mjs");
-/* harmony import */ var _cx_sy_file_authority_clas_mjs__WEBPACK_IMPORTED_MODULE_235__ = __webpack_require__(/*! ./cx_sy_file_authority.clas.mjs */ "../output/cx_sy_file_authority.clas.mjs");
-/* harmony import */ var _cx_sy_file_close_clas_mjs__WEBPACK_IMPORTED_MODULE_236__ = __webpack_require__(/*! ./cx_sy_file_close.clas.mjs */ "../output/cx_sy_file_close.clas.mjs");
-/* harmony import */ var _cx_sy_file_io_clas_mjs__WEBPACK_IMPORTED_MODULE_237__ = __webpack_require__(/*! ./cx_sy_file_io.clas.mjs */ "../output/cx_sy_file_io.clas.mjs");
-/* harmony import */ var _cx_sy_file_open_clas_mjs__WEBPACK_IMPORTED_MODULE_238__ = __webpack_require__(/*! ./cx_sy_file_open.clas.mjs */ "../output/cx_sy_file_open.clas.mjs");
-/* harmony import */ var _cx_sy_file_open_mode_clas_mjs__WEBPACK_IMPORTED_MODULE_239__ = __webpack_require__(/*! ./cx_sy_file_open_mode.clas.mjs */ "../output/cx_sy_file_open_mode.clas.mjs");
-/* harmony import */ var _cx_sy_find_infinite_loop_clas_mjs__WEBPACK_IMPORTED_MODULE_240__ = __webpack_require__(/*! ./cx_sy_find_infinite_loop.clas.mjs */ "../output/cx_sy_find_infinite_loop.clas.mjs");
-/* harmony import */ var _cx_sy_import_format_error_clas_mjs__WEBPACK_IMPORTED_MODULE_241__ = __webpack_require__(/*! ./cx_sy_import_format_error.clas.mjs */ "../output/cx_sy_import_format_error.clas.mjs");
-/* harmony import */ var _cx_sy_import_mismatch_error_clas_mjs__WEBPACK_IMPORTED_MODULE_242__ = __webpack_require__(/*! ./cx_sy_import_mismatch_error.clas.mjs */ "../output/cx_sy_import_mismatch_error.clas.mjs");
-/* harmony import */ var _cx_sy_invalid_regex_clas_mjs__WEBPACK_IMPORTED_MODULE_243__ = __webpack_require__(/*! ./cx_sy_invalid_regex.clas.mjs */ "../output/cx_sy_invalid_regex.clas.mjs");
-/* harmony import */ var _cx_sy_itab_duplicate_key_clas_mjs__WEBPACK_IMPORTED_MODULE_244__ = __webpack_require__(/*! ./cx_sy_itab_duplicate_key.clas.mjs */ "../output/cx_sy_itab_duplicate_key.clas.mjs");
-/* harmony import */ var _cx_sy_itab_error_clas_mjs__WEBPACK_IMPORTED_MODULE_245__ = __webpack_require__(/*! ./cx_sy_itab_error.clas.mjs */ "../output/cx_sy_itab_error.clas.mjs");
-/* harmony import */ var _cx_sy_itab_line_not_found_clas_mjs__WEBPACK_IMPORTED_MODULE_246__ = __webpack_require__(/*! ./cx_sy_itab_line_not_found.clas.mjs */ "../output/cx_sy_itab_line_not_found.clas.mjs");
-/* harmony import */ var _cx_sy_message_illegal_text_clas_mjs__WEBPACK_IMPORTED_MODULE_247__ = __webpack_require__(/*! ./cx_sy_message_illegal_text.clas.mjs */ "../output/cx_sy_message_illegal_text.clas.mjs");
-/* harmony import */ var _cx_sy_move_cast_error_clas_mjs__WEBPACK_IMPORTED_MODULE_248__ = __webpack_require__(/*! ./cx_sy_move_cast_error.clas.mjs */ "../output/cx_sy_move_cast_error.clas.mjs");
-/* harmony import */ var _cx_sy_native_sql_error_clas_mjs__WEBPACK_IMPORTED_MODULE_249__ = __webpack_require__(/*! ./cx_sy_native_sql_error.clas.mjs */ "../output/cx_sy_native_sql_error.clas.mjs");
-/* harmony import */ var _cx_sy_no_handler_clas_mjs__WEBPACK_IMPORTED_MODULE_250__ = __webpack_require__(/*! ./cx_sy_no_handler.clas.mjs */ "../output/cx_sy_no_handler.clas.mjs");
-/* harmony import */ var _cx_sy_open_sql_db_clas_mjs__WEBPACK_IMPORTED_MODULE_251__ = __webpack_require__(/*! ./cx_sy_open_sql_db.clas.mjs */ "../output/cx_sy_open_sql_db.clas.mjs");
-/* harmony import */ var _cx_sy_open_sql_error_clas_mjs__WEBPACK_IMPORTED_MODULE_252__ = __webpack_require__(/*! ./cx_sy_open_sql_error.clas.mjs */ "../output/cx_sy_open_sql_error.clas.mjs");
-/* harmony import */ var _cx_sy_pipes_not_supported_clas_mjs__WEBPACK_IMPORTED_MODULE_253__ = __webpack_require__(/*! ./cx_sy_pipes_not_supported.clas.mjs */ "../output/cx_sy_pipes_not_supported.clas.mjs");
-/* harmony import */ var _cx_sy_range_out_of_bounds_clas_mjs__WEBPACK_IMPORTED_MODULE_254__ = __webpack_require__(/*! ./cx_sy_range_out_of_bounds.clas.mjs */ "../output/cx_sy_range_out_of_bounds.clas.mjs");
-/* harmony import */ var _cx_sy_ref_creation_clas_mjs__WEBPACK_IMPORTED_MODULE_255__ = __webpack_require__(/*! ./cx_sy_ref_creation.clas.mjs */ "../output/cx_sy_ref_creation.clas.mjs");
-/* harmony import */ var _cx_sy_ref_is_initial_clas_mjs__WEBPACK_IMPORTED_MODULE_256__ = __webpack_require__(/*! ./cx_sy_ref_is_initial.clas.mjs */ "../output/cx_sy_ref_is_initial.clas.mjs");
-/* harmony import */ var _cx_sy_regex_clas_mjs__WEBPACK_IMPORTED_MODULE_257__ = __webpack_require__(/*! ./cx_sy_regex.clas.mjs */ "../output/cx_sy_regex.clas.mjs");
-/* harmony import */ var _cx_sy_regex_too_complex_clas_mjs__WEBPACK_IMPORTED_MODULE_258__ = __webpack_require__(/*! ./cx_sy_regex_too_complex.clas.mjs */ "../output/cx_sy_regex_too_complex.clas.mjs");
-/* harmony import */ var _cx_sy_rtti_no_check_clas_mjs__WEBPACK_IMPORTED_MODULE_259__ = __webpack_require__(/*! ./cx_sy_rtti_no_check.clas.mjs */ "../output/cx_sy_rtti_no_check.clas.mjs");
-/* harmony import */ var _cx_sy_rtti_type_not_released_clas_mjs__WEBPACK_IMPORTED_MODULE_260__ = __webpack_require__(/*! ./cx_sy_rtti_type_not_released.clas.mjs */ "../output/cx_sy_rtti_type_not_released.clas.mjs");
-/* harmony import */ var _cx_sy_sql_error_clas_mjs__WEBPACK_IMPORTED_MODULE_261__ = __webpack_require__(/*! ./cx_sy_sql_error.clas.mjs */ "../output/cx_sy_sql_error.clas.mjs");
-/* harmony import */ var _cx_sy_strg_par_val_clas_mjs__WEBPACK_IMPORTED_MODULE_262__ = __webpack_require__(/*! ./cx_sy_strg_par_val.clas.mjs */ "../output/cx_sy_strg_par_val.clas.mjs");
-/* harmony import */ var _cx_sy_struct_attributes_clas_mjs__WEBPACK_IMPORTED_MODULE_263__ = __webpack_require__(/*! ./cx_sy_struct_attributes.clas.mjs */ "../output/cx_sy_struct_attributes.clas.mjs");
-/* harmony import */ var _cx_sy_struct_comp_name_clas_mjs__WEBPACK_IMPORTED_MODULE_264__ = __webpack_require__(/*! ./cx_sy_struct_comp_name.clas.mjs */ "../output/cx_sy_struct_comp_name.clas.mjs");
-/* harmony import */ var _cx_sy_struct_comp_type_clas_mjs__WEBPACK_IMPORTED_MODULE_265__ = __webpack_require__(/*! ./cx_sy_struct_comp_type.clas.mjs */ "../output/cx_sy_struct_comp_type.clas.mjs");
-/* harmony import */ var _cx_sy_struct_creation_clas_mjs__WEBPACK_IMPORTED_MODULE_266__ = __webpack_require__(/*! ./cx_sy_struct_creation.clas.mjs */ "../output/cx_sy_struct_creation.clas.mjs");
-/* harmony import */ var _cx_sy_table_creation_clas_mjs__WEBPACK_IMPORTED_MODULE_267__ = __webpack_require__(/*! ./cx_sy_table_creation.clas.mjs */ "../output/cx_sy_table_creation.clas.mjs");
-/* harmony import */ var _cx_sy_too_many_files_clas_mjs__WEBPACK_IMPORTED_MODULE_268__ = __webpack_require__(/*! ./cx_sy_too_many_files.clas.mjs */ "../output/cx_sy_too_many_files.clas.mjs");
-/* harmony import */ var _cx_sy_type_creation_clas_mjs__WEBPACK_IMPORTED_MODULE_269__ = __webpack_require__(/*! ./cx_sy_type_creation.clas.mjs */ "../output/cx_sy_type_creation.clas.mjs");
-/* harmony import */ var _cx_sy_zerodivide_clas_mjs__WEBPACK_IMPORTED_MODULE_270__ = __webpack_require__(/*! ./cx_sy_zerodivide.clas.mjs */ "../output/cx_sy_zerodivide.clas.mjs");
-/* harmony import */ var _cx_t100_msg_clas_mjs__WEBPACK_IMPORTED_MODULE_271__ = __webpack_require__(/*! ./cx_t100_msg.clas.mjs */ "../output/cx_t100_msg.clas.mjs");
-/* harmony import */ var _cx_transformation_error_clas_mjs__WEBPACK_IMPORTED_MODULE_272__ = __webpack_require__(/*! ./cx_transformation_error.clas.mjs */ "../output/cx_transformation_error.clas.mjs");
-/* harmony import */ var _cx_tstmp_internal_error_clas_mjs__WEBPACK_IMPORTED_MODULE_273__ = __webpack_require__(/*! ./cx_tstmp_internal_error.clas.mjs */ "../output/cx_tstmp_internal_error.clas.mjs");
-/* harmony import */ var _cx_uuid_error_clas_mjs__WEBPACK_IMPORTED_MODULE_274__ = __webpack_require__(/*! ./cx_uuid_error.clas.mjs */ "../output/cx_uuid_error.clas.mjs");
-/* harmony import */ var _cx_web_message_error_clas_mjs__WEBPACK_IMPORTED_MODULE_275__ = __webpack_require__(/*! ./cx_web_message_error.clas.mjs */ "../output/cx_web_message_error.clas.mjs");
-/* harmony import */ var _cx_xslt_exception_clas_mjs__WEBPACK_IMPORTED_MODULE_276__ = __webpack_require__(/*! ./cx_xslt_exception.clas.mjs */ "../output/cx_xslt_exception.clas.mjs");
-/* harmony import */ var _cx_xslt_format_error_clas_mjs__WEBPACK_IMPORTED_MODULE_277__ = __webpack_require__(/*! ./cx_xslt_format_error.clas.mjs */ "../output/cx_xslt_format_error.clas.mjs");
-/* harmony import */ var _cx_xslt_runtime_error_clas_mjs__WEBPACK_IMPORTED_MODULE_278__ = __webpack_require__(/*! ./cx_xslt_runtime_error.clas.mjs */ "../output/cx_xslt_runtime_error.clas.mjs");
-/* harmony import */ var _cx_xslt_serialization_error_clas_mjs__WEBPACK_IMPORTED_MODULE_279__ = __webpack_require__(/*! ./cx_xslt_serialization_error.clas.mjs */ "../output/cx_xslt_serialization_error.clas.mjs");
-/* harmony import */ var _cx_xslt_system_error_clas_mjs__WEBPACK_IMPORTED_MODULE_280__ = __webpack_require__(/*! ./cx_xslt_system_error.clas.mjs */ "../output/cx_xslt_system_error.clas.mjs");
-/* harmony import */ var _dats_dtel_mjs__WEBPACK_IMPORTED_MODULE_281__ = __webpack_require__(/*! ./dats.dtel.mjs */ "../output/dats.dtel.mjs");
+/* harmony import */ var _cl_abap_objectdescr_clas_mjs__WEBPACK_IMPORTED_MODULE_81__ = __webpack_require__(/*! ./cl_abap_objectdescr.clas.mjs */ "../output/cl_abap_objectdescr.clas.mjs");
+/* harmony import */ var _cl_abap_random_clas_mjs__WEBPACK_IMPORTED_MODULE_82__ = __webpack_require__(/*! ./cl_abap_random.clas.mjs */ "../output/cl_abap_random.clas.mjs");
+/* harmony import */ var _cl_abap_random_int_clas_mjs__WEBPACK_IMPORTED_MODULE_83__ = __webpack_require__(/*! ./cl_abap_random_int.clas.mjs */ "../output/cl_abap_random_int.clas.mjs");
+/* harmony import */ var _cl_abap_refdescr_clas_mjs__WEBPACK_IMPORTED_MODULE_84__ = __webpack_require__(/*! ./cl_abap_refdescr.clas.mjs */ "../output/cl_abap_refdescr.clas.mjs");
+/* harmony import */ var _cl_abap_regex_clas_mjs__WEBPACK_IMPORTED_MODULE_85__ = __webpack_require__(/*! ./cl_abap_regex.clas.mjs */ "../output/cl_abap_regex.clas.mjs");
+/* harmony import */ var _cl_abap_structdescr_clas_mjs__WEBPACK_IMPORTED_MODULE_86__ = __webpack_require__(/*! ./cl_abap_structdescr.clas.mjs */ "../output/cl_abap_structdescr.clas.mjs");
+/* harmony import */ var _cl_abap_tabledescr_clas_mjs__WEBPACK_IMPORTED_MODULE_87__ = __webpack_require__(/*! ./cl_abap_tabledescr.clas.mjs */ "../output/cl_abap_tabledescr.clas.mjs");
+/* harmony import */ var _cl_abap_timefm_clas_mjs__WEBPACK_IMPORTED_MODULE_88__ = __webpack_require__(/*! ./cl_abap_timefm.clas.mjs */ "../output/cl_abap_timefm.clas.mjs");
+/* harmony import */ var _cl_abap_tstmp_clas_mjs__WEBPACK_IMPORTED_MODULE_89__ = __webpack_require__(/*! ./cl_abap_tstmp.clas.mjs */ "../output/cl_abap_tstmp.clas.mjs");
+/* harmony import */ var _cl_abap_typedescr_clas_mjs__WEBPACK_IMPORTED_MODULE_90__ = __webpack_require__(/*! ./cl_abap_typedescr.clas.mjs */ "../output/cl_abap_typedescr.clas.mjs");
+/* harmony import */ var _cl_abap_unit_assert_clas_mjs__WEBPACK_IMPORTED_MODULE_91__ = __webpack_require__(/*! ./cl_abap_unit_assert.clas.mjs */ "../output/cl_abap_unit_assert.clas.mjs");
+/* harmony import */ var _cl_abap_weak_reference_clas_mjs__WEBPACK_IMPORTED_MODULE_92__ = __webpack_require__(/*! ./cl_abap_weak_reference.clas.mjs */ "../output/cl_abap_weak_reference.clas.mjs");
+/* harmony import */ var _cl_abap_zip_clas_mjs__WEBPACK_IMPORTED_MODULE_93__ = __webpack_require__(/*! ./cl_abap_zip.clas.mjs */ "../output/cl_abap_zip.clas.mjs");
+/* harmony import */ var _cl_apc_tcp_client_manager_clas_mjs__WEBPACK_IMPORTED_MODULE_94__ = __webpack_require__(/*! ./cl_apc_tcp_client_manager.clas.mjs */ "../output/cl_apc_tcp_client_manager.clas.mjs");
+/* harmony import */ var _cl_apc_wsp_ext_stateless_base_clas_mjs__WEBPACK_IMPORTED_MODULE_95__ = __webpack_require__(/*! ./cl_apc_wsp_ext_stateless_base.clas.mjs */ "../output/cl_apc_wsp_ext_stateless_base.clas.mjs");
+/* harmony import */ var _cl_aunit_auth_check_types_def_clas_mjs__WEBPACK_IMPORTED_MODULE_96__ = __webpack_require__(/*! ./cl_aunit_auth_check_types_def.clas.mjs */ "../output/cl_aunit_auth_check_types_def.clas.mjs");
+/* harmony import */ var _cl_aunit_authority_check_clas_mjs__WEBPACK_IMPORTED_MODULE_97__ = __webpack_require__(/*! ./cl_aunit_authority_check.clas.mjs */ "../output/cl_aunit_authority_check.clas.mjs");
+/* harmony import */ var _cl_bcs_clas_mjs__WEBPACK_IMPORTED_MODULE_98__ = __webpack_require__(/*! ./cl_bcs.clas.mjs */ "../output/cl_bcs.clas.mjs");
+/* harmony import */ var _cl_bcs_convert_clas_mjs__WEBPACK_IMPORTED_MODULE_99__ = __webpack_require__(/*! ./cl_bcs_convert.clas.mjs */ "../output/cl_bcs_convert.clas.mjs");
+/* harmony import */ var _cl_cam_address_bcs_clas_mjs__WEBPACK_IMPORTED_MODULE_100__ = __webpack_require__(/*! ./cl_cam_address_bcs.clas.mjs */ "../output/cl_cam_address_bcs.clas.mjs");
+/* harmony import */ var _cl_demo_output_clas_mjs__WEBPACK_IMPORTED_MODULE_101__ = __webpack_require__(/*! ./cl_demo_output.clas.mjs */ "../output/cl_demo_output.clas.mjs");
+/* harmony import */ var _cl_document_bcs_clas_mjs__WEBPACK_IMPORTED_MODULE_102__ = __webpack_require__(/*! ./cl_document_bcs.clas.mjs */ "../output/cl_document_bcs.clas.mjs");
+/* harmony import */ var _cl_function_test_environment_clas_mjs__WEBPACK_IMPORTED_MODULE_103__ = __webpack_require__(/*! ./cl_function_test_environment.clas.mjs */ "../output/cl_function_test_environment.clas.mjs");
+/* harmony import */ var _cl_gdt_conversion_clas_mjs__WEBPACK_IMPORTED_MODULE_104__ = __webpack_require__(/*! ./cl_gdt_conversion.clas.mjs */ "../output/cl_gdt_conversion.clas.mjs");
+/* harmony import */ var _cl_http_client_clas_mjs__WEBPACK_IMPORTED_MODULE_105__ = __webpack_require__(/*! ./cl_http_client.clas.mjs */ "../output/cl_http_client.clas.mjs");
+/* harmony import */ var _cl_http_entity_clas_mjs__WEBPACK_IMPORTED_MODULE_106__ = __webpack_require__(/*! ./cl_http_entity.clas.mjs */ "../output/cl_http_entity.clas.mjs");
+/* harmony import */ var _cl_http_server_clas_mjs__WEBPACK_IMPORTED_MODULE_107__ = __webpack_require__(/*! ./cl_http_server.clas.mjs */ "../output/cl_http_server.clas.mjs");
+/* harmony import */ var _cl_http_utility_clas_mjs__WEBPACK_IMPORTED_MODULE_108__ = __webpack_require__(/*! ./cl_http_utility.clas.mjs */ "../output/cl_http_utility.clas.mjs");
+/* harmony import */ var _cl_i18n_languages_clas_mjs__WEBPACK_IMPORTED_MODULE_109__ = __webpack_require__(/*! ./cl_i18n_languages.clas.mjs */ "../output/cl_i18n_languages.clas.mjs");
+/* harmony import */ var _cl_ixml_clas_mjs__WEBPACK_IMPORTED_MODULE_110__ = __webpack_require__(/*! ./cl_ixml.clas.mjs */ "../output/cl_ixml.clas.mjs");
+/* harmony import */ var _cl_message_helper_clas_mjs__WEBPACK_IMPORTED_MODULE_111__ = __webpack_require__(/*! ./cl_message_helper.clas.mjs */ "../output/cl_message_helper.clas.mjs");
+/* harmony import */ var _cl_mime_repository_api_clas_mjs__WEBPACK_IMPORTED_MODULE_112__ = __webpack_require__(/*! ./cl_mime_repository_api.clas.mjs */ "../output/cl_mime_repository_api.clas.mjs");
+/* harmony import */ var _cl_numberrange_intervals_clas_mjs__WEBPACK_IMPORTED_MODULE_113__ = __webpack_require__(/*! ./cl_numberrange_intervals.clas.mjs */ "../output/cl_numberrange_intervals.clas.mjs");
+/* harmony import */ var _cl_numberrange_objects_clas_mjs__WEBPACK_IMPORTED_MODULE_114__ = __webpack_require__(/*! ./cl_numberrange_objects.clas.mjs */ "../output/cl_numberrange_objects.clas.mjs");
+/* harmony import */ var _cl_numberrange_runtime_clas_mjs__WEBPACK_IMPORTED_MODULE_115__ = __webpack_require__(/*! ./cl_numberrange_runtime.clas.mjs */ "../output/cl_numberrange_runtime.clas.mjs");
+/* harmony import */ var _cl_oa2c_config_writer_api_clas_mjs__WEBPACK_IMPORTED_MODULE_116__ = __webpack_require__(/*! ./cl_oa2c_config_writer_api.clas.mjs */ "../output/cl_oa2c_config_writer_api.clas.mjs");
+/* harmony import */ var _cl_oauth2_client_clas_mjs__WEBPACK_IMPORTED_MODULE_117__ = __webpack_require__(/*! ./cl_oauth2_client.clas.mjs */ "../output/cl_oauth2_client.clas.mjs");
+/* harmony import */ var _cl_oo_factory_clas_mjs__WEBPACK_IMPORTED_MODULE_118__ = __webpack_require__(/*! ./cl_oo_factory.clas.mjs */ "../output/cl_oo_factory.clas.mjs");
+/* harmony import */ var _cl_os_ca_common_clas_mjs__WEBPACK_IMPORTED_MODULE_119__ = __webpack_require__(/*! ./cl_os_ca_common.clas.mjs */ "../output/cl_os_ca_common.clas.mjs");
+/* harmony import */ var _cl_osql_test_environment_clas_mjs__WEBPACK_IMPORTED_MODULE_120__ = __webpack_require__(/*! ./cl_osql_test_environment.clas.mjs */ "../output/cl_osql_test_environment.clas.mjs");
+/* harmony import */ var _cl_package_factory_clas_mjs__WEBPACK_IMPORTED_MODULE_121__ = __webpack_require__(/*! ./cl_package_factory.clas.mjs */ "../output/cl_package_factory.clas.mjs");
+/* harmony import */ var _cl_package_helper_clas_mjs__WEBPACK_IMPORTED_MODULE_122__ = __webpack_require__(/*! ./cl_package_helper.clas.mjs */ "../output/cl_package_helper.clas.mjs");
+/* harmony import */ var _cl_sec_sxml_writer_clas_mjs__WEBPACK_IMPORTED_MODULE_123__ = __webpack_require__(/*! ./cl_sec_sxml_writer.clas.mjs */ "../output/cl_sec_sxml_writer.clas.mjs");
+/* harmony import */ var _cl_send_request_bcs_clas_mjs__WEBPACK_IMPORTED_MODULE_124__ = __webpack_require__(/*! ./cl_send_request_bcs.clas.mjs */ "../output/cl_send_request_bcs.clas.mjs");
+/* harmony import */ var _cl_shm_area_clas_mjs__WEBPACK_IMPORTED_MODULE_125__ = __webpack_require__(/*! ./cl_shm_area.clas.mjs */ "../output/cl_shm_area.clas.mjs");
+/* harmony import */ var _cl_shm_service_clas_mjs__WEBPACK_IMPORTED_MODULE_126__ = __webpack_require__(/*! ./cl_shm_service.clas.mjs */ "../output/cl_shm_service.clas.mjs");
+/* harmony import */ var _cl_sql_connection_clas_mjs__WEBPACK_IMPORTED_MODULE_127__ = __webpack_require__(/*! ./cl_sql_connection.clas.mjs */ "../output/cl_sql_connection.clas.mjs");
+/* harmony import */ var _cl_sql_result_set_clas_mjs__WEBPACK_IMPORTED_MODULE_128__ = __webpack_require__(/*! ./cl_sql_result_set.clas.mjs */ "../output/cl_sql_result_set.clas.mjs");
+/* harmony import */ var _cl_sql_statement_clas_mjs__WEBPACK_IMPORTED_MODULE_129__ = __webpack_require__(/*! ./cl_sql_statement.clas.mjs */ "../output/cl_sql_statement.clas.mjs");
+/* harmony import */ var _cl_sxml_string_reader_clas_mjs__WEBPACK_IMPORTED_MODULE_130__ = __webpack_require__(/*! ./cl_sxml_string_reader.clas.mjs */ "../output/cl_sxml_string_reader.clas.mjs");
+/* harmony import */ var _cl_sxml_string_writer_clas_mjs__WEBPACK_IMPORTED_MODULE_131__ = __webpack_require__(/*! ./cl_sxml_string_writer.clas.mjs */ "../output/cl_sxml_string_writer.clas.mjs");
+/* harmony import */ var _cl_system_uuid_clas_mjs__WEBPACK_IMPORTED_MODULE_132__ = __webpack_require__(/*! ./cl_system_uuid.clas.mjs */ "../output/cl_system_uuid.clas.mjs");
+/* harmony import */ var _cl_web_http_utility_clas_mjs__WEBPACK_IMPORTED_MODULE_133__ = __webpack_require__(/*! ./cl_web_http_utility.clas.mjs */ "../output/cl_web_http_utility.clas.mjs");
+/* harmony import */ var _config_deprecation_code_dtel_mjs__WEBPACK_IMPORTED_MODULE_134__ = __webpack_require__(/*! ./config_deprecation_code.dtel.mjs */ "../output/config_deprecation_code.dtel.mjs");
+/* harmony import */ var _cx_abap_api_state_clas_mjs__WEBPACK_IMPORTED_MODULE_135__ = __webpack_require__(/*! ./cx_abap_api_state.clas.mjs */ "../output/cx_abap_api_state.clas.mjs");
+/* harmony import */ var _cx_abap_auth_check_exception_clas_mjs__WEBPACK_IMPORTED_MODULE_136__ = __webpack_require__(/*! ./cx_abap_auth_check_exception.clas.mjs */ "../output/cx_abap_auth_check_exception.clas.mjs");
+/* harmony import */ var _cx_abap_context_info_error_clas_mjs__WEBPACK_IMPORTED_MODULE_137__ = __webpack_require__(/*! ./cx_abap_context_info_error.clas.mjs */ "../output/cx_abap_context_info_error.clas.mjs");
+/* harmony import */ var _cx_abap_datfm_clas_mjs__WEBPACK_IMPORTED_MODULE_138__ = __webpack_require__(/*! ./cx_abap_datfm.clas.mjs */ "../output/cx_abap_datfm.clas.mjs");
+/* harmony import */ var _cx_abap_invalid_name_clas_mjs__WEBPACK_IMPORTED_MODULE_139__ = __webpack_require__(/*! ./cx_abap_invalid_name.clas.mjs */ "../output/cx_abap_invalid_name.clas.mjs");
+/* harmony import */ var _cx_abap_invalid_value_clas_mjs__WEBPACK_IMPORTED_MODULE_140__ = __webpack_require__(/*! ./cx_abap_invalid_value.clas.mjs */ "../output/cx_abap_invalid_value.clas.mjs");
+/* harmony import */ var _cx_abap_message_digest_clas_mjs__WEBPACK_IMPORTED_MODULE_141__ = __webpack_require__(/*! ./cx_abap_message_digest.clas.mjs */ "../output/cx_abap_message_digest.clas.mjs");
+/* harmony import */ var _cx_abap_not_a_table_clas_mjs__WEBPACK_IMPORTED_MODULE_142__ = __webpack_require__(/*! ./cx_abap_not_a_table.clas.mjs */ "../output/cx_abap_not_a_table.clas.mjs");
+/* harmony import */ var _cx_abap_not_in_package_clas_mjs__WEBPACK_IMPORTED_MODULE_143__ = __webpack_require__(/*! ./cx_abap_not_in_package.clas.mjs */ "../output/cx_abap_not_in_package.clas.mjs");
+/* harmony import */ var _cx_abap_not_in_whitelist_clas_mjs__WEBPACK_IMPORTED_MODULE_144__ = __webpack_require__(/*! ./cx_abap_not_in_whitelist.clas.mjs */ "../output/cx_abap_not_in_whitelist.clas.mjs");
+/* harmony import */ var _cx_abap_random_clas_mjs__WEBPACK_IMPORTED_MODULE_145__ = __webpack_require__(/*! ./cx_abap_random.clas.mjs */ "../output/cx_abap_random.clas.mjs");
+/* harmony import */ var _cx_abap_timefm_invalid_clas_mjs__WEBPACK_IMPORTED_MODULE_146__ = __webpack_require__(/*! ./cx_abap_timefm_invalid.clas.mjs */ "../output/cx_abap_timefm_invalid.clas.mjs");
+/* harmony import */ var _cx_address_bcs_clas_mjs__WEBPACK_IMPORTED_MODULE_147__ = __webpack_require__(/*! ./cx_address_bcs.clas.mjs */ "../output/cx_address_bcs.clas.mjs");
+/* harmony import */ var _cx_apc_error_clas_mjs__WEBPACK_IMPORTED_MODULE_148__ = __webpack_require__(/*! ./cx_apc_error.clas.mjs */ "../output/cx_apc_error.clas.mjs");
+/* harmony import */ var _cx_bcs_clas_mjs__WEBPACK_IMPORTED_MODULE_149__ = __webpack_require__(/*! ./cx_bcs.clas.mjs */ "../output/cx_bcs.clas.mjs");
+/* harmony import */ var _cx_document_bcs_clas_mjs__WEBPACK_IMPORTED_MODULE_150__ = __webpack_require__(/*! ./cx_document_bcs.clas.mjs */ "../output/cx_document_bcs.clas.mjs");
+/* harmony import */ var _cx_dynamic_check_clas_mjs__WEBPACK_IMPORTED_MODULE_151__ = __webpack_require__(/*! ./cx_dynamic_check.clas.mjs */ "../output/cx_dynamic_check.clas.mjs");
+/* harmony import */ var _cx_ftd_parameter_not_found_clas_mjs__WEBPACK_IMPORTED_MODULE_152__ = __webpack_require__(/*! ./cx_ftd_parameter_not_found.clas.mjs */ "../output/cx_ftd_parameter_not_found.clas.mjs");
+/* harmony import */ var _cx_gdt_conversion_clas_mjs__WEBPACK_IMPORTED_MODULE_153__ = __webpack_require__(/*! ./cx_gdt_conversion.clas.mjs */ "../output/cx_gdt_conversion.clas.mjs");
+/* harmony import */ var _cx_no_check_clas_mjs__WEBPACK_IMPORTED_MODULE_154__ = __webpack_require__(/*! ./cx_no_check.clas.mjs */ "../output/cx_no_check.clas.mjs");
+/* harmony import */ var _cx_nr_object_not_found_clas_mjs__WEBPACK_IMPORTED_MODULE_155__ = __webpack_require__(/*! ./cx_nr_object_not_found.clas.mjs */ "../output/cx_nr_object_not_found.clas.mjs");
+/* harmony import */ var _cx_number_ranges_clas_mjs__WEBPACK_IMPORTED_MODULE_156__ = __webpack_require__(/*! ./cx_number_ranges.clas.mjs */ "../output/cx_number_ranges.clas.mjs");
+/* harmony import */ var _cx_oa2c_clas_mjs__WEBPACK_IMPORTED_MODULE_157__ = __webpack_require__(/*! ./cx_oa2c.clas.mjs */ "../output/cx_oa2c.clas.mjs");
+/* harmony import */ var _cx_oa2c_at_not_available_clas_mjs__WEBPACK_IMPORTED_MODULE_158__ = __webpack_require__(/*! ./cx_oa2c_at_not_available.clas.mjs */ "../output/cx_oa2c_at_not_available.clas.mjs");
+/* harmony import */ var _cx_oa2c_config_exception_clas_mjs__WEBPACK_IMPORTED_MODULE_159__ = __webpack_require__(/*! ./cx_oa2c_config_exception.clas.mjs */ "../output/cx_oa2c_config_exception.clas.mjs");
+/* harmony import */ var _cx_oa2c_config_not_found_clas_mjs__WEBPACK_IMPORTED_MODULE_160__ = __webpack_require__(/*! ./cx_oa2c_config_not_found.clas.mjs */ "../output/cx_oa2c_config_not_found.clas.mjs");
+/* harmony import */ var _cx_oa2c_missing_authorization_clas_mjs__WEBPACK_IMPORTED_MODULE_161__ = __webpack_require__(/*! ./cx_oa2c_missing_authorization.clas.mjs */ "../output/cx_oa2c_missing_authorization.clas.mjs");
+/* harmony import */ var _cx_oo_clif_not_exists_clas_mjs__WEBPACK_IMPORTED_MODULE_162__ = __webpack_require__(/*! ./cx_oo_clif_not_exists.clas.mjs */ "../output/cx_oo_clif_not_exists.clas.mjs");
+/* harmony import */ var _cx_os_class_not_found_clas_mjs__WEBPACK_IMPORTED_MODULE_163__ = __webpack_require__(/*! ./cx_os_class_not_found.clas.mjs */ "../output/cx_os_class_not_found.clas.mjs");
+/* harmony import */ var _cx_os_error_clas_mjs__WEBPACK_IMPORTED_MODULE_164__ = __webpack_require__(/*! ./cx_os_error.clas.mjs */ "../output/cx_os_error.clas.mjs");
+/* harmony import */ var _cx_os_object_clas_mjs__WEBPACK_IMPORTED_MODULE_165__ = __webpack_require__(/*! ./cx_os_object.clas.mjs */ "../output/cx_os_object.clas.mjs");
+/* harmony import */ var _cx_os_object_existing_clas_mjs__WEBPACK_IMPORTED_MODULE_166__ = __webpack_require__(/*! ./cx_os_object_existing.clas.mjs */ "../output/cx_os_object_existing.clas.mjs");
+/* harmony import */ var _cx_os_object_not_found_clas_mjs__WEBPACK_IMPORTED_MODULE_167__ = __webpack_require__(/*! ./cx_os_object_not_found.clas.mjs */ "../output/cx_os_object_not_found.clas.mjs");
+/* harmony import */ var _cx_osql_failure_clas_mjs__WEBPACK_IMPORTED_MODULE_168__ = __webpack_require__(/*! ./cx_osql_failure.clas.mjs */ "../output/cx_osql_failure.clas.mjs");
+/* harmony import */ var _cx_parameter_invalid_clas_mjs__WEBPACK_IMPORTED_MODULE_169__ = __webpack_require__(/*! ./cx_parameter_invalid.clas.mjs */ "../output/cx_parameter_invalid.clas.mjs");
+/* harmony import */ var _cx_parameter_invalid_range_clas_mjs__WEBPACK_IMPORTED_MODULE_170__ = __webpack_require__(/*! ./cx_parameter_invalid_range.clas.mjs */ "../output/cx_parameter_invalid_range.clas.mjs");
+/* harmony import */ var _cx_parameter_invalid_type_clas_mjs__WEBPACK_IMPORTED_MODULE_171__ = __webpack_require__(/*! ./cx_parameter_invalid_type.clas.mjs */ "../output/cx_parameter_invalid_type.clas.mjs");
+/* harmony import */ var _cx_root_clas_mjs__WEBPACK_IMPORTED_MODULE_172__ = __webpack_require__(/*! ./cx_root.clas.mjs */ "../output/cx_root.clas.mjs");
+/* harmony import */ var _cx_send_req_bcs_clas_mjs__WEBPACK_IMPORTED_MODULE_173__ = __webpack_require__(/*! ./cx_send_req_bcs.clas.mjs */ "../output/cx_send_req_bcs.clas.mjs");
+/* harmony import */ var _cx_shm_already_detached_clas_mjs__WEBPACK_IMPORTED_MODULE_174__ = __webpack_require__(/*! ./cx_shm_already_detached.clas.mjs */ "../output/cx_shm_already_detached.clas.mjs");
+/* harmony import */ var _cx_shm_attach_error_clas_mjs__WEBPACK_IMPORTED_MODULE_175__ = __webpack_require__(/*! ./cx_shm_attach_error.clas.mjs */ "../output/cx_shm_attach_error.clas.mjs");
+/* harmony import */ var _cx_shm_build_failed_clas_mjs__WEBPACK_IMPORTED_MODULE_176__ = __webpack_require__(/*! ./cx_shm_build_failed.clas.mjs */ "../output/cx_shm_build_failed.clas.mjs");
+/* harmony import */ var _cx_shm_change_lock_active_clas_mjs__WEBPACK_IMPORTED_MODULE_177__ = __webpack_require__(/*! ./cx_shm_change_lock_active.clas.mjs */ "../output/cx_shm_change_lock_active.clas.mjs");
+/* harmony import */ var _cx_shm_completion_error_clas_mjs__WEBPACK_IMPORTED_MODULE_178__ = __webpack_require__(/*! ./cx_shm_completion_error.clas.mjs */ "../output/cx_shm_completion_error.clas.mjs");
+/* harmony import */ var _cx_shm_detach_error_clas_mjs__WEBPACK_IMPORTED_MODULE_179__ = __webpack_require__(/*! ./cx_shm_detach_error.clas.mjs */ "../output/cx_shm_detach_error.clas.mjs");
+/* harmony import */ var _cx_shm_error_clas_mjs__WEBPACK_IMPORTED_MODULE_180__ = __webpack_require__(/*! ./cx_shm_error.clas.mjs */ "../output/cx_shm_error.clas.mjs");
+/* harmony import */ var _cx_shm_event_execution_failed_clas_mjs__WEBPACK_IMPORTED_MODULE_181__ = __webpack_require__(/*! ./cx_shm_event_execution_failed.clas.mjs */ "../output/cx_shm_event_execution_failed.clas.mjs");
+/* harmony import */ var _cx_shm_exclusive_lock_active_clas_mjs__WEBPACK_IMPORTED_MODULE_182__ = __webpack_require__(/*! ./cx_shm_exclusive_lock_active.clas.mjs */ "../output/cx_shm_exclusive_lock_active.clas.mjs");
+/* harmony import */ var _cx_shm_general_error_clas_mjs__WEBPACK_IMPORTED_MODULE_183__ = __webpack_require__(/*! ./cx_shm_general_error.clas.mjs */ "../output/cx_shm_general_error.clas.mjs");
+/* harmony import */ var _cx_shm_inconsistent_clas_mjs__WEBPACK_IMPORTED_MODULE_184__ = __webpack_require__(/*! ./cx_shm_inconsistent.clas.mjs */ "../output/cx_shm_inconsistent.clas.mjs");
+/* harmony import */ var _cx_shm_initial_reference_clas_mjs__WEBPACK_IMPORTED_MODULE_185__ = __webpack_require__(/*! ./cx_shm_initial_reference.clas.mjs */ "../output/cx_shm_initial_reference.clas.mjs");
+/* harmony import */ var _cx_shm_no_active_version_clas_mjs__WEBPACK_IMPORTED_MODULE_186__ = __webpack_require__(/*! ./cx_shm_no_active_version.clas.mjs */ "../output/cx_shm_no_active_version.clas.mjs");
+/* harmony import */ var _cx_shm_parameter_error_clas_mjs__WEBPACK_IMPORTED_MODULE_187__ = __webpack_require__(/*! ./cx_shm_parameter_error.clas.mjs */ "../output/cx_shm_parameter_error.clas.mjs");
+/* harmony import */ var _cx_shm_pending_lock_removed_clas_mjs__WEBPACK_IMPORTED_MODULE_188__ = __webpack_require__(/*! ./cx_shm_pending_lock_removed.clas.mjs */ "../output/cx_shm_pending_lock_removed.clas.mjs");
+/* harmony import */ var _cx_shm_read_lock_active_clas_mjs__WEBPACK_IMPORTED_MODULE_189__ = __webpack_require__(/*! ./cx_shm_read_lock_active.clas.mjs */ "../output/cx_shm_read_lock_active.clas.mjs");
+/* harmony import */ var _cx_shm_secondary_commit_clas_mjs__WEBPACK_IMPORTED_MODULE_190__ = __webpack_require__(/*! ./cx_shm_secondary_commit.clas.mjs */ "../output/cx_shm_secondary_commit.clas.mjs");
+/* harmony import */ var _cx_shm_version_limit_exceeded_clas_mjs__WEBPACK_IMPORTED_MODULE_191__ = __webpack_require__(/*! ./cx_shm_version_limit_exceeded.clas.mjs */ "../output/cx_shm_version_limit_exceeded.clas.mjs");
+/* harmony import */ var _cx_shm_wrong_handle_clas_mjs__WEBPACK_IMPORTED_MODULE_192__ = __webpack_require__(/*! ./cx_shm_wrong_handle.clas.mjs */ "../output/cx_shm_wrong_handle.clas.mjs");
+/* harmony import */ var _cx_shma_dynamic_clas_mjs__WEBPACK_IMPORTED_MODULE_193__ = __webpack_require__(/*! ./cx_shma_dynamic.clas.mjs */ "../output/cx_shma_dynamic.clas.mjs");
+/* harmony import */ var _cx_shma_inconsistent_clas_mjs__WEBPACK_IMPORTED_MODULE_194__ = __webpack_require__(/*! ./cx_shma_inconsistent.clas.mjs */ "../output/cx_shma_inconsistent.clas.mjs");
+/* harmony import */ var _cx_shma_not_configured_clas_mjs__WEBPACK_IMPORTED_MODULE_195__ = __webpack_require__(/*! ./cx_shma_not_configured.clas.mjs */ "../output/cx_shma_not_configured.clas.mjs");
+/* harmony import */ var _cx_sql_exception_clas_mjs__WEBPACK_IMPORTED_MODULE_196__ = __webpack_require__(/*! ./cx_sql_exception.clas.mjs */ "../output/cx_sql_exception.clas.mjs");
+/* harmony import */ var _cx_st_error_clas_mjs__WEBPACK_IMPORTED_MODULE_197__ = __webpack_require__(/*! ./cx_st_error.clas.mjs */ "../output/cx_st_error.clas.mjs");
+/* harmony import */ var _cx_static_check_clas_mjs__WEBPACK_IMPORTED_MODULE_198__ = __webpack_require__(/*! ./cx_static_check.clas.mjs */ "../output/cx_static_check.clas.mjs");
+/* harmony import */ var _cx_sxml_error_clas_mjs__WEBPACK_IMPORTED_MODULE_199__ = __webpack_require__(/*! ./cx_sxml_error.clas.mjs */ "../output/cx_sxml_error.clas.mjs");
+/* harmony import */ var _cx_sxml_illegal_argument_error_clas_mjs__WEBPACK_IMPORTED_MODULE_200__ = __webpack_require__(/*! ./cx_sxml_illegal_argument_error.clas.mjs */ "../output/cx_sxml_illegal_argument_error.clas.mjs");
+/* harmony import */ var _cx_sxml_name_error_clas_mjs__WEBPACK_IMPORTED_MODULE_201__ = __webpack_require__(/*! ./cx_sxml_name_error.clas.mjs */ "../output/cx_sxml_name_error.clas.mjs");
+/* harmony import */ var _cx_sxml_parse_error_clas_mjs__WEBPACK_IMPORTED_MODULE_202__ = __webpack_require__(/*! ./cx_sxml_parse_error.clas.mjs */ "../output/cx_sxml_parse_error.clas.mjs");
+/* harmony import */ var _cx_sxml_state_error_clas_mjs__WEBPACK_IMPORTED_MODULE_203__ = __webpack_require__(/*! ./cx_sxml_state_error.clas.mjs */ "../output/cx_sxml_state_error.clas.mjs");
+/* harmony import */ var _cx_sy_arg_out_of_domain_clas_mjs__WEBPACK_IMPORTED_MODULE_204__ = __webpack_require__(/*! ./cx_sy_arg_out_of_domain.clas.mjs */ "../output/cx_sy_arg_out_of_domain.clas.mjs");
+/* harmony import */ var _cx_sy_arithmetic_error_clas_mjs__WEBPACK_IMPORTED_MODULE_205__ = __webpack_require__(/*! ./cx_sy_arithmetic_error.clas.mjs */ "../output/cx_sy_arithmetic_error.clas.mjs");
+/* harmony import */ var _cx_sy_arithmetic_overflow_clas_mjs__WEBPACK_IMPORTED_MODULE_206__ = __webpack_require__(/*! ./cx_sy_arithmetic_overflow.clas.mjs */ "../output/cx_sy_arithmetic_overflow.clas.mjs");
+/* harmony import */ var _cx_sy_assign_error_clas_mjs__WEBPACK_IMPORTED_MODULE_207__ = __webpack_require__(/*! ./cx_sy_assign_error.clas.mjs */ "../output/cx_sy_assign_error.clas.mjs");
+/* harmony import */ var _cx_sy_authorization_error_clas_mjs__WEBPACK_IMPORTED_MODULE_208__ = __webpack_require__(/*! ./cx_sy_authorization_error.clas.mjs */ "../output/cx_sy_authorization_error.clas.mjs");
+/* harmony import */ var _cx_sy_buffer_overflow_clas_mjs__WEBPACK_IMPORTED_MODULE_209__ = __webpack_require__(/*! ./cx_sy_buffer_overflow.clas.mjs */ "../output/cx_sy_buffer_overflow.clas.mjs");
+/* harmony import */ var _cx_sy_codepage_converter_init_clas_mjs__WEBPACK_IMPORTED_MODULE_210__ = __webpack_require__(/*! ./cx_sy_codepage_converter_init.clas.mjs */ "../output/cx_sy_codepage_converter_init.clas.mjs");
+/* harmony import */ var _cx_sy_compression_error_clas_mjs__WEBPACK_IMPORTED_MODULE_211__ = __webpack_require__(/*! ./cx_sy_compression_error.clas.mjs */ "../output/cx_sy_compression_error.clas.mjs");
+/* harmony import */ var _cx_sy_conversion_codepage_clas_mjs__WEBPACK_IMPORTED_MODULE_212__ = __webpack_require__(/*! ./cx_sy_conversion_codepage.clas.mjs */ "../output/cx_sy_conversion_codepage.clas.mjs");
+/* harmony import */ var _cx_sy_conversion_data_loss_clas_mjs__WEBPACK_IMPORTED_MODULE_213__ = __webpack_require__(/*! ./cx_sy_conversion_data_loss.clas.mjs */ "../output/cx_sy_conversion_data_loss.clas.mjs");
+/* harmony import */ var _cx_sy_conversion_error_clas_mjs__WEBPACK_IMPORTED_MODULE_214__ = __webpack_require__(/*! ./cx_sy_conversion_error.clas.mjs */ "../output/cx_sy_conversion_error.clas.mjs");
+/* harmony import */ var _cx_sy_conversion_no_date_time_clas_mjs__WEBPACK_IMPORTED_MODULE_215__ = __webpack_require__(/*! ./cx_sy_conversion_no_date_time.clas.mjs */ "../output/cx_sy_conversion_no_date_time.clas.mjs");
+/* harmony import */ var _cx_sy_conversion_no_number_clas_mjs__WEBPACK_IMPORTED_MODULE_216__ = __webpack_require__(/*! ./cx_sy_conversion_no_number.clas.mjs */ "../output/cx_sy_conversion_no_number.clas.mjs");
+/* harmony import */ var _cx_sy_conversion_overflow_clas_mjs__WEBPACK_IMPORTED_MODULE_217__ = __webpack_require__(/*! ./cx_sy_conversion_overflow.clas.mjs */ "../output/cx_sy_conversion_overflow.clas.mjs");
+/* harmony import */ var _cx_sy_create_data_error_clas_mjs__WEBPACK_IMPORTED_MODULE_218__ = __webpack_require__(/*! ./cx_sy_create_data_error.clas.mjs */ "../output/cx_sy_create_data_error.clas.mjs");
+/* harmony import */ var _cx_sy_create_object_error_clas_mjs__WEBPACK_IMPORTED_MODULE_219__ = __webpack_require__(/*! ./cx_sy_create_object_error.clas.mjs */ "../output/cx_sy_create_object_error.clas.mjs");
+/* harmony import */ var _cx_sy_data_access_error_clas_mjs__WEBPACK_IMPORTED_MODULE_220__ = __webpack_require__(/*! ./cx_sy_data_access_error.clas.mjs */ "../output/cx_sy_data_access_error.clas.mjs");
+/* harmony import */ var _cx_sy_duplicate_key_clas_mjs__WEBPACK_IMPORTED_MODULE_221__ = __webpack_require__(/*! ./cx_sy_duplicate_key.clas.mjs */ "../output/cx_sy_duplicate_key.clas.mjs");
+/* harmony import */ var _cx_sy_dyn_call_error_clas_mjs__WEBPACK_IMPORTED_MODULE_222__ = __webpack_require__(/*! ./cx_sy_dyn_call_error.clas.mjs */ "../output/cx_sy_dyn_call_error.clas.mjs");
+/* harmony import */ var _cx_sy_dyn_call_illegal_class_clas_mjs__WEBPACK_IMPORTED_MODULE_223__ = __webpack_require__(/*! ./cx_sy_dyn_call_illegal_class.clas.mjs */ "../output/cx_sy_dyn_call_illegal_class.clas.mjs");
+/* harmony import */ var _cx_sy_dyn_call_illegal_form_clas_mjs__WEBPACK_IMPORTED_MODULE_224__ = __webpack_require__(/*! ./cx_sy_dyn_call_illegal_form.clas.mjs */ "../output/cx_sy_dyn_call_illegal_form.clas.mjs");
+/* harmony import */ var _cx_sy_dyn_call_illegal_func_clas_mjs__WEBPACK_IMPORTED_MODULE_225__ = __webpack_require__(/*! ./cx_sy_dyn_call_illegal_func.clas.mjs */ "../output/cx_sy_dyn_call_illegal_func.clas.mjs");
+/* harmony import */ var _cx_sy_dyn_call_illegal_method_clas_mjs__WEBPACK_IMPORTED_MODULE_226__ = __webpack_require__(/*! ./cx_sy_dyn_call_illegal_method.clas.mjs */ "../output/cx_sy_dyn_call_illegal_method.clas.mjs");
+/* harmony import */ var _cx_sy_dyn_call_illegal_type_clas_mjs__WEBPACK_IMPORTED_MODULE_227__ = __webpack_require__(/*! ./cx_sy_dyn_call_illegal_type.clas.mjs */ "../output/cx_sy_dyn_call_illegal_type.clas.mjs");
+/* harmony import */ var _cx_sy_dyn_call_param_not_found_clas_mjs__WEBPACK_IMPORTED_MODULE_228__ = __webpack_require__(/*! ./cx_sy_dyn_call_param_not_found.clas.mjs */ "../output/cx_sy_dyn_call_param_not_found.clas.mjs");
+/* harmony import */ var _cx_sy_dyn_call_parameter_error_clas_mjs__WEBPACK_IMPORTED_MODULE_229__ = __webpack_require__(/*! ./cx_sy_dyn_call_parameter_error.clas.mjs */ "../output/cx_sy_dyn_call_parameter_error.clas.mjs");
+/* harmony import */ var _cx_sy_dynamic_osql_error_clas_mjs__WEBPACK_IMPORTED_MODULE_230__ = __webpack_require__(/*! ./cx_sy_dynamic_osql_error.clas.mjs */ "../output/cx_sy_dynamic_osql_error.clas.mjs");
+/* harmony import */ var _cx_sy_dynamic_osql_semantics_clas_mjs__WEBPACK_IMPORTED_MODULE_231__ = __webpack_require__(/*! ./cx_sy_dynamic_osql_semantics.clas.mjs */ "../output/cx_sy_dynamic_osql_semantics.clas.mjs");
+/* harmony import */ var _cx_sy_dynamic_osql_syntax_clas_mjs__WEBPACK_IMPORTED_MODULE_232__ = __webpack_require__(/*! ./cx_sy_dynamic_osql_syntax.clas.mjs */ "../output/cx_sy_dynamic_osql_syntax.clas.mjs");
+/* harmony import */ var _cx_sy_file_access_error_clas_mjs__WEBPACK_IMPORTED_MODULE_233__ = __webpack_require__(/*! ./cx_sy_file_access_error.clas.mjs */ "../output/cx_sy_file_access_error.clas.mjs");
+/* harmony import */ var _cx_sy_file_authority_clas_mjs__WEBPACK_IMPORTED_MODULE_234__ = __webpack_require__(/*! ./cx_sy_file_authority.clas.mjs */ "../output/cx_sy_file_authority.clas.mjs");
+/* harmony import */ var _cx_sy_file_close_clas_mjs__WEBPACK_IMPORTED_MODULE_235__ = __webpack_require__(/*! ./cx_sy_file_close.clas.mjs */ "../output/cx_sy_file_close.clas.mjs");
+/* harmony import */ var _cx_sy_file_io_clas_mjs__WEBPACK_IMPORTED_MODULE_236__ = __webpack_require__(/*! ./cx_sy_file_io.clas.mjs */ "../output/cx_sy_file_io.clas.mjs");
+/* harmony import */ var _cx_sy_file_open_clas_mjs__WEBPACK_IMPORTED_MODULE_237__ = __webpack_require__(/*! ./cx_sy_file_open.clas.mjs */ "../output/cx_sy_file_open.clas.mjs");
+/* harmony import */ var _cx_sy_file_open_mode_clas_mjs__WEBPACK_IMPORTED_MODULE_238__ = __webpack_require__(/*! ./cx_sy_file_open_mode.clas.mjs */ "../output/cx_sy_file_open_mode.clas.mjs");
+/* harmony import */ var _cx_sy_find_infinite_loop_clas_mjs__WEBPACK_IMPORTED_MODULE_239__ = __webpack_require__(/*! ./cx_sy_find_infinite_loop.clas.mjs */ "../output/cx_sy_find_infinite_loop.clas.mjs");
+/* harmony import */ var _cx_sy_import_format_error_clas_mjs__WEBPACK_IMPORTED_MODULE_240__ = __webpack_require__(/*! ./cx_sy_import_format_error.clas.mjs */ "../output/cx_sy_import_format_error.clas.mjs");
+/* harmony import */ var _cx_sy_import_mismatch_error_clas_mjs__WEBPACK_IMPORTED_MODULE_241__ = __webpack_require__(/*! ./cx_sy_import_mismatch_error.clas.mjs */ "../output/cx_sy_import_mismatch_error.clas.mjs");
+/* harmony import */ var _cx_sy_invalid_regex_clas_mjs__WEBPACK_IMPORTED_MODULE_242__ = __webpack_require__(/*! ./cx_sy_invalid_regex.clas.mjs */ "../output/cx_sy_invalid_regex.clas.mjs");
+/* harmony import */ var _cx_sy_itab_duplicate_key_clas_mjs__WEBPACK_IMPORTED_MODULE_243__ = __webpack_require__(/*! ./cx_sy_itab_duplicate_key.clas.mjs */ "../output/cx_sy_itab_duplicate_key.clas.mjs");
+/* harmony import */ var _cx_sy_itab_error_clas_mjs__WEBPACK_IMPORTED_MODULE_244__ = __webpack_require__(/*! ./cx_sy_itab_error.clas.mjs */ "../output/cx_sy_itab_error.clas.mjs");
+/* harmony import */ var _cx_sy_itab_line_not_found_clas_mjs__WEBPACK_IMPORTED_MODULE_245__ = __webpack_require__(/*! ./cx_sy_itab_line_not_found.clas.mjs */ "../output/cx_sy_itab_line_not_found.clas.mjs");
+/* harmony import */ var _cx_sy_message_illegal_text_clas_mjs__WEBPACK_IMPORTED_MODULE_246__ = __webpack_require__(/*! ./cx_sy_message_illegal_text.clas.mjs */ "../output/cx_sy_message_illegal_text.clas.mjs");
+/* harmony import */ var _cx_sy_move_cast_error_clas_mjs__WEBPACK_IMPORTED_MODULE_247__ = __webpack_require__(/*! ./cx_sy_move_cast_error.clas.mjs */ "../output/cx_sy_move_cast_error.clas.mjs");
+/* harmony import */ var _cx_sy_native_sql_error_clas_mjs__WEBPACK_IMPORTED_MODULE_248__ = __webpack_require__(/*! ./cx_sy_native_sql_error.clas.mjs */ "../output/cx_sy_native_sql_error.clas.mjs");
+/* harmony import */ var _cx_sy_no_handler_clas_mjs__WEBPACK_IMPORTED_MODULE_249__ = __webpack_require__(/*! ./cx_sy_no_handler.clas.mjs */ "../output/cx_sy_no_handler.clas.mjs");
+/* harmony import */ var _cx_sy_open_sql_db_clas_mjs__WEBPACK_IMPORTED_MODULE_250__ = __webpack_require__(/*! ./cx_sy_open_sql_db.clas.mjs */ "../output/cx_sy_open_sql_db.clas.mjs");
+/* harmony import */ var _cx_sy_open_sql_error_clas_mjs__WEBPACK_IMPORTED_MODULE_251__ = __webpack_require__(/*! ./cx_sy_open_sql_error.clas.mjs */ "../output/cx_sy_open_sql_error.clas.mjs");
+/* harmony import */ var _cx_sy_pipes_not_supported_clas_mjs__WEBPACK_IMPORTED_MODULE_252__ = __webpack_require__(/*! ./cx_sy_pipes_not_supported.clas.mjs */ "../output/cx_sy_pipes_not_supported.clas.mjs");
+/* harmony import */ var _cx_sy_range_out_of_bounds_clas_mjs__WEBPACK_IMPORTED_MODULE_253__ = __webpack_require__(/*! ./cx_sy_range_out_of_bounds.clas.mjs */ "../output/cx_sy_range_out_of_bounds.clas.mjs");
+/* harmony import */ var _cx_sy_ref_creation_clas_mjs__WEBPACK_IMPORTED_MODULE_254__ = __webpack_require__(/*! ./cx_sy_ref_creation.clas.mjs */ "../output/cx_sy_ref_creation.clas.mjs");
+/* harmony import */ var _cx_sy_ref_is_initial_clas_mjs__WEBPACK_IMPORTED_MODULE_255__ = __webpack_require__(/*! ./cx_sy_ref_is_initial.clas.mjs */ "../output/cx_sy_ref_is_initial.clas.mjs");
+/* harmony import */ var _cx_sy_regex_clas_mjs__WEBPACK_IMPORTED_MODULE_256__ = __webpack_require__(/*! ./cx_sy_regex.clas.mjs */ "../output/cx_sy_regex.clas.mjs");
+/* harmony import */ var _cx_sy_regex_too_complex_clas_mjs__WEBPACK_IMPORTED_MODULE_257__ = __webpack_require__(/*! ./cx_sy_regex_too_complex.clas.mjs */ "../output/cx_sy_regex_too_complex.clas.mjs");
+/* harmony import */ var _cx_sy_rtti_no_check_clas_mjs__WEBPACK_IMPORTED_MODULE_258__ = __webpack_require__(/*! ./cx_sy_rtti_no_check.clas.mjs */ "../output/cx_sy_rtti_no_check.clas.mjs");
+/* harmony import */ var _cx_sy_rtti_type_not_released_clas_mjs__WEBPACK_IMPORTED_MODULE_259__ = __webpack_require__(/*! ./cx_sy_rtti_type_not_released.clas.mjs */ "../output/cx_sy_rtti_type_not_released.clas.mjs");
+/* harmony import */ var _cx_sy_sql_error_clas_mjs__WEBPACK_IMPORTED_MODULE_260__ = __webpack_require__(/*! ./cx_sy_sql_error.clas.mjs */ "../output/cx_sy_sql_error.clas.mjs");
+/* harmony import */ var _cx_sy_strg_par_val_clas_mjs__WEBPACK_IMPORTED_MODULE_261__ = __webpack_require__(/*! ./cx_sy_strg_par_val.clas.mjs */ "../output/cx_sy_strg_par_val.clas.mjs");
+/* harmony import */ var _cx_sy_struct_attributes_clas_mjs__WEBPACK_IMPORTED_MODULE_262__ = __webpack_require__(/*! ./cx_sy_struct_attributes.clas.mjs */ "../output/cx_sy_struct_attributes.clas.mjs");
+/* harmony import */ var _cx_sy_struct_comp_name_clas_mjs__WEBPACK_IMPORTED_MODULE_263__ = __webpack_require__(/*! ./cx_sy_struct_comp_name.clas.mjs */ "../output/cx_sy_struct_comp_name.clas.mjs");
+/* harmony import */ var _cx_sy_struct_comp_type_clas_mjs__WEBPACK_IMPORTED_MODULE_264__ = __webpack_require__(/*! ./cx_sy_struct_comp_type.clas.mjs */ "../output/cx_sy_struct_comp_type.clas.mjs");
+/* harmony import */ var _cx_sy_struct_creation_clas_mjs__WEBPACK_IMPORTED_MODULE_265__ = __webpack_require__(/*! ./cx_sy_struct_creation.clas.mjs */ "../output/cx_sy_struct_creation.clas.mjs");
+/* harmony import */ var _cx_sy_table_creation_clas_mjs__WEBPACK_IMPORTED_MODULE_266__ = __webpack_require__(/*! ./cx_sy_table_creation.clas.mjs */ "../output/cx_sy_table_creation.clas.mjs");
+/* harmony import */ var _cx_sy_too_many_files_clas_mjs__WEBPACK_IMPORTED_MODULE_267__ = __webpack_require__(/*! ./cx_sy_too_many_files.clas.mjs */ "../output/cx_sy_too_many_files.clas.mjs");
+/* harmony import */ var _cx_sy_type_creation_clas_mjs__WEBPACK_IMPORTED_MODULE_268__ = __webpack_require__(/*! ./cx_sy_type_creation.clas.mjs */ "../output/cx_sy_type_creation.clas.mjs");
+/* harmony import */ var _cx_sy_zerodivide_clas_mjs__WEBPACK_IMPORTED_MODULE_269__ = __webpack_require__(/*! ./cx_sy_zerodivide.clas.mjs */ "../output/cx_sy_zerodivide.clas.mjs");
+/* harmony import */ var _cx_t100_msg_clas_mjs__WEBPACK_IMPORTED_MODULE_270__ = __webpack_require__(/*! ./cx_t100_msg.clas.mjs */ "../output/cx_t100_msg.clas.mjs");
+/* harmony import */ var _cx_transformation_error_clas_mjs__WEBPACK_IMPORTED_MODULE_271__ = __webpack_require__(/*! ./cx_transformation_error.clas.mjs */ "../output/cx_transformation_error.clas.mjs");
+/* harmony import */ var _cx_tstmp_internal_error_clas_mjs__WEBPACK_IMPORTED_MODULE_272__ = __webpack_require__(/*! ./cx_tstmp_internal_error.clas.mjs */ "../output/cx_tstmp_internal_error.clas.mjs");
+/* harmony import */ var _cx_uuid_error_clas_mjs__WEBPACK_IMPORTED_MODULE_273__ = __webpack_require__(/*! ./cx_uuid_error.clas.mjs */ "../output/cx_uuid_error.clas.mjs");
+/* harmony import */ var _cx_web_message_error_clas_mjs__WEBPACK_IMPORTED_MODULE_274__ = __webpack_require__(/*! ./cx_web_message_error.clas.mjs */ "../output/cx_web_message_error.clas.mjs");
+/* harmony import */ var _cx_xslt_exception_clas_mjs__WEBPACK_IMPORTED_MODULE_275__ = __webpack_require__(/*! ./cx_xslt_exception.clas.mjs */ "../output/cx_xslt_exception.clas.mjs");
+/* harmony import */ var _cx_xslt_format_error_clas_mjs__WEBPACK_IMPORTED_MODULE_276__ = __webpack_require__(/*! ./cx_xslt_format_error.clas.mjs */ "../output/cx_xslt_format_error.clas.mjs");
+/* harmony import */ var _cx_xslt_runtime_error_clas_mjs__WEBPACK_IMPORTED_MODULE_277__ = __webpack_require__(/*! ./cx_xslt_runtime_error.clas.mjs */ "../output/cx_xslt_runtime_error.clas.mjs");
+/* harmony import */ var _cx_xslt_serialization_error_clas_mjs__WEBPACK_IMPORTED_MODULE_278__ = __webpack_require__(/*! ./cx_xslt_serialization_error.clas.mjs */ "../output/cx_xslt_serialization_error.clas.mjs");
+/* harmony import */ var _cx_xslt_system_error_clas_mjs__WEBPACK_IMPORTED_MODULE_279__ = __webpack_require__(/*! ./cx_xslt_system_error.clas.mjs */ "../output/cx_xslt_system_error.clas.mjs");
+/* harmony import */ var _dats_dtel_mjs__WEBPACK_IMPORTED_MODULE_280__ = __webpack_require__(/*! ./dats.dtel.mjs */ "../output/dats.dtel.mjs");
+/* harmony import */ var _datum_dtel_mjs__WEBPACK_IMPORTED_MODULE_281__ = __webpack_require__(/*! ./datum.dtel.mjs */ "../output/datum.dtel.mjs");
 /* harmony import */ var _dd_x031l_table_ttyp_mjs__WEBPACK_IMPORTED_MODULE_282__ = __webpack_require__(/*! ./dd_x031l_table.ttyp.mjs */ "../output/dd_x031l_table.ttyp.mjs");
 /* harmony import */ var _ddfields_ttyp_mjs__WEBPACK_IMPORTED_MODULE_283__ = __webpack_require__(/*! ./ddfields.ttyp.mjs */ "../output/ddfields.ttyp.mjs");
 /* harmony import */ var _ddoption_dtel_mjs__WEBPACK_IMPORTED_MODULE_284__ = __webpack_require__(/*! ./ddoption.dtel.mjs */ "../output/ddoption.dtel.mjs");
@@ -314588,8 +314871,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _zif_oapi_schema_intf_mjs__WEBPACK_IMPORTED_MODULE_566__ = __webpack_require__(/*! ./zif_oapi_schema.intf.mjs */ "../output/zif_oapi_schema.intf.mjs");
 /* harmony import */ var _zif_oapi_specification_v3_intf_mjs__WEBPACK_IMPORTED_MODULE_567__ = __webpack_require__(/*! ./zif_oapi_specification_v3.intf.mjs */ "../output/zif_oapi_specification_v3.intf.mjs");
 /* harmony import */ var _zw3mi_fugr_mjs__WEBPACK_IMPORTED_MODULE_568__ = __webpack_require__(/*! ./zw3mi.fugr.mjs */ "../output/zw3mi.fugr.mjs");
-var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_cl_abap_api_state_clas_mjs__WEBPACK_IMPORTED_MODULE_57__, _cl_abap_bigint_clas_mjs__WEBPACK_IMPORTED_MODULE_58__, _cl_abap_char_utilities_clas_mjs__WEBPACK_IMPORTED_MODULE_59__, _cl_abap_classdescr_clas_mjs__WEBPACK_IMPORTED_MODULE_60__, _cl_abap_codepage_clas_mjs__WEBPACK_IMPORTED_MODULE_61__, _cl_abap_complexdescr_clas_mjs__WEBPACK_IMPORTED_MODULE_62__, _cl_abap_container_utilities_clas_mjs__WEBPACK_IMPORTED_MODULE_63__, _cl_abap_context_info_clas_mjs__WEBPACK_IMPORTED_MODULE_64__, _cl_abap_conv_codepage_clas_mjs__WEBPACK_IMPORTED_MODULE_65__, _cl_abap_conv_in_ce_clas_mjs__WEBPACK_IMPORTED_MODULE_66__, _cl_abap_conv_out_ce_clas_mjs__WEBPACK_IMPORTED_MODULE_67__, _cl_abap_datadescr_clas_mjs__WEBPACK_IMPORTED_MODULE_68__, _cl_abap_datfm_clas_mjs__WEBPACK_IMPORTED_MODULE_69__, _cl_abap_dyn_prg_clas_mjs__WEBPACK_IMPORTED_MODULE_70__, _cl_abap_elemdescr_clas_mjs__WEBPACK_IMPORTED_MODULE_71__, _cl_abap_enumdescr_clas_mjs__WEBPACK_IMPORTED_MODULE_72__, _cl_abap_exceptional_values_clas_mjs__WEBPACK_IMPORTED_MODULE_73__, _cl_abap_format_clas_mjs__WEBPACK_IMPORTED_MODULE_74__, _cl_abap_gzip_clas_mjs__WEBPACK_IMPORTED_MODULE_75__, _cl_abap_hmac_clas_mjs__WEBPACK_IMPORTED_MODULE_76__, _cl_abap_intfdescr_clas_mjs__WEBPACK_IMPORTED_MODULE_77__, _cl_abap_matcher_clas_mjs__WEBPACK_IMPORTED_MODULE_78__, _cl_abap_math_clas_mjs__WEBPACK_IMPORTED_MODULE_79__, _cl_abap_memory_utilities_clas_mjs__WEBPACK_IMPORTED_MODULE_80__, _cl_abap_message_digest_clas_mjs__WEBPACK_IMPORTED_MODULE_81__, _cl_abap_objectdescr_clas_mjs__WEBPACK_IMPORTED_MODULE_82__, _cl_abap_random_clas_mjs__WEBPACK_IMPORTED_MODULE_83__, _cl_abap_random_int_clas_mjs__WEBPACK_IMPORTED_MODULE_84__, _cl_abap_refdescr_clas_mjs__WEBPACK_IMPORTED_MODULE_85__, _cl_abap_regex_clas_mjs__WEBPACK_IMPORTED_MODULE_86__, _cl_abap_structdescr_clas_mjs__WEBPACK_IMPORTED_MODULE_87__, _cl_abap_tabledescr_clas_mjs__WEBPACK_IMPORTED_MODULE_88__, _cl_abap_timefm_clas_mjs__WEBPACK_IMPORTED_MODULE_89__, _cl_abap_tstmp_clas_mjs__WEBPACK_IMPORTED_MODULE_90__, _cl_abap_typedescr_clas_mjs__WEBPACK_IMPORTED_MODULE_91__, _cl_abap_unit_assert_clas_mjs__WEBPACK_IMPORTED_MODULE_92__, _cl_abap_weak_reference_clas_mjs__WEBPACK_IMPORTED_MODULE_93__, _cl_abap_zip_clas_mjs__WEBPACK_IMPORTED_MODULE_94__, _cl_apc_tcp_client_manager_clas_mjs__WEBPACK_IMPORTED_MODULE_95__, _cl_apc_wsp_ext_stateless_base_clas_mjs__WEBPACK_IMPORTED_MODULE_96__, _cl_aunit_auth_check_types_def_clas_mjs__WEBPACK_IMPORTED_MODULE_97__, _cl_aunit_authority_check_clas_mjs__WEBPACK_IMPORTED_MODULE_98__, _cl_bcs_clas_mjs__WEBPACK_IMPORTED_MODULE_99__, _cl_bcs_convert_clas_mjs__WEBPACK_IMPORTED_MODULE_100__, _cl_cam_address_bcs_clas_mjs__WEBPACK_IMPORTED_MODULE_101__, _cl_demo_output_clas_mjs__WEBPACK_IMPORTED_MODULE_102__, _cl_document_bcs_clas_mjs__WEBPACK_IMPORTED_MODULE_103__, _cl_function_test_environment_clas_mjs__WEBPACK_IMPORTED_MODULE_104__, _cl_gdt_conversion_clas_mjs__WEBPACK_IMPORTED_MODULE_105__, _cl_http_client_clas_mjs__WEBPACK_IMPORTED_MODULE_106__, _cl_http_entity_clas_mjs__WEBPACK_IMPORTED_MODULE_107__, _cl_http_server_clas_mjs__WEBPACK_IMPORTED_MODULE_108__, _cl_http_utility_clas_mjs__WEBPACK_IMPORTED_MODULE_109__, _cl_i18n_languages_clas_mjs__WEBPACK_IMPORTED_MODULE_110__, _cl_ixml_clas_mjs__WEBPACK_IMPORTED_MODULE_111__, _cl_message_helper_clas_mjs__WEBPACK_IMPORTED_MODULE_112__, _cl_mime_repository_api_clas_mjs__WEBPACK_IMPORTED_MODULE_113__, _cl_numberrange_intervals_clas_mjs__WEBPACK_IMPORTED_MODULE_114__, _cl_numberrange_objects_clas_mjs__WEBPACK_IMPORTED_MODULE_115__, _cl_numberrange_runtime_clas_mjs__WEBPACK_IMPORTED_MODULE_116__, _cl_oa2c_config_writer_api_clas_mjs__WEBPACK_IMPORTED_MODULE_117__, _cl_oauth2_client_clas_mjs__WEBPACK_IMPORTED_MODULE_118__, _cl_oo_factory_clas_mjs__WEBPACK_IMPORTED_MODULE_119__, _cl_os_ca_common_clas_mjs__WEBPACK_IMPORTED_MODULE_120__, _cl_osql_test_environment_clas_mjs__WEBPACK_IMPORTED_MODULE_121__, _cl_package_factory_clas_mjs__WEBPACK_IMPORTED_MODULE_122__, _cl_package_helper_clas_mjs__WEBPACK_IMPORTED_MODULE_123__, _cl_sec_sxml_writer_clas_mjs__WEBPACK_IMPORTED_MODULE_124__, _cl_send_request_bcs_clas_mjs__WEBPACK_IMPORTED_MODULE_125__, _cl_shm_area_clas_mjs__WEBPACK_IMPORTED_MODULE_126__, _cl_shm_service_clas_mjs__WEBPACK_IMPORTED_MODULE_127__, _cl_sql_connection_clas_mjs__WEBPACK_IMPORTED_MODULE_128__, _cl_sql_result_set_clas_mjs__WEBPACK_IMPORTED_MODULE_129__, _cl_sql_statement_clas_mjs__WEBPACK_IMPORTED_MODULE_130__, _cl_sxml_string_reader_clas_mjs__WEBPACK_IMPORTED_MODULE_131__, _cl_sxml_string_writer_clas_mjs__WEBPACK_IMPORTED_MODULE_132__, _cl_system_uuid_clas_mjs__WEBPACK_IMPORTED_MODULE_133__, _cl_web_http_utility_clas_mjs__WEBPACK_IMPORTED_MODULE_134__, _cx_abap_api_state_clas_mjs__WEBPACK_IMPORTED_MODULE_136__, _cx_abap_auth_check_exception_clas_mjs__WEBPACK_IMPORTED_MODULE_137__, _cx_abap_context_info_error_clas_mjs__WEBPACK_IMPORTED_MODULE_138__, _cx_abap_datfm_clas_mjs__WEBPACK_IMPORTED_MODULE_139__, _cx_abap_invalid_name_clas_mjs__WEBPACK_IMPORTED_MODULE_140__, _cx_abap_invalid_value_clas_mjs__WEBPACK_IMPORTED_MODULE_141__, _cx_abap_message_digest_clas_mjs__WEBPACK_IMPORTED_MODULE_142__, _cx_abap_not_a_table_clas_mjs__WEBPACK_IMPORTED_MODULE_143__, _cx_abap_not_in_package_clas_mjs__WEBPACK_IMPORTED_MODULE_144__, _cx_abap_not_in_whitelist_clas_mjs__WEBPACK_IMPORTED_MODULE_145__, _cx_abap_random_clas_mjs__WEBPACK_IMPORTED_MODULE_146__, _cx_abap_timefm_invalid_clas_mjs__WEBPACK_IMPORTED_MODULE_147__, _cx_address_bcs_clas_mjs__WEBPACK_IMPORTED_MODULE_148__, _cx_apc_error_clas_mjs__WEBPACK_IMPORTED_MODULE_149__, _cx_bcs_clas_mjs__WEBPACK_IMPORTED_MODULE_150__, _cx_document_bcs_clas_mjs__WEBPACK_IMPORTED_MODULE_151__, _cx_dynamic_check_clas_mjs__WEBPACK_IMPORTED_MODULE_152__, _cx_ftd_parameter_not_found_clas_mjs__WEBPACK_IMPORTED_MODULE_153__, _cx_gdt_conversion_clas_mjs__WEBPACK_IMPORTED_MODULE_154__, _cx_no_check_clas_mjs__WEBPACK_IMPORTED_MODULE_155__, _cx_nr_object_not_found_clas_mjs__WEBPACK_IMPORTED_MODULE_156__, _cx_number_ranges_clas_mjs__WEBPACK_IMPORTED_MODULE_157__, _cx_oa2c_clas_mjs__WEBPACK_IMPORTED_MODULE_158__, _cx_oa2c_at_not_available_clas_mjs__WEBPACK_IMPORTED_MODULE_159__, _cx_oa2c_config_exception_clas_mjs__WEBPACK_IMPORTED_MODULE_160__, _cx_oa2c_config_not_found_clas_mjs__WEBPACK_IMPORTED_MODULE_161__, _cx_oa2c_missing_authorization_clas_mjs__WEBPACK_IMPORTED_MODULE_162__, _cx_oo_clif_not_exists_clas_mjs__WEBPACK_IMPORTED_MODULE_163__, _cx_os_class_not_found_clas_mjs__WEBPACK_IMPORTED_MODULE_164__, _cx_os_error_clas_mjs__WEBPACK_IMPORTED_MODULE_165__, _cx_os_object_clas_mjs__WEBPACK_IMPORTED_MODULE_166__, _cx_os_object_existing_clas_mjs__WEBPACK_IMPORTED_MODULE_167__, _cx_os_object_not_found_clas_mjs__WEBPACK_IMPORTED_MODULE_168__, _cx_osql_failure_clas_mjs__WEBPACK_IMPORTED_MODULE_169__, _cx_parameter_invalid_clas_mjs__WEBPACK_IMPORTED_MODULE_170__, _cx_parameter_invalid_range_clas_mjs__WEBPACK_IMPORTED_MODULE_171__, _cx_parameter_invalid_type_clas_mjs__WEBPACK_IMPORTED_MODULE_172__, _cx_send_req_bcs_clas_mjs__WEBPACK_IMPORTED_MODULE_174__, _cx_shm_already_detached_clas_mjs__WEBPACK_IMPORTED_MODULE_175__, _cx_shm_attach_error_clas_mjs__WEBPACK_IMPORTED_MODULE_176__, _cx_shm_build_failed_clas_mjs__WEBPACK_IMPORTED_MODULE_177__, _cx_shm_change_lock_active_clas_mjs__WEBPACK_IMPORTED_MODULE_178__, _cx_shm_completion_error_clas_mjs__WEBPACK_IMPORTED_MODULE_179__, _cx_shm_detach_error_clas_mjs__WEBPACK_IMPORTED_MODULE_180__, _cx_shm_error_clas_mjs__WEBPACK_IMPORTED_MODULE_181__, _cx_shm_event_execution_failed_clas_mjs__WEBPACK_IMPORTED_MODULE_182__, _cx_shm_exclusive_lock_active_clas_mjs__WEBPACK_IMPORTED_MODULE_183__, _cx_shm_general_error_clas_mjs__WEBPACK_IMPORTED_MODULE_184__, _cx_shm_inconsistent_clas_mjs__WEBPACK_IMPORTED_MODULE_185__, _cx_shm_initial_reference_clas_mjs__WEBPACK_IMPORTED_MODULE_186__, _cx_shm_no_active_version_clas_mjs__WEBPACK_IMPORTED_MODULE_187__, _cx_shm_parameter_error_clas_mjs__WEBPACK_IMPORTED_MODULE_188__, _cx_shm_pending_lock_removed_clas_mjs__WEBPACK_IMPORTED_MODULE_189__, _cx_shm_read_lock_active_clas_mjs__WEBPACK_IMPORTED_MODULE_190__, _cx_shm_secondary_commit_clas_mjs__WEBPACK_IMPORTED_MODULE_191__, _cx_shm_version_limit_exceeded_clas_mjs__WEBPACK_IMPORTED_MODULE_192__, _cx_shm_wrong_handle_clas_mjs__WEBPACK_IMPORTED_MODULE_193__, _cx_shma_dynamic_clas_mjs__WEBPACK_IMPORTED_MODULE_194__, _cx_shma_inconsistent_clas_mjs__WEBPACK_IMPORTED_MODULE_195__, _cx_shma_not_configured_clas_mjs__WEBPACK_IMPORTED_MODULE_196__, _cx_sql_exception_clas_mjs__WEBPACK_IMPORTED_MODULE_197__, _cx_st_error_clas_mjs__WEBPACK_IMPORTED_MODULE_198__, _cx_static_check_clas_mjs__WEBPACK_IMPORTED_MODULE_199__, _cx_sxml_error_clas_mjs__WEBPACK_IMPORTED_MODULE_200__, _cx_sxml_illegal_argument_error_clas_mjs__WEBPACK_IMPORTED_MODULE_201__, _cx_sxml_name_error_clas_mjs__WEBPACK_IMPORTED_MODULE_202__, _cx_sxml_parse_error_clas_mjs__WEBPACK_IMPORTED_MODULE_203__, _cx_sxml_state_error_clas_mjs__WEBPACK_IMPORTED_MODULE_204__, _cx_sy_arg_out_of_domain_clas_mjs__WEBPACK_IMPORTED_MODULE_205__, _cx_sy_arithmetic_error_clas_mjs__WEBPACK_IMPORTED_MODULE_206__, _cx_sy_arithmetic_overflow_clas_mjs__WEBPACK_IMPORTED_MODULE_207__, _cx_sy_assign_error_clas_mjs__WEBPACK_IMPORTED_MODULE_208__, _cx_sy_authorization_error_clas_mjs__WEBPACK_IMPORTED_MODULE_209__, _cx_sy_buffer_overflow_clas_mjs__WEBPACK_IMPORTED_MODULE_210__, _cx_sy_codepage_converter_init_clas_mjs__WEBPACK_IMPORTED_MODULE_211__, _cx_sy_compression_error_clas_mjs__WEBPACK_IMPORTED_MODULE_212__, _cx_sy_conversion_codepage_clas_mjs__WEBPACK_IMPORTED_MODULE_213__, _cx_sy_conversion_data_loss_clas_mjs__WEBPACK_IMPORTED_MODULE_214__, _cx_sy_conversion_error_clas_mjs__WEBPACK_IMPORTED_MODULE_215__, _cx_sy_conversion_no_date_time_clas_mjs__WEBPACK_IMPORTED_MODULE_216__, _cx_sy_conversion_no_number_clas_mjs__WEBPACK_IMPORTED_MODULE_217__, _cx_sy_conversion_overflow_clas_mjs__WEBPACK_IMPORTED_MODULE_218__, _cx_sy_create_data_error_clas_mjs__WEBPACK_IMPORTED_MODULE_219__, _cx_sy_create_object_error_clas_mjs__WEBPACK_IMPORTED_MODULE_220__, _cx_sy_data_access_error_clas_mjs__WEBPACK_IMPORTED_MODULE_221__, _cx_sy_duplicate_key_clas_mjs__WEBPACK_IMPORTED_MODULE_222__, _cx_sy_dyn_call_error_clas_mjs__WEBPACK_IMPORTED_MODULE_223__, _cx_sy_dyn_call_illegal_class_clas_mjs__WEBPACK_IMPORTED_MODULE_224__, _cx_sy_dyn_call_illegal_form_clas_mjs__WEBPACK_IMPORTED_MODULE_225__, _cx_sy_dyn_call_illegal_func_clas_mjs__WEBPACK_IMPORTED_MODULE_226__, _cx_sy_dyn_call_illegal_method_clas_mjs__WEBPACK_IMPORTED_MODULE_227__, _cx_sy_dyn_call_illegal_type_clas_mjs__WEBPACK_IMPORTED_MODULE_228__, _cx_sy_dyn_call_param_not_found_clas_mjs__WEBPACK_IMPORTED_MODULE_229__, _cx_sy_dyn_call_parameter_error_clas_mjs__WEBPACK_IMPORTED_MODULE_230__, _cx_sy_dynamic_osql_error_clas_mjs__WEBPACK_IMPORTED_MODULE_231__, _cx_sy_dynamic_osql_semantics_clas_mjs__WEBPACK_IMPORTED_MODULE_232__, _cx_sy_dynamic_osql_syntax_clas_mjs__WEBPACK_IMPORTED_MODULE_233__, _cx_sy_file_access_error_clas_mjs__WEBPACK_IMPORTED_MODULE_234__, _cx_sy_file_authority_clas_mjs__WEBPACK_IMPORTED_MODULE_235__, _cx_sy_file_close_clas_mjs__WEBPACK_IMPORTED_MODULE_236__, _cx_sy_file_io_clas_mjs__WEBPACK_IMPORTED_MODULE_237__, _cx_sy_file_open_clas_mjs__WEBPACK_IMPORTED_MODULE_238__, _cx_sy_file_open_mode_clas_mjs__WEBPACK_IMPORTED_MODULE_239__, _cx_sy_find_infinite_loop_clas_mjs__WEBPACK_IMPORTED_MODULE_240__, _cx_sy_import_format_error_clas_mjs__WEBPACK_IMPORTED_MODULE_241__, _cx_sy_import_mismatch_error_clas_mjs__WEBPACK_IMPORTED_MODULE_242__, _cx_sy_invalid_regex_clas_mjs__WEBPACK_IMPORTED_MODULE_243__, _cx_sy_itab_duplicate_key_clas_mjs__WEBPACK_IMPORTED_MODULE_244__, _cx_sy_itab_error_clas_mjs__WEBPACK_IMPORTED_MODULE_245__, _cx_sy_itab_line_not_found_clas_mjs__WEBPACK_IMPORTED_MODULE_246__, _cx_sy_message_illegal_text_clas_mjs__WEBPACK_IMPORTED_MODULE_247__, _cx_sy_move_cast_error_clas_mjs__WEBPACK_IMPORTED_MODULE_248__, _cx_sy_native_sql_error_clas_mjs__WEBPACK_IMPORTED_MODULE_249__, _cx_sy_no_handler_clas_mjs__WEBPACK_IMPORTED_MODULE_250__, _cx_sy_open_sql_db_clas_mjs__WEBPACK_IMPORTED_MODULE_251__, _cx_sy_open_sql_error_clas_mjs__WEBPACK_IMPORTED_MODULE_252__, _cx_sy_pipes_not_supported_clas_mjs__WEBPACK_IMPORTED_MODULE_253__, _cx_sy_range_out_of_bounds_clas_mjs__WEBPACK_IMPORTED_MODULE_254__, _cx_sy_ref_creation_clas_mjs__WEBPACK_IMPORTED_MODULE_255__, _cx_sy_ref_is_initial_clas_mjs__WEBPACK_IMPORTED_MODULE_256__, _cx_sy_regex_clas_mjs__WEBPACK_IMPORTED_MODULE_257__, _cx_sy_regex_too_complex_clas_mjs__WEBPACK_IMPORTED_MODULE_258__, _cx_sy_rtti_no_check_clas_mjs__WEBPACK_IMPORTED_MODULE_259__, _cx_sy_rtti_type_not_released_clas_mjs__WEBPACK_IMPORTED_MODULE_260__, _cx_sy_sql_error_clas_mjs__WEBPACK_IMPORTED_MODULE_261__, _cx_sy_strg_par_val_clas_mjs__WEBPACK_IMPORTED_MODULE_262__, _cx_sy_struct_attributes_clas_mjs__WEBPACK_IMPORTED_MODULE_263__, _cx_sy_struct_comp_name_clas_mjs__WEBPACK_IMPORTED_MODULE_264__, _cx_sy_struct_comp_type_clas_mjs__WEBPACK_IMPORTED_MODULE_265__, _cx_sy_struct_creation_clas_mjs__WEBPACK_IMPORTED_MODULE_266__, _cx_sy_table_creation_clas_mjs__WEBPACK_IMPORTED_MODULE_267__, _cx_sy_too_many_files_clas_mjs__WEBPACK_IMPORTED_MODULE_268__, _cx_sy_type_creation_clas_mjs__WEBPACK_IMPORTED_MODULE_269__, _cx_sy_zerodivide_clas_mjs__WEBPACK_IMPORTED_MODULE_270__, _cx_t100_msg_clas_mjs__WEBPACK_IMPORTED_MODULE_271__, _cx_transformation_error_clas_mjs__WEBPACK_IMPORTED_MODULE_272__, _cx_tstmp_internal_error_clas_mjs__WEBPACK_IMPORTED_MODULE_273__, _cx_uuid_error_clas_mjs__WEBPACK_IMPORTED_MODULE_274__, _cx_web_message_error_clas_mjs__WEBPACK_IMPORTED_MODULE_275__, _cx_xslt_exception_clas_mjs__WEBPACK_IMPORTED_MODULE_276__, _cx_xslt_format_error_clas_mjs__WEBPACK_IMPORTED_MODULE_277__, _cx_xslt_runtime_error_clas_mjs__WEBPACK_IMPORTED_MODULE_278__, _cx_xslt_serialization_error_clas_mjs__WEBPACK_IMPORTED_MODULE_279__, _cx_xslt_system_error_clas_mjs__WEBPACK_IMPORTED_MODULE_280__, _kernel_authority_check_clas_mjs__WEBPACK_IMPORTED_MODULE_402__, _kernel_call_clas_mjs__WEBPACK_IMPORTED_MODULE_403__, _kernel_call_transformation_clas_mjs__WEBPACK_IMPORTED_MODULE_404__, _kernel_create_data_handle_clas_mjs__WEBPACK_IMPORTED_MODULE_405__, _kernel_cx_assert_clas_mjs__WEBPACK_IMPORTED_MODULE_406__, _kernel_fugr_test_clas_mjs__WEBPACK_IMPORTED_MODULE_407__, _kernel_internal_name_clas_mjs__WEBPACK_IMPORTED_MODULE_408__, _kernel_ixml_json_to_data_clas_mjs__WEBPACK_IMPORTED_MODULE_409__, _kernel_ixml_xml_to_data_clas_mjs__WEBPACK_IMPORTED_MODULE_410__, _kernel_json_to_ixml_clas_mjs__WEBPACK_IMPORTED_MODULE_411__, _kernel_lock_clas_mjs__WEBPACK_IMPORTED_MODULE_412__, _kernel_numberrange_clas_mjs__WEBPACK_IMPORTED_MODULE_413__, _kernel_push_channels_clas_mjs__WEBPACK_IMPORTED_MODULE_414__, _kernel_scan_abap_source_clas_mjs__WEBPACK_IMPORTED_MODULE_415__, _kernel_unit_runner_clas_mjs__WEBPACK_IMPORTED_MODULE_416__, _zcl_oapi_abap_name_clas_mjs__WEBPACK_IMPORTED_MODULE_556__, _zcl_oapi_generator_clas_mjs__WEBPACK_IMPORTED_MODULE_557__, _zcl_oapi_generator_v2_clas_mjs__WEBPACK_IMPORTED_MODULE_558__, _zcl_oapi_graph_clas_mjs__WEBPACK_IMPORTED_MODULE_559__, _zcl_oapi_json_clas_mjs__WEBPACK_IMPORTED_MODULE_560__, _zcl_oapi_main_clas_mjs__WEBPACK_IMPORTED_MODULE_561__, _zcl_oapi_parser_clas_mjs__WEBPACK_IMPORTED_MODULE_562__, _zcl_oapi_references_clas_mjs__WEBPACK_IMPORTED_MODULE_563__, _zcl_oapi_response_name_clas_mjs__WEBPACK_IMPORTED_MODULE_564__, _zcl_oapi_schema_clas_mjs__WEBPACK_IMPORTED_MODULE_565__]);
-([_cl_abap_api_state_clas_mjs__WEBPACK_IMPORTED_MODULE_57__, _cl_abap_bigint_clas_mjs__WEBPACK_IMPORTED_MODULE_58__, _cl_abap_char_utilities_clas_mjs__WEBPACK_IMPORTED_MODULE_59__, _cl_abap_classdescr_clas_mjs__WEBPACK_IMPORTED_MODULE_60__, _cl_abap_codepage_clas_mjs__WEBPACK_IMPORTED_MODULE_61__, _cl_abap_complexdescr_clas_mjs__WEBPACK_IMPORTED_MODULE_62__, _cl_abap_container_utilities_clas_mjs__WEBPACK_IMPORTED_MODULE_63__, _cl_abap_context_info_clas_mjs__WEBPACK_IMPORTED_MODULE_64__, _cl_abap_conv_codepage_clas_mjs__WEBPACK_IMPORTED_MODULE_65__, _cl_abap_conv_in_ce_clas_mjs__WEBPACK_IMPORTED_MODULE_66__, _cl_abap_conv_out_ce_clas_mjs__WEBPACK_IMPORTED_MODULE_67__, _cl_abap_datadescr_clas_mjs__WEBPACK_IMPORTED_MODULE_68__, _cl_abap_datfm_clas_mjs__WEBPACK_IMPORTED_MODULE_69__, _cl_abap_dyn_prg_clas_mjs__WEBPACK_IMPORTED_MODULE_70__, _cl_abap_elemdescr_clas_mjs__WEBPACK_IMPORTED_MODULE_71__, _cl_abap_enumdescr_clas_mjs__WEBPACK_IMPORTED_MODULE_72__, _cl_abap_exceptional_values_clas_mjs__WEBPACK_IMPORTED_MODULE_73__, _cl_abap_format_clas_mjs__WEBPACK_IMPORTED_MODULE_74__, _cl_abap_gzip_clas_mjs__WEBPACK_IMPORTED_MODULE_75__, _cl_abap_hmac_clas_mjs__WEBPACK_IMPORTED_MODULE_76__, _cl_abap_intfdescr_clas_mjs__WEBPACK_IMPORTED_MODULE_77__, _cl_abap_matcher_clas_mjs__WEBPACK_IMPORTED_MODULE_78__, _cl_abap_math_clas_mjs__WEBPACK_IMPORTED_MODULE_79__, _cl_abap_memory_utilities_clas_mjs__WEBPACK_IMPORTED_MODULE_80__, _cl_abap_message_digest_clas_mjs__WEBPACK_IMPORTED_MODULE_81__, _cl_abap_objectdescr_clas_mjs__WEBPACK_IMPORTED_MODULE_82__, _cl_abap_random_clas_mjs__WEBPACK_IMPORTED_MODULE_83__, _cl_abap_random_int_clas_mjs__WEBPACK_IMPORTED_MODULE_84__, _cl_abap_refdescr_clas_mjs__WEBPACK_IMPORTED_MODULE_85__, _cl_abap_regex_clas_mjs__WEBPACK_IMPORTED_MODULE_86__, _cl_abap_structdescr_clas_mjs__WEBPACK_IMPORTED_MODULE_87__, _cl_abap_tabledescr_clas_mjs__WEBPACK_IMPORTED_MODULE_88__, _cl_abap_timefm_clas_mjs__WEBPACK_IMPORTED_MODULE_89__, _cl_abap_tstmp_clas_mjs__WEBPACK_IMPORTED_MODULE_90__, _cl_abap_typedescr_clas_mjs__WEBPACK_IMPORTED_MODULE_91__, _cl_abap_unit_assert_clas_mjs__WEBPACK_IMPORTED_MODULE_92__, _cl_abap_weak_reference_clas_mjs__WEBPACK_IMPORTED_MODULE_93__, _cl_abap_zip_clas_mjs__WEBPACK_IMPORTED_MODULE_94__, _cl_apc_tcp_client_manager_clas_mjs__WEBPACK_IMPORTED_MODULE_95__, _cl_apc_wsp_ext_stateless_base_clas_mjs__WEBPACK_IMPORTED_MODULE_96__, _cl_aunit_auth_check_types_def_clas_mjs__WEBPACK_IMPORTED_MODULE_97__, _cl_aunit_authority_check_clas_mjs__WEBPACK_IMPORTED_MODULE_98__, _cl_bcs_clas_mjs__WEBPACK_IMPORTED_MODULE_99__, _cl_bcs_convert_clas_mjs__WEBPACK_IMPORTED_MODULE_100__, _cl_cam_address_bcs_clas_mjs__WEBPACK_IMPORTED_MODULE_101__, _cl_demo_output_clas_mjs__WEBPACK_IMPORTED_MODULE_102__, _cl_document_bcs_clas_mjs__WEBPACK_IMPORTED_MODULE_103__, _cl_function_test_environment_clas_mjs__WEBPACK_IMPORTED_MODULE_104__, _cl_gdt_conversion_clas_mjs__WEBPACK_IMPORTED_MODULE_105__, _cl_http_client_clas_mjs__WEBPACK_IMPORTED_MODULE_106__, _cl_http_entity_clas_mjs__WEBPACK_IMPORTED_MODULE_107__, _cl_http_server_clas_mjs__WEBPACK_IMPORTED_MODULE_108__, _cl_http_utility_clas_mjs__WEBPACK_IMPORTED_MODULE_109__, _cl_i18n_languages_clas_mjs__WEBPACK_IMPORTED_MODULE_110__, _cl_ixml_clas_mjs__WEBPACK_IMPORTED_MODULE_111__, _cl_message_helper_clas_mjs__WEBPACK_IMPORTED_MODULE_112__, _cl_mime_repository_api_clas_mjs__WEBPACK_IMPORTED_MODULE_113__, _cl_numberrange_intervals_clas_mjs__WEBPACK_IMPORTED_MODULE_114__, _cl_numberrange_objects_clas_mjs__WEBPACK_IMPORTED_MODULE_115__, _cl_numberrange_runtime_clas_mjs__WEBPACK_IMPORTED_MODULE_116__, _cl_oa2c_config_writer_api_clas_mjs__WEBPACK_IMPORTED_MODULE_117__, _cl_oauth2_client_clas_mjs__WEBPACK_IMPORTED_MODULE_118__, _cl_oo_factory_clas_mjs__WEBPACK_IMPORTED_MODULE_119__, _cl_os_ca_common_clas_mjs__WEBPACK_IMPORTED_MODULE_120__, _cl_osql_test_environment_clas_mjs__WEBPACK_IMPORTED_MODULE_121__, _cl_package_factory_clas_mjs__WEBPACK_IMPORTED_MODULE_122__, _cl_package_helper_clas_mjs__WEBPACK_IMPORTED_MODULE_123__, _cl_sec_sxml_writer_clas_mjs__WEBPACK_IMPORTED_MODULE_124__, _cl_send_request_bcs_clas_mjs__WEBPACK_IMPORTED_MODULE_125__, _cl_shm_area_clas_mjs__WEBPACK_IMPORTED_MODULE_126__, _cl_shm_service_clas_mjs__WEBPACK_IMPORTED_MODULE_127__, _cl_sql_connection_clas_mjs__WEBPACK_IMPORTED_MODULE_128__, _cl_sql_result_set_clas_mjs__WEBPACK_IMPORTED_MODULE_129__, _cl_sql_statement_clas_mjs__WEBPACK_IMPORTED_MODULE_130__, _cl_sxml_string_reader_clas_mjs__WEBPACK_IMPORTED_MODULE_131__, _cl_sxml_string_writer_clas_mjs__WEBPACK_IMPORTED_MODULE_132__, _cl_system_uuid_clas_mjs__WEBPACK_IMPORTED_MODULE_133__, _cl_web_http_utility_clas_mjs__WEBPACK_IMPORTED_MODULE_134__, _cx_abap_api_state_clas_mjs__WEBPACK_IMPORTED_MODULE_136__, _cx_abap_auth_check_exception_clas_mjs__WEBPACK_IMPORTED_MODULE_137__, _cx_abap_context_info_error_clas_mjs__WEBPACK_IMPORTED_MODULE_138__, _cx_abap_datfm_clas_mjs__WEBPACK_IMPORTED_MODULE_139__, _cx_abap_invalid_name_clas_mjs__WEBPACK_IMPORTED_MODULE_140__, _cx_abap_invalid_value_clas_mjs__WEBPACK_IMPORTED_MODULE_141__, _cx_abap_message_digest_clas_mjs__WEBPACK_IMPORTED_MODULE_142__, _cx_abap_not_a_table_clas_mjs__WEBPACK_IMPORTED_MODULE_143__, _cx_abap_not_in_package_clas_mjs__WEBPACK_IMPORTED_MODULE_144__, _cx_abap_not_in_whitelist_clas_mjs__WEBPACK_IMPORTED_MODULE_145__, _cx_abap_random_clas_mjs__WEBPACK_IMPORTED_MODULE_146__, _cx_abap_timefm_invalid_clas_mjs__WEBPACK_IMPORTED_MODULE_147__, _cx_address_bcs_clas_mjs__WEBPACK_IMPORTED_MODULE_148__, _cx_apc_error_clas_mjs__WEBPACK_IMPORTED_MODULE_149__, _cx_bcs_clas_mjs__WEBPACK_IMPORTED_MODULE_150__, _cx_document_bcs_clas_mjs__WEBPACK_IMPORTED_MODULE_151__, _cx_dynamic_check_clas_mjs__WEBPACK_IMPORTED_MODULE_152__, _cx_ftd_parameter_not_found_clas_mjs__WEBPACK_IMPORTED_MODULE_153__, _cx_gdt_conversion_clas_mjs__WEBPACK_IMPORTED_MODULE_154__, _cx_no_check_clas_mjs__WEBPACK_IMPORTED_MODULE_155__, _cx_nr_object_not_found_clas_mjs__WEBPACK_IMPORTED_MODULE_156__, _cx_number_ranges_clas_mjs__WEBPACK_IMPORTED_MODULE_157__, _cx_oa2c_clas_mjs__WEBPACK_IMPORTED_MODULE_158__, _cx_oa2c_at_not_available_clas_mjs__WEBPACK_IMPORTED_MODULE_159__, _cx_oa2c_config_exception_clas_mjs__WEBPACK_IMPORTED_MODULE_160__, _cx_oa2c_config_not_found_clas_mjs__WEBPACK_IMPORTED_MODULE_161__, _cx_oa2c_missing_authorization_clas_mjs__WEBPACK_IMPORTED_MODULE_162__, _cx_oo_clif_not_exists_clas_mjs__WEBPACK_IMPORTED_MODULE_163__, _cx_os_class_not_found_clas_mjs__WEBPACK_IMPORTED_MODULE_164__, _cx_os_error_clas_mjs__WEBPACK_IMPORTED_MODULE_165__, _cx_os_object_clas_mjs__WEBPACK_IMPORTED_MODULE_166__, _cx_os_object_existing_clas_mjs__WEBPACK_IMPORTED_MODULE_167__, _cx_os_object_not_found_clas_mjs__WEBPACK_IMPORTED_MODULE_168__, _cx_osql_failure_clas_mjs__WEBPACK_IMPORTED_MODULE_169__, _cx_parameter_invalid_clas_mjs__WEBPACK_IMPORTED_MODULE_170__, _cx_parameter_invalid_range_clas_mjs__WEBPACK_IMPORTED_MODULE_171__, _cx_parameter_invalid_type_clas_mjs__WEBPACK_IMPORTED_MODULE_172__, _cx_send_req_bcs_clas_mjs__WEBPACK_IMPORTED_MODULE_174__, _cx_shm_already_detached_clas_mjs__WEBPACK_IMPORTED_MODULE_175__, _cx_shm_attach_error_clas_mjs__WEBPACK_IMPORTED_MODULE_176__, _cx_shm_build_failed_clas_mjs__WEBPACK_IMPORTED_MODULE_177__, _cx_shm_change_lock_active_clas_mjs__WEBPACK_IMPORTED_MODULE_178__, _cx_shm_completion_error_clas_mjs__WEBPACK_IMPORTED_MODULE_179__, _cx_shm_detach_error_clas_mjs__WEBPACK_IMPORTED_MODULE_180__, _cx_shm_error_clas_mjs__WEBPACK_IMPORTED_MODULE_181__, _cx_shm_event_execution_failed_clas_mjs__WEBPACK_IMPORTED_MODULE_182__, _cx_shm_exclusive_lock_active_clas_mjs__WEBPACK_IMPORTED_MODULE_183__, _cx_shm_general_error_clas_mjs__WEBPACK_IMPORTED_MODULE_184__, _cx_shm_inconsistent_clas_mjs__WEBPACK_IMPORTED_MODULE_185__, _cx_shm_initial_reference_clas_mjs__WEBPACK_IMPORTED_MODULE_186__, _cx_shm_no_active_version_clas_mjs__WEBPACK_IMPORTED_MODULE_187__, _cx_shm_parameter_error_clas_mjs__WEBPACK_IMPORTED_MODULE_188__, _cx_shm_pending_lock_removed_clas_mjs__WEBPACK_IMPORTED_MODULE_189__, _cx_shm_read_lock_active_clas_mjs__WEBPACK_IMPORTED_MODULE_190__, _cx_shm_secondary_commit_clas_mjs__WEBPACK_IMPORTED_MODULE_191__, _cx_shm_version_limit_exceeded_clas_mjs__WEBPACK_IMPORTED_MODULE_192__, _cx_shm_wrong_handle_clas_mjs__WEBPACK_IMPORTED_MODULE_193__, _cx_shma_dynamic_clas_mjs__WEBPACK_IMPORTED_MODULE_194__, _cx_shma_inconsistent_clas_mjs__WEBPACK_IMPORTED_MODULE_195__, _cx_shma_not_configured_clas_mjs__WEBPACK_IMPORTED_MODULE_196__, _cx_sql_exception_clas_mjs__WEBPACK_IMPORTED_MODULE_197__, _cx_st_error_clas_mjs__WEBPACK_IMPORTED_MODULE_198__, _cx_static_check_clas_mjs__WEBPACK_IMPORTED_MODULE_199__, _cx_sxml_error_clas_mjs__WEBPACK_IMPORTED_MODULE_200__, _cx_sxml_illegal_argument_error_clas_mjs__WEBPACK_IMPORTED_MODULE_201__, _cx_sxml_name_error_clas_mjs__WEBPACK_IMPORTED_MODULE_202__, _cx_sxml_parse_error_clas_mjs__WEBPACK_IMPORTED_MODULE_203__, _cx_sxml_state_error_clas_mjs__WEBPACK_IMPORTED_MODULE_204__, _cx_sy_arg_out_of_domain_clas_mjs__WEBPACK_IMPORTED_MODULE_205__, _cx_sy_arithmetic_error_clas_mjs__WEBPACK_IMPORTED_MODULE_206__, _cx_sy_arithmetic_overflow_clas_mjs__WEBPACK_IMPORTED_MODULE_207__, _cx_sy_assign_error_clas_mjs__WEBPACK_IMPORTED_MODULE_208__, _cx_sy_authorization_error_clas_mjs__WEBPACK_IMPORTED_MODULE_209__, _cx_sy_buffer_overflow_clas_mjs__WEBPACK_IMPORTED_MODULE_210__, _cx_sy_codepage_converter_init_clas_mjs__WEBPACK_IMPORTED_MODULE_211__, _cx_sy_compression_error_clas_mjs__WEBPACK_IMPORTED_MODULE_212__, _cx_sy_conversion_codepage_clas_mjs__WEBPACK_IMPORTED_MODULE_213__, _cx_sy_conversion_data_loss_clas_mjs__WEBPACK_IMPORTED_MODULE_214__, _cx_sy_conversion_error_clas_mjs__WEBPACK_IMPORTED_MODULE_215__, _cx_sy_conversion_no_date_time_clas_mjs__WEBPACK_IMPORTED_MODULE_216__, _cx_sy_conversion_no_number_clas_mjs__WEBPACK_IMPORTED_MODULE_217__, _cx_sy_conversion_overflow_clas_mjs__WEBPACK_IMPORTED_MODULE_218__, _cx_sy_create_data_error_clas_mjs__WEBPACK_IMPORTED_MODULE_219__, _cx_sy_create_object_error_clas_mjs__WEBPACK_IMPORTED_MODULE_220__, _cx_sy_data_access_error_clas_mjs__WEBPACK_IMPORTED_MODULE_221__, _cx_sy_duplicate_key_clas_mjs__WEBPACK_IMPORTED_MODULE_222__, _cx_sy_dyn_call_error_clas_mjs__WEBPACK_IMPORTED_MODULE_223__, _cx_sy_dyn_call_illegal_class_clas_mjs__WEBPACK_IMPORTED_MODULE_224__, _cx_sy_dyn_call_illegal_form_clas_mjs__WEBPACK_IMPORTED_MODULE_225__, _cx_sy_dyn_call_illegal_func_clas_mjs__WEBPACK_IMPORTED_MODULE_226__, _cx_sy_dyn_call_illegal_method_clas_mjs__WEBPACK_IMPORTED_MODULE_227__, _cx_sy_dyn_call_illegal_type_clas_mjs__WEBPACK_IMPORTED_MODULE_228__, _cx_sy_dyn_call_param_not_found_clas_mjs__WEBPACK_IMPORTED_MODULE_229__, _cx_sy_dyn_call_parameter_error_clas_mjs__WEBPACK_IMPORTED_MODULE_230__, _cx_sy_dynamic_osql_error_clas_mjs__WEBPACK_IMPORTED_MODULE_231__, _cx_sy_dynamic_osql_semantics_clas_mjs__WEBPACK_IMPORTED_MODULE_232__, _cx_sy_dynamic_osql_syntax_clas_mjs__WEBPACK_IMPORTED_MODULE_233__, _cx_sy_file_access_error_clas_mjs__WEBPACK_IMPORTED_MODULE_234__, _cx_sy_file_authority_clas_mjs__WEBPACK_IMPORTED_MODULE_235__, _cx_sy_file_close_clas_mjs__WEBPACK_IMPORTED_MODULE_236__, _cx_sy_file_io_clas_mjs__WEBPACK_IMPORTED_MODULE_237__, _cx_sy_file_open_clas_mjs__WEBPACK_IMPORTED_MODULE_238__, _cx_sy_file_open_mode_clas_mjs__WEBPACK_IMPORTED_MODULE_239__, _cx_sy_find_infinite_loop_clas_mjs__WEBPACK_IMPORTED_MODULE_240__, _cx_sy_import_format_error_clas_mjs__WEBPACK_IMPORTED_MODULE_241__, _cx_sy_import_mismatch_error_clas_mjs__WEBPACK_IMPORTED_MODULE_242__, _cx_sy_invalid_regex_clas_mjs__WEBPACK_IMPORTED_MODULE_243__, _cx_sy_itab_duplicate_key_clas_mjs__WEBPACK_IMPORTED_MODULE_244__, _cx_sy_itab_error_clas_mjs__WEBPACK_IMPORTED_MODULE_245__, _cx_sy_itab_line_not_found_clas_mjs__WEBPACK_IMPORTED_MODULE_246__, _cx_sy_message_illegal_text_clas_mjs__WEBPACK_IMPORTED_MODULE_247__, _cx_sy_move_cast_error_clas_mjs__WEBPACK_IMPORTED_MODULE_248__, _cx_sy_native_sql_error_clas_mjs__WEBPACK_IMPORTED_MODULE_249__, _cx_sy_no_handler_clas_mjs__WEBPACK_IMPORTED_MODULE_250__, _cx_sy_open_sql_db_clas_mjs__WEBPACK_IMPORTED_MODULE_251__, _cx_sy_open_sql_error_clas_mjs__WEBPACK_IMPORTED_MODULE_252__, _cx_sy_pipes_not_supported_clas_mjs__WEBPACK_IMPORTED_MODULE_253__, _cx_sy_range_out_of_bounds_clas_mjs__WEBPACK_IMPORTED_MODULE_254__, _cx_sy_ref_creation_clas_mjs__WEBPACK_IMPORTED_MODULE_255__, _cx_sy_ref_is_initial_clas_mjs__WEBPACK_IMPORTED_MODULE_256__, _cx_sy_regex_clas_mjs__WEBPACK_IMPORTED_MODULE_257__, _cx_sy_regex_too_complex_clas_mjs__WEBPACK_IMPORTED_MODULE_258__, _cx_sy_rtti_no_check_clas_mjs__WEBPACK_IMPORTED_MODULE_259__, _cx_sy_rtti_type_not_released_clas_mjs__WEBPACK_IMPORTED_MODULE_260__, _cx_sy_sql_error_clas_mjs__WEBPACK_IMPORTED_MODULE_261__, _cx_sy_strg_par_val_clas_mjs__WEBPACK_IMPORTED_MODULE_262__, _cx_sy_struct_attributes_clas_mjs__WEBPACK_IMPORTED_MODULE_263__, _cx_sy_struct_comp_name_clas_mjs__WEBPACK_IMPORTED_MODULE_264__, _cx_sy_struct_comp_type_clas_mjs__WEBPACK_IMPORTED_MODULE_265__, _cx_sy_struct_creation_clas_mjs__WEBPACK_IMPORTED_MODULE_266__, _cx_sy_table_creation_clas_mjs__WEBPACK_IMPORTED_MODULE_267__, _cx_sy_too_many_files_clas_mjs__WEBPACK_IMPORTED_MODULE_268__, _cx_sy_type_creation_clas_mjs__WEBPACK_IMPORTED_MODULE_269__, _cx_sy_zerodivide_clas_mjs__WEBPACK_IMPORTED_MODULE_270__, _cx_t100_msg_clas_mjs__WEBPACK_IMPORTED_MODULE_271__, _cx_transformation_error_clas_mjs__WEBPACK_IMPORTED_MODULE_272__, _cx_tstmp_internal_error_clas_mjs__WEBPACK_IMPORTED_MODULE_273__, _cx_uuid_error_clas_mjs__WEBPACK_IMPORTED_MODULE_274__, _cx_web_message_error_clas_mjs__WEBPACK_IMPORTED_MODULE_275__, _cx_xslt_exception_clas_mjs__WEBPACK_IMPORTED_MODULE_276__, _cx_xslt_format_error_clas_mjs__WEBPACK_IMPORTED_MODULE_277__, _cx_xslt_runtime_error_clas_mjs__WEBPACK_IMPORTED_MODULE_278__, _cx_xslt_serialization_error_clas_mjs__WEBPACK_IMPORTED_MODULE_279__, _cx_xslt_system_error_clas_mjs__WEBPACK_IMPORTED_MODULE_280__, _kernel_authority_check_clas_mjs__WEBPACK_IMPORTED_MODULE_402__, _kernel_call_clas_mjs__WEBPACK_IMPORTED_MODULE_403__, _kernel_call_transformation_clas_mjs__WEBPACK_IMPORTED_MODULE_404__, _kernel_create_data_handle_clas_mjs__WEBPACK_IMPORTED_MODULE_405__, _kernel_cx_assert_clas_mjs__WEBPACK_IMPORTED_MODULE_406__, _kernel_fugr_test_clas_mjs__WEBPACK_IMPORTED_MODULE_407__, _kernel_internal_name_clas_mjs__WEBPACK_IMPORTED_MODULE_408__, _kernel_ixml_json_to_data_clas_mjs__WEBPACK_IMPORTED_MODULE_409__, _kernel_ixml_xml_to_data_clas_mjs__WEBPACK_IMPORTED_MODULE_410__, _kernel_json_to_ixml_clas_mjs__WEBPACK_IMPORTED_MODULE_411__, _kernel_lock_clas_mjs__WEBPACK_IMPORTED_MODULE_412__, _kernel_numberrange_clas_mjs__WEBPACK_IMPORTED_MODULE_413__, _kernel_push_channels_clas_mjs__WEBPACK_IMPORTED_MODULE_414__, _kernel_scan_abap_source_clas_mjs__WEBPACK_IMPORTED_MODULE_415__, _kernel_unit_runner_clas_mjs__WEBPACK_IMPORTED_MODULE_416__, _zcl_oapi_abap_name_clas_mjs__WEBPACK_IMPORTED_MODULE_556__, _zcl_oapi_generator_clas_mjs__WEBPACK_IMPORTED_MODULE_557__, _zcl_oapi_generator_v2_clas_mjs__WEBPACK_IMPORTED_MODULE_558__, _zcl_oapi_graph_clas_mjs__WEBPACK_IMPORTED_MODULE_559__, _zcl_oapi_json_clas_mjs__WEBPACK_IMPORTED_MODULE_560__, _zcl_oapi_main_clas_mjs__WEBPACK_IMPORTED_MODULE_561__, _zcl_oapi_parser_clas_mjs__WEBPACK_IMPORTED_MODULE_562__, _zcl_oapi_references_clas_mjs__WEBPACK_IMPORTED_MODULE_563__, _zcl_oapi_response_name_clas_mjs__WEBPACK_IMPORTED_MODULE_564__, _zcl_oapi_schema_clas_mjs__WEBPACK_IMPORTED_MODULE_565__] = __webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
+/* harmony import */ var _cl_abap_message_digest_clas_mjs__WEBPACK_IMPORTED_MODULE_569__ = __webpack_require__(/*! ./cl_abap_message_digest.clas.mjs */ "../output/cl_abap_message_digest.clas.mjs");
+var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_cl_abap_api_state_clas_mjs__WEBPACK_IMPORTED_MODULE_57__, _cl_abap_bigint_clas_mjs__WEBPACK_IMPORTED_MODULE_58__, _cl_abap_char_utilities_clas_mjs__WEBPACK_IMPORTED_MODULE_59__, _cl_abap_classdescr_clas_mjs__WEBPACK_IMPORTED_MODULE_60__, _cl_abap_codepage_clas_mjs__WEBPACK_IMPORTED_MODULE_61__, _cl_abap_complexdescr_clas_mjs__WEBPACK_IMPORTED_MODULE_62__, _cl_abap_container_utilities_clas_mjs__WEBPACK_IMPORTED_MODULE_63__, _cl_abap_context_info_clas_mjs__WEBPACK_IMPORTED_MODULE_64__, _cl_abap_conv_codepage_clas_mjs__WEBPACK_IMPORTED_MODULE_65__, _cl_abap_conv_in_ce_clas_mjs__WEBPACK_IMPORTED_MODULE_66__, _cl_abap_conv_out_ce_clas_mjs__WEBPACK_IMPORTED_MODULE_67__, _cl_abap_datadescr_clas_mjs__WEBPACK_IMPORTED_MODULE_68__, _cl_abap_datfm_clas_mjs__WEBPACK_IMPORTED_MODULE_69__, _cl_abap_dyn_prg_clas_mjs__WEBPACK_IMPORTED_MODULE_70__, _cl_abap_elemdescr_clas_mjs__WEBPACK_IMPORTED_MODULE_71__, _cl_abap_enumdescr_clas_mjs__WEBPACK_IMPORTED_MODULE_72__, _cl_abap_exceptional_values_clas_mjs__WEBPACK_IMPORTED_MODULE_73__, _cl_abap_format_clas_mjs__WEBPACK_IMPORTED_MODULE_74__, _cl_abap_gzip_clas_mjs__WEBPACK_IMPORTED_MODULE_75__, _cl_abap_hmac_clas_mjs__WEBPACK_IMPORTED_MODULE_76__, _cl_abap_intfdescr_clas_mjs__WEBPACK_IMPORTED_MODULE_77__, _cl_abap_matcher_clas_mjs__WEBPACK_IMPORTED_MODULE_78__, _cl_abap_math_clas_mjs__WEBPACK_IMPORTED_MODULE_79__, _cl_abap_memory_utilities_clas_mjs__WEBPACK_IMPORTED_MODULE_80__, _cl_abap_objectdescr_clas_mjs__WEBPACK_IMPORTED_MODULE_81__, _cl_abap_random_clas_mjs__WEBPACK_IMPORTED_MODULE_82__, _cl_abap_random_int_clas_mjs__WEBPACK_IMPORTED_MODULE_83__, _cl_abap_refdescr_clas_mjs__WEBPACK_IMPORTED_MODULE_84__, _cl_abap_regex_clas_mjs__WEBPACK_IMPORTED_MODULE_85__, _cl_abap_structdescr_clas_mjs__WEBPACK_IMPORTED_MODULE_86__, _cl_abap_tabledescr_clas_mjs__WEBPACK_IMPORTED_MODULE_87__, _cl_abap_timefm_clas_mjs__WEBPACK_IMPORTED_MODULE_88__, _cl_abap_tstmp_clas_mjs__WEBPACK_IMPORTED_MODULE_89__, _cl_abap_typedescr_clas_mjs__WEBPACK_IMPORTED_MODULE_90__, _cl_abap_unit_assert_clas_mjs__WEBPACK_IMPORTED_MODULE_91__, _cl_abap_weak_reference_clas_mjs__WEBPACK_IMPORTED_MODULE_92__, _cl_abap_zip_clas_mjs__WEBPACK_IMPORTED_MODULE_93__, _cl_apc_tcp_client_manager_clas_mjs__WEBPACK_IMPORTED_MODULE_94__, _cl_apc_wsp_ext_stateless_base_clas_mjs__WEBPACK_IMPORTED_MODULE_95__, _cl_aunit_auth_check_types_def_clas_mjs__WEBPACK_IMPORTED_MODULE_96__, _cl_aunit_authority_check_clas_mjs__WEBPACK_IMPORTED_MODULE_97__, _cl_bcs_clas_mjs__WEBPACK_IMPORTED_MODULE_98__, _cl_bcs_convert_clas_mjs__WEBPACK_IMPORTED_MODULE_99__, _cl_cam_address_bcs_clas_mjs__WEBPACK_IMPORTED_MODULE_100__, _cl_demo_output_clas_mjs__WEBPACK_IMPORTED_MODULE_101__, _cl_document_bcs_clas_mjs__WEBPACK_IMPORTED_MODULE_102__, _cl_function_test_environment_clas_mjs__WEBPACK_IMPORTED_MODULE_103__, _cl_gdt_conversion_clas_mjs__WEBPACK_IMPORTED_MODULE_104__, _cl_http_client_clas_mjs__WEBPACK_IMPORTED_MODULE_105__, _cl_http_entity_clas_mjs__WEBPACK_IMPORTED_MODULE_106__, _cl_http_server_clas_mjs__WEBPACK_IMPORTED_MODULE_107__, _cl_http_utility_clas_mjs__WEBPACK_IMPORTED_MODULE_108__, _cl_i18n_languages_clas_mjs__WEBPACK_IMPORTED_MODULE_109__, _cl_ixml_clas_mjs__WEBPACK_IMPORTED_MODULE_110__, _cl_message_helper_clas_mjs__WEBPACK_IMPORTED_MODULE_111__, _cl_mime_repository_api_clas_mjs__WEBPACK_IMPORTED_MODULE_112__, _cl_numberrange_intervals_clas_mjs__WEBPACK_IMPORTED_MODULE_113__, _cl_numberrange_objects_clas_mjs__WEBPACK_IMPORTED_MODULE_114__, _cl_numberrange_runtime_clas_mjs__WEBPACK_IMPORTED_MODULE_115__, _cl_oa2c_config_writer_api_clas_mjs__WEBPACK_IMPORTED_MODULE_116__, _cl_oauth2_client_clas_mjs__WEBPACK_IMPORTED_MODULE_117__, _cl_oo_factory_clas_mjs__WEBPACK_IMPORTED_MODULE_118__, _cl_os_ca_common_clas_mjs__WEBPACK_IMPORTED_MODULE_119__, _cl_osql_test_environment_clas_mjs__WEBPACK_IMPORTED_MODULE_120__, _cl_package_factory_clas_mjs__WEBPACK_IMPORTED_MODULE_121__, _cl_package_helper_clas_mjs__WEBPACK_IMPORTED_MODULE_122__, _cl_sec_sxml_writer_clas_mjs__WEBPACK_IMPORTED_MODULE_123__, _cl_send_request_bcs_clas_mjs__WEBPACK_IMPORTED_MODULE_124__, _cl_shm_area_clas_mjs__WEBPACK_IMPORTED_MODULE_125__, _cl_shm_service_clas_mjs__WEBPACK_IMPORTED_MODULE_126__, _cl_sql_connection_clas_mjs__WEBPACK_IMPORTED_MODULE_127__, _cl_sql_result_set_clas_mjs__WEBPACK_IMPORTED_MODULE_128__, _cl_sql_statement_clas_mjs__WEBPACK_IMPORTED_MODULE_129__, _cl_sxml_string_reader_clas_mjs__WEBPACK_IMPORTED_MODULE_130__, _cl_sxml_string_writer_clas_mjs__WEBPACK_IMPORTED_MODULE_131__, _cl_system_uuid_clas_mjs__WEBPACK_IMPORTED_MODULE_132__, _cl_web_http_utility_clas_mjs__WEBPACK_IMPORTED_MODULE_133__, _cx_abap_api_state_clas_mjs__WEBPACK_IMPORTED_MODULE_135__, _cx_abap_auth_check_exception_clas_mjs__WEBPACK_IMPORTED_MODULE_136__, _cx_abap_context_info_error_clas_mjs__WEBPACK_IMPORTED_MODULE_137__, _cx_abap_datfm_clas_mjs__WEBPACK_IMPORTED_MODULE_138__, _cx_abap_invalid_name_clas_mjs__WEBPACK_IMPORTED_MODULE_139__, _cx_abap_invalid_value_clas_mjs__WEBPACK_IMPORTED_MODULE_140__, _cx_abap_message_digest_clas_mjs__WEBPACK_IMPORTED_MODULE_141__, _cx_abap_not_a_table_clas_mjs__WEBPACK_IMPORTED_MODULE_142__, _cx_abap_not_in_package_clas_mjs__WEBPACK_IMPORTED_MODULE_143__, _cx_abap_not_in_whitelist_clas_mjs__WEBPACK_IMPORTED_MODULE_144__, _cx_abap_random_clas_mjs__WEBPACK_IMPORTED_MODULE_145__, _cx_abap_timefm_invalid_clas_mjs__WEBPACK_IMPORTED_MODULE_146__, _cx_address_bcs_clas_mjs__WEBPACK_IMPORTED_MODULE_147__, _cx_apc_error_clas_mjs__WEBPACK_IMPORTED_MODULE_148__, _cx_bcs_clas_mjs__WEBPACK_IMPORTED_MODULE_149__, _cx_document_bcs_clas_mjs__WEBPACK_IMPORTED_MODULE_150__, _cx_dynamic_check_clas_mjs__WEBPACK_IMPORTED_MODULE_151__, _cx_ftd_parameter_not_found_clas_mjs__WEBPACK_IMPORTED_MODULE_152__, _cx_gdt_conversion_clas_mjs__WEBPACK_IMPORTED_MODULE_153__, _cx_no_check_clas_mjs__WEBPACK_IMPORTED_MODULE_154__, _cx_nr_object_not_found_clas_mjs__WEBPACK_IMPORTED_MODULE_155__, _cx_number_ranges_clas_mjs__WEBPACK_IMPORTED_MODULE_156__, _cx_oa2c_clas_mjs__WEBPACK_IMPORTED_MODULE_157__, _cx_oa2c_at_not_available_clas_mjs__WEBPACK_IMPORTED_MODULE_158__, _cx_oa2c_config_exception_clas_mjs__WEBPACK_IMPORTED_MODULE_159__, _cx_oa2c_config_not_found_clas_mjs__WEBPACK_IMPORTED_MODULE_160__, _cx_oa2c_missing_authorization_clas_mjs__WEBPACK_IMPORTED_MODULE_161__, _cx_oo_clif_not_exists_clas_mjs__WEBPACK_IMPORTED_MODULE_162__, _cx_os_class_not_found_clas_mjs__WEBPACK_IMPORTED_MODULE_163__, _cx_os_error_clas_mjs__WEBPACK_IMPORTED_MODULE_164__, _cx_os_object_clas_mjs__WEBPACK_IMPORTED_MODULE_165__, _cx_os_object_existing_clas_mjs__WEBPACK_IMPORTED_MODULE_166__, _cx_os_object_not_found_clas_mjs__WEBPACK_IMPORTED_MODULE_167__, _cx_osql_failure_clas_mjs__WEBPACK_IMPORTED_MODULE_168__, _cx_parameter_invalid_clas_mjs__WEBPACK_IMPORTED_MODULE_169__, _cx_parameter_invalid_range_clas_mjs__WEBPACK_IMPORTED_MODULE_170__, _cx_parameter_invalid_type_clas_mjs__WEBPACK_IMPORTED_MODULE_171__, _cx_send_req_bcs_clas_mjs__WEBPACK_IMPORTED_MODULE_173__, _cx_shm_already_detached_clas_mjs__WEBPACK_IMPORTED_MODULE_174__, _cx_shm_attach_error_clas_mjs__WEBPACK_IMPORTED_MODULE_175__, _cx_shm_build_failed_clas_mjs__WEBPACK_IMPORTED_MODULE_176__, _cx_shm_change_lock_active_clas_mjs__WEBPACK_IMPORTED_MODULE_177__, _cx_shm_completion_error_clas_mjs__WEBPACK_IMPORTED_MODULE_178__, _cx_shm_detach_error_clas_mjs__WEBPACK_IMPORTED_MODULE_179__, _cx_shm_error_clas_mjs__WEBPACK_IMPORTED_MODULE_180__, _cx_shm_event_execution_failed_clas_mjs__WEBPACK_IMPORTED_MODULE_181__, _cx_shm_exclusive_lock_active_clas_mjs__WEBPACK_IMPORTED_MODULE_182__, _cx_shm_general_error_clas_mjs__WEBPACK_IMPORTED_MODULE_183__, _cx_shm_inconsistent_clas_mjs__WEBPACK_IMPORTED_MODULE_184__, _cx_shm_initial_reference_clas_mjs__WEBPACK_IMPORTED_MODULE_185__, _cx_shm_no_active_version_clas_mjs__WEBPACK_IMPORTED_MODULE_186__, _cx_shm_parameter_error_clas_mjs__WEBPACK_IMPORTED_MODULE_187__, _cx_shm_pending_lock_removed_clas_mjs__WEBPACK_IMPORTED_MODULE_188__, _cx_shm_read_lock_active_clas_mjs__WEBPACK_IMPORTED_MODULE_189__, _cx_shm_secondary_commit_clas_mjs__WEBPACK_IMPORTED_MODULE_190__, _cx_shm_version_limit_exceeded_clas_mjs__WEBPACK_IMPORTED_MODULE_191__, _cx_shm_wrong_handle_clas_mjs__WEBPACK_IMPORTED_MODULE_192__, _cx_shma_dynamic_clas_mjs__WEBPACK_IMPORTED_MODULE_193__, _cx_shma_inconsistent_clas_mjs__WEBPACK_IMPORTED_MODULE_194__, _cx_shma_not_configured_clas_mjs__WEBPACK_IMPORTED_MODULE_195__, _cx_sql_exception_clas_mjs__WEBPACK_IMPORTED_MODULE_196__, _cx_st_error_clas_mjs__WEBPACK_IMPORTED_MODULE_197__, _cx_static_check_clas_mjs__WEBPACK_IMPORTED_MODULE_198__, _cx_sxml_error_clas_mjs__WEBPACK_IMPORTED_MODULE_199__, _cx_sxml_illegal_argument_error_clas_mjs__WEBPACK_IMPORTED_MODULE_200__, _cx_sxml_name_error_clas_mjs__WEBPACK_IMPORTED_MODULE_201__, _cx_sxml_parse_error_clas_mjs__WEBPACK_IMPORTED_MODULE_202__, _cx_sxml_state_error_clas_mjs__WEBPACK_IMPORTED_MODULE_203__, _cx_sy_arg_out_of_domain_clas_mjs__WEBPACK_IMPORTED_MODULE_204__, _cx_sy_arithmetic_error_clas_mjs__WEBPACK_IMPORTED_MODULE_205__, _cx_sy_arithmetic_overflow_clas_mjs__WEBPACK_IMPORTED_MODULE_206__, _cx_sy_assign_error_clas_mjs__WEBPACK_IMPORTED_MODULE_207__, _cx_sy_authorization_error_clas_mjs__WEBPACK_IMPORTED_MODULE_208__, _cx_sy_buffer_overflow_clas_mjs__WEBPACK_IMPORTED_MODULE_209__, _cx_sy_codepage_converter_init_clas_mjs__WEBPACK_IMPORTED_MODULE_210__, _cx_sy_compression_error_clas_mjs__WEBPACK_IMPORTED_MODULE_211__, _cx_sy_conversion_codepage_clas_mjs__WEBPACK_IMPORTED_MODULE_212__, _cx_sy_conversion_data_loss_clas_mjs__WEBPACK_IMPORTED_MODULE_213__, _cx_sy_conversion_error_clas_mjs__WEBPACK_IMPORTED_MODULE_214__, _cx_sy_conversion_no_date_time_clas_mjs__WEBPACK_IMPORTED_MODULE_215__, _cx_sy_conversion_no_number_clas_mjs__WEBPACK_IMPORTED_MODULE_216__, _cx_sy_conversion_overflow_clas_mjs__WEBPACK_IMPORTED_MODULE_217__, _cx_sy_create_data_error_clas_mjs__WEBPACK_IMPORTED_MODULE_218__, _cx_sy_create_object_error_clas_mjs__WEBPACK_IMPORTED_MODULE_219__, _cx_sy_data_access_error_clas_mjs__WEBPACK_IMPORTED_MODULE_220__, _cx_sy_duplicate_key_clas_mjs__WEBPACK_IMPORTED_MODULE_221__, _cx_sy_dyn_call_error_clas_mjs__WEBPACK_IMPORTED_MODULE_222__, _cx_sy_dyn_call_illegal_class_clas_mjs__WEBPACK_IMPORTED_MODULE_223__, _cx_sy_dyn_call_illegal_form_clas_mjs__WEBPACK_IMPORTED_MODULE_224__, _cx_sy_dyn_call_illegal_func_clas_mjs__WEBPACK_IMPORTED_MODULE_225__, _cx_sy_dyn_call_illegal_method_clas_mjs__WEBPACK_IMPORTED_MODULE_226__, _cx_sy_dyn_call_illegal_type_clas_mjs__WEBPACK_IMPORTED_MODULE_227__, _cx_sy_dyn_call_param_not_found_clas_mjs__WEBPACK_IMPORTED_MODULE_228__, _cx_sy_dyn_call_parameter_error_clas_mjs__WEBPACK_IMPORTED_MODULE_229__, _cx_sy_dynamic_osql_error_clas_mjs__WEBPACK_IMPORTED_MODULE_230__, _cx_sy_dynamic_osql_semantics_clas_mjs__WEBPACK_IMPORTED_MODULE_231__, _cx_sy_dynamic_osql_syntax_clas_mjs__WEBPACK_IMPORTED_MODULE_232__, _cx_sy_file_access_error_clas_mjs__WEBPACK_IMPORTED_MODULE_233__, _cx_sy_file_authority_clas_mjs__WEBPACK_IMPORTED_MODULE_234__, _cx_sy_file_close_clas_mjs__WEBPACK_IMPORTED_MODULE_235__, _cx_sy_file_io_clas_mjs__WEBPACK_IMPORTED_MODULE_236__, _cx_sy_file_open_clas_mjs__WEBPACK_IMPORTED_MODULE_237__, _cx_sy_file_open_mode_clas_mjs__WEBPACK_IMPORTED_MODULE_238__, _cx_sy_find_infinite_loop_clas_mjs__WEBPACK_IMPORTED_MODULE_239__, _cx_sy_import_format_error_clas_mjs__WEBPACK_IMPORTED_MODULE_240__, _cx_sy_import_mismatch_error_clas_mjs__WEBPACK_IMPORTED_MODULE_241__, _cx_sy_invalid_regex_clas_mjs__WEBPACK_IMPORTED_MODULE_242__, _cx_sy_itab_duplicate_key_clas_mjs__WEBPACK_IMPORTED_MODULE_243__, _cx_sy_itab_error_clas_mjs__WEBPACK_IMPORTED_MODULE_244__, _cx_sy_itab_line_not_found_clas_mjs__WEBPACK_IMPORTED_MODULE_245__, _cx_sy_message_illegal_text_clas_mjs__WEBPACK_IMPORTED_MODULE_246__, _cx_sy_move_cast_error_clas_mjs__WEBPACK_IMPORTED_MODULE_247__, _cx_sy_native_sql_error_clas_mjs__WEBPACK_IMPORTED_MODULE_248__, _cx_sy_no_handler_clas_mjs__WEBPACK_IMPORTED_MODULE_249__, _cx_sy_open_sql_db_clas_mjs__WEBPACK_IMPORTED_MODULE_250__, _cx_sy_open_sql_error_clas_mjs__WEBPACK_IMPORTED_MODULE_251__, _cx_sy_pipes_not_supported_clas_mjs__WEBPACK_IMPORTED_MODULE_252__, _cx_sy_range_out_of_bounds_clas_mjs__WEBPACK_IMPORTED_MODULE_253__, _cx_sy_ref_creation_clas_mjs__WEBPACK_IMPORTED_MODULE_254__, _cx_sy_ref_is_initial_clas_mjs__WEBPACK_IMPORTED_MODULE_255__, _cx_sy_regex_clas_mjs__WEBPACK_IMPORTED_MODULE_256__, _cx_sy_regex_too_complex_clas_mjs__WEBPACK_IMPORTED_MODULE_257__, _cx_sy_rtti_no_check_clas_mjs__WEBPACK_IMPORTED_MODULE_258__, _cx_sy_rtti_type_not_released_clas_mjs__WEBPACK_IMPORTED_MODULE_259__, _cx_sy_sql_error_clas_mjs__WEBPACK_IMPORTED_MODULE_260__, _cx_sy_strg_par_val_clas_mjs__WEBPACK_IMPORTED_MODULE_261__, _cx_sy_struct_attributes_clas_mjs__WEBPACK_IMPORTED_MODULE_262__, _cx_sy_struct_comp_name_clas_mjs__WEBPACK_IMPORTED_MODULE_263__, _cx_sy_struct_comp_type_clas_mjs__WEBPACK_IMPORTED_MODULE_264__, _cx_sy_struct_creation_clas_mjs__WEBPACK_IMPORTED_MODULE_265__, _cx_sy_table_creation_clas_mjs__WEBPACK_IMPORTED_MODULE_266__, _cx_sy_too_many_files_clas_mjs__WEBPACK_IMPORTED_MODULE_267__, _cx_sy_type_creation_clas_mjs__WEBPACK_IMPORTED_MODULE_268__, _cx_sy_zerodivide_clas_mjs__WEBPACK_IMPORTED_MODULE_269__, _cx_t100_msg_clas_mjs__WEBPACK_IMPORTED_MODULE_270__, _cx_transformation_error_clas_mjs__WEBPACK_IMPORTED_MODULE_271__, _cx_tstmp_internal_error_clas_mjs__WEBPACK_IMPORTED_MODULE_272__, _cx_uuid_error_clas_mjs__WEBPACK_IMPORTED_MODULE_273__, _cx_web_message_error_clas_mjs__WEBPACK_IMPORTED_MODULE_274__, _cx_xslt_exception_clas_mjs__WEBPACK_IMPORTED_MODULE_275__, _cx_xslt_format_error_clas_mjs__WEBPACK_IMPORTED_MODULE_276__, _cx_xslt_runtime_error_clas_mjs__WEBPACK_IMPORTED_MODULE_277__, _cx_xslt_serialization_error_clas_mjs__WEBPACK_IMPORTED_MODULE_278__, _cx_xslt_system_error_clas_mjs__WEBPACK_IMPORTED_MODULE_279__, _kernel_authority_check_clas_mjs__WEBPACK_IMPORTED_MODULE_402__, _kernel_call_clas_mjs__WEBPACK_IMPORTED_MODULE_403__, _kernel_call_transformation_clas_mjs__WEBPACK_IMPORTED_MODULE_404__, _kernel_create_data_handle_clas_mjs__WEBPACK_IMPORTED_MODULE_405__, _kernel_cx_assert_clas_mjs__WEBPACK_IMPORTED_MODULE_406__, _kernel_fugr_test_clas_mjs__WEBPACK_IMPORTED_MODULE_407__, _kernel_internal_name_clas_mjs__WEBPACK_IMPORTED_MODULE_408__, _kernel_ixml_json_to_data_clas_mjs__WEBPACK_IMPORTED_MODULE_409__, _kernel_ixml_xml_to_data_clas_mjs__WEBPACK_IMPORTED_MODULE_410__, _kernel_json_to_ixml_clas_mjs__WEBPACK_IMPORTED_MODULE_411__, _kernel_lock_clas_mjs__WEBPACK_IMPORTED_MODULE_412__, _kernel_numberrange_clas_mjs__WEBPACK_IMPORTED_MODULE_413__, _kernel_push_channels_clas_mjs__WEBPACK_IMPORTED_MODULE_414__, _kernel_scan_abap_source_clas_mjs__WEBPACK_IMPORTED_MODULE_415__, _kernel_unit_runner_clas_mjs__WEBPACK_IMPORTED_MODULE_416__, _zcl_oapi_abap_name_clas_mjs__WEBPACK_IMPORTED_MODULE_556__, _zcl_oapi_generator_clas_mjs__WEBPACK_IMPORTED_MODULE_557__, _zcl_oapi_generator_v2_clas_mjs__WEBPACK_IMPORTED_MODULE_558__, _zcl_oapi_graph_clas_mjs__WEBPACK_IMPORTED_MODULE_559__, _zcl_oapi_json_clas_mjs__WEBPACK_IMPORTED_MODULE_560__, _zcl_oapi_main_clas_mjs__WEBPACK_IMPORTED_MODULE_561__, _zcl_oapi_parser_clas_mjs__WEBPACK_IMPORTED_MODULE_562__, _zcl_oapi_references_clas_mjs__WEBPACK_IMPORTED_MODULE_563__, _zcl_oapi_response_name_clas_mjs__WEBPACK_IMPORTED_MODULE_564__, _zcl_oapi_schema_clas_mjs__WEBPACK_IMPORTED_MODULE_565__, _cl_abap_message_digest_clas_mjs__WEBPACK_IMPORTED_MODULE_569__]);
+([_cl_abap_api_state_clas_mjs__WEBPACK_IMPORTED_MODULE_57__, _cl_abap_bigint_clas_mjs__WEBPACK_IMPORTED_MODULE_58__, _cl_abap_char_utilities_clas_mjs__WEBPACK_IMPORTED_MODULE_59__, _cl_abap_classdescr_clas_mjs__WEBPACK_IMPORTED_MODULE_60__, _cl_abap_codepage_clas_mjs__WEBPACK_IMPORTED_MODULE_61__, _cl_abap_complexdescr_clas_mjs__WEBPACK_IMPORTED_MODULE_62__, _cl_abap_container_utilities_clas_mjs__WEBPACK_IMPORTED_MODULE_63__, _cl_abap_context_info_clas_mjs__WEBPACK_IMPORTED_MODULE_64__, _cl_abap_conv_codepage_clas_mjs__WEBPACK_IMPORTED_MODULE_65__, _cl_abap_conv_in_ce_clas_mjs__WEBPACK_IMPORTED_MODULE_66__, _cl_abap_conv_out_ce_clas_mjs__WEBPACK_IMPORTED_MODULE_67__, _cl_abap_datadescr_clas_mjs__WEBPACK_IMPORTED_MODULE_68__, _cl_abap_datfm_clas_mjs__WEBPACK_IMPORTED_MODULE_69__, _cl_abap_dyn_prg_clas_mjs__WEBPACK_IMPORTED_MODULE_70__, _cl_abap_elemdescr_clas_mjs__WEBPACK_IMPORTED_MODULE_71__, _cl_abap_enumdescr_clas_mjs__WEBPACK_IMPORTED_MODULE_72__, _cl_abap_exceptional_values_clas_mjs__WEBPACK_IMPORTED_MODULE_73__, _cl_abap_format_clas_mjs__WEBPACK_IMPORTED_MODULE_74__, _cl_abap_gzip_clas_mjs__WEBPACK_IMPORTED_MODULE_75__, _cl_abap_hmac_clas_mjs__WEBPACK_IMPORTED_MODULE_76__, _cl_abap_intfdescr_clas_mjs__WEBPACK_IMPORTED_MODULE_77__, _cl_abap_matcher_clas_mjs__WEBPACK_IMPORTED_MODULE_78__, _cl_abap_math_clas_mjs__WEBPACK_IMPORTED_MODULE_79__, _cl_abap_memory_utilities_clas_mjs__WEBPACK_IMPORTED_MODULE_80__, _cl_abap_objectdescr_clas_mjs__WEBPACK_IMPORTED_MODULE_81__, _cl_abap_random_clas_mjs__WEBPACK_IMPORTED_MODULE_82__, _cl_abap_random_int_clas_mjs__WEBPACK_IMPORTED_MODULE_83__, _cl_abap_refdescr_clas_mjs__WEBPACK_IMPORTED_MODULE_84__, _cl_abap_regex_clas_mjs__WEBPACK_IMPORTED_MODULE_85__, _cl_abap_structdescr_clas_mjs__WEBPACK_IMPORTED_MODULE_86__, _cl_abap_tabledescr_clas_mjs__WEBPACK_IMPORTED_MODULE_87__, _cl_abap_timefm_clas_mjs__WEBPACK_IMPORTED_MODULE_88__, _cl_abap_tstmp_clas_mjs__WEBPACK_IMPORTED_MODULE_89__, _cl_abap_typedescr_clas_mjs__WEBPACK_IMPORTED_MODULE_90__, _cl_abap_unit_assert_clas_mjs__WEBPACK_IMPORTED_MODULE_91__, _cl_abap_weak_reference_clas_mjs__WEBPACK_IMPORTED_MODULE_92__, _cl_abap_zip_clas_mjs__WEBPACK_IMPORTED_MODULE_93__, _cl_apc_tcp_client_manager_clas_mjs__WEBPACK_IMPORTED_MODULE_94__, _cl_apc_wsp_ext_stateless_base_clas_mjs__WEBPACK_IMPORTED_MODULE_95__, _cl_aunit_auth_check_types_def_clas_mjs__WEBPACK_IMPORTED_MODULE_96__, _cl_aunit_authority_check_clas_mjs__WEBPACK_IMPORTED_MODULE_97__, _cl_bcs_clas_mjs__WEBPACK_IMPORTED_MODULE_98__, _cl_bcs_convert_clas_mjs__WEBPACK_IMPORTED_MODULE_99__, _cl_cam_address_bcs_clas_mjs__WEBPACK_IMPORTED_MODULE_100__, _cl_demo_output_clas_mjs__WEBPACK_IMPORTED_MODULE_101__, _cl_document_bcs_clas_mjs__WEBPACK_IMPORTED_MODULE_102__, _cl_function_test_environment_clas_mjs__WEBPACK_IMPORTED_MODULE_103__, _cl_gdt_conversion_clas_mjs__WEBPACK_IMPORTED_MODULE_104__, _cl_http_client_clas_mjs__WEBPACK_IMPORTED_MODULE_105__, _cl_http_entity_clas_mjs__WEBPACK_IMPORTED_MODULE_106__, _cl_http_server_clas_mjs__WEBPACK_IMPORTED_MODULE_107__, _cl_http_utility_clas_mjs__WEBPACK_IMPORTED_MODULE_108__, _cl_i18n_languages_clas_mjs__WEBPACK_IMPORTED_MODULE_109__, _cl_ixml_clas_mjs__WEBPACK_IMPORTED_MODULE_110__, _cl_message_helper_clas_mjs__WEBPACK_IMPORTED_MODULE_111__, _cl_mime_repository_api_clas_mjs__WEBPACK_IMPORTED_MODULE_112__, _cl_numberrange_intervals_clas_mjs__WEBPACK_IMPORTED_MODULE_113__, _cl_numberrange_objects_clas_mjs__WEBPACK_IMPORTED_MODULE_114__, _cl_numberrange_runtime_clas_mjs__WEBPACK_IMPORTED_MODULE_115__, _cl_oa2c_config_writer_api_clas_mjs__WEBPACK_IMPORTED_MODULE_116__, _cl_oauth2_client_clas_mjs__WEBPACK_IMPORTED_MODULE_117__, _cl_oo_factory_clas_mjs__WEBPACK_IMPORTED_MODULE_118__, _cl_os_ca_common_clas_mjs__WEBPACK_IMPORTED_MODULE_119__, _cl_osql_test_environment_clas_mjs__WEBPACK_IMPORTED_MODULE_120__, _cl_package_factory_clas_mjs__WEBPACK_IMPORTED_MODULE_121__, _cl_package_helper_clas_mjs__WEBPACK_IMPORTED_MODULE_122__, _cl_sec_sxml_writer_clas_mjs__WEBPACK_IMPORTED_MODULE_123__, _cl_send_request_bcs_clas_mjs__WEBPACK_IMPORTED_MODULE_124__, _cl_shm_area_clas_mjs__WEBPACK_IMPORTED_MODULE_125__, _cl_shm_service_clas_mjs__WEBPACK_IMPORTED_MODULE_126__, _cl_sql_connection_clas_mjs__WEBPACK_IMPORTED_MODULE_127__, _cl_sql_result_set_clas_mjs__WEBPACK_IMPORTED_MODULE_128__, _cl_sql_statement_clas_mjs__WEBPACK_IMPORTED_MODULE_129__, _cl_sxml_string_reader_clas_mjs__WEBPACK_IMPORTED_MODULE_130__, _cl_sxml_string_writer_clas_mjs__WEBPACK_IMPORTED_MODULE_131__, _cl_system_uuid_clas_mjs__WEBPACK_IMPORTED_MODULE_132__, _cl_web_http_utility_clas_mjs__WEBPACK_IMPORTED_MODULE_133__, _cx_abap_api_state_clas_mjs__WEBPACK_IMPORTED_MODULE_135__, _cx_abap_auth_check_exception_clas_mjs__WEBPACK_IMPORTED_MODULE_136__, _cx_abap_context_info_error_clas_mjs__WEBPACK_IMPORTED_MODULE_137__, _cx_abap_datfm_clas_mjs__WEBPACK_IMPORTED_MODULE_138__, _cx_abap_invalid_name_clas_mjs__WEBPACK_IMPORTED_MODULE_139__, _cx_abap_invalid_value_clas_mjs__WEBPACK_IMPORTED_MODULE_140__, _cx_abap_message_digest_clas_mjs__WEBPACK_IMPORTED_MODULE_141__, _cx_abap_not_a_table_clas_mjs__WEBPACK_IMPORTED_MODULE_142__, _cx_abap_not_in_package_clas_mjs__WEBPACK_IMPORTED_MODULE_143__, _cx_abap_not_in_whitelist_clas_mjs__WEBPACK_IMPORTED_MODULE_144__, _cx_abap_random_clas_mjs__WEBPACK_IMPORTED_MODULE_145__, _cx_abap_timefm_invalid_clas_mjs__WEBPACK_IMPORTED_MODULE_146__, _cx_address_bcs_clas_mjs__WEBPACK_IMPORTED_MODULE_147__, _cx_apc_error_clas_mjs__WEBPACK_IMPORTED_MODULE_148__, _cx_bcs_clas_mjs__WEBPACK_IMPORTED_MODULE_149__, _cx_document_bcs_clas_mjs__WEBPACK_IMPORTED_MODULE_150__, _cx_dynamic_check_clas_mjs__WEBPACK_IMPORTED_MODULE_151__, _cx_ftd_parameter_not_found_clas_mjs__WEBPACK_IMPORTED_MODULE_152__, _cx_gdt_conversion_clas_mjs__WEBPACK_IMPORTED_MODULE_153__, _cx_no_check_clas_mjs__WEBPACK_IMPORTED_MODULE_154__, _cx_nr_object_not_found_clas_mjs__WEBPACK_IMPORTED_MODULE_155__, _cx_number_ranges_clas_mjs__WEBPACK_IMPORTED_MODULE_156__, _cx_oa2c_clas_mjs__WEBPACK_IMPORTED_MODULE_157__, _cx_oa2c_at_not_available_clas_mjs__WEBPACK_IMPORTED_MODULE_158__, _cx_oa2c_config_exception_clas_mjs__WEBPACK_IMPORTED_MODULE_159__, _cx_oa2c_config_not_found_clas_mjs__WEBPACK_IMPORTED_MODULE_160__, _cx_oa2c_missing_authorization_clas_mjs__WEBPACK_IMPORTED_MODULE_161__, _cx_oo_clif_not_exists_clas_mjs__WEBPACK_IMPORTED_MODULE_162__, _cx_os_class_not_found_clas_mjs__WEBPACK_IMPORTED_MODULE_163__, _cx_os_error_clas_mjs__WEBPACK_IMPORTED_MODULE_164__, _cx_os_object_clas_mjs__WEBPACK_IMPORTED_MODULE_165__, _cx_os_object_existing_clas_mjs__WEBPACK_IMPORTED_MODULE_166__, _cx_os_object_not_found_clas_mjs__WEBPACK_IMPORTED_MODULE_167__, _cx_osql_failure_clas_mjs__WEBPACK_IMPORTED_MODULE_168__, _cx_parameter_invalid_clas_mjs__WEBPACK_IMPORTED_MODULE_169__, _cx_parameter_invalid_range_clas_mjs__WEBPACK_IMPORTED_MODULE_170__, _cx_parameter_invalid_type_clas_mjs__WEBPACK_IMPORTED_MODULE_171__, _cx_send_req_bcs_clas_mjs__WEBPACK_IMPORTED_MODULE_173__, _cx_shm_already_detached_clas_mjs__WEBPACK_IMPORTED_MODULE_174__, _cx_shm_attach_error_clas_mjs__WEBPACK_IMPORTED_MODULE_175__, _cx_shm_build_failed_clas_mjs__WEBPACK_IMPORTED_MODULE_176__, _cx_shm_change_lock_active_clas_mjs__WEBPACK_IMPORTED_MODULE_177__, _cx_shm_completion_error_clas_mjs__WEBPACK_IMPORTED_MODULE_178__, _cx_shm_detach_error_clas_mjs__WEBPACK_IMPORTED_MODULE_179__, _cx_shm_error_clas_mjs__WEBPACK_IMPORTED_MODULE_180__, _cx_shm_event_execution_failed_clas_mjs__WEBPACK_IMPORTED_MODULE_181__, _cx_shm_exclusive_lock_active_clas_mjs__WEBPACK_IMPORTED_MODULE_182__, _cx_shm_general_error_clas_mjs__WEBPACK_IMPORTED_MODULE_183__, _cx_shm_inconsistent_clas_mjs__WEBPACK_IMPORTED_MODULE_184__, _cx_shm_initial_reference_clas_mjs__WEBPACK_IMPORTED_MODULE_185__, _cx_shm_no_active_version_clas_mjs__WEBPACK_IMPORTED_MODULE_186__, _cx_shm_parameter_error_clas_mjs__WEBPACK_IMPORTED_MODULE_187__, _cx_shm_pending_lock_removed_clas_mjs__WEBPACK_IMPORTED_MODULE_188__, _cx_shm_read_lock_active_clas_mjs__WEBPACK_IMPORTED_MODULE_189__, _cx_shm_secondary_commit_clas_mjs__WEBPACK_IMPORTED_MODULE_190__, _cx_shm_version_limit_exceeded_clas_mjs__WEBPACK_IMPORTED_MODULE_191__, _cx_shm_wrong_handle_clas_mjs__WEBPACK_IMPORTED_MODULE_192__, _cx_shma_dynamic_clas_mjs__WEBPACK_IMPORTED_MODULE_193__, _cx_shma_inconsistent_clas_mjs__WEBPACK_IMPORTED_MODULE_194__, _cx_shma_not_configured_clas_mjs__WEBPACK_IMPORTED_MODULE_195__, _cx_sql_exception_clas_mjs__WEBPACK_IMPORTED_MODULE_196__, _cx_st_error_clas_mjs__WEBPACK_IMPORTED_MODULE_197__, _cx_static_check_clas_mjs__WEBPACK_IMPORTED_MODULE_198__, _cx_sxml_error_clas_mjs__WEBPACK_IMPORTED_MODULE_199__, _cx_sxml_illegal_argument_error_clas_mjs__WEBPACK_IMPORTED_MODULE_200__, _cx_sxml_name_error_clas_mjs__WEBPACK_IMPORTED_MODULE_201__, _cx_sxml_parse_error_clas_mjs__WEBPACK_IMPORTED_MODULE_202__, _cx_sxml_state_error_clas_mjs__WEBPACK_IMPORTED_MODULE_203__, _cx_sy_arg_out_of_domain_clas_mjs__WEBPACK_IMPORTED_MODULE_204__, _cx_sy_arithmetic_error_clas_mjs__WEBPACK_IMPORTED_MODULE_205__, _cx_sy_arithmetic_overflow_clas_mjs__WEBPACK_IMPORTED_MODULE_206__, _cx_sy_assign_error_clas_mjs__WEBPACK_IMPORTED_MODULE_207__, _cx_sy_authorization_error_clas_mjs__WEBPACK_IMPORTED_MODULE_208__, _cx_sy_buffer_overflow_clas_mjs__WEBPACK_IMPORTED_MODULE_209__, _cx_sy_codepage_converter_init_clas_mjs__WEBPACK_IMPORTED_MODULE_210__, _cx_sy_compression_error_clas_mjs__WEBPACK_IMPORTED_MODULE_211__, _cx_sy_conversion_codepage_clas_mjs__WEBPACK_IMPORTED_MODULE_212__, _cx_sy_conversion_data_loss_clas_mjs__WEBPACK_IMPORTED_MODULE_213__, _cx_sy_conversion_error_clas_mjs__WEBPACK_IMPORTED_MODULE_214__, _cx_sy_conversion_no_date_time_clas_mjs__WEBPACK_IMPORTED_MODULE_215__, _cx_sy_conversion_no_number_clas_mjs__WEBPACK_IMPORTED_MODULE_216__, _cx_sy_conversion_overflow_clas_mjs__WEBPACK_IMPORTED_MODULE_217__, _cx_sy_create_data_error_clas_mjs__WEBPACK_IMPORTED_MODULE_218__, _cx_sy_create_object_error_clas_mjs__WEBPACK_IMPORTED_MODULE_219__, _cx_sy_data_access_error_clas_mjs__WEBPACK_IMPORTED_MODULE_220__, _cx_sy_duplicate_key_clas_mjs__WEBPACK_IMPORTED_MODULE_221__, _cx_sy_dyn_call_error_clas_mjs__WEBPACK_IMPORTED_MODULE_222__, _cx_sy_dyn_call_illegal_class_clas_mjs__WEBPACK_IMPORTED_MODULE_223__, _cx_sy_dyn_call_illegal_form_clas_mjs__WEBPACK_IMPORTED_MODULE_224__, _cx_sy_dyn_call_illegal_func_clas_mjs__WEBPACK_IMPORTED_MODULE_225__, _cx_sy_dyn_call_illegal_method_clas_mjs__WEBPACK_IMPORTED_MODULE_226__, _cx_sy_dyn_call_illegal_type_clas_mjs__WEBPACK_IMPORTED_MODULE_227__, _cx_sy_dyn_call_param_not_found_clas_mjs__WEBPACK_IMPORTED_MODULE_228__, _cx_sy_dyn_call_parameter_error_clas_mjs__WEBPACK_IMPORTED_MODULE_229__, _cx_sy_dynamic_osql_error_clas_mjs__WEBPACK_IMPORTED_MODULE_230__, _cx_sy_dynamic_osql_semantics_clas_mjs__WEBPACK_IMPORTED_MODULE_231__, _cx_sy_dynamic_osql_syntax_clas_mjs__WEBPACK_IMPORTED_MODULE_232__, _cx_sy_file_access_error_clas_mjs__WEBPACK_IMPORTED_MODULE_233__, _cx_sy_file_authority_clas_mjs__WEBPACK_IMPORTED_MODULE_234__, _cx_sy_file_close_clas_mjs__WEBPACK_IMPORTED_MODULE_235__, _cx_sy_file_io_clas_mjs__WEBPACK_IMPORTED_MODULE_236__, _cx_sy_file_open_clas_mjs__WEBPACK_IMPORTED_MODULE_237__, _cx_sy_file_open_mode_clas_mjs__WEBPACK_IMPORTED_MODULE_238__, _cx_sy_find_infinite_loop_clas_mjs__WEBPACK_IMPORTED_MODULE_239__, _cx_sy_import_format_error_clas_mjs__WEBPACK_IMPORTED_MODULE_240__, _cx_sy_import_mismatch_error_clas_mjs__WEBPACK_IMPORTED_MODULE_241__, _cx_sy_invalid_regex_clas_mjs__WEBPACK_IMPORTED_MODULE_242__, _cx_sy_itab_duplicate_key_clas_mjs__WEBPACK_IMPORTED_MODULE_243__, _cx_sy_itab_error_clas_mjs__WEBPACK_IMPORTED_MODULE_244__, _cx_sy_itab_line_not_found_clas_mjs__WEBPACK_IMPORTED_MODULE_245__, _cx_sy_message_illegal_text_clas_mjs__WEBPACK_IMPORTED_MODULE_246__, _cx_sy_move_cast_error_clas_mjs__WEBPACK_IMPORTED_MODULE_247__, _cx_sy_native_sql_error_clas_mjs__WEBPACK_IMPORTED_MODULE_248__, _cx_sy_no_handler_clas_mjs__WEBPACK_IMPORTED_MODULE_249__, _cx_sy_open_sql_db_clas_mjs__WEBPACK_IMPORTED_MODULE_250__, _cx_sy_open_sql_error_clas_mjs__WEBPACK_IMPORTED_MODULE_251__, _cx_sy_pipes_not_supported_clas_mjs__WEBPACK_IMPORTED_MODULE_252__, _cx_sy_range_out_of_bounds_clas_mjs__WEBPACK_IMPORTED_MODULE_253__, _cx_sy_ref_creation_clas_mjs__WEBPACK_IMPORTED_MODULE_254__, _cx_sy_ref_is_initial_clas_mjs__WEBPACK_IMPORTED_MODULE_255__, _cx_sy_regex_clas_mjs__WEBPACK_IMPORTED_MODULE_256__, _cx_sy_regex_too_complex_clas_mjs__WEBPACK_IMPORTED_MODULE_257__, _cx_sy_rtti_no_check_clas_mjs__WEBPACK_IMPORTED_MODULE_258__, _cx_sy_rtti_type_not_released_clas_mjs__WEBPACK_IMPORTED_MODULE_259__, _cx_sy_sql_error_clas_mjs__WEBPACK_IMPORTED_MODULE_260__, _cx_sy_strg_par_val_clas_mjs__WEBPACK_IMPORTED_MODULE_261__, _cx_sy_struct_attributes_clas_mjs__WEBPACK_IMPORTED_MODULE_262__, _cx_sy_struct_comp_name_clas_mjs__WEBPACK_IMPORTED_MODULE_263__, _cx_sy_struct_comp_type_clas_mjs__WEBPACK_IMPORTED_MODULE_264__, _cx_sy_struct_creation_clas_mjs__WEBPACK_IMPORTED_MODULE_265__, _cx_sy_table_creation_clas_mjs__WEBPACK_IMPORTED_MODULE_266__, _cx_sy_too_many_files_clas_mjs__WEBPACK_IMPORTED_MODULE_267__, _cx_sy_type_creation_clas_mjs__WEBPACK_IMPORTED_MODULE_268__, _cx_sy_zerodivide_clas_mjs__WEBPACK_IMPORTED_MODULE_269__, _cx_t100_msg_clas_mjs__WEBPACK_IMPORTED_MODULE_270__, _cx_transformation_error_clas_mjs__WEBPACK_IMPORTED_MODULE_271__, _cx_tstmp_internal_error_clas_mjs__WEBPACK_IMPORTED_MODULE_272__, _cx_uuid_error_clas_mjs__WEBPACK_IMPORTED_MODULE_273__, _cx_web_message_error_clas_mjs__WEBPACK_IMPORTED_MODULE_274__, _cx_xslt_exception_clas_mjs__WEBPACK_IMPORTED_MODULE_275__, _cx_xslt_format_error_clas_mjs__WEBPACK_IMPORTED_MODULE_276__, _cx_xslt_runtime_error_clas_mjs__WEBPACK_IMPORTED_MODULE_277__, _cx_xslt_serialization_error_clas_mjs__WEBPACK_IMPORTED_MODULE_278__, _cx_xslt_system_error_clas_mjs__WEBPACK_IMPORTED_MODULE_279__, _kernel_authority_check_clas_mjs__WEBPACK_IMPORTED_MODULE_402__, _kernel_call_clas_mjs__WEBPACK_IMPORTED_MODULE_403__, _kernel_call_transformation_clas_mjs__WEBPACK_IMPORTED_MODULE_404__, _kernel_create_data_handle_clas_mjs__WEBPACK_IMPORTED_MODULE_405__, _kernel_cx_assert_clas_mjs__WEBPACK_IMPORTED_MODULE_406__, _kernel_fugr_test_clas_mjs__WEBPACK_IMPORTED_MODULE_407__, _kernel_internal_name_clas_mjs__WEBPACK_IMPORTED_MODULE_408__, _kernel_ixml_json_to_data_clas_mjs__WEBPACK_IMPORTED_MODULE_409__, _kernel_ixml_xml_to_data_clas_mjs__WEBPACK_IMPORTED_MODULE_410__, _kernel_json_to_ixml_clas_mjs__WEBPACK_IMPORTED_MODULE_411__, _kernel_lock_clas_mjs__WEBPACK_IMPORTED_MODULE_412__, _kernel_numberrange_clas_mjs__WEBPACK_IMPORTED_MODULE_413__, _kernel_push_channels_clas_mjs__WEBPACK_IMPORTED_MODULE_414__, _kernel_scan_abap_source_clas_mjs__WEBPACK_IMPORTED_MODULE_415__, _kernel_unit_runner_clas_mjs__WEBPACK_IMPORTED_MODULE_416__, _zcl_oapi_abap_name_clas_mjs__WEBPACK_IMPORTED_MODULE_556__, _zcl_oapi_generator_clas_mjs__WEBPACK_IMPORTED_MODULE_557__, _zcl_oapi_generator_v2_clas_mjs__WEBPACK_IMPORTED_MODULE_558__, _zcl_oapi_graph_clas_mjs__WEBPACK_IMPORTED_MODULE_559__, _zcl_oapi_json_clas_mjs__WEBPACK_IMPORTED_MODULE_560__, _zcl_oapi_main_clas_mjs__WEBPACK_IMPORTED_MODULE_561__, _zcl_oapi_parser_clas_mjs__WEBPACK_IMPORTED_MODULE_562__, _zcl_oapi_references_clas_mjs__WEBPACK_IMPORTED_MODULE_563__, _zcl_oapi_response_name_clas_mjs__WEBPACK_IMPORTED_MODULE_564__, _zcl_oapi_schema_clas_mjs__WEBPACK_IMPORTED_MODULE_565__, _cl_abap_message_digest_clas_mjs__WEBPACK_IMPORTED_MODULE_569__] = __webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
 /* eslint-disable import/newline-after-import */
 
 // no setup logic specified in config
@@ -314602,7 +314886,7 @@ async function initializeABAP() {
   sqlite.push(`CREATE TABLE 'tadir' ('pgmid' NCHAR(4) COLLATE RTRIM, 'object' NCHAR(4) COLLATE RTRIM, 'obj_name' NCHAR(40) COLLATE RTRIM, 'devclass' NCHAR(30) COLLATE RTRIM, 'korrnum' NCHAR(10) COLLATE RTRIM, 'delflag' NCHAR(1) COLLATE RTRIM, 'genflag' NCHAR(1) COLLATE RTRIM, 'srcsystem' NCHAR(5) COLLATE RTRIM, 'srcdep' NCHAR(1) COLLATE RTRIM, 'edtflag' NCHAR(1) COLLATE RTRIM, 'cproject' NCHAR(1) COLLATE RTRIM, 'masterlang' NCHAR(1) COLLATE RTRIM, 'component' NCHAR(30) COLLATE RTRIM, 'author' NCHAR(12) COLLATE RTRIM, 'created_on' NCHAR(8), PRIMARY KEY('pgmid','object','obj_name'));`);
   sqlite.push(`CREATE TABLE 't100' ('sprsl' NCHAR(1) COLLATE RTRIM, 'arbgb' NCHAR(20) COLLATE RTRIM, 'msgnr' NCHAR(3) COLLATE RTRIM, 'text' NCHAR(73) COLLATE RTRIM, PRIMARY KEY('sprsl','arbgb','msgnr'));`);
   sqlite.push(`CREATE TABLE 't000' ('mandt' NCHAR(3) COLLATE RTRIM, 'cccategory' NCHAR(1) COLLATE RTRIM, 'ccnocliind' NCHAR(1) COLLATE RTRIM, 'mtext' NCHAR(25) COLLATE RTRIM, 'ort01' NCHAR(25) COLLATE RTRIM, 'logsys' NCHAR(10) COLLATE RTRIM, 'mwaer' NCHAR(5) COLLATE RTRIM, 'cccopylock' NCHAR(1) COLLATE RTRIM, 'cccoractiv' NCHAR(1) COLLATE RTRIM, 'changedate' NCHAR(8), PRIMARY KEY('mandt'));`);
-  const hdb = `todo`;
+  const hdb = `CREATE TABLE "wwwparams" ("relid" NCHAR(2), "objid" NCHAR(40), "name" NCHAR(50), "value" NCHAR(250), PRIMARY KEY("relid","objid","name"));,CREATE TABLE "reposrc" ("progname" NCHAR(40), "data" TEXT, "unam" NCHAR(12), "udat" NCHAR(8), "utime" NCHAR(6), "subc" NCHAR(1), "sdate" NCHAR(8), "stime" NCHAR(6), PRIMARY KEY("progname"));,CREATE TABLE "tfdir" ("funcname" NCHAR(30), "pname" NCHAR(40), "include" NCHAR(4), PRIMARY KEY("funcname"));,CREATE TABLE "tdevc" ("devclass" NCHAR(30), "as4user" NCHAR(12), "pdevclass" NCHAR(4), "dlvunit" NCHAR(30), "component" NCHAR(20), "parentcl" NCHAR(30), "created_by" NCHAR(12), "created_on" NCHAR(8), "ctext" NCHAR(60), "changed_by" NCHAR(12), "changed_on" NCHAR(8), "namespace" NCHAR(10), "mainpack" NCHAR(1), "korrflag" NCHAR(1), PRIMARY KEY("devclass"));,CREATE TABLE "tadir" ("pgmid" NCHAR(4), "object" NCHAR(4), "obj_name" NCHAR(40), "devclass" NCHAR(30), "korrnum" NCHAR(10), "delflag" NCHAR(1), "genflag" NCHAR(1), "srcsystem" NCHAR(5), "srcdep" NCHAR(1), "edtflag" NCHAR(1), "cproject" NCHAR(1), "masterlang" NCHAR(1), "component" NCHAR(30), "author" NCHAR(12), "created_on" NCHAR(8), PRIMARY KEY("pgmid","object","obj_name"));,CREATE TABLE "t100" ("sprsl" NCHAR(1), "arbgb" NCHAR(20), "msgnr" NCHAR(3), "text" NCHAR(73), PRIMARY KEY("sprsl","arbgb","msgnr"));,CREATE TABLE "t000" ("mandt" NCHAR(3), "cccategory" NCHAR(1), "ccnocliind" NCHAR(1), "mtext" NCHAR(25), "ort01" NCHAR(25), "logsys" NCHAR(10), "mwaer" NCHAR(5), "cccopylock" NCHAR(1), "cccoractiv" NCHAR(1), "changedate" NCHAR(8), PRIMARY KEY("mandt"));`;
   const pg = [];
   pg.push(`CREATE TABLE "wwwparams" ("relid" NCHAR(2), "objid" NCHAR(40), "name" NCHAR(50), "value" NCHAR(250), PRIMARY KEY("relid","objid","name"));`);
   pg.push(`CREATE TABLE "reposrc" ("progname" NCHAR(40), "data" TEXT, "unam" NCHAR(12), "udat" NCHAR(8), "utime" NCHAR(6), "subc" NCHAR(1), "sdate" NCHAR(8), "stime" NCHAR(6), PRIMARY KEY("progname"));`);
@@ -314624,7 +314908,7 @@ async function initializeABAP() {
   const insert = [];
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'ZCL_OAPI_GENERATOR', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('ZCL_OAPI_GENERATOR                      ', 'CLASS zcl_oapi_generator DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('ZCL_OAPI_GENERATOR                      ', 'CLASS zcl_oapi_generator DEFINITION PUBLIC.
   PUBLIC SECTION.
     CLASS-METHODS generate_v1
       IMPORTING
@@ -314655,7 +314939,7 @@ ENDCLASS.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'ZCL_OAPI_GENERATOR_V2', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('ZCL_OAPI_GENERATOR_V2                   ', 'CLASS zcl_oapi_generator_v2 DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('ZCL_OAPI_GENERATOR_V2                   ', 'CLASS zcl_oapi_generator_v2 DEFINITION PUBLIC.
   PUBLIC SECTION.
 
 
@@ -314756,6 +315040,13 @@ ENDCLASS.
     METHODS escape_abap_literal
       IMPORTING
         iv_value        TYPE string
+      RETURNING
+        VALUE(rv_value) TYPE string.
+
+    METHODS single_line
+      IMPORTING
+        iv_value        TYPE string
+        iv_max_length   TYPE i DEFAULT 150
       RETURNING
         VALUE(rv_value) TYPE string.
 
@@ -315216,6 +315507,19 @@ CLASS zcl_oapi_generator_v2 IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD single_line.
+* descriptions can span multiple lines, output them in comments and literals on a single line
+    rv_value = iv_value.
+    REPLACE ALL OCCURRENCES OF cl_abap_char_utilities=>cr_lf IN rv_value WITH \` \`.
+    REPLACE ALL OCCURRENCES OF cl_abap_char_utilities=>newline IN rv_value WITH \` \`.
+    REPLACE ALL OCCURRENCES OF cl_abap_char_utilities=>horizontal_tab IN rv_value WITH \` \`.
+    CONDENSE rv_value.
+    IF strlen( rv_value ) > iv_max_length.
+      rv_value = rv_value(iv_max_length).
+    ENDIF.
+  ENDMETHOD.
+
+
   METHOD collect_pattern_rules.
     DATA lo_schema           TYPE REF TO zif_oapi_schema.
     DATA lo_schema_impl      TYPE REF TO zcl_oapi_schema.
@@ -315554,7 +315858,7 @@ CLASS zcl_oapi_generator_v2 IMPLEMENTATION.
         ENDIF.
         IF lines( ls_response-content ) = 0.
           lv_post = lv_post &&
-            |          server->response->set_status( code = { lv_code } reason = ''{ ls_response-description }'' ).\\n| &&
+            |          server->response->set_status( code = { lv_code } reason = ''{ escape_abap_literal( single_line( iv_value = ls_response-description iv_max_length = 100 ) ) }'' ).\\n| &&
             |          RETURN.\\n|.
         ELSE.
           LOOP AT ls_response-content INTO ls_content.
@@ -315574,7 +315878,7 @@ CLASS zcl_oapi_generator_v2 IMPLEMENTATION.
               |{ lv_indentation }            data          = { lv_typename }-{ lv_response_name }\\n| &&
               |{ lv_indentation }            pretty_name   = { ms_input-pretty_name }\\n| &&
               |{ lv_indentation }            name_mappings = mt_name_mappings ) ).\\n| &&
-              |{ lv_indentation }          server->response->set_status( code = { lv_code } reason = ''{ ls_response-description }'' ).\\n| &&
+              |{ lv_indentation }          server->response->set_status( code = { lv_code } reason = ''{ escape_abap_literal( single_line( iv_value = ls_response-description iv_max_length = 100 ) ) }'' ).\\n| &&
               |{ lv_indentation }          RETURN.\\n|.
             IF lines( ls_response-content ) > 1.
               lv_post = lv_post &&
@@ -315780,7 +316084,7 @@ CLASS zcl_oapi_generator_v2 IMPLEMENTATION.
           rv_abap = rv_abap && |      WHEN OTHERS.\\n|.
           lv_has_others = abap_true.
         ELSEIF ls_response-description IS NOT INITIAL.
-          rv_abap = rv_abap && |      WHEN { ls_response-code }. " { ls_response-description }\\n|.
+          rv_abap = rv_abap && |      WHEN { ls_response-code }. " { single_line( ls_response-description ) }\\n|.
         ELSE.
           rv_abap = rv_abap && |      WHEN { ls_response-code }.\\n|.
         ENDIF.
@@ -315852,6 +316156,7 @@ CLASS zcl_oapi_generator_v2 IMPLEMENTATION.
     DATA ls_returning TYPE ty_returning.
     DATA ls_component_schema LIKE LINE OF ms_specification-components-schemas.
     DATA ls_server LIKE LINE OF ms_specification-servers.
+    DATA lo_names TYPE REF TO zcl_oapi_abap_name.
 
     rv_abap = |INTERFACE { ms_input-intf } PUBLIC.\\n| &&
       generation_information( ) &&
@@ -315867,11 +316172,18 @@ CLASS zcl_oapi_generator_v2 IMPLEMENTATION.
     ENDIF.
 
 
+* names are shared across all schemas, so generated sub types are unique in the interface
+    CREATE OBJECT lo_names.
+    LOOP AT ms_specification-components-schemas INTO ls_component_schema.
+      lo_names->add_used( ls_component_schema-abap_name ).
+    ENDLOOP.
+
     LOOP AT ms_specification-components-schemas INTO ls_component_schema.
       rv_abap = rv_abap && |* { ls_component_schema-name }\\n|.
-      rv_abap = rv_abap && ls_component_schema-schema->build_type_definition2(
+      rv_abap = rv_abap && ls_component_schema-schema->build_type_definition(
         iv_name          = ls_component_schema-abap_name
-        is_specification = ms_specification
+        it_refs          = ms_specification-components-schemas
+        io_names         = lo_names
         iv_use_empty_key = ms_input-use_empty_key ).
     ENDLOOP.
     IF sy-subrc = 0.
@@ -315975,7 +316287,10 @@ CLASS zcl_oapi_generator_v2 IMPLEMENTATION.
           iv_content_type = ls_content-type
           iv_code         = <ls_response>-code ).
         IF ls_content-schema_ref = space.
-          lv_returning_type = ls_content-schema->type.
+          lv_returning_type = ls_content-schema->get_simple_type( ).
+          IF lv_returning_type IS INITIAL OR lv_returning_type = ''any''.
+            lv_returning_type = ''string''.
+          ENDIF.
         ELSE.
           lv_returning_type = find_schema( ls_content-schema_ref )-abap_name.
         ENDIF.
@@ -316063,7 +316378,7 @@ ENDCLASS.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'ZCL_OAPI_MAIN', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('ZCL_OAPI_MAIN                           ', 'CLASS zcl_oapi_main DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('ZCL_OAPI_MAIN                           ', 'CLASS zcl_oapi_main DEFINITION PUBLIC.
   PUBLIC SECTION.
     TYPES: BEGIN OF ty_input,
              class_name     TYPE c LENGTH 30,
@@ -316671,7 +316986,7 @@ ENDCLASS.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'ZCL_OAPI_RESPONSE_NAME', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('ZCL_OAPI_RESPONSE_NAME                  ', 'CLASS zcl_oapi_response_name DEFINITION
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('ZCL_OAPI_RESPONSE_NAME                  ', 'CLASS zcl_oapi_response_name DEFINITION
   PUBLIC
   CREATE PUBLIC.
 
@@ -316745,8 +317060,13 @@ CLASS zcl_oapi_response_name IMPLEMENTATION.
         rv_result = ''txt''.
       WHEN ''video''.
         rv_result = ''vid''.
+      WHEN ''*''.
+        rv_result = ''any''.
       WHEN OTHERS.
-        rv_result = iv_name(3).
+        rv_result = iv_name.
+        IF strlen( rv_result ) > 3.
+          rv_result = rv_result(3).
+        ENDIF.
     ENDCASE.
   ENDMETHOD.
 
@@ -316758,6 +317078,11 @@ CLASS zcl_oapi_response_name IMPLEMENTATION.
     DATA lv_descriptor_primary TYPE string.
     DATA lv_descriptor_secondary TYPE string.
 
+    IF iv_name = ''*''.
+      rv_result = ''any''.
+      RETURN.
+    ENDIF.
+
     SPLIT iv_name AT ''+'' INTO lv_descriptor_full lv_type.
 
 *    REPLACE ALL OCCURRENCES OF REGEX ''[aeiouy]'' IN lv_descriptor_full WITH ''''.
@@ -316768,7 +317093,10 @@ CLASS zcl_oapi_response_name IMPLEMENTATION.
       rv_result = lv_descriptor_primary.
 
       IF lv_descriptor_secondary <> space.
-        rv_result = |{ rv_result }_{ lv_descriptor_secondary(3) }|.
+        IF strlen( lv_descriptor_secondary ) > 3.
+          lv_descriptor_secondary = lv_descriptor_secondary(3).
+        ENDIF.
+        rv_result = |{ rv_result }_{ lv_descriptor_secondary }|.
       ENDIF.
 
       IF lv_type <> space.
@@ -316805,7 +317133,7 @@ ENDCLASS.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'ZCL_OAPI_REFERENCES', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('ZCL_OAPI_REFERENCES                     ', 'CLASS zcl_oapi_references DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('ZCL_OAPI_REFERENCES                     ', 'CLASS zcl_oapi_references DEFINITION PUBLIC.
 
   PUBLIC SECTION.
     METHODS normalize
@@ -316826,7 +317154,9 @@ ENDCLASS.
 
     METHODS create_array_references_top.
     METHODS create_array_references_sub
-      IMPORTING ii_schema TYPE REF TO zif_oapi_schema.
+      IMPORTING
+        ii_schema TYPE REF TO zif_oapi_schema
+        io_names  TYPE REF TO zcl_oapi_abap_name.
 
     METHODS sort_schemas.
 
@@ -316834,6 +317164,11 @@ ENDCLASS.
       IMPORTING
         iv_parent TYPE string
         io_graph  TYPE REF TO zcl_oapi_graph
+        ii_schema TYPE REF TO zif_oapi_schema.
+
+    METHODS break_reference
+      IMPORTING
+        iv_target TYPE string
         ii_schema TYPE REF TO zif_oapi_schema.
 
     METHODS is_supported_type
@@ -316876,9 +317211,6 @@ CLASS zcl_oapi_references IMPLEMENTATION.
     FIELD-SYMBOLS <ls_property> TYPE zif_oapi_schema=>ty_property.
 "    FIELD-SYMBOLS <ls_property_sub> TYPE zif_oapi_schema=>ty_property.
     DATA ls_new TYPE zif_oapi_specification_v3=>ty_component_schema.
-    DATA lo_names TYPE REF TO zcl_oapi_abap_name.
-    CREATE OBJECT lo_names.
-
 
     IF ii_schema->type <> ''object''.
       RETURN.
@@ -316888,7 +317220,8 @@ CLASS zcl_oapi_references IMPLEMENTATION.
       IF <ls_property>-schema IS NOT INITIAL
           AND <ls_property>-schema->type = ''object''.
 * recursion
-        create_array_references_sub( <ls_property>-schema ).
+        create_array_references_sub( ii_schema = <ls_property>-schema
+                                     io_names  = io_names ).
         CONTINUE.
       ELSEIF <ls_property>-schema IS INITIAL
           OR <ls_property>-schema->type <> ''array''
@@ -316898,10 +317231,10 @@ CLASS zcl_oapi_references IMPLEMENTATION.
       ENDIF.
 
       CLEAR ls_new.
-      ls_new-name = lo_names->to_abap_name( |arr{ <ls_property>-abap_name }| ).
+      ls_new-name = io_names->to_abap_name( |arr{ <ls_property>-abap_name }| ).
       ls_new-abap_name = ls_new-name.
-      ls_new-abap_json_method = lo_names->to_abap_name( |json_{ ls_new-name }| ).
-      ls_new-abap_parser_method = lo_names->to_abap_name( |parse_{ ls_new-name }| ).
+      ls_new-abap_json_method = io_names->to_abap_name( |json_{ ls_new-name }| ).
+      ls_new-abap_parser_method = io_names->to_abap_name( |parse_{ ls_new-name }| ).
       ls_new-schema = <ls_property>-schema->items_schema.
       APPEND ls_new TO ms_spec-components-schemas.
 
@@ -316914,9 +317247,13 @@ CLASS zcl_oapi_references IMPLEMENTATION.
   METHOD create_array_references_top.
 
     DATA ls_schema LIKE LINE OF ms_spec-components-schemas.
+    DATA lo_names TYPE REF TO zcl_oapi_abap_name.
+* shared across all schemas, so the new array schema names are unique
+    CREATE OBJECT lo_names.
 
     LOOP AT ms_spec-components-schemas INTO ls_schema.
-      create_array_references_sub( ls_schema-schema ).
+      create_array_references_sub( ii_schema = ls_schema-schema
+                                   io_names  = lo_names ).
     ENDLOOP.
 
   ENDMETHOD.
@@ -316928,10 +317265,12 @@ CLASS zcl_oapi_references IMPLEMENTATION.
     FIELD-SYMBOLS <ls_response> LIKE LINE OF <ls_operation>-responses.
     FIELD-SYMBOLS <ls_content> LIKE LINE OF <ls_response>-content.
     DATA ls_new TYPE zif_oapi_specification_v3=>ty_component_schema.
+    DATA lv_operation_schema TYPE string.
     DATA lo_names TYPE REF TO zcl_oapi_abap_name.
     CREATE OBJECT lo_names.
 
     LOOP AT ms_spec-operations ASSIGNING <ls_operation> WHERE deprecated = abap_false.
+      CLEAR lv_operation_schema.
       LOOP AT <ls_operation>-responses ASSIGNING <ls_response>.
         LOOP AT <ls_response>-content ASSIGNING <ls_content> WHERE schema_ref IS INITIAL AND schema IS NOT INITIAL.
 
@@ -316943,17 +317282,19 @@ CLASS zcl_oapi_references IMPLEMENTATION.
             CONTINUE.
           ENDIF.
 
-          ls_new-name = |response_{ <ls_operation>-abap_name }|.
-
-          IF lo_names->is_used( ls_new-name ) = abap_false.
-            ls_new-abap_name = lo_names->to_abap_name( ls_new-name ).
+* one schema per operation, the name must be unique as long operation names are truncated
+          IF lv_operation_schema IS INITIAL.
+            CLEAR ls_new.
+            ls_new-name = lo_names->to_abap_name( |response_{ <ls_operation>-abap_name }| ).
+            ls_new-abap_name = ls_new-name.
             ls_new-abap_parser_method = lo_names->to_abap_name( |parse_{ <ls_operation>-abap_name }| ).
             CLEAR ls_new-abap_json_method. " dumping json not needed, this is a response
             ls_new-schema = <ls_content>-schema.
             APPEND ls_new TO ms_spec-components-schemas.
+            lv_operation_schema = ls_new-name.
           ENDIF.
 
-          <ls_content>-schema_ref = ''#/components/schemas/'' && ls_new-name.
+          <ls_content>-schema_ref = ''#/components/schemas/'' && lv_operation_schema.
         ENDLOOP.
       ENDLOOP.
     ENDLOOP.
@@ -316982,9 +317323,6 @@ CLASS zcl_oapi_references IMPLEMENTATION.
   METHOD normalize.
     ms_spec = is_spec.
 
-* if an object contains an array directly, move it to schema ref
-    create_array_references_top( ).
-
 * always dereference all parameters
     dereference_parameters( ).
 
@@ -316993,6 +317331,9 @@ CLASS zcl_oapi_references IMPLEMENTATION.
 
 * if response schema is not simple, move to schema ref
     create_response_references( ).
+
+* if an object contains an array directly, move it to schema ref, after body and responses are moved to schemas
+    create_array_references_top( ).
 
 * sort component schemas so they are ordered with references being defined before used
     sort_schemas( ).
@@ -317007,6 +317348,8 @@ CLASS zcl_oapi_references IMPLEMENTATION.
     DATA ls_copy LIKE LINE OF lt_copy.
     DATA lv_name TYPE string.
     DATA lo_graph TYPE REF TO zcl_oapi_graph.
+    DATA lt_removed TYPE zcl_oapi_graph=>ty_edges.
+    DATA ls_removed LIKE LINE OF lt_removed.
     CREATE OBJECT lo_graph.
 
     LOOP AT ms_spec-components-schemas INTO ls_schema.
@@ -317016,6 +317359,15 @@ CLASS zcl_oapi_references IMPLEMENTATION.
       sort_traverse( iv_parent = ls_schema-name
                      io_graph  = lo_graph
                      ii_schema = ls_schema-schema ).
+    ENDLOOP.
+
+* recursive schemas cannot be represented as ABAP types, break the cycles
+    lt_removed = lo_graph->remove_cycles( ).
+    LOOP AT lt_removed INTO ls_removed.
+      READ TABLE ms_spec-components-schemas INTO ls_schema WITH KEY name = ls_removed-from.
+      ASSERT sy-subrc = 0.
+      break_reference( iv_target = ls_removed-to
+                       ii_schema = ls_schema-schema ).
     ENDLOOP.
 
     lt_copy = ms_spec-components-schemas.
@@ -317056,6 +317408,30 @@ CLASS zcl_oapi_references IMPLEMENTATION.
     ENDLOOP.
   ENDMETHOD.
 
+  METHOD break_reference.
+* replaces references to iv_target, found the same way as in sort_traverse, with generic data references
+    DATA lv_ref TYPE string.
+    FIELD-SYMBOLS <ls_property> TYPE zif_oapi_schema=>ty_property.
+
+    lv_ref = ''#/components/schemas/'' && iv_target.
+
+    IF ii_schema->items_ref = lv_ref.
+      ii_schema->type = zif_oapi_schema=>c_type_ref_to_data.
+      CLEAR ii_schema->items_ref.
+      CLEAR ii_schema->items_type.
+    ENDIF.
+    LOOP AT ii_schema->properties ASSIGNING <ls_property>.
+      IF <ls_property>-ref = lv_ref.
+        CLEAR <ls_property>-ref.
+        CREATE OBJECT <ls_property>-schema TYPE zcl_oapi_schema.
+        <ls_property>-schema->type = zif_oapi_schema=>c_type_ref_to_data.
+      ELSEIF <ls_property>-schema IS NOT INITIAL.
+        break_reference( iv_target = iv_target
+                         ii_schema = <ls_property>-schema ).
+      ENDIF.
+    ENDLOOP.
+  ENDMETHOD.
+
   METHOD is_supported_type.
 
     CASE is_content_type.
@@ -317073,7 +317449,7 @@ ENDCLASS.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'ZCL_OAPI_JSON', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('ZCL_OAPI_JSON                           ', 'CLASS zcl_oapi_json DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('ZCL_OAPI_JSON                           ', 'CLASS zcl_oapi_json DEFINITION PUBLIC.
   PUBLIC SECTION.
     METHODS constructor
       IMPORTING
@@ -317112,7 +317488,17 @@ ENDCLASS.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
-    DATA mt_data TYPE ty_data_tt.
+    TYPES: BEGIN OF ty_value,
+             full_name TYPE string,
+             value     TYPE string,
+           END OF ty_value.
+    TYPES: BEGIN OF ty_members,
+             parent  TYPE string,
+             members TYPE string_table,
+           END OF ty_members.
+* indexes built once in the constructor, the lookups are called very often
+    DATA mt_values TYPE HASHED TABLE OF ty_value WITH UNIQUE KEY full_name.
+    DATA mt_members TYPE HASHED TABLE OF ty_members WITH UNIQUE KEY parent.
 ENDCLASS.
 
 
@@ -317121,23 +317507,45 @@ CLASS zcl_oapi_json IMPLEMENTATION.
 
 
   METHOD constructor.
-    DATA lo_parser TYPE REF TO lcl_parser.
+    DATA lo_parser  TYPE REF TO lcl_parser.
+    DATA lt_data    TYPE ty_data_tt.
+    DATA ls_data    LIKE LINE OF lt_data.
+    DATA ls_value   TYPE ty_value.
+    DATA ls_members TYPE ty_members.
+    FIELD-SYMBOLS <ls_members> TYPE ty_members.
+
     CREATE OBJECT lo_parser.
-    mt_data = lo_parser->parse( iv_json ).
+    lt_data = lo_parser->parse( iv_json ).
+
+    LOOP AT lt_data INTO ls_data.
+* first occurrence wins, in case of duplicate keys
+      ls_value-full_name = ls_data-full_name.
+      ls_value-value = ls_data-value.
+      INSERT ls_value INTO TABLE mt_values.
+
+      READ TABLE mt_members ASSIGNING <ls_members> WITH TABLE KEY parent = ls_data-parent.
+      IF sy-subrc <> 0.
+        CLEAR ls_members.
+        ls_members-parent = ls_data-parent.
+        INSERT ls_members INTO TABLE mt_members ASSIGNING <ls_members>.
+      ENDIF.
+      APPEND ls_data-name TO <ls_members>-members.
+    ENDLOOP.
   ENDMETHOD.
 
 
   METHOD exists.
-    READ TABLE mt_data WITH KEY full_name = iv_path TRANSPORTING NO FIELDS.
+    READ TABLE mt_values WITH TABLE KEY full_name = iv_path TRANSPORTING NO FIELDS.
     rv_exists = boolc( sy-subrc = 0 ).
   ENDMETHOD.
 
 
   METHOD members.
-    DATA ls_data LIKE LINE OF mt_data.
-    LOOP AT mt_data INTO ls_data WHERE parent = iv_path.
-      APPEND ls_data-name TO rt_members.
-    ENDLOOP.
+    DATA ls_members LIKE LINE OF mt_members.
+    READ TABLE mt_members INTO ls_members WITH TABLE KEY parent = iv_path.
+    IF sy-subrc = 0.
+      rt_members = ls_members-members.
+    ENDIF.
   ENDMETHOD.
 
 
@@ -317157,22 +317565,23 @@ CLASS zcl_oapi_json IMPLEMENTATION.
 
 
   METHOD value_string.
-    DATA ls_data LIKE LINE OF mt_data.
-    READ TABLE mt_data INTO ls_data WITH KEY full_name = iv_path.
+    DATA ls_value LIKE LINE OF mt_values.
+    READ TABLE mt_values INTO ls_value WITH TABLE KEY full_name = iv_path.
     IF sy-subrc = 0.
-      rv_value = ls_data-value.
+      rv_value = ls_value-value.
     ENDIF.
   ENDMETHOD.
 ENDCLASS.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'ZCL_OAPI_GRAPH', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('ZCL_OAPI_GRAPH                          ', 'CLASS zcl_oapi_graph DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('ZCL_OAPI_GRAPH                          ', 'CLASS zcl_oapi_graph DEFINITION PUBLIC.
   PUBLIC SECTION.
     TYPES: BEGIN OF ty_edge,
              from TYPE string,
              to   TYPE string,
            END OF ty_edge.
+    TYPES ty_edges TYPE STANDARD TABLE OF ty_edge WITH DEFAULT KEY.
     METHODS add_vertex IMPORTING iv_vertex TYPE string.
     METHODS add_edge
       IMPORTING
@@ -317180,10 +317589,20 @@ ENDCLASS.
         iv_to   TYPE string.
     METHODS is_empty RETURNING VALUE(rv_empty) TYPE abap_bool.
     METHODS pop RETURNING VALUE(rv_node) TYPE string.
+    "! Removes edges so the graph becomes acyclic, returns the removed edges
+    METHODS remove_cycles RETURNING VALUE(rt_removed) TYPE ty_edges.
     METHODS dump.
   PRIVATE SECTION.
+    TYPES ty_strings TYPE HASHED TABLE OF string WITH UNIQUE KEY table_line.
     DATA mt_vertices TYPE STANDARD TABLE OF string WITH DEFAULT KEY.
-    DATA mt_edges TYPE STANDARD TABLE OF ty_edge WITH DEFAULT KEY.
+    DATA mt_edges TYPE ty_edges.
+    METHODS remove_cycles_dfs
+      IMPORTING
+        iv_vertex  TYPE string
+      CHANGING
+        ct_visited TYPE ty_strings
+        ct_stack   TYPE ty_strings
+        ct_removed TYPE ty_edges.
 ENDCLASS.
 
 CLASS zcl_oapi_graph IMPLEMENTATION.
@@ -317216,6 +317635,59 @@ CLASS zcl_oapi_graph IMPLEMENTATION.
     ASSERT '''' = ''graph has cycles''.
   ENDMETHOD.
 
+  METHOD remove_cycles.
+    DATA lv_vertex  LIKE LINE OF mt_vertices.
+    DATA ls_edge    LIKE LINE OF rt_removed.
+    DATA lt_visited TYPE ty_strings.
+    DATA lt_stack   TYPE ty_strings.
+
+    LOOP AT mt_vertices INTO lv_vertex.
+      READ TABLE lt_visited WITH TABLE KEY table_line = lv_vertex TRANSPORTING NO FIELDS.
+      IF sy-subrc = 0.
+        CONTINUE.
+      ENDIF.
+      remove_cycles_dfs(
+        EXPORTING
+          iv_vertex  = lv_vertex
+        CHANGING
+          ct_visited = lt_visited
+          ct_stack   = lt_stack
+          ct_removed = rt_removed ).
+    ENDLOOP.
+
+    LOOP AT rt_removed INTO ls_edge.
+      DELETE mt_edges WHERE from = ls_edge-from AND to = ls_edge-to.
+    ENDLOOP.
+  ENDMETHOD.
+
+  METHOD remove_cycles_dfs.
+* depth first search, edges pointing back to a vertex on the current path close a cycle
+    DATA ls_edge LIKE LINE OF mt_edges.
+
+    INSERT iv_vertex INTO TABLE ct_visited.
+    INSERT iv_vertex INTO TABLE ct_stack.
+
+    LOOP AT mt_edges INTO ls_edge WHERE from = iv_vertex.
+      READ TABLE ct_stack WITH TABLE KEY table_line = ls_edge-to TRANSPORTING NO FIELDS.
+      IF sy-subrc = 0.
+        APPEND ls_edge TO ct_removed.
+        CONTINUE.
+      ENDIF.
+      READ TABLE ct_visited WITH TABLE KEY table_line = ls_edge-to TRANSPORTING NO FIELDS.
+      IF sy-subrc <> 0.
+        remove_cycles_dfs(
+          EXPORTING
+            iv_vertex  = ls_edge-to
+          CHANGING
+            ct_visited = ct_visited
+            ct_stack   = ct_stack
+            ct_removed = ct_removed ).
+      ENDIF.
+    ENDLOOP.
+
+    DELETE TABLE ct_stack WITH TABLE KEY table_line = iv_vertex.
+  ENDMETHOD.
+
   METHOD add_vertex.
     READ TABLE mt_vertices WITH KEY table_line = iv_vertex TRANSPORTING NO FIELDS.
     ASSERT sy-subrc <> 0.
@@ -317241,7 +317713,7 @@ ENDCLASS.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'ZCL_OAPI_ABAP_NAME', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('ZCL_OAPI_ABAP_NAME                      ', 'CLASS zcl_oapi_abap_name DEFINITION
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('ZCL_OAPI_ABAP_NAME                      ', 'CLASS zcl_oapi_abap_name DEFINITION
   PUBLIC
   CREATE PUBLIC.
 
@@ -317338,6 +317810,8 @@ CLASS zcl_oapi_abap_name IMPLEMENTATION.
     REPLACE ALL OCCURRENCES OF ''+'' IN rv_name WITH ''''.
     REPLACE ALL OCCURRENCES OF ''{'' IN rv_name WITH ''''.
     REPLACE ALL OCCURRENCES OF ''}'' IN rv_name WITH ''''.
+* anything else which is not valid in ABAP names, eg. enum values like ''not in'' or ''>=''
+    REPLACE ALL OCCURRENCES OF REGEX ''[^a-z0-9_]'' IN rv_name WITH ''_''.
     IF rv_name CO ''0123456789''.
       rv_name = ''n'' && rv_name.
     ENDIF.
@@ -317361,7 +317835,7 @@ ENDCLASS.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'ZIF_OAPI_SPECIFICATION_V3', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('ZIF_OAPI_SPECIFICATION_V3               ', 'INTERFACE zif_oapi_specification_v3 PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('ZIF_OAPI_SPECIFICATION_V3               ', 'INTERFACE zif_oapi_specification_v3 PUBLIC.
 
 * OpenAPI v3 specification
 
@@ -317466,7 +317940,7 @@ ENDINTERFACE.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'ZIF_OAPI_SCHEMA', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('ZIF_OAPI_SCHEMA                         ', 'INTERFACE zif_oapi_schema PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('ZIF_OAPI_SCHEMA                         ', 'INTERFACE zif_oapi_schema PUBLIC.
 
   TYPES: BEGIN OF ty_property,
            name      TYPE string,
@@ -317474,6 +317948,9 @@ ENDINTERFACE.
            ref       TYPE string,
            schema    TYPE REF TO zif_oapi_schema,
          END OF ty_property.
+
+* used for references which would make the ABAP types recursive
+  CONSTANTS c_type_ref_to_data TYPE string VALUE ''ref_to_data''.
 
   DATA:
     type         TYPE string,
@@ -317515,7 +317992,7 @@ ENDINTERFACE.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'ZCL_OAPI_SCHEMA', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('ZCL_OAPI_SCHEMA                         ', 'CLASS zcl_oapi_schema DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('ZCL_OAPI_SCHEMA                         ', 'CLASS zcl_oapi_schema DEFINITION PUBLIC.
   PUBLIC SECTION.
     INTERFACES zif_oapi_schema.
     DATA mv_json_pattern TYPE string.
@@ -317575,6 +318052,8 @@ CLASS zcl_oapi_schema IMPLEMENTATION.
     DATA lv_name     TYPE string.
     DATA lv_value    TYPE string.
     DATA lv_key      TYPE string.
+    DATA lv_escaped  TYPE string.
+    DATA lo_enum_names TYPE REF TO zcl_oapi_abap_name.
 
     IF iv_use_empty_key = abap_true.
       lv_key = |EMPTY KEY|.
@@ -317596,8 +318075,13 @@ CLASS zcl_oapi_schema IMPLEMENTATION.
             lv_name = io_names->to_abap_name( ''c_enum_'' && iv_name && ''_'' && ls_property-abap_name ).
             lv_enums = lv_enums && |* Enum: { iv_name }-{ ls_property-abap_name }\\n|.
             lv_enums = lv_enums && |  CONSTANTS: BEGIN OF { lv_name },\\n|.
+* enum values are not necessarily valid ABAP names, and must be unique within the constant
+            CREATE OBJECT lo_enum_names.
             LOOP AT ls_property-schema->enum INTO lv_value.
-              lv_enums = lv_enums && |               { to_lower( lv_value ) } TYPE string VALUE ''{ lv_value }'',\\n|.
+              lv_escaped = lv_value.
+              REPLACE ALL OCCURRENCES OF '''''''' IN lv_escaped WITH ''''''''''''.
+              lv_enums = lv_enums && |               { lo_enum_names->to_abap_name( lv_value )
+                } TYPE string VALUE ''{ lv_escaped }'',\\n|.
             ENDLOOP.
             lv_enums = lv_enums && |             END OF { lv_name }.\\n|.
           ENDIF.
@@ -317716,13 +318200,15 @@ CLASS zcl_oapi_schema IMPLEMENTATION.
         ENDIF.
       WHEN ''boolean''.
         rv_simple = ''abap_bool''.
+      WHEN zif_oapi_schema=>c_type_ref_to_data.
+        rv_simple = ''REF TO data''.
     ENDCASE.
   ENDMETHOD.
 ENDCLASS.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'ZCL_OAPI_PARSER', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('ZCL_OAPI_PARSER                         ', 'CLASS zcl_oapi_parser DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('ZCL_OAPI_PARSER                         ', 'CLASS zcl_oapi_parser DEFINITION PUBLIC.
   PUBLIC SECTION.
     METHODS parse
       IMPORTING
@@ -318112,24 +318598,24 @@ ENDCLASS.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_SERIALIZABLE_OBJECT', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_SERIALIZABLE_OBJECT                  ', 'INTERFACE if_serializable_object PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_SERIALIZABLE_OBJECT                  ', 'INTERFACE if_serializable_object PUBLIC.
 
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_BADI_INTERFACE', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_BADI_INTERFACE                       ', 'INTERFACE if_badi_interface PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_BADI_INTERFACE                       ', 'INTERFACE if_badi_interface PUBLIC.
 
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_AMDP_MARKER_HDB', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_AMDP_MARKER_HDB                      ', 'INTERFACE if_amdp_marker_hdb PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_AMDP_MARKER_HDB                      ', 'INTERFACE if_amdp_marker_hdb PUBLIC.
 
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'TYPE', 'ICON', '$TMP', '', 'ABC', '', '', '', 'E');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_MESSAGE_HELPER', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_MESSAGE_HELPER                       ', 'CLASS cl_message_helper DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_MESSAGE_HELPER                       ', 'CLASS cl_message_helper DEFINITION PUBLIC.
   PUBLIC SECTION.
     CLASS-METHODS set_msg_vars_for_if_msg
       IMPORTING
@@ -318310,7 +318796,7 @@ ENDCLASS.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_I18N_LANGUAGES', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_I18N_LANGUAGES                       ', 'CLASS cl_i18n_languages DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_I18N_LANGUAGES                       ', 'CLASS cl_i18n_languages DEFINITION PUBLIC.
   PUBLIC SECTION.
     CLASS-METHODS sap1_to_sap2
       IMPORTING
@@ -318647,7 +319133,7 @@ ENDCLASS.');`);
       VALUES ('R3TR', 'DTEL', 'SYSUUID_C32', '$TMP', '', 'ABC', '', '', '', 'E');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_SYSTEM_UUID_STATIC', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_SYSTEM_UUID_STATIC                   ', 'INTERFACE if_system_uuid_static PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_SYSTEM_UUID_STATIC                   ', 'INTERFACE if_system_uuid_static PUBLIC.
   CLASS-METHODS create_uuid_x16
     RETURNING
       VALUE(uuid) TYPE sysuuid_x16
@@ -318686,7 +319172,7 @@ ENDCLASS.');`);
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_SYSTEM_UUID_RFC4122_STATIC', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_SYSTEM_UUID_RFC4122_STATIC           ', 'INTERFACE if_system_uuid_rfc4122_static PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_SYSTEM_UUID_RFC4122_STATIC           ', 'INTERFACE if_system_uuid_rfc4122_static PUBLIC.
   CLASS-METHODS create_uuid_c36_by_version
     IMPORTING
       version     TYPE i
@@ -318697,7 +319183,7 @@ ENDINTERFACE.');`);
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_UUID_ERROR', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_UUID_ERROR                           ', 'CLASS cx_uuid_error DEFINITION PUBLIC INHERITING FROM cx_static_check.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_UUID_ERROR                           ', 'CLASS cx_uuid_error DEFINITION PUBLIC INHERITING FROM cx_static_check.
 
 ENDCLASS.
 
@@ -318706,7 +319192,7 @@ CLASS cx_uuid_error IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_SYSTEM_UUID', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_SYSTEM_UUID                          ', 'CLASS cl_system_uuid DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_SYSTEM_UUID                          ', 'CLASS cl_system_uuid DEFINITION PUBLIC.
   PUBLIC SECTION.
     INTERFACES if_system_uuid_rfc4122_static.
     INTERFACES if_system_uuid_static.
@@ -318774,7 +319260,7 @@ CLASS cl_system_uuid IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'KERNEL_UNIT_RUNNER', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('KERNEL_UNIT_RUNNER                      ', 'CLASS kernel_unit_runner DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('KERNEL_UNIT_RUNNER                      ', 'CLASS kernel_unit_runner DEFINITION PUBLIC.
   PUBLIC SECTION.
 * as of now, only global classes with local testclasses are supported
     TYPES: BEGIN OF ty_input_item,
@@ -318985,7 +319471,7 @@ ENDCLASS.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'KERNEL_CX_ASSERT', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('KERNEL_CX_ASSERT                        ', 'CLASS kernel_cx_assert DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('KERNEL_CX_ASSERT                        ', 'CLASS kernel_cx_assert DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
   PUBLIC SECTION.
     DATA actual TYPE string.
     DATA expected TYPE string.
@@ -319014,7 +319500,7 @@ CLASS kernel_cx_assert IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_AUNIT_CONSTANTS', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_AUNIT_CONSTANTS                      ', 'INTERFACE if_aunit_constants PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_AUNIT_CONSTANTS                      ', 'INTERFACE if_aunit_constants PUBLIC.
   CONSTANTS no        TYPE int1 VALUE 0.
   CONSTANTS critical  TYPE int1 VALUE 1.
   CONSTANTS fatal     TYPE int1 VALUE 1.
@@ -319035,7 +319521,7 @@ ENDCLASS.');`);
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_ABAP_UNIT_CONSTANT', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_ABAP_UNIT_CONSTANT                   ', 'INTERFACE if_abap_unit_constant PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_ABAP_UNIT_CONSTANT                   ', 'INTERFACE if_abap_unit_constant PUBLIC.
   CONSTANTS:
     BEGIN OF severity,
       low               TYPE int1 VALUE 0,
@@ -319050,7 +319536,7 @@ ENDINTERFACE.');`);
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_ABAP_UNIT_ASSERT', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_ABAP_UNIT_ASSERT                     ', 'CLASS cl_abap_unit_assert DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_ABAP_UNIT_ASSERT                     ', 'CLASS cl_abap_unit_assert DEFINITION PUBLIC.
   PUBLIC SECTION.
     CLASS-METHODS
       assert_equals
@@ -319571,7 +320057,7 @@ ENDCLASS.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_OSQL_TEST_ENVIRONMENT', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_OSQL_TEST_ENVIRONMENT                ', 'INTERFACE if_osql_test_environment PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_OSQL_TEST_ENVIRONMENT                ', 'INTERFACE if_osql_test_environment PUBLIC.
 
   TYPES ty_s_sobjname  TYPE abap_compname.
   TYPES ty_t_sobjnames TYPE STANDARD TABLE OF ty_s_sobjname WITH DEFAULT KEY.
@@ -319586,7 +320072,7 @@ ENDCLASS.
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_OSQL_FAILURE', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_OSQL_FAILURE                         ', 'CLASS cx_osql_failure DEFINITION PUBLIC FINAL CREATE PUBLIC INHERITING FROM cx_no_check.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_OSQL_FAILURE                         ', 'CLASS cx_osql_failure DEFINITION PUBLIC FINAL CREATE PUBLIC INHERITING FROM cx_no_check.
   PUBLIC SECTION.
     METHODS constructor
       IMPORTING
@@ -319616,7 +320102,7 @@ ENDCLASS.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_OSQL_TEST_ENVIRONMENT', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_OSQL_TEST_ENVIRONMENT                ', 'CLASS cl_osql_test_environment DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_OSQL_TEST_ENVIRONMENT                ', 'CLASS cl_osql_test_environment DEFINITION PUBLIC.
   PUBLIC SECTION.
     INTERFACES if_osql_test_environment.
 
@@ -319772,7 +320258,7 @@ CLASS cl_osql_test_environment IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_FUNCTION_TESTDOUBLE', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_FUNCTION_TESTDOUBLE                  ', 'INTERFACE if_function_testdouble PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_FUNCTION_TESTDOUBLE                  ', 'INTERFACE if_function_testdouble PUBLIC.
 
   METHODS configure_call
     RETURNING
@@ -319781,7 +320267,7 @@ ENDCLASS.');`);
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_FUNCTION_TEST_ENVIRONMENT', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_FUNCTION_TEST_ENVIRONMENT            ', 'INTERFACE if_function_test_environment PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_FUNCTION_TEST_ENVIRONMENT            ', 'INTERFACE if_function_test_environment PUBLIC.
 
   TYPES tt_function_dependencies TYPE STANDARD TABLE OF sxco_fm_name WITH KEY table_line.
 
@@ -319796,7 +320282,7 @@ ENDINTERFACE.');`);
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_FTD_OUTPUT_CONFIGURATION', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_FTD_OUTPUT_CONFIGURATION             ', 'INTERFACE if_ftd_output_configuration PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_FTD_OUTPUT_CONFIGURATION             ', 'INTERFACE if_ftd_output_configuration PUBLIC.
 
   METHODS set_exporting_parameter
     IMPORTING
@@ -319819,7 +320305,7 @@ ENDINTERFACE.');`);
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_FTD_OUTPUT_CONFIG_SETTER', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_FTD_OUTPUT_CONFIG_SETTER             ', 'INTERFACE if_ftd_output_config_setter PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_FTD_OUTPUT_CONFIG_SETTER             ', 'INTERFACE if_ftd_output_config_setter PUBLIC.
 
   METHODS then_answer
     IMPORTING
@@ -319830,7 +320316,7 @@ ENDINTERFACE.');`);
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_FTD_INVOCATION_RESULT', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_FTD_INVOCATION_RESULT                ', 'INTERFACE if_ftd_invocation_result PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_FTD_INVOCATION_RESULT                ', 'INTERFACE if_ftd_invocation_result PUBLIC.
 
   METHODS get_output_configuration
     RETURNING
@@ -319839,7 +320325,7 @@ ENDINTERFACE.');`);
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_FTD_INVOCATION_ANSWER', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_FTD_INVOCATION_ANSWER                ', 'INTERFACE if_ftd_invocation_answer PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_FTD_INVOCATION_ANSWER                ', 'INTERFACE if_ftd_invocation_answer PUBLIC.
 
   METHODS answer
     IMPORTING
@@ -319850,7 +320336,7 @@ ENDINTERFACE.');`);
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_FTD_INPUT_CONFIG_SETTER', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_FTD_INPUT_CONFIG_SETTER              ', 'INTERFACE if_ftd_input_config_setter PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_FTD_INPUT_CONFIG_SETTER              ', 'INTERFACE if_ftd_input_config_setter PUBLIC.
 
   METHODS ignore_all_parameters
     RETURNING
@@ -319859,7 +320345,7 @@ ENDINTERFACE.');`);
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_FTD_INPUT_ARGUMENTS', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_FTD_INPUT_ARGUMENTS                  ', 'INTERFACE if_ftd_input_arguments PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_FTD_INPUT_ARGUMENTS                  ', 'INTERFACE if_ftd_input_arguments PUBLIC.
 
   METHODS get_importing_parameter
     IMPORTING
@@ -319888,7 +320374,7 @@ ENDINTERFACE.');`);
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_FTD_PARAMETER_NOT_FOUND', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_FTD_PARAMETER_NOT_FOUND              ', 'CLASS cx_ftd_parameter_not_found DEFINITION PUBLIC FINAL CREATE PUBLIC INHERITING FROM cx_no_check.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_FTD_PARAMETER_NOT_FOUND              ', 'CLASS cx_ftd_parameter_not_found DEFINITION PUBLIC FINAL CREATE PUBLIC INHERITING FROM cx_no_check.
 
 ENDCLASS.
 
@@ -319897,7 +320383,7 @@ CLASS cx_ftd_parameter_not_found IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_FUNCTION_TEST_ENVIRONMENT', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_FUNCTION_TEST_ENVIRONMENT            ', 'CLASS cl_function_test_environment DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_FUNCTION_TEST_ENVIRONMENT            ', 'CLASS cl_function_test_environment DEFINITION PUBLIC.
   PUBLIC SECTION.
     INTERFACES if_function_test_environment.
 
@@ -319959,7 +320445,7 @@ CLASS cl_function_test_environment IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_AUNIT_AUTHORITY_OBJSET', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_AUNIT_AUTHORITY_OBJSET               ', 'INTERFACE if_aunit_authority_objset PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_AUNIT_AUTHORITY_OBJSET               ', 'INTERFACE if_aunit_authority_objset PUBLIC.
   METHODS clone
     RETURNING
       VALUE(clone) TYPE REF TO if_aunit_authority_objset.
@@ -320031,7 +320517,7 @@ ENDINTERFACE.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_AUNIT_AUTH_CHECK_RESULT_LOG', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_AUNIT_AUTH_CHECK_RESULT_LOG          ', 'INTERFACE if_aunit_auth_check_result_log PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_AUNIT_AUTH_CHECK_RESULT_LOG          ', 'INTERFACE if_aunit_auth_check_result_log PUBLIC.
   METHODS get_execution_status
     EXPORTING
       passed_execution TYPE cl_aunit_auth_check_types_def=>auth_ctxtset_msgs
@@ -320052,7 +320538,7 @@ ENDINTERFACE.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_AUNIT_AUTH_CHECK_CONTROLLER', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_AUNIT_AUTH_CHECK_CONTROLLER          ', 'INTERFACE if_aunit_auth_check_controller PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_AUNIT_AUTH_CHECK_CONTROLLER          ', 'INTERFACE if_aunit_auth_check_controller PUBLIC.
   METHODS restrict_authorizations_to
     IMPORTING
       auth_objset         TYPE REF TO if_aunit_authority_objset
@@ -320084,7 +320570,7 @@ ENDINTERFACE.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_ABAP_AUTH_CHECK_EXCEPTION', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_ABAP_AUTH_CHECK_EXCEPTION            ', 'CLASS cx_abap_auth_check_exception DEFINITION PUBLIC
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_ABAP_AUTH_CHECK_EXCEPTION            ', 'CLASS cx_abap_auth_check_exception DEFINITION PUBLIC
   INHERITING FROM cx_static_check FINAL CREATE PUBLIC.
   PUBLIC SECTION.
     INTERFACES if_t100_message.
@@ -320193,7 +320679,7 @@ ENDCLASS.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_AUNIT_AUTHORITY_CHECK', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_AUNIT_AUTHORITY_CHECK                ', 'CLASS cl_aunit_authority_check DEFINITION PUBLIC FINAL CREATE PRIVATE.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_AUNIT_AUTHORITY_CHECK                ', 'CLASS cl_aunit_authority_check DEFINITION PUBLIC FINAL CREATE PRIVATE.
   PUBLIC SECTION.
     INTERFACES if_aunit_auth_check_controller.
     INTERFACES if_aunit_auth_check_result_log.
@@ -320600,7 +321086,7 @@ ENDCLASS.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_AUNIT_AUTH_CHECK_TYPES_DEF', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_AUNIT_AUTH_CHECK_TYPES_DEF           ', 'CLASS cl_aunit_auth_check_types_def DEFINITION PUBLIC FINAL CREATE PRIVATE.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_AUNIT_AUTH_CHECK_TYPES_DEF           ', 'CLASS cl_aunit_auth_check_types_def DEFINITION PUBLIC FINAL CREATE PRIVATE.
   PUBLIC SECTION.
     TYPES:
       BEGIN OF authfield_values,
@@ -320640,7 +321126,7 @@ ENDCLASS.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_APC_WSP_SERVER_CONTEXT', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_APC_WSP_SERVER_CONTEXT               ', 'INTERFACE if_apc_wsp_server_context PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_APC_WSP_SERVER_CONTEXT               ', 'INTERFACE if_apc_wsp_server_context PUBLIC.
   METHODS get_initial_request
     RETURNING VALUE(r_initial_request) TYPE REF TO if_apc_wsp_initial_request
     RAISING cx_apc_error.
@@ -320650,7 +321136,7 @@ ENDCLASS.
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_APC_WSP_MESSAGE_MANAGER', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_APC_WSP_MESSAGE_MANAGER              ', 'INTERFACE if_apc_wsp_message_manager PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_APC_WSP_MESSAGE_MANAGER              ', 'INTERFACE if_apc_wsp_message_manager PUBLIC.
   METHODS create_message
     RETURNING
       VALUE(r_message) TYPE REF TO if_apc_wsp_message
@@ -320665,7 +321151,7 @@ ENDINTERFACE.');`);
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_APC_WSP_MESSAGE', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_APC_WSP_MESSAGE                      ', 'INTERFACE if_apc_wsp_message PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_APC_WSP_MESSAGE                      ', 'INTERFACE if_apc_wsp_message PUBLIC.
   METHODS get_binary
     RETURNING VALUE(rv_binary) TYPE xstring
     RAISING cx_apc_error.
@@ -320680,7 +321166,7 @@ ENDINTERFACE.');`);
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_APC_WSP_INITIAL_REQUEST', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_APC_WSP_INITIAL_REQUEST              ', 'INTERFACE if_apc_wsp_initial_request PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_APC_WSP_INITIAL_REQUEST              ', 'INTERFACE if_apc_wsp_initial_request PUBLIC.
   METHODS get_form_fields
     IMPORTING
       i_formfield_encoding TYPE i DEFAULT 0
@@ -320697,7 +321183,7 @@ ENDINTERFACE.');`);
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_APC_WSP_EXTENSION', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_APC_WSP_EXTENSION                    ', 'INTERFACE if_apc_wsp_extension PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_APC_WSP_EXTENSION                    ', 'INTERFACE if_apc_wsp_extension PUBLIC.
   METHODS on_start
     IMPORTING
       i_context         TYPE REF TO if_apc_wsp_server_context
@@ -320711,12 +321197,12 @@ ENDINTERFACE.');`);
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_APC_WSP_EVENT_HANDLER_BASE', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_APC_WSP_EVENT_HANDLER_BASE           ', 'INTERFACE if_apc_wsp_event_handler_base PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_APC_WSP_EVENT_HANDLER_BASE           ', 'INTERFACE if_apc_wsp_event_handler_base PUBLIC.
 
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_APC_WSP_EVENT_HANDLER', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_APC_WSP_EVENT_HANDLER                ', 'INTERFACE if_apc_wsp_event_handler PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_APC_WSP_EVENT_HANDLER                ', 'INTERFACE if_apc_wsp_event_handler PUBLIC.
   INTERFACES if_apc_wsp_event_handler_base.
 
   METHODS on_open.
@@ -320735,7 +321221,7 @@ ENDINTERFACE.');`);
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_APC_WSP_CLIENT', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_APC_WSP_CLIENT                       ', 'INTERFACE if_apc_wsp_client PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_APC_WSP_CLIENT                       ', 'INTERFACE if_apc_wsp_client PUBLIC.
   METHODS connect
     RAISING
       cx_apc_error.
@@ -320752,7 +321238,7 @@ ENDINTERFACE.');`);
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_APC_WSP_BINDING_MANAGER', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_APC_WSP_BINDING_MANAGER              ', 'INTERFACE if_apc_wsp_binding_manager PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_APC_WSP_BINDING_MANAGER              ', 'INTERFACE if_apc_wsp_binding_manager PUBLIC.
   METHODS bind_amc_message_consumer
     IMPORTING
       i_application_id TYPE clike
@@ -320762,14 +321248,14 @@ ENDINTERFACE.');`);
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_APC_TCP_FRAME_TYPES', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_APC_TCP_FRAME_TYPES                  ', 'INTERFACE if_apc_tcp_frame_types PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_APC_TCP_FRAME_TYPES                  ', 'INTERFACE if_apc_tcp_frame_types PUBLIC.
   CONSTANTS co_frame_type_fixed_length TYPE i VALUE 1.
   CONSTANTS co_frame_type_terminator   TYPE i VALUE 2.
   CONSTANTS co_frame_type_length_field TYPE i VALUE 3.
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_APC_ERROR', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_APC_ERROR                            ', 'CLASS cx_apc_error DEFINITION PUBLIC INHERITING FROM cx_static_check.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_APC_ERROR                            ', 'CLASS cx_apc_error DEFINITION PUBLIC INHERITING FROM cx_static_check.
 
 ENDCLASS.
 
@@ -320778,7 +321264,7 @@ CLASS cx_apc_error IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_APC_WSP_EXT_STATELESS_BASE', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_APC_WSP_EXT_STATELESS_BASE           ', 'CLASS cl_apc_wsp_ext_stateless_base DEFINITION PUBLIC ABSTRACT.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_APC_WSP_EXT_STATELESS_BASE           ', 'CLASS cl_apc_wsp_ext_stateless_base DEFINITION PUBLIC ABSTRACT.
   PUBLIC SECTION.
     INTERFACES if_apc_wsp_extension.
 ENDCLASS.
@@ -320794,7 +321280,7 @@ CLASS cl_apc_wsp_ext_stateless_base IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_APC_TCP_CLIENT_MANAGER', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_APC_TCP_CLIENT_MANAGER               ', 'CLASS cl_apc_tcp_client_manager DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_APC_TCP_CLIENT_MANAGER               ', 'CLASS cl_apc_tcp_client_manager DEFINITION PUBLIC.
   PUBLIC SECTION.
     CONSTANTS co_protocol_type_tcp  TYPE i VALUE 1.
     CONSTANTS co_protocol_type_tcps TYPE i VALUE 2.
@@ -320836,17 +321322,17 @@ ENDCLASS.');`);
       VALUES ('R3TR', 'TABL', 'APC_TCP_FRAME', '$TMP', '', 'ABC', '', '', '', 'E');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_SXMLP_SIMPLE', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_SXMLP_SIMPLE                         ', 'INTERFACE if_sxmlp_simple PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_SXMLP_SIMPLE                         ', 'INTERFACE if_sxmlp_simple PUBLIC.
 
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_SXMLP_PART', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_SXMLP_PART                           ', 'INTERFACE if_sxmlp_part PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_SXMLP_PART                           ', 'INTERFACE if_sxmlp_part PUBLIC.
   METHODS serialize IMPORTING writer TYPE REF TO if_sxml_writer.
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_SXMLP_LIST', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_SXMLP_LIST                           ', 'INTERFACE if_sxmlp_list PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_SXMLP_LIST                           ', 'INTERFACE if_sxmlp_list PUBLIC.
   INTERFACES if_sxmlp_part.
 
   METHODS add_part
@@ -320855,7 +321341,7 @@ ENDINTERFACE.');`);
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_SXMLP_FACTORY', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_SXMLP_FACTORY                        ', 'INTERFACE if_sxmlp_factory PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_SXMLP_FACTORY                        ', 'INTERFACE if_sxmlp_factory PUBLIC.
   CLASS-METHODS create_list
     IMPORTING
       name        TYPE string
@@ -320866,7 +321352,7 @@ ENDINTERFACE.');`);
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_SXML_WRITER', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_SXML_WRITER                          ', 'INTERFACE if_sxml_writer PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_SXML_WRITER                          ', 'INTERFACE if_sxml_writer PUBLIC.
 
   CONSTANTS co_opt_normalizing TYPE i VALUE 1.
   CONSTANTS co_opt_no_empty TYPE i VALUE 2.
@@ -320962,7 +321448,7 @@ ENDINTERFACE.');`);
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_SXML_VALUE_NODE', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_SXML_VALUE_NODE                      ', 'INTERFACE if_sxml_value_node PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_SXML_VALUE_NODE                      ', 'INTERFACE if_sxml_value_node PUBLIC.
   INTERFACES if_sxml_node.
 
   METHODS get_value
@@ -320984,7 +321470,7 @@ ENDINTERFACE.');`);
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_SXML_VALUE', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_SXML_VALUE                           ', 'INTERFACE if_sxml_value PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_SXML_VALUE                           ', 'INTERFACE if_sxml_value PUBLIC.
 
   TYPES value_type TYPE i.
   DATA type TYPE value_type.
@@ -321006,7 +321492,7 @@ ENDINTERFACE.');`);
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_SXML_READER', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_SXML_READER                          ', 'INTERFACE if_sxml_reader PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_SXML_READER                          ', 'INTERFACE if_sxml_reader PUBLIC.
 
   DATA node_type  TYPE if_sxml_node=>node_type READ-ONLY.
   DATA name       TYPE string READ-ONLY.
@@ -321073,7 +321559,7 @@ ENDINTERFACE.');`);
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_SXML_OPEN_ELEMENT', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_SXML_OPEN_ELEMENT                    ', 'INTERFACE if_sxml_open_element PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_SXML_OPEN_ELEMENT                    ', 'INTERFACE if_sxml_open_element PUBLIC.
   INTERFACES if_sxml_node.
 
   DATA: BEGIN OF qname,
@@ -321117,7 +321603,7 @@ ENDINTERFACE.');`);
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_SXML_NODE', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_SXML_NODE                            ', 'INTERFACE if_sxml_node PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_SXML_NODE                            ', 'INTERFACE if_sxml_node PUBLIC.
   TYPES node_type TYPE i.
   DATA type TYPE node_type READ-ONLY.
 
@@ -321130,7 +321616,7 @@ ENDINTERFACE.');`);
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_SXML_NAMED', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_SXML_NAMED                           ', 'INTERFACE if_sxml_named PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_SXML_NAMED                           ', 'INTERFACE if_sxml_named PUBLIC.
 
   TYPES: BEGIN OF pathnode,
            BEGIN OF qname,
@@ -321153,7 +321639,7 @@ ENDINTERFACE.');`);
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_SXML_CLOSE_ELEMENT', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_SXML_CLOSE_ELEMENT                   ', 'INTERFACE if_sxml_close_element PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_SXML_CLOSE_ELEMENT                   ', 'INTERFACE if_sxml_close_element PUBLIC.
   INTERFACES if_sxml_node.
 
   DATA: BEGIN OF qname,
@@ -321163,7 +321649,7 @@ ENDINTERFACE.');`);
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_SXML_ATTRIBUTE', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_SXML_ATTRIBUTE                       ', 'INTERFACE if_sxml_attribute PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_SXML_ATTRIBUTE                       ', 'INTERFACE if_sxml_attribute PUBLIC.
   TYPES attributes TYPE STANDARD TABLE OF REF TO if_sxml_attribute WITH DEFAULT KEY.
   DATA: BEGIN OF qname,
           name      TYPE string,
@@ -321175,7 +321661,7 @@ ENDINTERFACE.');`);
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_SXML', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_SXML                                 ', 'INTERFACE if_sxml PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_SXML                                 ', 'INTERFACE if_sxml PUBLIC.
 
   TYPES xml_stream_type TYPE i.
 
@@ -321187,7 +321673,7 @@ ENDINTERFACE.');`);
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SXML_STATE_ERROR', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SXML_STATE_ERROR                     ', 'CLASS cx_sxml_state_error DEFINITION PUBLIC INHERITING FROM cx_sxml_error.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SXML_STATE_ERROR                     ', 'CLASS cx_sxml_state_error DEFINITION PUBLIC INHERITING FROM cx_sxml_error.
   PUBLIC SECTION.
 ENDCLASS.
 
@@ -321196,7 +321682,7 @@ CLASS cx_sxml_state_error IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SXML_PARSE_ERROR', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SXML_PARSE_ERROR                     ', 'CLASS cx_sxml_parse_error DEFINITION PUBLIC INHERITING FROM cx_sxml_error.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SXML_PARSE_ERROR                     ', 'CLASS cx_sxml_parse_error DEFINITION PUBLIC INHERITING FROM cx_sxml_error.
   PUBLIC SECTION.
     METHODS constructor IMPORTING xml_offset TYPE i.
     CONSTANTS kernel_parser TYPE sotr_conc VALUE ''00000000000000000000000000000000''.
@@ -321215,7 +321701,7 @@ CLASS cx_sxml_parse_error IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SXML_NAME_ERROR', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SXML_NAME_ERROR                      ', 'CLASS cx_sxml_name_error DEFINITION PUBLIC INHERITING FROM cx_sxml_error.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SXML_NAME_ERROR                      ', 'CLASS cx_sxml_name_error DEFINITION PUBLIC INHERITING FROM cx_sxml_error.
   PUBLIC SECTION.
 ENDCLASS.
 
@@ -321224,7 +321710,7 @@ CLASS cx_sxml_name_error IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SXML_ILLEGAL_ARGUMENT_ERROR', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SXML_ILLEGAL_ARGUMENT_ERROR          ', 'CLASS cx_sxml_illegal_argument_error DEFINITION PUBLIC INHERITING FROM cx_sxml_error.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SXML_ILLEGAL_ARGUMENT_ERROR          ', 'CLASS cx_sxml_illegal_argument_error DEFINITION PUBLIC INHERITING FROM cx_sxml_error.
   PUBLIC SECTION.
 ENDCLASS.
 
@@ -321233,7 +321719,7 @@ CLASS cx_sxml_illegal_argument_error IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SXML_ERROR', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SXML_ERROR                           ', 'CLASS cx_sxml_error DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SXML_ERROR                           ', 'CLASS cx_sxml_error DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
 
 ENDCLASS.
 
@@ -321242,7 +321728,7 @@ CLASS cx_sxml_error IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_SXML_STRING_WRITER', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_SXML_STRING_WRITER                   ', 'CLASS cl_sxml_string_writer DEFINITION PUBLIC FINAL CREATE PRIVATE.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_SXML_STRING_WRITER                   ', 'CLASS cl_sxml_string_writer DEFINITION PUBLIC FINAL CREATE PRIVATE.
 
   PUBLIC SECTION.
     INTERFACES if_sxml_writer.
@@ -321513,7 +321999,7 @@ CLASS cl_sxml_string_writer IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_SXML_STRING_READER', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_SXML_STRING_READER                   ', 'CLASS cl_sxml_string_reader DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_SXML_STRING_READER                   ', 'CLASS cl_sxml_string_reader DEFINITION PUBLIC.
   PUBLIC SECTION.
     CLASS-METHODS create
       IMPORTING
@@ -321531,7 +322017,7 @@ CLASS cl_sxml_string_reader IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_SEC_SXML_WRITER', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_SEC_SXML_WRITER                      ', 'CLASS cl_sec_sxml_writer DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_SEC_SXML_WRITER                      ', 'CLASS cl_sec_sxml_writer DEFINITION PUBLIC.
   PUBLIC SECTION.
     CONSTANTS co_aes128_algorithm TYPE string VALUE ''http://www.w3.org/2001/04/xmlenc#aes128-cbc'' ##NO_TEXT.
     CONSTANTS co_aes192_algorithm TYPE string VALUE ''http://www.w3.org/2001/04/xmlenc#aes192-cbc'' ##NO_TEXT.
@@ -321592,7 +322078,7 @@ ENDCLASS.');`);
       VALUES ('R3TR', 'DOMA', 'SDOK_CLASS', '$TMP', '', 'ABC', '', '', '', 'E');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_MR_API', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_MR_API                               ', 'INTERFACE if_mr_api PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_MR_API                               ', 'INTERFACE if_mr_api PUBLIC.
 
   CLASS-METHODS get_api
     IMPORTING
@@ -321746,7 +322232,7 @@ ENDCLASS.');`);
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_MIME_REPOSITORY_API', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_MIME_REPOSITORY_API                  ', 'CLASS cl_mime_repository_api DEFINITION PUBLIC FINAL CREATE PRIVATE.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_MIME_REPOSITORY_API                  ', 'CLASS cl_mime_repository_api DEFINITION PUBLIC FINAL CREATE PRIVATE.
 
   PUBLIC SECTION.
     INTERFACES if_mr_api.
@@ -321797,7 +322283,7 @@ CLASS cl_mime_repository_api IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_SHM_TRACE', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_SHM_TRACE                            ', 'INTERFACE if_shm_trace PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_SHM_TRACE                            ', 'INTERFACE if_shm_trace PUBLIC.
 
   DATA: BEGIN OF variant,
           def_name         TYPE shmm_trc_variant_name,
@@ -321945,7 +322431,7 @@ ENDCLASS.');`);
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_SHM_BUILD_INSTANCE', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_SHM_BUILD_INSTANCE                   ', 'INTERFACE if_shm_build_instance PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_SHM_BUILD_INSTANCE                   ', 'INTERFACE if_shm_build_instance PUBLIC.
   CLASS-METHODS build
     IMPORTING
       inst_name       TYPE shm_inst_name              DEFAULT cl_shm_area=>default_instance
@@ -321955,7 +322441,7 @@ ENDINTERFACE.');`);
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_SHM_SERVICE', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_SHM_SERVICE                          ', 'CLASS cl_shm_service DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_SHM_SERVICE                          ', 'CLASS cl_shm_service DEFINITION PUBLIC.
   PUBLIC SECTION.
     CLASS-METHODS initialize
       IMPORTING
@@ -322009,7 +322495,7 @@ CLASS cl_shm_service IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_SHM_AREA', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_SHM_AREA                             ', 'CLASS cl_shm_area DEFINITION PUBLIC INHERITING FROM cx_shm_general_error ABSTRACT.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_SHM_AREA                             ', 'CLASS cl_shm_area DEFINITION PUBLIC INHERITING FROM cx_shm_general_error ABSTRACT.
   PUBLIC SECTION.
     CONSTANTS default_instance TYPE shm_inst_name VALUE ''$DEFAULT_INSTANCE$''.
     CONSTANTS invocation_mode_explicit TYPE shm_constr_invocation_mode VALUE 319200300.
@@ -322273,7 +322759,7 @@ CLASS cl_shm_area IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SHMA_NOT_CONFIGURED', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SHMA_NOT_CONFIGURED                  ', 'CLASS cx_shma_not_configured DEFINITION PUBLIC INHERITING FROM cx_shma_dynamic.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SHMA_NOT_CONFIGURED                  ', 'CLASS cx_shma_not_configured DEFINITION PUBLIC INHERITING FROM cx_shma_dynamic.
 
 ENDCLASS.
 
@@ -322282,7 +322768,7 @@ CLASS cx_shma_not_configured IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SHMA_INCONSISTENT', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SHMA_INCONSISTENT                    ', 'CLASS cx_shma_inconsistent DEFINITION PUBLIC INHERITING FROM cx_shma_dynamic.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SHMA_INCONSISTENT                    ', 'CLASS cx_shma_inconsistent DEFINITION PUBLIC INHERITING FROM cx_shma_dynamic.
 
 ENDCLASS.
 
@@ -322291,7 +322777,7 @@ CLASS cx_shma_inconsistent IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SHMA_DYNAMIC', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SHMA_DYNAMIC                         ', 'CLASS cx_shma_dynamic DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SHMA_DYNAMIC                         ', 'CLASS cx_shma_dynamic DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
 
 ENDCLASS.
 
@@ -322300,7 +322786,7 @@ CLASS cx_shma_dynamic IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SHM_WRONG_HANDLE', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SHM_WRONG_HANDLE                     ', 'CLASS cx_shm_wrong_handle DEFINITION PUBLIC INHERITING FROM cx_shm_general_error.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SHM_WRONG_HANDLE                     ', 'CLASS cx_shm_wrong_handle DEFINITION PUBLIC INHERITING FROM cx_shm_general_error.
 
 ENDCLASS.
 
@@ -322309,7 +322795,7 @@ CLASS cx_shm_wrong_handle IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SHM_VERSION_LIMIT_EXCEEDED', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SHM_VERSION_LIMIT_EXCEEDED           ', 'CLASS cx_shm_version_limit_exceeded DEFINITION PUBLIC INHERITING FROM cx_shm_attach_error.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SHM_VERSION_LIMIT_EXCEEDED           ', 'CLASS cx_shm_version_limit_exceeded DEFINITION PUBLIC INHERITING FROM cx_shm_attach_error.
 
 ENDCLASS.
 
@@ -322318,7 +322804,7 @@ CLASS cx_shm_version_limit_exceeded IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SHM_SECONDARY_COMMIT', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SHM_SECONDARY_COMMIT                 ', 'CLASS cx_shm_secondary_commit DEFINITION PUBLIC INHERITING FROM cx_shm_detach_error.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SHM_SECONDARY_COMMIT                 ', 'CLASS cx_shm_secondary_commit DEFINITION PUBLIC INHERITING FROM cx_shm_detach_error.
 
 ENDCLASS.
 
@@ -322327,7 +322813,7 @@ CLASS cx_shm_secondary_commit IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SHM_READ_LOCK_ACTIVE', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SHM_READ_LOCK_ACTIVE                 ', 'CLASS cx_shm_read_lock_active DEFINITION PUBLIC INHERITING FROM cx_shm_attach_error.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SHM_READ_LOCK_ACTIVE                 ', 'CLASS cx_shm_read_lock_active DEFINITION PUBLIC INHERITING FROM cx_shm_attach_error.
 
 ENDCLASS.
 
@@ -322336,7 +322822,7 @@ CLASS cx_shm_read_lock_active IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SHM_PENDING_LOCK_REMOVED', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SHM_PENDING_LOCK_REMOVED             ', 'CLASS cx_shm_pending_lock_removed DEFINITION PUBLIC INHERITING FROM cx_shm_attach_error.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SHM_PENDING_LOCK_REMOVED             ', 'CLASS cx_shm_pending_lock_removed DEFINITION PUBLIC INHERITING FROM cx_shm_attach_error.
 
 ENDCLASS.
 
@@ -322345,7 +322831,7 @@ CLASS cx_shm_pending_lock_removed IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SHM_PARAMETER_ERROR', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SHM_PARAMETER_ERROR                  ', 'CLASS cx_shm_parameter_error DEFINITION PUBLIC INHERITING FROM cx_shm_general_error.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SHM_PARAMETER_ERROR                  ', 'CLASS cx_shm_parameter_error DEFINITION PUBLIC INHERITING FROM cx_shm_general_error.
 
 ENDCLASS.
 
@@ -322354,7 +322840,7 @@ CLASS cx_shm_parameter_error IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SHM_NO_ACTIVE_VERSION', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SHM_NO_ACTIVE_VERSION                ', 'CLASS cx_shm_no_active_version DEFINITION PUBLIC INHERITING FROM cx_shm_attach_error.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SHM_NO_ACTIVE_VERSION                ', 'CLASS cx_shm_no_active_version DEFINITION PUBLIC INHERITING FROM cx_shm_attach_error.
 
 ENDCLASS.
 
@@ -322363,7 +322849,7 @@ CLASS cx_shm_no_active_version IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SHM_INITIAL_REFERENCE', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SHM_INITIAL_REFERENCE                ', 'CLASS cx_shm_initial_reference DEFINITION PUBLIC INHERITING FROM cx_shm_general_error.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SHM_INITIAL_REFERENCE                ', 'CLASS cx_shm_initial_reference DEFINITION PUBLIC INHERITING FROM cx_shm_general_error.
 
 ENDCLASS.
 
@@ -322372,7 +322858,7 @@ CLASS cx_shm_initial_reference IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SHM_INCONSISTENT', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SHM_INCONSISTENT                     ', 'CLASS cx_shm_inconsistent DEFINITION PUBLIC INHERITING FROM cx_shm_attach_error.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SHM_INCONSISTENT                     ', 'CLASS cx_shm_inconsistent DEFINITION PUBLIC INHERITING FROM cx_shm_attach_error.
 
 ENDCLASS.
 
@@ -322381,7 +322867,7 @@ CLASS cx_shm_inconsistent IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SHM_GENERAL_ERROR', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SHM_GENERAL_ERROR                    ', 'CLASS cx_shm_general_error DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SHM_GENERAL_ERROR                    ', 'CLASS cx_shm_general_error DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
 
 ENDCLASS.
 
@@ -322390,7 +322876,7 @@ CLASS cx_shm_general_error IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SHM_EXCLUSIVE_LOCK_ACTIVE', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SHM_EXCLUSIVE_LOCK_ACTIVE            ', 'CLASS cx_shm_exclusive_lock_active DEFINITION PUBLIC INHERITING FROM cx_shm_attach_error.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SHM_EXCLUSIVE_LOCK_ACTIVE            ', 'CLASS cx_shm_exclusive_lock_active DEFINITION PUBLIC INHERITING FROM cx_shm_attach_error.
 
 ENDCLASS.
 
@@ -322399,7 +322885,7 @@ CLASS cx_shm_exclusive_lock_active IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SHM_EVENT_EXECUTION_FAILED', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SHM_EVENT_EXECUTION_FAILED           ', 'CLASS cx_shm_event_execution_failed DEFINITION PUBLIC INHERITING FROM cx_shm_completion_error.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SHM_EVENT_EXECUTION_FAILED           ', 'CLASS cx_shm_event_execution_failed DEFINITION PUBLIC INHERITING FROM cx_shm_completion_error.
 
 ENDCLASS.
 
@@ -322408,7 +322894,7 @@ CLASS cx_shm_event_execution_failed IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SHM_ERROR', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SHM_ERROR                            ', 'CLASS cx_shm_error DEFINITION PUBLIC INHERITING FROM cx_static_check.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SHM_ERROR                            ', 'CLASS cx_shm_error DEFINITION PUBLIC INHERITING FROM cx_static_check.
 
 ENDCLASS.
 
@@ -322417,7 +322903,7 @@ CLASS cx_shm_error IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SHM_DETACH_ERROR', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SHM_DETACH_ERROR                     ', 'CLASS cx_shm_detach_error DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SHM_DETACH_ERROR                     ', 'CLASS cx_shm_detach_error DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
 
 ENDCLASS.
 
@@ -322426,7 +322912,7 @@ CLASS cx_shm_detach_error IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SHM_COMPLETION_ERROR', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SHM_COMPLETION_ERROR                 ', 'CLASS cx_shm_completion_error DEFINITION PUBLIC INHERITING FROM cx_shm_detach_error.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SHM_COMPLETION_ERROR                 ', 'CLASS cx_shm_completion_error DEFINITION PUBLIC INHERITING FROM cx_shm_detach_error.
 
 ENDCLASS.
 
@@ -322435,7 +322921,7 @@ CLASS cx_shm_completion_error IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SHM_CHANGE_LOCK_ACTIVE', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SHM_CHANGE_LOCK_ACTIVE               ', 'CLASS cx_shm_change_lock_active DEFINITION PUBLIC INHERITING FROM cx_shm_attach_error.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SHM_CHANGE_LOCK_ACTIVE               ', 'CLASS cx_shm_change_lock_active DEFINITION PUBLIC INHERITING FROM cx_shm_attach_error.
 
 ENDCLASS.
 
@@ -322444,7 +322930,7 @@ CLASS cx_shm_change_lock_active IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SHM_BUILD_FAILED', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SHM_BUILD_FAILED                     ', 'CLASS cx_shm_build_failed DEFINITION PUBLIC INHERITING FROM cx_shm_general_error.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SHM_BUILD_FAILED                     ', 'CLASS cx_shm_build_failed DEFINITION PUBLIC INHERITING FROM cx_shm_general_error.
 
 ENDCLASS.
 
@@ -322453,7 +322939,7 @@ CLASS cx_shm_build_failed IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SHM_ATTACH_ERROR', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SHM_ATTACH_ERROR                     ', 'CLASS cx_shm_attach_error DEFINITION PUBLIC INHERITING FROM cx_shm_error.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SHM_ATTACH_ERROR                     ', 'CLASS cx_shm_attach_error DEFINITION PUBLIC INHERITING FROM cx_shm_error.
 
 ENDCLASS.
 
@@ -322462,7 +322948,7 @@ CLASS cx_shm_attach_error IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SHM_ALREADY_DETACHED', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SHM_ALREADY_DETACHED                 ', 'CLASS cx_shm_already_detached DEFINITION PUBLIC INHERITING FROM cx_shm_general_error.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SHM_ALREADY_DETACHED                 ', 'CLASS cx_shm_already_detached DEFINITION PUBLIC INHERITING FROM cx_shm_general_error.
   PUBLIC SECTION.
     METHODS constructor
       IMPORTING
@@ -322518,7 +323004,7 @@ ENDCLASS.');`);
       VALUES ('R3TR', 'TTYP', 'DD_X031L_TABLE', '$TMP', '', 'ABC', '', '', '', 'E');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_ABAP_TYPEDESCR', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_ABAP_TYPEDESCR                       ', 'CLASS cl_abap_typedescr DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_ABAP_TYPEDESCR                       ', 'CLASS cl_abap_typedescr DEFINITION PUBLIC.
 * todo, this class should be ABSTRACT
   PUBLIC SECTION.
     CLASS-METHODS
@@ -323067,7 +323553,7 @@ ENDCLASS.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_ABAP_TABLEDESCR', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_ABAP_TABLEDESCR                      ', 'CLASS cl_abap_tabledescr DEFINITION PUBLIC INHERITING FROM cl_abap_datadescr.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_ABAP_TABLEDESCR                      ', 'CLASS cl_abap_tabledescr DEFINITION PUBLIC INHERITING FROM cl_abap_datadescr.
   PUBLIC SECTION.
     DATA has_unique_key TYPE abap_bool READ-ONLY.
     DATA key            TYPE abap_keydescr_tab READ-ONLY.
@@ -323240,7 +323726,7 @@ ENDCLASS.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_ABAP_STRUCTDESCR', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_ABAP_STRUCTDESCR                     ', 'CLASS cl_abap_structdescr DEFINITION PUBLIC INHERITING FROM cl_abap_complexdescr.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_ABAP_STRUCTDESCR                     ', 'CLASS cl_abap_structdescr DEFINITION PUBLIC INHERITING FROM cl_abap_complexdescr.
   PUBLIC SECTION.
     CLASS-METHODS
       construct_from_data
@@ -323405,6 +323891,7 @@ CLASS cl_abap_structdescr IMPLEMENTATION.
     DATA lv_name       TYPE string.
     DATA lv_keyfield   TYPE string.
     DATA lo_elemdescr  TYPE REF TO cl_abap_elemdescr.
+    DATA ls_field      TYPE dfies.
     FIELD-SYMBOLS <component> LIKE LINE OF rt_components.
 
     lt_components = get_components( ).
@@ -323416,11 +323903,20 @@ CLASS cl_abap_structdescr IMPLEMENTATION.
       CLEAR ls_return.
       ls_return-tabname = lv_name.
       ls_return-fieldname = ls_component-name.
+      ls_return-position = sy-tabix.
       IF ls_component-type->kind = cl_abap_typedescr=>kind_elem.
         lo_elemdescr ?= ls_component-type.
-        ls_return-leng = lo_elemdescr->output_length.
+        ls_field = lo_elemdescr->get_ddic_field( ).
+        ls_return-leng      = lo_elemdescr->output_length.
+        ls_return-intlen    = lo_elemdescr->length.
+        ls_return-outputlen = lo_elemdescr->output_length.
+        ls_return-decimals  = lo_elemdescr->decimals.
+        ls_return-inttype   = lo_elemdescr->type_kind.
+        ls_return-datatype  = ls_field-datatype.
+        ls_return-domname   = ls_field-domname.
+        ls_return-rollname  = ls_field-rollname.
+        ls_return-convexit  = ls_field-convexit.
       ENDIF.
-* todo, fill more fields in ls_return
       APPEND ls_return TO rt_components.
     ENDLOOP.
 
@@ -323523,7 +324019,7 @@ ENDCLASS.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_ABAP_REFDESCR', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_ABAP_REFDESCR                        ', 'CLASS cl_abap_refdescr DEFINITION PUBLIC INHERITING FROM cl_abap_datadescr.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_ABAP_REFDESCR                        ', 'CLASS cl_abap_refdescr DEFINITION PUBLIC INHERITING FROM cl_abap_datadescr.
   PUBLIC SECTION.
     METHODS get_referenced_type
       RETURNING VALUE(type) TYPE REF TO cl_abap_typedescr.
@@ -323580,7 +324076,7 @@ ENDCLASS.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_ABAP_OBJECTDESCR', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_ABAP_OBJECTDESCR                     ', 'CLASS cl_abap_objectdescr DEFINITION PUBLIC INHERITING FROM cl_abap_typedescr.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_ABAP_OBJECTDESCR                     ', 'CLASS cl_abap_objectdescr DEFINITION PUBLIC INHERITING FROM cl_abap_typedescr.
   PUBLIC SECTION.
     CONSTANTS changing  TYPE abap_parmkind VALUE ''C''.
     CONSTANTS exporting TYPE abap_parmkind VALUE ''E''.
@@ -323849,7 +324345,7 @@ ENDCLASS.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_ABAP_INTFDESCR', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_ABAP_INTFDESCR                       ', 'CLASS cl_abap_intfdescr DEFINITION PUBLIC INHERITING FROM cl_abap_objectdescr.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_ABAP_INTFDESCR                       ', 'CLASS cl_abap_intfdescr DEFINITION PUBLIC INHERITING FROM cl_abap_objectdescr.
   PUBLIC SECTION.
 
     DATA intf_kind TYPE string.
@@ -323862,7 +324358,7 @@ ENDCLASS.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_ABAP_ENUMDESCR', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_ABAP_ENUMDESCR                       ', 'CLASS cl_abap_enumdescr DEFINITION PUBLIC INHERITING FROM cl_abap_elemdescr.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_ABAP_ENUMDESCR                       ', 'CLASS cl_abap_enumdescr DEFINITION PUBLIC INHERITING FROM cl_abap_elemdescr.
   PUBLIC SECTION.
     TYPES: BEGIN OF member,
              name  TYPE c LENGTH 30,
@@ -323877,7 +324373,7 @@ CLASS cl_abap_enumdescr IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_ABAP_ELEMDESCR', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_ABAP_ELEMDESCR                       ', 'CLASS cl_abap_elemdescr DEFINITION PUBLIC INHERITING FROM cl_abap_datadescr.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_ABAP_ELEMDESCR                       ', 'CLASS cl_abap_elemdescr DEFINITION PUBLIC INHERITING FROM cl_abap_datadescr.
   PUBLIC SECTION.
     TYPES:
       BEGIN OF fixvalue,
@@ -323942,6 +324438,13 @@ ENDCLASS.');`);
       RETURNING
         VALUE(p_result) TYPE REF TO cl_abap_elemdescr.
 
+  PRIVATE SECTION.
+    "! open-abap: DDIC datatype derived from the internal type, when no dictionary type is known
+    CLASS-METHODS ddic_datatype_from_typekind
+      IMPORTING
+        typekind           TYPE abap_typekind
+      RETURNING
+        VALUE(rv_datatype) TYPE string.
 ENDCLASS.
 
 CLASS cl_abap_elemdescr IMPLEMENTATION.
@@ -323973,16 +324476,66 @@ CLASS cl_abap_elemdescr IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD get_ddic_field.
+    DATA lv_datatype TYPE string.
+
     p_flddescr-tabname  = absolute_name.
+    p_flddescr-rollname = relative_name.
     p_flddescr-inttype  = type_kind.
     p_flddescr-langu    = sy-langu.
     p_flddescr-position = 1.
     p_flddescr-leng     = length.
     p_flddescr-decimals = decimals.
+    p_flddescr-outputlen = output_length.
 
     WRITE ''@KERNEL p_flddescr.get().domname.set(abap.DDIC[this.relative_name.get()]?.domain || "");''.
+    WRITE ''@KERNEL lv_datatype.set(abap.DDIC[this.relative_name.get()]?.datatype || "");''.
+    IF lv_datatype IS INITIAL.
+      lv_datatype = ddic_datatype_from_typekind( type_kind ).
+    ENDIF.
+    p_flddescr-datatype = lv_datatype.
 
-* todo, dfies-convexit
+    IF edit_mask CP ''==*''.
+      p_flddescr-convexit = edit_mask+2.
+    ENDIF.
+  ENDMETHOD.
+
+  METHOD ddic_datatype_from_typekind.
+    CASE typekind.
+      WHEN cl_abap_typedescr=>typekind_char.
+        rv_datatype = ''CHAR''.
+      WHEN cl_abap_typedescr=>typekind_num.
+        rv_datatype = ''NUMC''.
+      WHEN cl_abap_typedescr=>typekind_date.
+        rv_datatype = ''DATS''.
+      WHEN cl_abap_typedescr=>typekind_time.
+        rv_datatype = ''TIMS''.
+      WHEN cl_abap_typedescr=>typekind_packed.
+        rv_datatype = ''DEC''.
+      WHEN cl_abap_typedescr=>typekind_int.
+        rv_datatype = ''INT4''.
+      WHEN cl_abap_typedescr=>typekind_int8.
+        rv_datatype = ''INT8''.
+      WHEN cl_abap_typedescr=>typekind_int1.
+        rv_datatype = ''INT1''.
+      WHEN cl_abap_typedescr=>typekind_int2.
+        rv_datatype = ''INT2''.
+      WHEN cl_abap_typedescr=>typekind_float.
+        rv_datatype = ''FLTP''.
+      WHEN cl_abap_typedescr=>typekind_hex.
+        rv_datatype = ''RAW''.
+      WHEN cl_abap_typedescr=>typekind_string.
+        rv_datatype = ''STRG''.
+      WHEN cl_abap_typedescr=>typekind_xstring.
+        rv_datatype = ''RSTR''.
+      WHEN cl_abap_typedescr=>typekind_decfloat16.
+        rv_datatype = ''D16N''.
+      WHEN cl_abap_typedescr=>typekind_decfloat34.
+        rv_datatype = ''D34N''.
+      WHEN cl_abap_typedescr=>typekind_utclong.
+        rv_datatype = ''UTCL''.
+      WHEN OTHERS.
+        rv_datatype = ''''.
+    ENDCASE.
   ENDMETHOD.
 
   METHOD get_i.
@@ -324037,22 +324590,24 @@ CLASS cl_abap_elemdescr IMPLEMENTATION.
 
     SPLIT absolute_name AT ''='' INTO lv_dummy lv_name.
 
+* the transpiler serializes abaplint''s DomainValue as-is: {low, high, description, language}
     WRITE ''@KERNEL for (const f of abap.DDIC[lv_name.get()]?.fixedValues || []) {''.
     CLEAR ls_row.
     WRITE ''@KERNEL   ls_row.get().low.set(f.low || "");''.
     WRITE ''@KERNEL   ls_row.get().high.set(f.high || "");''.
-    WRITE ''@KERNEL   ls_row.get().option.set(f.option || "");''.
-    WRITE ''@KERNEL   ls_row.get().ddlanguage.set(f.ddlanguage || "");''.
-    WRITE ''@KERNEL   ls_row.get().ddtext.set(f.ddtext || "");''.
+    WRITE ''@KERNEL   ls_row.get().option.set(f.high ? "BT" : "EQ");''.
+    WRITE ''@KERNEL   ls_row.get().ddlanguage.set(f.language || "");''.
+    WRITE ''@KERNEL   ls_row.get().ddtext.set(f.description || "");''.
     APPEND ls_row TO p_fixed_values.
     WRITE ''@KERNEL }''.
 
   ENDMETHOD.
 
-ENDCLASS.');`);
+ENDCLASS.
+');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_ABAP_DATADESCR', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_ABAP_DATADESCR                       ', 'CLASS cl_abap_datadescr DEFINITION PUBLIC INHERITING FROM cl_abap_typedescr.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_ABAP_DATADESCR                       ', 'CLASS cl_abap_datadescr DEFINITION PUBLIC INHERITING FROM cl_abap_typedescr.
   PUBLIC SECTION.
     CLASS-METHODS get_data_type_kind
       IMPORTING
@@ -324082,7 +324637,7 @@ CLASS cl_abap_datadescr IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_ABAP_COMPLEXDESCR', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_ABAP_COMPLEXDESCR                    ', 'CLASS cl_abap_complexdescr DEFINITION PUBLIC INHERITING FROM cl_abap_datadescr.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_ABAP_COMPLEXDESCR                    ', 'CLASS cl_abap_complexdescr DEFINITION PUBLIC INHERITING FROM cl_abap_datadescr.
   PUBLIC SECTION.
 ENDCLASS.
 
@@ -324091,7 +324646,7 @@ CLASS cl_abap_complexdescr IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_ABAP_CLASSDESCR', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_ABAP_CLASSDESCR                      ', 'CLASS cl_abap_classdescr DEFINITION PUBLIC INHERITING FROM cl_abap_objectdescr.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_ABAP_CLASSDESCR                      ', 'CLASS cl_abap_classdescr DEFINITION PUBLIC INHERITING FROM cl_abap_objectdescr.
   PUBLIC SECTION.
 
     DATA class_kind TYPE string.
@@ -324130,7 +324685,7 @@ ENDCLASS.
       VALUES ('R3TR', 'TYPE', 'OSCON', '$TMP', '', 'ABC', '', '', '', 'E');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_OS_STATE', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_OS_STATE                             ', 'INTERFACE if_os_state PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_OS_STATE                             ', 'INTERFACE if_os_state PUBLIC.
 
   EVENTS changed.
   EVENTS write_access.
@@ -324157,7 +324712,7 @@ ENDCLASS.
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_OS_PERSISTENCY_MANAGER', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_OS_PERSISTENCY_MANAGER               ', 'INTERFACE if_os_persistency_manager PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_OS_PERSISTENCY_MANAGER               ', 'INTERFACE if_os_persistency_manager PUBLIC.
 
   METHODS get_update_mode
     RETURNING
@@ -324166,7 +324721,7 @@ ENDINTERFACE.');`);
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_OS_FACTORY', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_OS_FACTORY                           ', 'INTERFACE if_os_factory PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_OS_FACTORY                           ', 'INTERFACE if_os_factory PUBLIC.
 
   METHODS create_persistent_by_key
     IMPORTING
@@ -324187,7 +324742,7 @@ ENDINTERFACE.');`);
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_OS_EXCEPTION_INFO', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_OS_EXCEPTION_INFO                    ', 'INTERFACE if_os_exception_info PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_OS_EXCEPTION_INFO                    ', 'INTERFACE if_os_exception_info PUBLIC.
 
   DATA id TYPE t100-arbgb READ-ONLY.
   DATA number TYPE t100-msgnr READ-ONLY.
@@ -324225,7 +324780,7 @@ ENDINTERFACE.');`);
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_OS_CLONE', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_OS_CLONE                             ', 'INTERFACE if_os_clone PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_OS_CLONE                             ', 'INTERFACE if_os_clone PUBLIC.
 
   METHODS clone
     RETURNING
@@ -324235,7 +324790,7 @@ ENDINTERFACE.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_OS_CA_SERVICE', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_OS_CA_SERVICE                        ', 'INTERFACE if_os_ca_service PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_OS_CA_SERVICE                        ', 'INTERFACE if_os_ca_service PUBLIC.
 
   METHODS save_in_update_task
     IMPORTING
@@ -324245,7 +324800,7 @@ ENDINTERFACE.
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_OS_CA_PERSISTENCY', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_OS_CA_PERSISTENCY                    ', 'INTERFACE if_os_ca_persistency PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_OS_CA_PERSISTENCY                    ', 'INTERFACE if_os_ca_persistency PUBLIC.
 
   METHODS get_persistent_by_key
     IMPORTING
@@ -324259,7 +324814,7 @@ ENDINTERFACE.');`);
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_OS_CA_COMMON', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_OS_CA_COMMON                         ', 'CLASS cl_os_ca_common DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_OS_CA_COMMON                         ', 'CLASS cl_os_ca_common DEFINITION PUBLIC.
   PUBLIC SECTION.
     INTERFACES if_os_ca_persistency.
     INTERFACES if_os_ca_service.
@@ -324481,7 +325036,7 @@ CLASS cl_os_ca_common IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_OS_OBJECT_NOT_FOUND', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_OS_OBJECT_NOT_FOUND                  ', 'CLASS cx_os_object_not_found DEFINITION PUBLIC INHERITING FROM cx_os_object.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_OS_OBJECT_NOT_FOUND                  ', 'CLASS cx_os_object_not_found DEFINITION PUBLIC INHERITING FROM cx_os_object.
   PUBLIC SECTION.
 
     CONSTANTS by_ref                TYPE sotr_conc VALUE ''11111111111111111111111111111111''.
@@ -324522,7 +325077,7 @@ CLASS cx_os_object_not_found IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_OS_OBJECT_EXISTING', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_OS_OBJECT_EXISTING                   ', 'CLASS cx_os_object_existing DEFINITION PUBLIC INHERITING FROM cx_os_object.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_OS_OBJECT_EXISTING                   ', 'CLASS cx_os_object_existing DEFINITION PUBLIC INHERITING FROM cx_os_object.
   PUBLIC SECTION.
 
     CONSTANTS transient_creating_persistent  TYPE sotr_conc VALUE ''11111111111111111111111111111111''.
@@ -324558,7 +325113,7 @@ CLASS cx_os_object_existing IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_OS_OBJECT', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_OS_OBJECT                            ', 'CLASS cx_os_object DEFINITION PUBLIC INHERITING FROM cx_os_error.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_OS_OBJECT                            ', 'CLASS cx_os_object DEFINITION PUBLIC INHERITING FROM cx_os_error.
   PUBLIC SECTION.
     DATA object TYPE REF TO object.
 
@@ -324582,7 +325137,7 @@ CLASS cx_os_object IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_OS_ERROR', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_OS_ERROR                             ', 'CLASS cx_os_error DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_OS_ERROR                             ', 'CLASS cx_os_error DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
   PUBLIC SECTION.
 
 ENDCLASS.
@@ -324592,7 +325147,7 @@ CLASS cx_os_error IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_OS_CLASS_NOT_FOUND', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_OS_CLASS_NOT_FOUND                   ', 'CLASS cx_os_class_not_found DEFINITION PUBLIC INHERITING FROM cx_os_error.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_OS_CLASS_NOT_FOUND                   ', 'CLASS cx_os_class_not_found DEFINITION PUBLIC INHERITING FROM cx_os_error.
   PUBLIC SECTION.
 
 ENDCLASS.
@@ -324608,7 +325163,7 @@ ENDCLASS.');`);
       VALUES ('R3TR', 'TABL', 'SCOMPKDTLN', '$TMP', '', 'ABC', '', '', '', 'E');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_PACKAGE_PERMISSION_TO_USE', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_PACKAGE_PERMISSION_TO_USE            ', 'INTERFACE if_package_permission_to_use PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_PACKAGE_PERMISSION_TO_USE            ', 'INTERFACE if_package_permission_to_use PUBLIC.
 
   DATA package_interface_name TYPE c LENGTH 30 READ-ONLY.
 
@@ -324638,7 +325193,7 @@ ENDCLASS.');`);
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_PACKAGE', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_PACKAGE                              ', 'INTERFACE if_package PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_PACKAGE                              ', 'INTERFACE if_package PUBLIC.
   DATA wbo_korr_flag         TYPE c LENGTH 1 READ-ONLY.
   DATA package_name          TYPE devclass READ-ONLY.
   DATA short_text            TYPE string READ-ONLY.
@@ -324774,7 +325329,7 @@ ENDINTERFACE.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_PACKAGE_HELPER', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_PACKAGE_HELPER                       ', 'CLASS cl_package_helper DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_PACKAGE_HELPER                       ', 'CLASS cl_package_helper DEFINITION PUBLIC.
   PUBLIC SECTION.
     CLASS-METHODS check_package_name
       IMPORTING
@@ -324803,7 +325358,7 @@ ENDCLASS.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_PACKAGE_FACTORY', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_PACKAGE_FACTORY                      ', 'CLASS cl_package_factory DEFINITION PUBLIC CREATE PRIVATE.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_PACKAGE_FACTORY                      ', 'CLASS cl_package_factory DEFINITION PUBLIC CREATE PRIVATE.
   PUBLIC SECTION.
 
     INTERFACES if_package.
@@ -324918,14 +325473,14 @@ ENDCLASS.
       VALUES ('R3TR', 'TABL', 'REPOSRC', '$TMP', '', 'ABC', '', '', '', 'E');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_OO_CLIF_SOURCE', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_OO_CLIF_SOURCE                       ', 'INTERFACE if_oo_clif_source PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_OO_CLIF_SOURCE                       ', 'INTERFACE if_oo_clif_source PUBLIC.
   METHODS get_source
     EXPORTING
       source TYPE string_table.
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_OO_CLIF_NOT_EXISTS', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_OO_CLIF_NOT_EXISTS                   ', 'CLASS cx_oo_clif_not_exists DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_OO_CLIF_NOT_EXISTS                   ', 'CLASS cx_oo_clif_not_exists DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
 
 ENDCLASS.
 
@@ -324934,7 +325489,7 @@ CLASS cx_oo_clif_not_exists IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_OO_FACTORY', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_OO_FACTORY                           ', 'CLASS cl_oo_factory DEFINITION PUBLIC CREATE PRIVATE.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_OO_FACTORY                           ', 'CLASS cl_oo_factory DEFINITION PUBLIC CREATE PRIVATE.
   PUBLIC SECTION.
     INTERFACES if_oo_clif_source.
 
@@ -324986,7 +325541,7 @@ ENDCLASS.');`);
       VALUES ('R3TR', 'DTEL', 'OA2C_CONFIGURATION', '$TMP', '', 'ABC', '', '', '', 'E');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_OAUTH2_CLIENT', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_OAUTH2_CLIENT                        ', 'INTERFACE if_oauth2_client PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_OAUTH2_CLIENT                        ', 'INTERFACE if_oauth2_client PUBLIC.
 
   CONSTANTS c_param_kind_header_field TYPE string VALUE ''H''.
   CONSTANTS c_param_kind_form_field   TYPE string VALUE ''F''.
@@ -325005,7 +325560,7 @@ ENDCLASS.');`);
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_OA2C_MISSING_AUTHORIZATION', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_OA2C_MISSING_AUTHORIZATION           ', 'CLASS cx_oa2c_missing_authorization DEFINITION PUBLIC INHERITING FROM cx_oa2c_config_exception.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_OA2C_MISSING_AUTHORIZATION           ', 'CLASS cx_oa2c_missing_authorization DEFINITION PUBLIC INHERITING FROM cx_oa2c_config_exception.
   PUBLIC SECTION.
 ENDCLASS.
 
@@ -325014,7 +325569,7 @@ CLASS cx_oa2c_missing_authorization IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_OA2C_CONFIG_NOT_FOUND', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_OA2C_CONFIG_NOT_FOUND                ', 'CLASS cx_oa2c_config_not_found DEFINITION PUBLIC INHERITING FROM cx_oa2c.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_OA2C_CONFIG_NOT_FOUND                ', 'CLASS cx_oa2c_config_not_found DEFINITION PUBLIC INHERITING FROM cx_oa2c.
   PUBLIC SECTION.
 ENDCLASS.
 
@@ -325023,7 +325578,7 @@ CLASS cx_oa2c_config_not_found IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_OA2C_CONFIG_EXCEPTION', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_OA2C_CONFIG_EXCEPTION                ', 'CLASS cx_oa2c_config_exception DEFINITION PUBLIC INHERITING FROM cx_oa2c.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_OA2C_CONFIG_EXCEPTION                ', 'CLASS cx_oa2c_config_exception DEFINITION PUBLIC INHERITING FROM cx_oa2c.
   PUBLIC SECTION.
 ENDCLASS.
 
@@ -325032,7 +325587,7 @@ CLASS cx_oa2c_config_exception IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_OA2C_AT_NOT_AVAILABLE', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_OA2C_AT_NOT_AVAILABLE                ', 'CLASS cx_oa2c_at_not_available DEFINITION PUBLIC INHERITING FROM cx_oa2c.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_OA2C_AT_NOT_AVAILABLE                ', 'CLASS cx_oa2c_at_not_available DEFINITION PUBLIC INHERITING FROM cx_oa2c.
   PUBLIC SECTION.
 ENDCLASS.
 
@@ -325041,7 +325596,7 @@ CLASS cx_oa2c_at_not_available IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_OA2C', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_OA2C                                 ', 'CLASS cx_oa2c DEFINITION PUBLIC INHERITING FROM cx_static_check.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_OA2C                                 ', 'CLASS cx_oa2c DEFINITION PUBLIC INHERITING FROM cx_static_check.
   PUBLIC SECTION.
 ENDCLASS.
 
@@ -325050,7 +325605,7 @@ CLASS cx_oa2c IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_OAUTH2_CLIENT', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_OAUTH2_CLIENT                        ', 'CLASS cl_oauth2_client DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_OAUTH2_CLIENT                        ', 'CLASS cl_oauth2_client DEFINITION PUBLIC.
   PUBLIC SECTION.
     INTERFACES if_oauth2_client.
 
@@ -325215,7 +325770,7 @@ ENDCLASS.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_OA2C_CONFIG_WRITER_API', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_OA2C_CONFIG_WRITER_API               ', 'CLASS cl_oa2c_config_writer_api DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_OA2C_CONFIG_WRITER_API               ', 'CLASS cl_oa2c_config_writer_api DEFINITION PUBLIC.
   PUBLIC SECTION.
     CONSTANTS c_granttype_cc TYPE oa2c_granttype VALUE 4.
 
@@ -325374,7 +325929,7 @@ ENDCLASS.');`);
       VALUES ('R3TR', 'FUGR', 'NUMBER_GET_NEXT', '$TMP', '', 'ABC', '', '', '', 'E');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'KERNEL_NUMBERRANGE', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('KERNEL_NUMBERRANGE                      ', 'CLASS kernel_numberrange DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('KERNEL_NUMBERRANGE                      ', 'CLASS kernel_numberrange DEFINITION PUBLIC.
   PUBLIC SECTION.
     CLASS-METHODS number_get
       IMPORTING
@@ -325413,7 +325968,7 @@ CLASS kernel_numberrange IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_NUMBER_RANGES', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_NUMBER_RANGES                        ', 'CLASS cx_number_ranges DEFINITION PUBLIC INHERITING FROM cx_static_check.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_NUMBER_RANGES                        ', 'CLASS cx_number_ranges DEFINITION PUBLIC INHERITING FROM cx_static_check.
 
   PUBLIC SECTION.
     METHODS constructor
@@ -325434,7 +325989,7 @@ CLASS cx_number_ranges IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_NR_OBJECT_NOT_FOUND', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_NR_OBJECT_NOT_FOUND                  ', 'CLASS cx_nr_object_not_found DEFINITION PUBLIC INHERITING FROM cx_number_ranges.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_NR_OBJECT_NOT_FOUND                  ', 'CLASS cx_nr_object_not_found DEFINITION PUBLIC INHERITING FROM cx_number_ranges.
 
   PUBLIC SECTION.
     METHODS constructor
@@ -325455,7 +326010,7 @@ CLASS cx_nr_object_not_found IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_NUMBERRANGE_RUNTIME', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_NUMBERRANGE_RUNTIME                  ', 'CLASS cl_numberrange_runtime DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_NUMBERRANGE_RUNTIME                  ', 'CLASS cl_numberrange_runtime DEFINITION PUBLIC.
   PUBLIC SECTION.
 
     TYPES nr_interval TYPE c LENGTH 2.
@@ -325500,7 +326055,7 @@ CLASS cl_numberrange_runtime IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_NUMBERRANGE_OBJECTS', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_NUMBERRANGE_OBJECTS                  ', 'CLASS cl_numberrange_objects DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_NUMBERRANGE_OBJECTS                  ', 'CLASS cl_numberrange_objects DEFINITION PUBLIC.
   PUBLIC SECTION.
     TYPES: BEGIN OF nr_attributes,
              object     TYPE c LENGTH 10,
@@ -325547,7 +326102,7 @@ CLASS cl_numberrange_objects IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_NUMBERRANGE_INTERVALS', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_NUMBERRANGE_INTERVALS                ', 'CLASS cl_numberrange_intervals DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_NUMBERRANGE_INTERVALS                ', 'CLASS cl_numberrange_intervals DEFINITION PUBLIC.
   PUBLIC SECTION.
     TYPES: BEGIN OF nr_nriv_line,
              nrrangenr  TYPE c LENGTH 2,
@@ -325591,7 +326146,7 @@ CLASS cl_numberrange_intervals IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_ABAP_MEMORY_UTILITIES', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_ABAP_MEMORY_UTILITIES                ', 'CLASS cl_abap_memory_utilities DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_ABAP_MEMORY_UTILITIES                ', 'CLASS cl_abap_memory_utilities DEFINITION PUBLIC.
   PUBLIC SECTION.
     CLASS-METHODS get_memory_size_of_object
       IMPORTING
@@ -325642,7 +326197,7 @@ ENDCLASS.');`);
       VALUES ('R3TR', 'DTEL', 'ABAP_MSIZE', '$TMP', '', 'ABC', '', '', '', 'E');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'KERNEL_PUSH_CHANNELS', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('KERNEL_PUSH_CHANNELS                    ', 'CLASS kernel_push_channels DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('KERNEL_PUSH_CHANNELS                    ', 'CLASS kernel_push_channels DEFINITION PUBLIC.
 * handling of ABAP statement WAIT FOR PUSH CHANNELS
   PUBLIC SECTION.
     CLASS-METHODS wait
@@ -325677,7 +326232,7 @@ CLASS kernel_push_channels IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'KERNEL_LOCK', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('KERNEL_LOCK                             ', 'CLASS kernel_lock DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('KERNEL_LOCK                             ', 'CLASS kernel_lock DEFINITION PUBLIC.
   PUBLIC SECTION.
     CLASS-METHODS enqueue
       IMPORTING
@@ -325706,7 +326261,7 @@ CLASS kernel_lock IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'KERNEL_INTERNAL_NAME', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('KERNEL_INTERNAL_NAME                    ', 'CLASS kernel_internal_name DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('KERNEL_INTERNAL_NAME                    ', 'CLASS kernel_internal_name DEFINITION PUBLIC.
   PUBLIC SECTION.
     CLASS-METHODS internal_to_rtti
       IMPORTING
@@ -325748,7 +326303,7 @@ CLASS kernel_internal_name IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'KERNEL_CREATE_DATA_HANDLE', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('KERNEL_CREATE_DATA_HANDLE               ', 'CLASS kernel_create_data_handle DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('KERNEL_CREATE_DATA_HANDLE               ', 'CLASS kernel_create_data_handle DEFINITION PUBLIC.
   PUBLIC SECTION.
     CLASS-METHODS call
       IMPORTING
@@ -325975,7 +326530,7 @@ ENDCLASS.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'KERNEL_CALL', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('KERNEL_CALL                             ', 'CLASS kernel_call DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('KERNEL_CALL                             ', 'CLASS kernel_call DEFINITION PUBLIC.
 * handling of ABAP statement CALL
   PUBLIC SECTION.
     CLASS-METHODS call
@@ -326017,7 +326572,7 @@ CLASS kernel_call IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'KERNEL_AUTHORITY_CHECK', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('KERNEL_AUTHORITY_CHECK                  ', 'CLASS kernel_authority_check DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('KERNEL_AUTHORITY_CHECK                  ', 'CLASS kernel_authority_check DEFINITION PUBLIC.
   PUBLIC SECTION.
     CLASS-METHODS call
       IMPORTING
@@ -326227,7 +326782,7 @@ ENDCLASS.
       VALUES ('R3TR', 'TABL', 'SLEVEL', '$TMP', '', 'ABC', '', '', '', 'E');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'KERNEL_SCAN_ABAP_SOURCE', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('KERNEL_SCAN_ABAP_SOURCE                 ', 'CLASS kernel_scan_abap_source DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('KERNEL_SCAN_ABAP_SOURCE                 ', 'CLASS kernel_scan_abap_source DEFINITION PUBLIC.
 * handling of ABAP statement SCAN ABAP-SOURCE
   PUBLIC SECTION.
     CLASS-METHODS call IMPORTING input TYPE any.
@@ -326499,7 +327054,7 @@ CLASS kernel_scan_abap_source IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'KERNEL_JSON_TO_IXML', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('KERNEL_JSON_TO_IXML                     ', 'CLASS kernel_json_to_ixml DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('KERNEL_JSON_TO_IXML                     ', 'CLASS kernel_json_to_ixml DEFINITION PUBLIC.
   PUBLIC SECTION.
     CLASS-METHODS build
       IMPORTING iv_json       TYPE string
@@ -326586,7 +327141,7 @@ CLASS kernel_json_to_ixml IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'KERNEL_IXML_XML_TO_DATA', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('KERNEL_IXML_XML_TO_DATA                 ', 'CLASS kernel_ixml_xml_to_data DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('KERNEL_IXML_XML_TO_DATA                 ', 'CLASS kernel_ixml_xml_to_data DEFINITION PUBLIC.
   PUBLIC SECTION.
     CLASS-METHODS build
       IMPORTING
@@ -326789,7 +327344,7 @@ CLASS kernel_ixml_xml_to_data IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'KERNEL_IXML_JSON_TO_DATA', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('KERNEL_IXML_JSON_TO_DATA                ', 'CLASS kernel_ixml_json_to_data DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('KERNEL_IXML_JSON_TO_DATA                ', 'CLASS kernel_ixml_json_to_data DEFINITION PUBLIC.
   PUBLIC SECTION.
     CLASS-METHODS build
       IMPORTING
@@ -326923,7 +327478,7 @@ CLASS kernel_ixml_json_to_data IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'KERNEL_CALL_TRANSFORMATION', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('KERNEL_CALL_TRANSFORMATION              ', 'CLASS kernel_call_transformation DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('KERNEL_CALL_TRANSFORMATION              ', 'CLASS kernel_call_transformation DEFINITION PUBLIC.
 * handling of ABAP statement CALL TRANSFORMATION
   PUBLIC SECTION.
     TYPES: BEGIN OF ty_options,
@@ -327155,7 +327710,7 @@ ENDCLASS.');`);
       VALUES ('R3TR', 'XSLT', 'ID', '$TMP', '', 'ABC', '', '', '', 'E');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', '/UI2/CL_JSON', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('/UI2/CL_JSON                            ', 'CLASS /ui2/cl_json DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('/UI2/CL_JSON                            ', 'CLASS /ui2/cl_json DEFINITION PUBLIC.
   PUBLIC SECTION.
 
     TYPES pretty_name_mode TYPE c LENGTH 1.
@@ -327779,7 +328334,7 @@ ENDCLASS.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_IXML_UNKNOWN', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_IXML_UNKNOWN                         ', 'INTERFACE if_ixml_unknown PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_IXML_UNKNOWN                         ', 'INTERFACE if_ixml_unknown PUBLIC.
   METHODS query_interface
     IMPORTING
       iid         TYPE i
@@ -327788,7 +328343,7 @@ ENDCLASS.
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_IXML_TEXT', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_IXML_TEXT                            ', 'INTERFACE if_ixml_text PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_IXML_TEXT                            ', 'INTERFACE if_ixml_text PUBLIC.
   INTERFACES if_ixml_node.
 
   ALIASES get_value FOR if_ixml_node~get_value.
@@ -327797,7 +328352,7 @@ ENDINTERFACE.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_IXML_STREAM_FACTORY', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_IXML_STREAM_FACTORY                  ', 'INTERFACE if_ixml_stream_factory PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_IXML_STREAM_FACTORY                  ', 'INTERFACE if_ixml_stream_factory PUBLIC.
   METHODS create_ostream_cstring
     IMPORTING
       string        TYPE string
@@ -327844,7 +328399,7 @@ ENDINTERFACE.
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_IXML_STREAM', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_IXML_STREAM                          ', 'INTERFACE if_ixml_stream PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_IXML_STREAM                          ', 'INTERFACE if_ixml_stream PUBLIC.
 
   METHODS get_encoding
     RETURNING
@@ -327853,7 +328408,7 @@ ENDINTERFACE.');`);
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_IXML_RENDERER', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_IXML_RENDERER                        ', 'INTERFACE if_ixml_renderer PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_IXML_RENDERER                        ', 'INTERFACE if_ixml_renderer PUBLIC.
   METHODS render
     RETURNING
       VALUE(rval) TYPE i.
@@ -327864,7 +328419,7 @@ ENDINTERFACE.');`);
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_IXML_PARSER', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_IXML_PARSER                          ', 'INTERFACE if_ixml_parser PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_IXML_PARSER                          ', 'INTERFACE if_ixml_parser PUBLIC.
   CONSTANTS co_no_validation   TYPE i VALUE 0.
   CONSTANTS co_validate_if_dtd TYPE i VALUE 2.
 
@@ -327896,7 +328451,7 @@ ENDINTERFACE.');`);
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_IXML_PARSE_ERROR', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_IXML_PARSE_ERROR                     ', 'INTERFACE if_ixml_parse_error PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_IXML_PARSE_ERROR                     ', 'INTERFACE if_ixml_parse_error PUBLIC.
 
   CONSTANTS co_info TYPE i VALUE 1.
   CONSTANTS co_error TYPE i VALUE 3.
@@ -327913,7 +328468,7 @@ ENDINTERFACE.');`);
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_IXML_OSTREAM', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_IXML_OSTREAM                         ', 'INTERFACE if_ixml_ostream PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_IXML_OSTREAM                         ', 'INTERFACE if_ixml_ostream PUBLIC.
   METHODS write_string
     IMPORTING
       string      TYPE string
@@ -327952,7 +328507,7 @@ ENDINTERFACE.');`);
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_IXML_NODE_LIST', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_IXML_NODE_LIST                       ', 'INTERFACE if_ixml_node_list PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_IXML_NODE_LIST                       ', 'INTERFACE if_ixml_node_list PUBLIC.
 
   METHODS:
     get_length
@@ -327974,7 +328529,7 @@ ENDINTERFACE.');`);
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_IXML_NODE_ITERATOR', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_IXML_NODE_ITERATOR                   ', 'INTERFACE if_ixml_node_iterator PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_IXML_NODE_ITERATOR                   ', 'INTERFACE if_ixml_node_iterator PUBLIC.
 
   METHODS reset.
 
@@ -327985,12 +328540,12 @@ ENDINTERFACE.');`);
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_IXML_NODE_FILTER', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_IXML_NODE_FILTER                     ', 'INTERFACE if_ixml_node_filter PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_IXML_NODE_FILTER                     ', 'INTERFACE if_ixml_node_filter PUBLIC.
 
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_IXML_NODE_COLLECTION', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_IXML_NODE_COLLECTION                 ', 'INTERFACE if_ixml_node_collection PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_IXML_NODE_COLLECTION                 ', 'INTERFACE if_ixml_node_collection PUBLIC.
   METHODS create_iterator
     RETURNING
       VALUE(rval) TYPE REF TO if_ixml_node_iterator.
@@ -328007,7 +328562,7 @@ ENDINTERFACE.');`);
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_IXML_NODE', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_IXML_NODE                            ', 'INTERFACE if_ixml_node PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_IXML_NODE                            ', 'INTERFACE if_ixml_node PUBLIC.
   CONSTANTS:
     co_node_document      TYPE i VALUE 1,
     co_node_element       TYPE i VALUE 4,
@@ -328117,7 +328672,7 @@ ENDINTERFACE.');`);
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_IXML_NAMED_NODE_MAP', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_IXML_NAMED_NODE_MAP                  ', 'INTERFACE if_ixml_named_node_map PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_IXML_NAMED_NODE_MAP                  ', 'INTERFACE if_ixml_named_node_map PUBLIC.
   METHODS:
     create_iterator
       RETURNING VALUE(iterator) TYPE REF TO if_ixml_node_iterator,
@@ -328142,7 +328697,7 @@ ENDINTERFACE.');`);
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_IXML_ISTREAM', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_IXML_ISTREAM                         ', 'INTERFACE if_ixml_istream PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_IXML_ISTREAM                         ', 'INTERFACE if_ixml_istream PUBLIC.
   CONSTANTS dtd_allowed    TYPE i VALUE 0.
   CONSTANTS dtd_restricted TYPE i VALUE 1.
   CONSTANTS dtd_prohibited TYPE i VALUE 2.
@@ -328163,7 +328718,7 @@ ENDINTERFACE.');`);
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_IXML_ENCODING', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_IXML_ENCODING                        ', 'INTERFACE if_ixml_encoding PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_IXML_ENCODING                        ', 'INTERFACE if_ixml_encoding PUBLIC.
   CONSTANTS co_none            TYPE i VALUE 0.
   CONSTANTS co_big_endian      TYPE i VALUE 1.
   CONSTANTS co_platform_endian TYPE i VALUE 4.
@@ -328184,7 +328739,7 @@ ENDINTERFACE.');`);
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_IXML_ELEMENT', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_IXML_ELEMENT                         ', 'INTERFACE if_ixml_element PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_IXML_ELEMENT                         ', 'INTERFACE if_ixml_element PUBLIC.
   INTERFACES if_ixml_node.
 
   ALIASES remove_child FOR if_ixml_node~remove_child.
@@ -328295,7 +328850,7 @@ ENDINTERFACE.');`);
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_IXML_DOCUMENT', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_IXML_DOCUMENT                        ', 'INTERFACE if_ixml_document PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_IXML_DOCUMENT                        ', 'INTERFACE if_ixml_document PUBLIC.
   INTERFACES if_ixml_node.
 
   ALIASES create_filter_name_ns FOR if_ixml_node~create_filter_name_ns.
@@ -328415,7 +328970,7 @@ ENDINTERFACE.');`);
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_IXML_ATTRIBUTE', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_IXML_ATTRIBUTE                       ', 'INTERFACE if_ixml_attribute PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_IXML_ATTRIBUTE                       ', 'INTERFACE if_ixml_attribute PUBLIC.
   INTERFACES if_ixml_node.
 
   ALIASES get_value FOR if_ixml_node~get_value.
@@ -328425,7 +328980,7 @@ ENDINTERFACE.');`);
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_IXML', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_IXML                                 ', 'INTERFACE if_ixml PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_IXML                                 ', 'INTERFACE if_ixml PUBLIC.
   METHODS create_document
     RETURNING
       VALUE(doc) TYPE REF TO if_ixml_document.
@@ -328454,7 +329009,7 @@ ENDINTERFACE.');`);
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_IXML', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_IXML                                 ', 'CLASS cl_ixml DEFINITION PUBLIC CREATE PRIVATE.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_IXML                                 ', 'CLASS cl_ixml DEFINITION PUBLIC CREATE PRIVATE.
   PUBLIC SECTION.
     INTERFACES if_ixml.
     CLASS-METHODS
@@ -328503,7 +329058,7 @@ ENDCLASS.');`);
       VALUES ('R3TR', 'TABL', 'IHTTPNVP', '$TMP', '', 'ABC', '', '', '', 'E');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_WEB_HTTP_RESPONSE', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_WEB_HTTP_RESPONSE                    ', 'INTERFACE if_web_http_response PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_WEB_HTTP_RESPONSE                    ', 'INTERFACE if_web_http_response PUBLIC.
 
   TYPES:
     BEGIN OF http_status,
@@ -328706,7 +329261,7 @@ ENDINTERFACE.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_WEB_HTTP_REQUEST', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_WEB_HTTP_REQUEST                     ', 'INTERFACE if_web_http_request PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_WEB_HTTP_REQUEST                     ', 'INTERFACE if_web_http_request PUBLIC.
 
   TYPES:
     BEGIN OF name_value_pair,
@@ -328974,7 +329529,7 @@ ENDINTERFACE.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_HTTP_UTILITY', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_HTTP_UTILITY                         ', 'INTERFACE if_http_utility PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_HTTP_UTILITY                         ', 'INTERFACE if_http_utility PUBLIC.
 
   CLASS-METHODS string_to_fields
     IMPORTING
@@ -329027,7 +329582,7 @@ ENDINTERFACE.
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_HTTP_SERVICE_EXTENSION', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_HTTP_SERVICE_EXTENSION               ', 'INTERFACE if_http_service_extension PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_HTTP_SERVICE_EXTENSION               ', 'INTERFACE if_http_service_extension PUBLIC.
 
   METHODS handle_request
     IMPORTING
@@ -329038,7 +329593,7 @@ ENDINTERFACE.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_HTTP_SERVER', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_HTTP_SERVER                          ', 'INTERFACE if_http_server PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_HTTP_SERVER                          ', 'INTERFACE if_http_server PUBLIC.
 
   DATA response TYPE REF TO if_http_response.
   DATA request TYPE REF TO if_http_request.
@@ -329223,7 +329778,7 @@ ENDINTERFACE.
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_HTTP_RESPONSE', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_HTTP_RESPONSE                        ', 'INTERFACE if_http_response PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_HTTP_RESPONSE                        ', 'INTERFACE if_http_response PUBLIC.
 
   INTERFACES if_http_entity.
 
@@ -329333,7 +329888,7 @@ ENDINTERFACE.');`);
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_HTTP_REQUEST', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_HTTP_REQUEST                         ', 'INTERFACE if_http_request PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_HTTP_REQUEST                         ', 'INTERFACE if_http_request PUBLIC.
 
   INTERFACES if_http_entity.
 
@@ -329436,7 +329991,7 @@ ENDINTERFACE.');`);
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_HTTP_EXTENSION', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_HTTP_EXTENSION                       ', 'INTERFACE if_http_extension PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_HTTP_EXTENSION                       ', 'INTERFACE if_http_extension PUBLIC.
 
   DATA flow_rc TYPE i.
 
@@ -329448,7 +330003,7 @@ ENDINTERFACE.');`);
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_HTTP_ENTITY', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_HTTP_ENTITY                          ', 'INTERFACE if_http_entity PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_HTTP_ENTITY                          ', 'INTERFACE if_http_entity PUBLIC.
 
   CONSTANTS co_request_method_get TYPE string VALUE ''GET''.
   CONSTANTS co_request_method_post TYPE string VALUE ''POST''.
@@ -329672,7 +330227,7 @@ ENDINTERFACE.');`);
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_HTTP_CLIENT', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_HTTP_CLIENT                          ', 'INTERFACE if_http_client PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_HTTP_CLIENT                          ', 'INTERFACE if_http_client PUBLIC.
   DATA request  TYPE REF TO if_http_request.
   DATA response TYPE REF TO if_http_response.
 
@@ -329734,7 +330289,7 @@ ENDINTERFACE.');`);
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_WEB_MESSAGE_ERROR', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_WEB_MESSAGE_ERROR                    ', 'CLASS cx_web_message_error DEFINITION PUBLIC INHERITING FROM cx_dynamic_check FINAL CREATE PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_WEB_MESSAGE_ERROR                    ', 'CLASS cx_web_message_error DEFINITION PUBLIC INHERITING FROM cx_dynamic_check FINAL CREATE PUBLIC.
 
   PUBLIC SECTION.
     INTERFACES if_t100_dyn_msg.
@@ -329767,7 +330322,7 @@ ENDCLASS.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_WEB_HTTP_UTILITY', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_WEB_HTTP_UTILITY                     ', 'CLASS cl_web_http_utility DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_WEB_HTTP_UTILITY                     ', 'CLASS cl_web_http_utility DEFINITION PUBLIC.
   PUBLIC SECTION.
     CLASS-METHODS unescape_url
       IMPORTING
@@ -329851,7 +330406,7 @@ CLASS cl_web_http_utility IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_HTTP_UTILITY', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_HTTP_UTILITY                         ', 'CLASS cl_http_utility DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_HTTP_UTILITY                         ', 'CLASS cl_http_utility DEFINITION PUBLIC.
   PUBLIC SECTION.
     INTERFACES if_http_utility.
 
@@ -330015,7 +330570,7 @@ CLASS cl_http_utility IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_HTTP_SERVER', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_HTTP_SERVER                          ', 'CLASS cl_http_server DEFINITION PUBLIC CREATE PRIVATE.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_HTTP_SERVER                          ', 'CLASS cl_http_server DEFINITION PUBLIC CREATE PRIVATE.
   PUBLIC SECTION.
     INTERFACES if_http_server.
 
@@ -330125,7 +330680,7 @@ ENDCLASS.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_HTTP_ENTITY', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_HTTP_ENTITY                          ', 'CLASS cl_http_entity DEFINITION PUBLIC CREATE PUBLIC FRIENDS cl_http_client.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_HTTP_ENTITY                          ', 'CLASS cl_http_entity DEFINITION PUBLIC CREATE PUBLIC FRIENDS cl_http_client.
   PUBLIC SECTION.
     INTERFACES if_http_response.
     INTERFACES if_http_request.
@@ -330400,11 +330955,18 @@ CLASS cl_http_entity IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD if_http_entity~get_form_field.
+* the name is compared case insensitively on both sides: the setters store
+* the name as given, so lower casing only the name asked for made a field
+* whose name is not already lower case unreachable by any spelling
     DATA ls_field LIKE LINE OF mt_form_fields.
-    READ TABLE mt_form_fields INTO ls_field WITH KEY name = to_lower( name ).
-    IF sy-subrc = 0.
-      value = ls_field-value.
-    ENDIF.
+    DATA lv_name TYPE string.
+    lv_name = to_lower( name ).
+    LOOP AT mt_form_fields INTO ls_field.
+      IF to_lower( ls_field-name ) = lv_name.
+        value = ls_field-value.
+        RETURN.
+      ENDIF.
+    ENDLOOP.
   ENDMETHOD.
 
   METHOD if_http_entity~set_header_field.
@@ -330447,7 +331009,7 @@ ENDCLASS.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_HTTP_CLIENT', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_HTTP_CLIENT                          ', 'CLASS cl_http_client DEFINITION PUBLIC CREATE PRIVATE.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_HTTP_CLIENT                          ', 'CLASS cl_http_client DEFINITION PUBLIC CREATE PRIVATE.
   PUBLIC SECTION.
     INTERFACES if_http_client.
 
@@ -330704,7 +331266,7 @@ ENDCLASS.');`);
       VALUES ('R3TR', 'FUGR', 'OPENABAP', '$TMP', '', 'ABC', '', '', '', 'E');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'KERNEL_FUGR_TEST', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('KERNEL_FUGR_TEST                        ', 'CLASS kernel_fugr_test DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('KERNEL_FUGR_TEST                        ', 'CLASS kernel_fugr_test DEFINITION PUBLIC.
   PUBLIC SECTION.
 ENDCLASS.
 
@@ -330713,7 +331275,7 @@ CLASS kernel_fugr_test IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_FDT_TYPES', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_FDT_TYPES                            ', 'INTERFACE if_fdt_types PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_FDT_TYPES                            ', 'INTERFACE if_fdt_types PUBLIC.
   TYPES element_number TYPE n LENGTH 34.
   TYPES id TYPE sysuuid_c32.
   TYPES object_type TYPE c LENGTH 2.
@@ -330744,7 +331306,7 @@ ENDINTERFACE.');`);
       VALUES ('R3TR', 'DTEL', 'SCX_ATTRNAME', '$TMP', '', 'ABC', '', '', '', 'E');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_T100_MESSAGE', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_T100_MESSAGE                         ', 'INTERFACE if_t100_message PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_T100_MESSAGE                         ', 'INTERFACE if_t100_message PUBLIC.
 
   INTERFACES if_message.
 
@@ -330764,7 +331326,7 @@ ENDINTERFACE.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_T100_DYN_MSG', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_T100_DYN_MSG                         ', 'INTERFACE if_t100_dyn_msg PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_T100_DYN_MSG                         ', 'INTERFACE if_t100_dyn_msg PUBLIC.
 
   INTERFACES if_t100_message.
 
@@ -330778,7 +331340,7 @@ ENDINTERFACE.
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_MESSAGE', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_MESSAGE                              ', 'INTERFACE if_message PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_MESSAGE                              ', 'INTERFACE if_message PUBLIC.
 
   METHODS get_text RETURNING VALUE(result) TYPE string.
 
@@ -330789,7 +331351,7 @@ ENDINTERFACE.');`);
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_XSLT_SYSTEM_ERROR', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_XSLT_SYSTEM_ERROR                    ', 'CLASS cx_xslt_system_error DEFINITION PUBLIC INHERITING FROM cx_xslt_exception.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_XSLT_SYSTEM_ERROR                    ', 'CLASS cx_xslt_system_error DEFINITION PUBLIC INHERITING FROM cx_xslt_exception.
 
 ENDCLASS.
 
@@ -330798,7 +331360,7 @@ CLASS cx_xslt_system_error IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_XSLT_SERIALIZATION_ERROR', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_XSLT_SERIALIZATION_ERROR             ', 'CLASS cx_xslt_serialization_error DEFINITION PUBLIC INHERITING FROM cx_xslt_system_error.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_XSLT_SERIALIZATION_ERROR             ', 'CLASS cx_xslt_serialization_error DEFINITION PUBLIC INHERITING FROM cx_xslt_system_error.
 
 ENDCLASS.
 
@@ -330807,7 +331369,7 @@ CLASS cx_xslt_serialization_error IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_XSLT_RUNTIME_ERROR', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_XSLT_RUNTIME_ERROR                   ', 'CLASS cx_xslt_runtime_error DEFINITION PUBLIC INHERITING FROM cx_transformation_error.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_XSLT_RUNTIME_ERROR                   ', 'CLASS cx_xslt_runtime_error DEFINITION PUBLIC INHERITING FROM cx_transformation_error.
 
 ENDCLASS.
 
@@ -330816,7 +331378,7 @@ CLASS cx_xslt_runtime_error IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_XSLT_FORMAT_ERROR', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_XSLT_FORMAT_ERROR                    ', 'CLASS cx_xslt_format_error DEFINITION PUBLIC INHERITING FROM cx_xslt_system_error.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_XSLT_FORMAT_ERROR                    ', 'CLASS cx_xslt_format_error DEFINITION PUBLIC INHERITING FROM cx_xslt_system_error.
 
 ENDCLASS.
 
@@ -330825,7 +331387,7 @@ CLASS cx_xslt_format_error IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_XSLT_EXCEPTION', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_XSLT_EXCEPTION                       ', 'CLASS cx_xslt_exception DEFINITION PUBLIC INHERITING FROM cx_transformation_error.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_XSLT_EXCEPTION                       ', 'CLASS cx_xslt_exception DEFINITION PUBLIC INHERITING FROM cx_transformation_error.
 
 ENDCLASS.
 
@@ -330834,7 +331396,7 @@ CLASS cx_xslt_exception IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_TSTMP_INTERNAL_ERROR', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_TSTMP_INTERNAL_ERROR                 ', 'CLASS cx_tstmp_internal_error DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_TSTMP_INTERNAL_ERROR                 ', 'CLASS cx_tstmp_internal_error DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
 
 ENDCLASS.
 
@@ -330843,7 +331405,7 @@ CLASS cx_tstmp_internal_error IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_TRANSFORMATION_ERROR', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_TRANSFORMATION_ERROR                 ', 'CLASS cx_transformation_error DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_TRANSFORMATION_ERROR                 ', 'CLASS cx_transformation_error DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
 
 ENDCLASS.
 
@@ -330852,7 +331414,7 @@ CLASS cx_transformation_error IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_T100_MSG', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_T100_MSG                             ', 'CLASS cx_t100_msg DEFINITION PUBLIC INHERITING FROM cx_static_check.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_T100_MSG                             ', 'CLASS cx_t100_msg DEFINITION PUBLIC INHERITING FROM cx_static_check.
   PUBLIC SECTION.
     METHODS constructor
       IMPORTING
@@ -330875,7 +331437,7 @@ CLASS cx_t100_msg IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_ZERODIVIDE', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_ZERODIVIDE                        ', 'CLASS cx_sy_zerodivide DEFINITION PUBLIC INHERITING FROM cx_sy_arithmetic_error.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_ZERODIVIDE                        ', 'CLASS cx_sy_zerodivide DEFINITION PUBLIC INHERITING FROM cx_sy_arithmetic_error.
   PUBLIC SECTION.
     METHODS if_message~get_text REDEFINITION.
 ENDCLASS.
@@ -330889,7 +331451,7 @@ CLASS cx_sy_zerodivide IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_TYPE_CREATION', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_TYPE_CREATION                     ', 'CLASS cx_sy_type_creation DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_TYPE_CREATION                     ', 'CLASS cx_sy_type_creation DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
 
 ENDCLASS.
 
@@ -330898,7 +331460,7 @@ CLASS cx_sy_type_creation IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_TOO_MANY_FILES', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_TOO_MANY_FILES                    ', 'CLASS cx_sy_too_many_files DEFINITION PUBLIC INHERITING FROM cx_no_check.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_TOO_MANY_FILES                    ', 'CLASS cx_sy_too_many_files DEFINITION PUBLIC INHERITING FROM cx_no_check.
   PUBLIC SECTION.
     METHODS constructor
       IMPORTING
@@ -330916,7 +331478,7 @@ ENDCLASS.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_TABLE_CREATION', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_TABLE_CREATION                    ', 'CLASS cx_sy_table_creation DEFINITION PUBLIC INHERITING FROM cx_sy_type_creation.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_TABLE_CREATION                    ', 'CLASS cx_sy_table_creation DEFINITION PUBLIC INHERITING FROM cx_sy_type_creation.
 
 ENDCLASS.
 
@@ -330926,7 +331488,7 @@ ENDCLASS.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_STRUCT_CREATION', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_STRUCT_CREATION                   ', 'CLASS cx_sy_struct_creation DEFINITION PUBLIC INHERITING FROM cx_sy_type_creation.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_STRUCT_CREATION                   ', 'CLASS cx_sy_struct_creation DEFINITION PUBLIC INHERITING FROM cx_sy_type_creation.
 
 ENDCLASS.
 
@@ -330935,7 +331497,7 @@ CLASS cx_sy_struct_creation IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_STRUCT_COMP_TYPE', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_STRUCT_COMP_TYPE                  ', 'CLASS cx_sy_struct_comp_type DEFINITION PUBLIC INHERITING FROM cx_sy_struct_creation.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_STRUCT_COMP_TYPE                  ', 'CLASS cx_sy_struct_comp_type DEFINITION PUBLIC INHERITING FROM cx_sy_struct_creation.
 
 ENDCLASS.
 
@@ -330944,7 +331506,7 @@ CLASS cx_sy_struct_comp_type IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_STRUCT_COMP_NAME', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_STRUCT_COMP_NAME                  ', 'CLASS cx_sy_struct_comp_name DEFINITION PUBLIC INHERITING FROM cx_sy_struct_creation.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_STRUCT_COMP_NAME                  ', 'CLASS cx_sy_struct_comp_name DEFINITION PUBLIC INHERITING FROM cx_sy_struct_creation.
 
 ENDCLASS.
 
@@ -330953,7 +331515,7 @@ CLASS cx_sy_struct_comp_name IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_STRUCT_ATTRIBUTES', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_STRUCT_ATTRIBUTES                 ', 'CLASS cx_sy_struct_attributes DEFINITION PUBLIC INHERITING FROM cx_sy_struct_creation.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_STRUCT_ATTRIBUTES                 ', 'CLASS cx_sy_struct_attributes DEFINITION PUBLIC INHERITING FROM cx_sy_struct_creation.
 
 ENDCLASS.
 
@@ -330962,7 +331524,7 @@ CLASS cx_sy_struct_attributes IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_STRG_PAR_VAL', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_STRG_PAR_VAL                      ', 'CLASS cx_sy_strg_par_val DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_STRG_PAR_VAL                      ', 'CLASS cx_sy_strg_par_val DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
   PUBLIC SECTION.
 ENDCLASS.
 
@@ -330970,7 +331532,7 @@ CLASS cx_sy_strg_par_val IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_SQL_ERROR', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_SQL_ERROR                         ', 'CLASS cx_sy_sql_error DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_SQL_ERROR                         ', 'CLASS cx_sy_sql_error DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
   PUBLIC SECTION.
     DATA sqlmsg TYPE string.
 
@@ -330988,7 +331550,7 @@ CLASS cx_sy_sql_error IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_RTTI_TYPE_NOT_RELEASED', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_RTTI_TYPE_NOT_RELEASED            ', 'CLASS cx_sy_rtti_type_not_released DEFINITION PUBLIC INHERITING FROM cx_sy_rtti_no_check.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_RTTI_TYPE_NOT_RELEASED            ', 'CLASS cx_sy_rtti_type_not_released DEFINITION PUBLIC INHERITING FROM cx_sy_rtti_no_check.
   PUBLIC SECTION.
 ENDCLASS.
 
@@ -330998,7 +331560,7 @@ ENDCLASS.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_RTTI_NO_CHECK', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_RTTI_NO_CHECK                     ', 'CLASS cx_sy_rtti_no_check DEFINITION PUBLIC INHERITING FROM cx_no_check.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_RTTI_NO_CHECK                     ', 'CLASS cx_sy_rtti_no_check DEFINITION PUBLIC INHERITING FROM cx_no_check.
   PUBLIC SECTION.
 ENDCLASS.
 
@@ -331007,7 +331569,7 @@ CLASS cx_sy_rtti_no_check IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_REGEX_TOO_COMPLEX', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_REGEX_TOO_COMPLEX                 ', 'CLASS cx_sy_regex_too_complex DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_REGEX_TOO_COMPLEX                 ', 'CLASS cx_sy_regex_too_complex DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
 
 ENDCLASS.
 
@@ -331016,7 +331578,7 @@ CLASS cx_sy_regex_too_complex IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_REGEX', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_REGEX                             ', 'CLASS cx_sy_regex DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_REGEX                             ', 'CLASS cx_sy_regex DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
 
 ENDCLASS.
 
@@ -331025,7 +331587,7 @@ CLASS cx_sy_regex IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_REF_IS_INITIAL', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_REF_IS_INITIAL                    ', 'CLASS cx_sy_ref_is_initial DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_REF_IS_INITIAL                    ', 'CLASS cx_sy_ref_is_initial DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
 
 ENDCLASS.
 
@@ -331034,7 +331596,7 @@ CLASS cx_sy_ref_is_initial IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_REF_CREATION', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_REF_CREATION                      ', 'CLASS cx_sy_ref_creation DEFINITION PUBLIC INHERITING FROM cx_sy_type_creation.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_REF_CREATION                      ', 'CLASS cx_sy_ref_creation DEFINITION PUBLIC INHERITING FROM cx_sy_type_creation.
 
 ENDCLASS.
 
@@ -331043,7 +331605,7 @@ CLASS cx_sy_ref_creation IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_RANGE_OUT_OF_BOUNDS', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_RANGE_OUT_OF_BOUNDS               ', 'CLASS cx_sy_range_out_of_bounds DEFINITION PUBLIC INHERITING FROM cx_sy_data_access_error.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_RANGE_OUT_OF_BOUNDS               ', 'CLASS cx_sy_range_out_of_bounds DEFINITION PUBLIC INHERITING FROM cx_sy_data_access_error.
 
   PUBLIC SECTION.
     METHODS if_message~get_text REDEFINITION.
@@ -331059,7 +331621,7 @@ CLASS cx_sy_range_out_of_bounds IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_PIPES_NOT_SUPPORTED', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_PIPES_NOT_SUPPORTED               ', 'CLASS cx_sy_pipes_not_supported DEFINITION PUBLIC INHERITING FROM cx_no_check.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_PIPES_NOT_SUPPORTED               ', 'CLASS cx_sy_pipes_not_supported DEFINITION PUBLIC INHERITING FROM cx_no_check.
   PUBLIC SECTION.
     METHODS constructor
       IMPORTING
@@ -331077,7 +331639,7 @@ ENDCLASS.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_OPEN_SQL_ERROR', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_OPEN_SQL_ERROR                    ', 'CLASS cx_sy_open_sql_error DEFINITION PUBLIC INHERITING FROM cx_sy_sql_error.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_OPEN_SQL_ERROR                    ', 'CLASS cx_sy_open_sql_error DEFINITION PUBLIC INHERITING FROM cx_sy_sql_error.
   PUBLIC SECTION.
     METHODS constructor
       IMPORTING
@@ -331094,7 +331656,7 @@ CLASS cx_sy_open_sql_error IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_OPEN_SQL_DB', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_OPEN_SQL_DB                       ', 'CLASS cx_sy_open_sql_db DEFINITION PUBLIC INHERITING FROM cx_sy_open_sql_error.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_OPEN_SQL_DB                       ', 'CLASS cx_sy_open_sql_db DEFINITION PUBLIC INHERITING FROM cx_sy_open_sql_error.
   PUBLIC SECTION.
     METHODS constructor
       IMPORTING
@@ -331108,7 +331670,7 @@ CLASS cx_sy_open_sql_db IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_NO_HANDLER', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_NO_HANDLER                        ', 'CLASS cx_sy_no_handler DEFINITION PUBLIC INHERITING FROM cx_no_check FINAL CREATE PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_NO_HANDLER                        ', 'CLASS cx_sy_no_handler DEFINITION PUBLIC INHERITING FROM cx_no_check FINAL CREATE PUBLIC.
   PUBLIC SECTION.
     CONSTANTS cx_sy_no_handler TYPE sotr_conc VALUE ''CX_SY_NO_HANDLER''.
 ENDCLASS.
@@ -331118,7 +331680,7 @@ CLASS cx_sy_no_handler IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_NATIVE_SQL_ERROR', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_NATIVE_SQL_ERROR                  ', 'CLASS cx_sy_native_sql_error DEFINITION PUBLIC INHERITING FROM cx_sy_sql_error.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_NATIVE_SQL_ERROR                  ', 'CLASS cx_sy_native_sql_error DEFINITION PUBLIC INHERITING FROM cx_sy_sql_error.
   PUBLIC SECTION.
     DATA sqlcode TYPE i.
 
@@ -331140,7 +331702,7 @@ ENDCLASS.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_MOVE_CAST_ERROR', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_MOVE_CAST_ERROR                   ', 'CLASS cx_sy_move_cast_error DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_MOVE_CAST_ERROR                   ', 'CLASS cx_sy_move_cast_error DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
 
   PUBLIC SECTION.
     METHODS if_message~get_text REDEFINITION.
@@ -331156,7 +331718,7 @@ CLASS cx_sy_move_cast_error IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_MESSAGE_ILLEGAL_TEXT', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_MESSAGE_ILLEGAL_TEXT              ', 'CLASS cx_sy_message_illegal_text DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_MESSAGE_ILLEGAL_TEXT              ', 'CLASS cx_sy_message_illegal_text DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
   PUBLIC SECTION.
 ENDCLASS.
 
@@ -331165,7 +331727,7 @@ CLASS cx_sy_message_illegal_text IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_ITAB_LINE_NOT_FOUND', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_ITAB_LINE_NOT_FOUND               ', 'CLASS cx_sy_itab_line_not_found DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_ITAB_LINE_NOT_FOUND               ', 'CLASS cx_sy_itab_line_not_found DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
 
 ENDCLASS.
 
@@ -331174,7 +331736,7 @@ CLASS cx_sy_itab_line_not_found IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_ITAB_ERROR', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_ITAB_ERROR                        ', 'CLASS cx_sy_itab_error DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_ITAB_ERROR                        ', 'CLASS cx_sy_itab_error DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
 
 ENDCLASS.
 
@@ -331183,7 +331745,7 @@ CLASS cx_sy_itab_error IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_ITAB_DUPLICATE_KEY', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_ITAB_DUPLICATE_KEY                ', 'CLASS cx_sy_itab_duplicate_key DEFINITION PUBLIC INHERITING FROM cx_sy_itab_error.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_ITAB_DUPLICATE_KEY                ', 'CLASS cx_sy_itab_duplicate_key DEFINITION PUBLIC INHERITING FROM cx_sy_itab_error.
 
 ENDCLASS.
 
@@ -331192,7 +331754,7 @@ CLASS cx_sy_itab_duplicate_key IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_INVALID_REGEX', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_INVALID_REGEX                     ', 'CLASS cx_sy_invalid_regex DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_INVALID_REGEX                     ', 'CLASS cx_sy_invalid_regex DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
 
 ENDCLASS.
 
@@ -331201,7 +331763,7 @@ CLASS cx_sy_invalid_regex IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_IMPORT_MISMATCH_ERROR', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_IMPORT_MISMATCH_ERROR             ', 'CLASS cx_sy_import_mismatch_error DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_IMPORT_MISMATCH_ERROR             ', 'CLASS cx_sy_import_mismatch_error DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
 
 ENDCLASS.
 
@@ -331210,7 +331772,7 @@ CLASS cx_sy_import_mismatch_error IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_IMPORT_FORMAT_ERROR', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_IMPORT_FORMAT_ERROR               ', 'CLASS cx_sy_import_format_error DEFINITION PUBLIC INHERITING FROM cx_sy_import_mismatch_error.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_IMPORT_FORMAT_ERROR               ', 'CLASS cx_sy_import_format_error DEFINITION PUBLIC INHERITING FROM cx_sy_import_mismatch_error.
 
 ENDCLASS.
 
@@ -331219,7 +331781,7 @@ CLASS cx_sy_import_format_error IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_FIND_INFINITE_LOOP', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_FIND_INFINITE_LOOP                ', 'CLASS cx_sy_find_infinite_loop DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_FIND_INFINITE_LOOP                ', 'CLASS cx_sy_find_infinite_loop DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
 
 ENDCLASS.
 
@@ -331228,7 +331790,7 @@ CLASS cx_sy_find_infinite_loop IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_FILE_OPEN_MODE', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_FILE_OPEN_MODE                    ', 'CLASS cx_sy_file_open_mode DEFINITION PUBLIC INHERITING FROM cx_sy_file_access_error.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_FILE_OPEN_MODE                    ', 'CLASS cx_sy_file_open_mode DEFINITION PUBLIC INHERITING FROM cx_sy_file_access_error.
   PUBLIC SECTION.
     DATA operation TYPE string.
 
@@ -331250,7 +331812,7 @@ ENDCLASS.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_FILE_OPEN', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_FILE_OPEN                         ', 'CLASS cx_sy_file_open DEFINITION PUBLIC INHERITING FROM cx_sy_file_access_error.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_FILE_OPEN                         ', 'CLASS cx_sy_file_open DEFINITION PUBLIC INHERITING FROM cx_sy_file_access_error.
   PUBLIC SECTION.
     METHODS constructor
       IMPORTING
@@ -331268,7 +331830,7 @@ ENDCLASS.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_FILE_IO', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_FILE_IO                           ', 'CLASS cx_sy_file_io DEFINITION PUBLIC INHERITING FROM cx_sy_file_access_error.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_FILE_IO                           ', 'CLASS cx_sy_file_io DEFINITION PUBLIC INHERITING FROM cx_sy_file_access_error.
   PUBLIC SECTION.
     METHODS constructor
       IMPORTING
@@ -331286,7 +331848,7 @@ ENDCLASS.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_FILE_CLOSE', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_FILE_CLOSE                        ', 'CLASS cx_sy_file_close DEFINITION PUBLIC INHERITING FROM cx_sy_file_access_error.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_FILE_CLOSE                        ', 'CLASS cx_sy_file_close DEFINITION PUBLIC INHERITING FROM cx_sy_file_access_error.
   PUBLIC SECTION.
     METHODS constructor
       IMPORTING
@@ -331304,7 +331866,7 @@ ENDCLASS.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_FILE_AUTHORITY', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_FILE_AUTHORITY                    ', 'CLASS cx_sy_file_authority DEFINITION PUBLIC INHERITING FROM cx_sy_file_access_error.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_FILE_AUTHORITY                    ', 'CLASS cx_sy_file_authority DEFINITION PUBLIC INHERITING FROM cx_sy_file_access_error.
   PUBLIC SECTION.
     DATA operation TYPE string.
 
@@ -331326,7 +331888,7 @@ ENDCLASS.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_FILE_ACCESS_ERROR', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_FILE_ACCESS_ERROR                 ', 'CLASS cx_sy_file_access_error DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_FILE_ACCESS_ERROR                 ', 'CLASS cx_sy_file_access_error DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
   PUBLIC SECTION.
     DATA filename TYPE string.
 
@@ -331345,7 +331907,7 @@ ENDCLASS.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_DYNAMIC_OSQL_SYNTAX', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_DYNAMIC_OSQL_SYNTAX               ', 'CLASS cx_sy_dynamic_osql_syntax DEFINITION PUBLIC INHERITING FROM cx_sy_dynamic_osql_error.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_DYNAMIC_OSQL_SYNTAX               ', 'CLASS cx_sy_dynamic_osql_syntax DEFINITION PUBLIC INHERITING FROM cx_sy_dynamic_osql_error.
   PUBLIC SECTION.
     DATA token TYPE string.
 
@@ -331367,7 +331929,7 @@ ENDCLASS.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_DYNAMIC_OSQL_SEMANTICS', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_DYNAMIC_OSQL_SEMANTICS            ', 'CLASS cx_sy_dynamic_osql_semantics DEFINITION PUBLIC INHERITING FROM cx_sy_dynamic_osql_error.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_DYNAMIC_OSQL_SEMANTICS            ', 'CLASS cx_sy_dynamic_osql_semantics DEFINITION PUBLIC INHERITING FROM cx_sy_dynamic_osql_error.
   PUBLIC SECTION.
 
   CONSTANTS unknown_table_name TYPE sotr_conc VALUE ''11111111111111111111111111111111''.
@@ -331388,7 +331950,7 @@ CLASS cx_sy_dynamic_osql_semantics IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_DYNAMIC_OSQL_ERROR', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_DYNAMIC_OSQL_ERROR                ', 'CLASS cx_sy_dynamic_osql_error DEFINITION PUBLIC INHERITING FROM cx_sy_open_sql_error.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_DYNAMIC_OSQL_ERROR                ', 'CLASS cx_sy_dynamic_osql_error DEFINITION PUBLIC INHERITING FROM cx_sy_open_sql_error.
   PUBLIC SECTION.
     METHODS constructor
       IMPORTING
@@ -331405,7 +331967,7 @@ CLASS cx_sy_dynamic_osql_error IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_DYN_CALL_PARAMETER_ERROR', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_DYN_CALL_PARAMETER_ERROR          ', 'CLASS cx_sy_dyn_call_parameter_error DEFINITION PUBLIC INHERITING FROM cx_sy_dyn_call_error.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_DYN_CALL_PARAMETER_ERROR          ', 'CLASS cx_sy_dyn_call_parameter_error DEFINITION PUBLIC INHERITING FROM cx_sy_dyn_call_error.
   PUBLIC SECTION.
     DATA parameter TYPE string.
 ENDCLASS.
@@ -331415,7 +331977,7 @@ CLASS cx_sy_dyn_call_parameter_error IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_DYN_CALL_PARAM_NOT_FOUND', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_DYN_CALL_PARAM_NOT_FOUND          ', 'CLASS cx_sy_dyn_call_param_not_found DEFINITION PUBLIC INHERITING FROM cx_sy_dyn_call_parameter_error.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_DYN_CALL_PARAM_NOT_FOUND          ', 'CLASS cx_sy_dyn_call_param_not_found DEFINITION PUBLIC INHERITING FROM cx_sy_dyn_call_parameter_error.
 
 ENDCLASS.
 
@@ -331424,7 +331986,7 @@ CLASS cx_sy_dyn_call_param_not_found IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_DYN_CALL_ILLEGAL_TYPE', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_DYN_CALL_ILLEGAL_TYPE             ', 'CLASS cx_sy_dyn_call_illegal_type DEFINITION PUBLIC INHERITING FROM cx_sy_dyn_call_parameter_error.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_DYN_CALL_ILLEGAL_TYPE             ', 'CLASS cx_sy_dyn_call_illegal_type DEFINITION PUBLIC INHERITING FROM cx_sy_dyn_call_parameter_error.
   PUBLIC SECTION.
 ENDCLASS.
 
@@ -331433,7 +331995,7 @@ CLASS cx_sy_dyn_call_illegal_type IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_DYN_CALL_ILLEGAL_METHOD', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_DYN_CALL_ILLEGAL_METHOD           ', 'CLASS cx_sy_dyn_call_illegal_method DEFINITION PUBLIC INHERITING FROM cx_sy_dyn_call_error.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_DYN_CALL_ILLEGAL_METHOD           ', 'CLASS cx_sy_dyn_call_illegal_method DEFINITION PUBLIC INHERITING FROM cx_sy_dyn_call_error.
 
   PUBLIC SECTION.
     CONSTANTS private_method TYPE sotr_conc VALUE ''11111111111111111111111111111111''.
@@ -331456,7 +332018,7 @@ CLASS cx_sy_dyn_call_illegal_method IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_DYN_CALL_ILLEGAL_FUNC', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_DYN_CALL_ILLEGAL_FUNC             ', 'CLASS cx_sy_dyn_call_illegal_func DEFINITION PUBLIC INHERITING FROM cx_sy_dyn_call_error.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_DYN_CALL_ILLEGAL_FUNC             ', 'CLASS cx_sy_dyn_call_illegal_func DEFINITION PUBLIC INHERITING FROM cx_sy_dyn_call_error.
 
   PUBLIC SECTION.
     METHODS constructor
@@ -331479,7 +332041,7 @@ CLASS cx_sy_dyn_call_illegal_func IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_DYN_CALL_ILLEGAL_FORM', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_DYN_CALL_ILLEGAL_FORM             ', 'CLASS cx_sy_dyn_call_illegal_form DEFINITION PUBLIC INHERITING FROM cx_sy_dyn_call_error.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_DYN_CALL_ILLEGAL_FORM             ', 'CLASS cx_sy_dyn_call_illegal_form DEFINITION PUBLIC INHERITING FROM cx_sy_dyn_call_error.
 
 ENDCLASS.
 
@@ -331488,7 +332050,7 @@ CLASS cx_sy_dyn_call_illegal_form IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_DYN_CALL_ILLEGAL_CLASS', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_DYN_CALL_ILLEGAL_CLASS            ', 'CLASS cx_sy_dyn_call_illegal_class DEFINITION PUBLIC INHERITING FROM cx_sy_dyn_call_error.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_DYN_CALL_ILLEGAL_CLASS            ', 'CLASS cx_sy_dyn_call_illegal_class DEFINITION PUBLIC INHERITING FROM cx_sy_dyn_call_error.
 
 ENDCLASS.
 
@@ -331497,7 +332059,7 @@ CLASS cx_sy_dyn_call_illegal_class IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_DYN_CALL_ERROR', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_DYN_CALL_ERROR                    ', 'CLASS cx_sy_dyn_call_error DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_DYN_CALL_ERROR                    ', 'CLASS cx_sy_dyn_call_error DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
 
   PUBLIC SECTION.
     DATA function TYPE string READ-ONLY.
@@ -331522,7 +332084,7 @@ CLASS cx_sy_dyn_call_error IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_DUPLICATE_KEY', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_DUPLICATE_KEY                     ', 'CLASS cx_sy_duplicate_key DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_DUPLICATE_KEY                     ', 'CLASS cx_sy_duplicate_key DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
 
 ENDCLASS.
 
@@ -331531,7 +332093,7 @@ CLASS cx_sy_duplicate_key IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_DATA_ACCESS_ERROR', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_DATA_ACCESS_ERROR                 ', 'CLASS cx_sy_data_access_error DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_DATA_ACCESS_ERROR                 ', 'CLASS cx_sy_data_access_error DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
 
 ENDCLASS.
 
@@ -331540,7 +332102,7 @@ CLASS cx_sy_data_access_error IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_CREATE_OBJECT_ERROR', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_CREATE_OBJECT_ERROR               ', 'CLASS cx_sy_create_object_error DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_CREATE_OBJECT_ERROR               ', 'CLASS cx_sy_create_object_error DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
   PUBLIC SECTION.
     METHODS constructor
       IMPORTING
@@ -331569,7 +332131,7 @@ CLASS cx_sy_create_object_error IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_CREATE_DATA_ERROR', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_CREATE_DATA_ERROR                 ', 'CLASS cx_sy_create_data_error DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_CREATE_DATA_ERROR                 ', 'CLASS cx_sy_create_data_error DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
 
 ENDCLASS.
 
@@ -331578,7 +332140,7 @@ CLASS cx_sy_create_data_error IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_CONVERSION_OVERFLOW', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_CONVERSION_OVERFLOW               ', 'CLASS cx_sy_conversion_overflow DEFINITION PUBLIC INHERITING FROM cx_sy_conversion_error.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_CONVERSION_OVERFLOW               ', 'CLASS cx_sy_conversion_overflow DEFINITION PUBLIC INHERITING FROM cx_sy_conversion_error.
   PUBLIC SECTION.
     METHODS constructor
       IMPORTING
@@ -331596,7 +332158,7 @@ CLASS cx_sy_conversion_overflow IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_CONVERSION_NO_NUMBER', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_CONVERSION_NO_NUMBER              ', 'CLASS cx_sy_conversion_no_number DEFINITION PUBLIC INHERITING FROM cx_sy_conversion_error.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_CONVERSION_NO_NUMBER              ', 'CLASS cx_sy_conversion_no_number DEFINITION PUBLIC INHERITING FROM cx_sy_conversion_error.
 
   PUBLIC SECTION.
     METHODS if_message~get_text REDEFINITION.
@@ -331612,7 +332174,7 @@ CLASS cx_sy_conversion_no_number IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_CONVERSION_NO_DATE_TIME', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_CONVERSION_NO_DATE_TIME           ', 'CLASS cx_sy_conversion_no_date_time DEFINITION PUBLIC INHERITING FROM cx_sy_conversion_error.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_CONVERSION_NO_DATE_TIME           ', 'CLASS cx_sy_conversion_no_date_time DEFINITION PUBLIC INHERITING FROM cx_sy_conversion_error.
 
 ENDCLASS.
 
@@ -331621,7 +332183,7 @@ CLASS cx_sy_conversion_no_date_time IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_CONVERSION_ERROR', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_CONVERSION_ERROR                  ', 'CLASS cx_sy_conversion_error DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_CONVERSION_ERROR                  ', 'CLASS cx_sy_conversion_error DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
 
 ENDCLASS.
 
@@ -331630,7 +332192,7 @@ CLASS cx_sy_conversion_error IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_CONVERSION_DATA_LOSS', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_CONVERSION_DATA_LOSS              ', 'CLASS cx_sy_conversion_data_loss DEFINITION PUBLIC INHERITING FROM cx_sy_conversion_error.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_CONVERSION_DATA_LOSS              ', 'CLASS cx_sy_conversion_data_loss DEFINITION PUBLIC INHERITING FROM cx_sy_conversion_error.
 
 ENDCLASS.
 
@@ -331639,7 +332201,7 @@ CLASS cx_sy_conversion_data_loss IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_CONVERSION_CODEPAGE', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_CONVERSION_CODEPAGE               ', 'CLASS cx_sy_conversion_codepage DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_CONVERSION_CODEPAGE               ', 'CLASS cx_sy_conversion_codepage DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
   PUBLIC SECTION.
     DATA source_extract TYPE xstring.
 ENDCLASS.
@@ -331649,7 +332211,7 @@ CLASS cx_sy_conversion_codepage IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_COMPRESSION_ERROR', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_COMPRESSION_ERROR                 ', 'CLASS cx_sy_compression_error DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_COMPRESSION_ERROR                 ', 'CLASS cx_sy_compression_error DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
 
 ENDCLASS.
 
@@ -331658,7 +332220,7 @@ CLASS cx_sy_compression_error IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_CODEPAGE_CONVERTER_INIT', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_CODEPAGE_CONVERTER_INIT           ', 'CLASS cx_sy_codepage_converter_init DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_CODEPAGE_CONVERTER_INIT           ', 'CLASS cx_sy_codepage_converter_init DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
 
 ENDCLASS.
 
@@ -331667,7 +332229,7 @@ CLASS cx_sy_codepage_converter_init IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_BUFFER_OVERFLOW', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_BUFFER_OVERFLOW                   ', 'CLASS cx_sy_buffer_overflow DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_BUFFER_OVERFLOW                   ', 'CLASS cx_sy_buffer_overflow DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
 
 ENDCLASS.
 
@@ -331676,7 +332238,7 @@ CLASS cx_sy_buffer_overflow IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_AUTHORIZATION_ERROR', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_AUTHORIZATION_ERROR               ', 'CLASS cx_sy_authorization_error DEFINITION ABSTRACT PUBLIC INHERITING FROM cx_no_check.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_AUTHORIZATION_ERROR               ', 'CLASS cx_sy_authorization_error DEFINITION ABSTRACT PUBLIC INHERITING FROM cx_no_check.
 
 ENDCLASS.
 
@@ -331685,7 +332247,7 @@ CLASS cx_sy_authorization_error IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_ASSIGN_ERROR', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_ASSIGN_ERROR                      ', 'CLASS cx_sy_assign_error DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_ASSIGN_ERROR                      ', 'CLASS cx_sy_assign_error DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
   PUBLIC SECTION.
     METHODS constructor
       IMPORTING
@@ -331700,7 +332262,7 @@ ENDCLASS.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_ARITHMETIC_OVERFLOW', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_ARITHMETIC_OVERFLOW               ', 'CLASS cx_sy_arithmetic_overflow DEFINITION PUBLIC INHERITING FROM cx_sy_arithmetic_error.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_ARITHMETIC_OVERFLOW               ', 'CLASS cx_sy_arithmetic_overflow DEFINITION PUBLIC INHERITING FROM cx_sy_arithmetic_error.
 
   PUBLIC SECTION.
     METHODS if_message~get_text REDEFINITION.
@@ -331716,7 +332278,7 @@ CLASS cx_sy_arithmetic_overflow IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_ARITHMETIC_ERROR', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_ARITHMETIC_ERROR                  ', 'CLASS cx_sy_arithmetic_error DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_ARITHMETIC_ERROR                  ', 'CLASS cx_sy_arithmetic_error DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
 
 ENDCLASS.
 
@@ -331725,7 +332287,7 @@ CLASS cx_sy_arithmetic_error IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SY_ARG_OUT_OF_DOMAIN', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SY_ARG_OUT_OF_DOMAIN                 ', 'CLASS cx_sy_arg_out_of_domain DEFINITION PUBLIC INHERITING FROM cx_sy_arithmetic_error.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SY_ARG_OUT_OF_DOMAIN                 ', 'CLASS cx_sy_arg_out_of_domain DEFINITION PUBLIC INHERITING FROM cx_sy_arithmetic_error.
 
 ENDCLASS.
 
@@ -331734,7 +332296,7 @@ CLASS cx_sy_arg_out_of_domain IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_STATIC_CHECK', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_STATIC_CHECK                         ', 'CLASS cx_static_check DEFINITION PUBLIC INHERITING FROM cx_root ABSTRACT.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_STATIC_CHECK                         ', 'CLASS cx_static_check DEFINITION PUBLIC INHERITING FROM cx_root ABSTRACT.
 
   PUBLIC SECTION.
     METHODS constructor
@@ -331754,7 +332316,7 @@ CLASS cx_static_check IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_ST_ERROR', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_ST_ERROR                             ', 'CLASS cx_st_error DEFINITION PUBLIC INHERITING FROM cx_transformation_error.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_ST_ERROR                             ', 'CLASS cx_st_error DEFINITION PUBLIC INHERITING FROM cx_transformation_error.
 
 ENDCLASS.
 
@@ -331763,7 +332325,7 @@ CLASS cx_st_error IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_ROOT', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_ROOT                                 ', 'CLASS cx_root DEFINITION ABSTRACT PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_ROOT                                 ', 'CLASS cx_root DEFINITION ABSTRACT PUBLIC.
   PUBLIC SECTION.
     DATA previous     TYPE REF TO cx_root READ-ONLY.
     DATA textid       TYPE c LENGTH 32 READ-ONLY.
@@ -331818,7 +332380,7 @@ ENDCLASS.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_PARAMETER_INVALID_TYPE', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_PARAMETER_INVALID_TYPE               ', 'CLASS cx_parameter_invalid_type DEFINITION PUBLIC INHERITING FROM cx_parameter_invalid.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_PARAMETER_INVALID_TYPE               ', 'CLASS cx_parameter_invalid_type DEFINITION PUBLIC INHERITING FROM cx_parameter_invalid.
 
 ENDCLASS.
 
@@ -331827,7 +332389,7 @@ CLASS cx_parameter_invalid_type IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_PARAMETER_INVALID_RANGE', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_PARAMETER_INVALID_RANGE              ', 'CLASS cx_parameter_invalid_range DEFINITION PUBLIC INHERITING FROM cx_parameter_invalid.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_PARAMETER_INVALID_RANGE              ', 'CLASS cx_parameter_invalid_range DEFINITION PUBLIC INHERITING FROM cx_parameter_invalid.
   PUBLIC SECTION.
     METHODS constructor
       IMPORTING
@@ -331847,7 +332409,7 @@ CLASS cx_parameter_invalid_range IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_PARAMETER_INVALID', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_PARAMETER_INVALID                    ', 'CLASS cx_parameter_invalid DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_PARAMETER_INVALID                    ', 'CLASS cx_parameter_invalid DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
   PUBLIC SECTION.
     DATA parameter TYPE string.
 
@@ -331869,7 +332431,7 @@ CLASS cx_parameter_invalid IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_NO_CHECK', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_NO_CHECK                             ', 'CLASS cx_no_check DEFINITION PUBLIC INHERITING FROM cx_root.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_NO_CHECK                             ', 'CLASS cx_no_check DEFINITION PUBLIC INHERITING FROM cx_root.
 
   PUBLIC SECTION.
     METHODS constructor
@@ -331890,7 +332452,7 @@ CLASS cx_no_check IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_DYNAMIC_CHECK', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_DYNAMIC_CHECK                        ', 'CLASS cx_dynamic_check DEFINITION ABSTRACT PUBLIC INHERITING FROM cx_root.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_DYNAMIC_CHECK                        ', 'CLASS cx_dynamic_check DEFINITION ABSTRACT PUBLIC INHERITING FROM cx_root.
 
 ENDCLASS.
 
@@ -331899,7 +332461,7 @@ CLASS cx_dynamic_check IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_ABAP_INVALID_VALUE', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_ABAP_INVALID_VALUE                   ', 'CLASS cx_abap_invalid_value DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_ABAP_INVALID_VALUE                   ', 'CLASS cx_abap_invalid_value DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
   PUBLIC SECTION.
     DATA value TYPE string.
 
@@ -331922,7 +332484,7 @@ ENDCLASS.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_ABAP_CONTEXT_INFO_ERROR', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_ABAP_CONTEXT_INFO_ERROR              ', 'CLASS cx_abap_context_info_error DEFINITION PUBLIC INHERITING FROM cx_static_check.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_ABAP_CONTEXT_INFO_ERROR              ', 'CLASS cx_abap_context_info_error DEFINITION PUBLIC INHERITING FROM cx_static_check.
 
 ENDCLASS.
 
@@ -331932,7 +332494,7 @@ ENDCLASS.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_DEMO_OUTPUT', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_DEMO_OUTPUT                          ', 'INTERFACE if_demo_output PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_DEMO_OUTPUT                          ', 'INTERFACE if_demo_output PUBLIC.
 
   METHODS write
     IMPORTING
@@ -331951,7 +332513,7 @@ ENDCLASS.
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_DEMO_OUTPUT', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_DEMO_OUTPUT                          ', 'CLASS cl_demo_output DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_DEMO_OUTPUT                          ', 'CLASS cl_demo_output DEFINITION PUBLIC.
   PUBLIC SECTION.
     INTERFACES if_demo_output.
 
@@ -332243,6 +332805,8 @@ ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'DOMA', 'DDOPTION', '$TMP', '', 'ABC', '', '', '', 'E');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
+      VALUES ('R3TR', 'DTEL', 'DATUM', '$TMP', '', 'ABC', '', '', '', 'E');`);
+  insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'DTEL', 'CONFIG_DEPRECATION_CODE', '$TMP', '', 'ABC', '', '', '', 'E');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'DTEL', 'CHAR64', '$TMP', '', 'ABC', '', '', '', 'E');`);
@@ -332430,7 +332994,7 @@ ENDCLASS.');`);
       VALUES ('R3TR', 'DOMA', 'CHAR61', '$TMP', '', 'ABC', '', '', '', 'E');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_ABAP_TIMEFM_INVALID', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_ABAP_TIMEFM_INVALID                  ', 'CLASS cx_abap_timefm_invalid DEFINITION PUBLIC INHERITING FROM cx_static_check.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_ABAP_TIMEFM_INVALID                  ', 'CLASS cx_abap_timefm_invalid DEFINITION PUBLIC INHERITING FROM cx_static_check.
 
 ENDCLASS.
 
@@ -332439,7 +333003,7 @@ CLASS cx_abap_timefm_invalid IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_ABAP_DATFM', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_ABAP_DATFM                           ', 'CLASS cx_abap_datfm DEFINITION PUBLIC INHERITING FROM cx_static_check.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_ABAP_DATFM                           ', 'CLASS cx_abap_datfm DEFINITION PUBLIC INHERITING FROM cx_static_check.
 
 ENDCLASS.
 
@@ -332448,7 +333012,7 @@ CLASS cx_abap_datfm IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_ABAP_TSTMP', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_ABAP_TSTMP                           ', 'CLASS cl_abap_tstmp DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_ABAP_TSTMP                           ', 'CLASS cl_abap_tstmp DEFINITION PUBLIC.
   PUBLIC SECTION.
     TYPES operation_mode TYPE c LENGTH 1.
     CONSTANTS:
@@ -332735,7 +333299,7 @@ ENDCLASS.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_ABAP_TIMEFM', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_ABAP_TIMEFM                          ', 'CLASS cl_abap_timefm DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_ABAP_TIMEFM                          ', 'CLASS cl_abap_timefm DEFINITION PUBLIC.
   PUBLIC SECTION.
     TYPES ty_format TYPE i.
     TYPES ty_timefm TYPE c LENGTH 1.
@@ -332795,7 +333359,7 @@ CLASS cl_abap_timefm IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_ABAP_DATFM', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_ABAP_DATFM                           ', 'CLASS cl_abap_datfm DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_ABAP_DATFM                           ', 'CLASS cl_abap_datfm DEFINITION PUBLIC.
   PUBLIC SECTION.
     CLASS-METHODS conv_date_ext_to_int
       IMPORTING
@@ -332878,11 +333442,13 @@ CLASS cl_abap_datfm IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_ABAP_CONTEXT_INFO', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_ABAP_CONTEXT_INFO                    ', 'CLASS cl_abap_context_info DEFINITION PUBLIC FINAL CREATE PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_ABAP_CONTEXT_INFO                    ', 'CLASS cl_abap_context_info DEFINITION PUBLIC FINAL CREATE PUBLIC.
   PUBLIC SECTION.
     TYPES ty_system_date TYPE d.
     TYPES ty_system_time TYPE t.
     TYPES ty_user_alias TYPE c LENGTH 40.
+    TYPES ty_user_name TYPE c LENGTH 12.
+    TYPES ty_language_key TYPE c LENGTH 1.
 
     CLASS-METHODS get_system_date
       RETURNING
@@ -332905,6 +333471,15 @@ ENDCLASS.');`);
     CLASS-METHODS get_user_technical_name
       RETURNING
         VALUE(rv_technical_name) TYPE string.
+
+    CLASS-METHODS get_user_language_abap_format
+      IMPORTING
+        iv_buser           TYPE ty_user_name OPTIONAL
+      RETURNING
+        VALUE(rv_language) TYPE ty_language_key
+      RAISING
+        cx_abap_context_info_error.
+
 ENDCLASS.
 
 CLASS cl_abap_context_info IMPLEMENTATION.
@@ -332928,11 +333503,15 @@ CLASS cl_abap_context_info IMPLEMENTATION.
     rv_alias = sy-uname.
   ENDMETHOD.
 
+  METHOD get_user_language_abap_format.
+    rv_language = sy-langu.
+  ENDMETHOD.
+
 ENDCLASS.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_ABAP_CONV_OUT', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_ABAP_CONV_OUT                        ', 'INTERFACE if_abap_conv_out PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_ABAP_CONV_OUT                        ', 'INTERFACE if_abap_conv_out PUBLIC.
 
   METHODS convert
     IMPORTING
@@ -332945,7 +333524,7 @@ ENDCLASS.
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_ABAP_CONV_IN', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_ABAP_CONV_IN                         ', 'INTERFACE if_abap_conv_in PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_ABAP_CONV_IN                         ', 'INTERFACE if_abap_conv_in PUBLIC.
 
   METHODS convert
     IMPORTING
@@ -332958,7 +333537,7 @@ ENDINTERFACE.');`);
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_GDT_CONVERSION', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_GDT_CONVERSION                       ', 'CLASS cx_gdt_conversion DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_GDT_CONVERSION                       ', 'CLASS cx_gdt_conversion DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
 
 ENDCLASS.
 
@@ -332967,7 +333546,7 @@ CLASS cx_gdt_conversion IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_GDT_CONVERSION', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_GDT_CONVERSION                       ', 'CLASS cl_gdt_conversion DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_GDT_CONVERSION                       ', 'CLASS cl_gdt_conversion DEFINITION PUBLIC.
 
   PUBLIC SECTION.
     CLASS-METHODS language_code_outbound
@@ -333122,7 +333701,7 @@ ENDCLASS.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_ABAP_CONV_OUT_CE', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_ABAP_CONV_OUT_CE                     ', 'CLASS cl_abap_conv_out_ce DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_ABAP_CONV_OUT_CE                     ', 'CLASS cl_abap_conv_out_ce DEFINITION PUBLIC.
   PUBLIC SECTION.
     CLASS-METHODS
       create
@@ -333252,7 +333831,7 @@ CLASS cl_abap_conv_out_ce IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_ABAP_CONV_IN_CE', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_ABAP_CONV_IN_CE                      ', 'CLASS cl_abap_conv_in_ce DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_ABAP_CONV_IN_CE                      ', 'CLASS cl_abap_conv_in_ce DEFINITION PUBLIC.
   PUBLIC SECTION.
     CLASS-METHODS
       create
@@ -333397,7 +333976,7 @@ CLASS cl_abap_conv_in_ce IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_ABAP_CONV_CODEPAGE', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_ABAP_CONV_CODEPAGE                   ', 'CLASS cl_abap_conv_codepage DEFINITION PUBLIC FINAL CREATE PRIVATE.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_ABAP_CONV_CODEPAGE                   ', 'CLASS cl_abap_conv_codepage DEFINITION PUBLIC FINAL CREATE PRIVATE.
 
   PUBLIC SECTION.
 
@@ -333432,7 +334011,7 @@ CLASS cl_abap_conv_codepage IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_ABAP_CODEPAGE', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_ABAP_CODEPAGE                        ', 'CLASS cl_abap_codepage DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_ABAP_CODEPAGE                        ', 'CLASS cl_abap_codepage DEFINITION PUBLIC.
   PUBLIC SECTION.
     CLASS-METHODS convert_to
       IMPORTING
@@ -333479,7 +334058,7 @@ CLASS cl_abap_codepage IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_OO_ADT_CLASSRUN_OUT', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_OO_ADT_CLASSRUN_OUT                  ', 'INTERFACE if_oo_adt_classrun_out PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_OO_ADT_CLASSRUN_OUT                  ', 'INTERFACE if_oo_adt_classrun_out PUBLIC.
 
   METHODS write
     IMPORTING
@@ -333498,12 +334077,12 @@ ENDCLASS.');`);
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_OO_ADT_CLASSRUN', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_OO_ADT_CLASSRUN                      ', 'INTERFACE if_oo_adt_classrun PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_OO_ADT_CLASSRUN                      ', 'INTERFACE if_oo_adt_classrun PUBLIC.
   METHODS main IMPORTING out TYPE REF TO if_oo_adt_classrun_out.
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_ABAP_BIGINT', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_ABAP_BIGINT                          ', 'CLASS cl_abap_bigint DEFINITION PUBLIC FINAL CREATE PRIVATE.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_ABAP_BIGINT                          ', 'CLASS cl_abap_bigint DEFINITION PUBLIC FINAL CREATE PRIVATE.
   PUBLIC SECTION.
 
     CLASS-METHODS factory_from_int4
@@ -333684,22 +334263,22 @@ ENDCLASS.');`);
       VALUES ('R3TR', 'DTEL', 'SO_OBJ_LEN', '$TMP', '', 'ABC', '', '', '', 'E');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_SENDER_BCS', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_SENDER_BCS                           ', 'INTERFACE if_sender_bcs PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_SENDER_BCS                           ', 'INTERFACE if_sender_bcs PUBLIC.
 
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_RECIPIENT_BCS', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_RECIPIENT_BCS                        ', 'INTERFACE if_recipient_bcs PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_RECIPIENT_BCS                        ', 'INTERFACE if_recipient_bcs PUBLIC.
 
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_DOCUMENT_BCS', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_DOCUMENT_BCS                         ', 'INTERFACE if_document_bcs PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_DOCUMENT_BCS                         ', 'INTERFACE if_document_bcs PUBLIC.
 
 ENDINTERFACE.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SEND_REQ_BCS', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SEND_REQ_BCS                         ', 'CLASS cx_send_req_bcs DEFINITION PUBLIC INHERITING FROM cx_bcs.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SEND_REQ_BCS                         ', 'CLASS cx_send_req_bcs DEFINITION PUBLIC INHERITING FROM cx_bcs.
   PUBLIC SECTION.
 
 ENDCLASS.
@@ -333709,7 +334288,7 @@ CLASS cx_send_req_bcs IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_DOCUMENT_BCS', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_DOCUMENT_BCS                         ', 'CLASS cx_document_bcs DEFINITION PUBLIC INHERITING FROM cx_bcs.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_DOCUMENT_BCS                         ', 'CLASS cx_document_bcs DEFINITION PUBLIC INHERITING FROM cx_bcs.
   PUBLIC SECTION.
 
 ENDCLASS.
@@ -333719,7 +334298,7 @@ CLASS cx_document_bcs IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_BCS', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_BCS                                  ', 'CLASS cx_bcs DEFINITION PUBLIC INHERITING FROM cx_static_check.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_BCS                                  ', 'CLASS cx_bcs DEFINITION PUBLIC INHERITING FROM cx_static_check.
   PUBLIC SECTION.
     DATA error_type TYPE c LENGTH 16.
 
@@ -333730,7 +334309,7 @@ CLASS cx_bcs IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_ADDRESS_BCS', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_ADDRESS_BCS                          ', 'CLASS cx_address_bcs DEFINITION PUBLIC INHERITING FROM cx_bcs.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_ADDRESS_BCS                          ', 'CLASS cx_address_bcs DEFINITION PUBLIC INHERITING FROM cx_bcs.
   PUBLIC SECTION.
 
 ENDCLASS.
@@ -333740,7 +334319,7 @@ CLASS cx_address_bcs IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_SEND_REQUEST_BCS', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_SEND_REQUEST_BCS                     ', 'CLASS cl_send_request_bcs DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_SEND_REQUEST_BCS                     ', 'CLASS cl_send_request_bcs DEFINITION PUBLIC.
   PUBLIC SECTION.
     METHODS set_expires_on
       IMPORTING
@@ -333797,7 +334376,7 @@ CLASS cl_send_request_bcs IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_DOCUMENT_BCS', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_DOCUMENT_BCS                         ', 'CLASS cl_document_bcs DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_DOCUMENT_BCS                         ', 'CLASS cl_document_bcs DEFINITION PUBLIC.
   PUBLIC SECTION.
     INTERFACES if_document_bcs.
 
@@ -333892,7 +334471,7 @@ ENDCLASS.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_CAM_ADDRESS_BCS', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_CAM_ADDRESS_BCS                      ', 'CLASS cl_cam_address_bcs DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_CAM_ADDRESS_BCS                      ', 'CLASS cl_cam_address_bcs DEFINITION PUBLIC.
   PUBLIC SECTION.
     INTERFACES if_recipient_bcs.
     INTERFACES if_sender_bcs.
@@ -333944,7 +334523,7 @@ ENDCLASS.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_BCS_CONVERT', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_BCS_CONVERT                          ', 'CLASS cl_bcs_convert DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_BCS_CONVERT                          ', 'CLASS cl_bcs_convert DEFINITION PUBLIC.
   PUBLIC SECTION.
 
     CONSTANTS gc_tab TYPE c LENGTH 1 VALUE cl_abap_char_utilities=>horizontal_tab.
@@ -334014,7 +334593,7 @@ CLASS cl_bcs_convert IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_BCS', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_BCS                                  ', 'CLASS cl_bcs DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_BCS                                  ', 'CLASS cl_bcs DEFINITION PUBLIC.
   PUBLIC SECTION.
     DATA send_request TYPE REF TO cl_send_request_bcs READ-ONLY.
 
@@ -334159,7 +334738,7 @@ CLASS cl_bcs IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_SQL_EXCEPTION', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_SQL_EXCEPTION                        ', 'CLASS cx_sql_exception DEFINITION PUBLIC INHERITING FROM cx_static_check.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_SQL_EXCEPTION                        ', 'CLASS cx_sql_exception DEFINITION PUBLIC INHERITING FROM cx_static_check.
   PUBLIC SECTION.
     DATA sql_message TYPE string.
     DATA sql_code TYPE i.
@@ -334189,7 +334768,7 @@ CLASS cx_sql_exception IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_SQL_STATEMENT', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_SQL_STATEMENT                        ', 'CLASS cl_sql_statement DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_SQL_STATEMENT                        ', 'CLASS cl_sql_statement DEFINITION PUBLIC.
   PUBLIC SECTION.
     METHODS constructor
       IMPORTING
@@ -334334,7 +334913,7 @@ ENDCLASS.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_SQL_RESULT_SET', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_SQL_RESULT_SET                       ', 'CLASS cl_sql_result_set DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_SQL_RESULT_SET                       ', 'CLASS cl_sql_result_set DEFINITION PUBLIC.
   PUBLIC SECTION.
     METHODS set_param
       IMPORTING
@@ -334455,7 +335034,7 @@ ENDCLASS.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_SQL_CONNECTION', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_SQL_CONNECTION                       ', 'CLASS cl_sql_connection DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_SQL_CONNECTION                       ', 'CLASS cl_sql_connection DEFINITION PUBLIC.
   PUBLIC SECTION.
     CONSTANTS c_default_connection TYPE char30 VALUE ''DEFAULT''.
 
@@ -334538,7 +335117,7 @@ ENDCLASS.
       VALUES ('R3TR', 'TYPE', 'ADBC', '$TMP', '', 'ABC', '', '', '', 'E');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_ABAP_ZIP', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_ABAP_ZIP                             ', 'CLASS cl_abap_zip DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_ABAP_ZIP                             ', 'CLASS cl_abap_zip DEFINITION PUBLIC.
 
   PUBLIC SECTION.
     METHODS add
@@ -334587,6 +335166,8 @@ ENDCLASS.
 * todo, optimize memory usage, dont store both compressed and original,
              content    TYPE xstring,
              compressed TYPE xstring,
+* CRC-32 from the local header (little endian) of a LOADed entry, SAVE reuses it
+             crc        TYPE x LENGTH 4,
            END OF ty_contents.
     DATA mt_contents TYPE STANDARD TABLE OF ty_contents WITH DEFAULT KEY.
 
@@ -334663,6 +335244,7 @@ CLASS cl_abap_zip IMPLEMENTATION.
     DATA lv_extra_len  TYPE i.
     DATA lv_name_x     TYPE xstring.
     DATA lv_name_off   TYPE i.
+    DATA lv_crc_off    TYPE i.
     DATA ls_contents   LIKE LINE OF mt_contents.
     DATA ls_file       LIKE LINE OF files.
     DATA lv_out_len    TYPE i.
@@ -334686,6 +335268,9 @@ CLASS cl_abap_zip IMPLEMENTATION.
 * 8, 2, Compression method
       lv_comp_method = lcl_stream=>read_int2( iv_xstr    = zip
                                                iv_offset = lv_offset + 8 ).
+* 14, 4, CRC-32 of uncompressed data (zero when it follows in a data descriptor)
+      lv_crc_off = lv_offset + 14.
+      ls_contents-crc = zip+lv_crc_off(4).
 * 18, 4, Compressed size
       lv_comp_size = lcl_stream=>read_int4( iv_xstr   = zip
                                             iv_offset = lv_offset + 18 ).
@@ -334775,9 +335360,13 @@ CLASS cl_abap_zip IMPLEMENTATION.
 * 12, 2, File last modification date
       lo_file->append( ''F856'' ). "lo_stream->append_date( sy-datum ).
 * 14, 4, CRC-32 of uncompressed data
-      lo_file->append_crc(
-        iv_little_endian = abap_true
-        iv_xstring       = ls_contents-content ).
+      IF ls_contents-crc IS INITIAL.
+        lo_file->append_crc(
+          iv_little_endian = abap_true
+          iv_xstring       = ls_contents-content ).
+      ELSE.
+        lo_file->append( ls_contents-crc ).
+      ENDIF.
 * 18, 4, Compressed size (or 0xffffffff for ZIP64)
       lo_file->append_int4( xstrlen( ls_contents-compressed ) ).
 * 22, 4, Uncompressed size (or 0xffffffff for ZIP64)
@@ -334860,7 +335449,7 @@ CLASS cl_abap_zip IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_ABAP_WEAK_REFERENCE', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_ABAP_WEAK_REFERENCE                  ', 'CLASS cl_abap_weak_reference DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_ABAP_WEAK_REFERENCE                  ', 'CLASS cl_abap_weak_reference DEFINITION PUBLIC.
   PUBLIC SECTION.
     METHODS constructor
       IMPORTING
@@ -334886,7 +335475,7 @@ CLASS cl_abap_weak_reference IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_ABAP_GZIP', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_ABAP_GZIP                            ', 'CLASS cl_abap_gzip DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_ABAP_GZIP                            ', 'CLASS cl_abap_gzip DEFINITION PUBLIC.
   PUBLIC SECTION.
     CLASS-METHODS decompress_binary
       IMPORTING
@@ -334984,7 +335573,7 @@ CLASS cl_abap_gzip IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_ABAP_FORMAT', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_ABAP_FORMAT                          ', 'CLASS cl_abap_format DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_ABAP_FORMAT                          ', 'CLASS cl_abap_format DEFINITION PUBLIC.
   PUBLIC SECTION.
 
     CONSTANTS exp_preserve                    TYPE i VALUE cl_abap_math=>max_int4.
@@ -335059,7 +335648,7 @@ ENDCLASS.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_ABAP_EXCEPTIONAL_VALUES', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_ABAP_EXCEPTIONAL_VALUES              ', 'CLASS cl_abap_exceptional_values DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_ABAP_EXCEPTIONAL_VALUES              ', 'CLASS cl_abap_exceptional_values DEFINITION PUBLIC.
   PUBLIC SECTION.
     CLASS-METHODS get_max_value
       IMPORTING
@@ -335138,7 +335727,7 @@ CLASS cl_abap_exceptional_values IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_ABAP_CONTAINER_UTILITIES', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_ABAP_CONTAINER_UTILITIES             ', 'CLASS cl_abap_container_utilities DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_ABAP_CONTAINER_UTILITIES             ', 'CLASS cl_abap_container_utilities DEFINITION PUBLIC.
   PUBLIC SECTION.
 
     CLASS-METHODS fill_container_c
@@ -335173,7 +335762,7 @@ ENDCLASS.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_ABAP_CHAR_UTILITIES', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_ABAP_CHAR_UTILITIES                  ', 'CLASS cl_abap_char_utilities DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_ABAP_CHAR_UTILITIES                  ', 'CLASS cl_abap_char_utilities DEFINITION PUBLIC.
   PUBLIC SECTION.
 * https://en.wikipedia.org/wiki/Byte_order_mark, 0xEF,0xBB,0xBF
     CONSTANTS byte_order_mark_utf8   TYPE x LENGTH 3 VALUE ''EFBBBF''.
@@ -335224,7 +335813,7 @@ ENDCLASS.');`);
       VALUES ('R3TR', 'TABL', 'MATCH_RESULT', '$TMP', '', 'ABC', '', '', '', 'E');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_ABAP_REGEX', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_ABAP_REGEX                           ', 'CLASS cl_abap_regex DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_ABAP_REGEX                           ', 'CLASS cl_abap_regex DEFINITION PUBLIC.
 
   PUBLIC SECTION.
     DATA pattern TYPE string READ-ONLY.
@@ -335285,7 +335874,7 @@ CLASS cl_abap_regex IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_ABAP_MATCHER', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_ABAP_MATCHER                         ', 'CLASS cl_abap_matcher DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_ABAP_MATCHER                         ', 'CLASS cl_abap_matcher DEFINITION PUBLIC.
 
   PUBLIC SECTION.
     METHODS constructor
@@ -335380,7 +335969,7 @@ CLASS cl_abap_matcher IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_ABAP_RANDOM', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_ABAP_RANDOM                          ', 'CLASS cx_abap_random DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_ABAP_RANDOM                          ', 'CLASS cx_abap_random DEFINITION PUBLIC INHERITING FROM cx_dynamic_check.
 
 ENDCLASS.
 
@@ -335389,7 +335978,7 @@ CLASS cx_abap_random IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_ABAP_RANDOM_INT', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_ABAP_RANDOM_INT                      ', 'CLASS cl_abap_random_int DEFINITION PUBLIC FINAL CREATE PRIVATE.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_ABAP_RANDOM_INT                      ', 'CLASS cl_abap_random_int DEFINITION PUBLIC FINAL CREATE PRIVATE.
   PUBLIC SECTION.
     CLASS-METHODS create
       IMPORTING
@@ -335426,7 +336015,7 @@ CLASS cl_abap_random_int IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_ABAP_RANDOM', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_ABAP_RANDOM                          ', 'CLASS cl_abap_random DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_ABAP_RANDOM                          ', 'CLASS cl_abap_random DEFINITION PUBLIC.
   PUBLIC SECTION.
     CLASS-METHODS create
       IMPORTING
@@ -335479,7 +336068,7 @@ CLASS cl_abap_random IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_ABAP_MATH', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_ABAP_MATH                            ', 'CLASS cl_abap_math DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_ABAP_MATH                            ', 'CLASS cl_abap_math DEFINITION PUBLIC.
   PUBLIC SECTION.
     CONSTANTS min_int4 TYPE i VALUE -2147483648.
     CONSTANTS max_int4 TYPE i VALUE 2147483647.
@@ -335501,76 +336090,442 @@ CLASS cl_abap_math IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_ABAP_MESSAGE_DIGEST', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_ABAP_MESSAGE_DIGEST                  ', 'CLASS cx_abap_message_digest DEFINITION PUBLIC INHERITING FROM cx_static_check.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_ABAP_MESSAGE_DIGEST                  ', 'CLASS cx_abap_message_digest DEFINITION PUBLIC INHERITING FROM cx_static_check FINAL CREATE PUBLIC.
+
+  PUBLIC SECTION.
+    INTERFACES if_t100_message.
+
+    CONSTANTS:
+      BEGIN OF unknown_algorithm,
+        msgid TYPE symsgid VALUE ''MD5'',
+        msgno TYPE symsgno VALUE ''004'',
+        attr1 TYPE scx_attrname VALUE ''ALGORITHM'',
+        attr2 TYPE scx_attrname VALUE '''',
+        attr3 TYPE scx_attrname VALUE '''',
+        attr4 TYPE scx_attrname VALUE '''',
+      END OF unknown_algorithm.
+    CONSTANTS:
+      BEGIN OF param_error,
+        msgid TYPE symsgid VALUE ''MD5'',
+        msgno TYPE symsgno VALUE ''005'',
+        attr1 TYPE scx_attrname VALUE '''',
+        attr2 TYPE scx_attrname VALUE '''',
+        attr3 TYPE scx_attrname VALUE '''',
+        attr4 TYPE scx_attrname VALUE '''',
+      END OF param_error.
+    CONSTANTS:
+      BEGIN OF conv_error,
+        msgid TYPE symsgid VALUE ''MD5'',
+        msgno TYPE symsgno VALUE ''021'',
+        attr1 TYPE scx_attrname VALUE '''',
+        attr2 TYPE scx_attrname VALUE '''',
+        attr3 TYPE scx_attrname VALUE '''',
+        attr4 TYPE scx_attrname VALUE '''',
+      END OF conv_error.
+    CONSTANTS:
+      BEGIN OF key_error,
+        msgid TYPE symsgid VALUE ''MD5'',
+        msgno TYPE symsgno VALUE ''001'',
+        attr1 TYPE scx_attrname VALUE '''',
+        attr2 TYPE scx_attrname VALUE '''',
+        attr3 TYPE scx_attrname VALUE '''',
+        attr4 TYPE scx_attrname VALUE '''',
+      END OF key_error.
+
+    DATA algorithm TYPE string READ-ONLY.
+    DATA rc        TYPE i READ-ONLY.
+
+    METHODS constructor
+      IMPORTING
+        textid    LIKE if_t100_message=>t100key OPTIONAL
+        previous  LIKE previous OPTIONAL
+        algorithm TYPE string OPTIONAL
+        rc        TYPE i DEFAULT 0.
 
 ENDCLASS.
 
 CLASS cx_abap_message_digest IMPLEMENTATION.
 
-ENDCLASS.');`);
+  METHOD constructor.
+    super->constructor( previous = previous ).
+    me->algorithm = algorithm.
+    me->rc        = rc.
+    CLEAR me->textid.
+    IF textid IS INITIAL.
+      if_t100_message~t100key = if_t100_message=>default_textid.
+    ELSE.
+      if_t100_message~t100key = textid.
+    ENDIF.
+  ENDMETHOD.
+
+ENDCLASS.
+');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_ABAP_MESSAGE_DIGEST', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_ABAP_MESSAGE_DIGEST                  ', 'CLASS cl_abap_message_digest DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_ABAP_MESSAGE_DIGEST                  ', 'CLASS cl_abap_message_digest DEFINITION PUBLIC FINAL CREATE PRIVATE.
   PUBLIC SECTION.
-    CLASS-METHODS calculate_hash_for_raw
+    CLASS-METHODS class_constructor.
+
+    METHODS constructor
       IMPORTING
-        if_algorithm   TYPE string DEFAULT ''SHA1''
-        if_data        TYPE xstring
-      EXPORTING
-        ef_hashxstring TYPE xstring
+        if_algorithm TYPE string
       RAISING
         cx_abap_message_digest.
+
+    CLASS-METHODS get_instance
+      IMPORTING
+        if_algorithm     TYPE string DEFAULT ''SHA1''
+      RETURNING
+        VALUE(ro_object) TYPE REF TO cl_abap_message_digest
+      RAISING
+        cx_abap_message_digest.
+
+    METHODS get_algorithm
+      RETURNING
+        VALUE(rf_algorithm) TYPE string.
+
+    METHODS get_digest_length
+      RETURNING
+        VALUE(ri_length) TYPE i
+      RAISING
+        cx_abap_message_digest.
+
+    METHODS get_digest
+      RETURNING
+        VALUE(er_hash) TYPE xstring
+      RAISING
+        cx_abap_message_digest.
+
+    METHODS update
+      IMPORTING
+        if_data   TYPE xstring
+        if_offset TYPE i DEFAULT 0
+        if_length TYPE i DEFAULT 0
+      RAISING
+        cx_abap_message_digest.
+
+    METHODS digest
+      IMPORTING
+        if_data          TYPE xstring OPTIONAL
+        if_offset        TYPE i DEFAULT 0
+        if_length        TYPE i DEFAULT 0
+      EXPORTING
+        ef_hashstring    TYPE string
+        ef_hashxstring   TYPE xstring
+        ef_hashb64string TYPE string
+        ef_hashx         TYPE xsequence
+      RAISING
+        cx_abap_message_digest.
+
+    METHODS reset
+      RAISING
+        cx_abap_message_digest.
+
+    METHODS to_string
+      RETURNING
+        VALUE(er_hashstring) TYPE string
+      RAISING
+        cx_abap_message_digest.
+
+    METHODS to_base64
+      RETURNING
+        VALUE(er_hashb64string) TYPE string
+      RAISING
+        cx_abap_message_digest.
+
+    CLASS-METHODS is_equal
+      IMPORTING
+        if_digesta      TYPE xstring
+        if_digestb      TYPE xstring
+      RETURNING
+        VALUE(er_equal) TYPE abap_bool.
 
     CLASS-METHODS calculate_hash_for_char
       IMPORTING
         if_algorithm     TYPE string DEFAULT ''SHA1''
         if_data          TYPE string
+        if_length        TYPE i DEFAULT 0
       EXPORTING
-        ef_hashxstring   TYPE xstring
         ef_hashstring    TYPE string
+        ef_hashxstring   TYPE xstring
         ef_hashb64string TYPE string
+        ef_hashx         TYPE xsequence
       RAISING
         cx_abap_message_digest.
+
+    CLASS-METHODS calculate_hash_for_raw
+      IMPORTING
+        if_algorithm     TYPE string DEFAULT ''SHA1''
+        if_data          TYPE xstring
+        if_length        TYPE i DEFAULT 0
+      EXPORTING
+        ef_hashstring    TYPE string
+        ef_hashxstring   TYPE xstring
+        ef_hashb64string TYPE string
+        ef_hashx         TYPE xsequence
+      RAISING
+        cx_abap_message_digest.
+
+    CLASS-METHODS string_to_xstring
+      IMPORTING
+        if_input         TYPE string
+      RETURNING
+        VALUE(er_output) TYPE xstring
+      RAISING
+        cx_abap_message_digest.
+
+  PRIVATE SECTION.
+    TYPES: BEGIN OF ty_algorithm,
+             name   TYPE string,
+             node   TYPE string,
+             length TYPE i,
+           END OF ty_algorithm.
+    TYPES ty_algorithms TYPE STANDARD TABLE OF ty_algorithm WITH KEY name.
+
+    CLASS-DATA gt_algorithms TYPE ty_algorithms.
+
+    DATA mv_algorithm TYPE string.
+    DATA ms_algorithm TYPE ty_algorithm.
+    DATA mv_buffer    TYPE xstring.
+    DATA mv_digest    TYPE xstring.
+
+    CLASS-METHODS resolve
+      IMPORTING
+        if_algorithm        TYPE string
+      RETURNING
+        VALUE(rs_algorithm) TYPE ty_algorithm
+      RAISING
+        cx_abap_message_digest.
+
+    CLASS-METHODS slice
+      IMPORTING
+        if_data        TYPE xstring
+        if_offset      TYPE i
+        if_length      TYPE i
+      RETURNING
+        VALUE(rv_data) TYPE xstring
+      RAISING
+        cx_abap_message_digest.
+
+    CLASS-METHODS hash
+      IMPORTING
+        iv_node        TYPE string
+        iv_data        TYPE xstring
+      RETURNING
+        VALUE(rv_hash) TYPE xstring.
+
+    CLASS-METHODS to_hex
+      IMPORTING
+        iv_data          TYPE xstring
+      RETURNING
+        VALUE(rv_string) TYPE string.
+
+    CLASS-METHODS base64
+      IMPORTING
+        iv_data          TYPE xstring
+      RETURNING
+        VALUE(rv_base64) TYPE string.
 ENDCLASS.
 
 CLASS cl_abap_message_digest IMPLEMENTATION.
-  METHOD calculate_hash_for_raw.
 
-    DATA lv_algorithm TYPE string.
+  METHOD class_constructor.
+    DATA ls_algorithm TYPE ty_algorithm.
 
-    lv_algorithm = to_lower( if_algorithm ).
-    ASSERT lv_algorithm = ''sha1'' OR lv_algorithm = ''md5'' OR lv_algorithm = ''sha256''.
+* Names as the kernel accepts them; the node column is the Node.js crypto name
+    ls_algorithm-name   = ''MD5''.
+    ls_algorithm-node   = ''md5''.
+    ls_algorithm-length = 16.
+    APPEND ls_algorithm TO gt_algorithms.
 
+    ls_algorithm-name   = ''SHA1''.
+    ls_algorithm-node   = ''sha1''.
+    ls_algorithm-length = 20.
+    APPEND ls_algorithm TO gt_algorithms.
+
+    ls_algorithm-name   = ''SHA224''.
+    ls_algorithm-node   = ''sha224''.
+    ls_algorithm-length = 28.
+    APPEND ls_algorithm TO gt_algorithms.
+
+    ls_algorithm-name   = ''SHA256''.
+    ls_algorithm-node   = ''sha256''.
+    ls_algorithm-length = 32.
+    APPEND ls_algorithm TO gt_algorithms.
+
+    ls_algorithm-name   = ''SHA384''.
+    ls_algorithm-node   = ''sha384''.
+    ls_algorithm-length = 48.
+    APPEND ls_algorithm TO gt_algorithms.
+
+    ls_algorithm-name   = ''SHA512''.
+    ls_algorithm-node   = ''sha512''.
+    ls_algorithm-length = 64.
+    APPEND ls_algorithm TO gt_algorithms.
+  ENDMETHOD.
+
+  METHOD resolve.
+    DATA lv_name TYPE string.
+
+* the kernel accepts both "SHA256" and "SHA-256", in any case
+    lv_name = to_upper( if_algorithm ).
+    REPLACE ALL OCCURRENCES OF ''-'' IN lv_name WITH ''''.
+    CONDENSE lv_name NO-GAPS.
+
+    READ TABLE gt_algorithms INTO rs_algorithm WITH KEY name = lv_name.
+    IF sy-subrc <> 0.
+      RAISE EXCEPTION TYPE cx_abap_message_digest
+        EXPORTING
+          textid    = cx_abap_message_digest=>unknown_algorithm
+          algorithm = if_algorithm.
+    ENDIF.
+  ENDMETHOD.
+
+  METHOD slice.
+    DATA lv_available TYPE i.
+
+    lv_available = xstrlen( if_data ) - if_offset.
+    IF if_offset < 0 OR if_length < 0 OR lv_available < 0 OR if_length > lv_available.
+      RAISE EXCEPTION TYPE cx_abap_message_digest
+        EXPORTING
+          textid = cx_abap_message_digest=>param_error.
+    ENDIF.
+
+    IF if_length = 0.
+      rv_data = if_data+if_offset.
+    ELSE.
+      rv_data = if_data+if_offset(if_length).
+    ENDIF.
+  ENDMETHOD.
+
+  METHOD hash.
 * todo, this doesnt work in browser?
     WRITE ''@KERNEL const crypto = await import("crypto");''.
-    WRITE ''@KERNEL var shasum = crypto.createHash(lv_algorithm.get());''.
-    WRITE ''@KERNEL shasum.update(if_data.get(), "hex");''.
-    WRITE ''@KERNEL ef_hashxstring.set(shasum.digest("hex").toUpperCase());''.
+    WRITE ''@KERNEL rv_hash.set(crypto.createHash(iv_node.get()).update(iv_data.get(), "hex").digest("hex").toUpperCase());''.
+  ENDMETHOD.
 
+  METHOD to_hex.
+    rv_string = iv_data.
+  ENDMETHOD.
+
+  METHOD base64.
+    WRITE ''@KERNEL rv_base64.set(Buffer.from(iv_data.get(), "hex").toString("base64"));''.
+  ENDMETHOD.
+
+  METHOD constructor.
+    ms_algorithm = resolve( if_algorithm ).
+    mv_algorithm = if_algorithm.
+  ENDMETHOD.
+
+  METHOD get_instance.
+    ro_object = NEW #( if_algorithm ).
+  ENDMETHOD.
+
+  METHOD get_algorithm.
+    rf_algorithm = mv_algorithm.
+  ENDMETHOD.
+
+  METHOD get_digest_length.
+    ri_length = ms_algorithm-length.
+  ENDMETHOD.
+
+  METHOD get_digest.
+    er_hash = mv_digest.
+  ENDMETHOD.
+
+  METHOD update.
+    DATA lv_data TYPE xstring.
+
+    lv_data = slice(
+      if_data   = if_data
+      if_offset = if_offset
+      if_length = if_length ).
+    CONCATENATE mv_buffer lv_data INTO mv_buffer IN BYTE MODE.
+  ENDMETHOD.
+
+  METHOD digest.
+    IF if_data IS SUPPLIED.
+      update(
+        if_data   = if_data
+        if_offset = if_offset
+        if_length = if_length ).
+    ENDIF.
+
+    mv_digest = hash(
+      iv_node = ms_algorithm-node
+      iv_data = mv_buffer ).
+    CLEAR mv_buffer.
+
+    ef_hashxstring   = mv_digest.
+    ef_hashstring    = to_hex( mv_digest ).
+    ef_hashb64string = base64( mv_digest ).
+    ef_hashx         = mv_digest.
+  ENDMETHOD.
+
+  METHOD reset.
+    CLEAR mv_buffer.
+    CLEAR mv_digest.
+  ENDMETHOD.
+
+  METHOD to_string.
+    er_hashstring = to_hex( mv_digest ).
+  ENDMETHOD.
+
+  METHOD to_base64.
+    er_hashb64string = base64( mv_digest ).
+  ENDMETHOD.
+
+  METHOD is_equal.
+    er_equal = xsdbool( if_digesta = if_digestb ).
+  ENDMETHOD.
+
+  METHOD calculate_hash_for_raw.
+    DATA ls_algorithm TYPE ty_algorithm.
+    DATA lv_data      TYPE xstring.
+
+    ls_algorithm = resolve( if_algorithm ).
+    lv_data = slice(
+      if_data   = if_data
+      if_offset = 0
+      if_length = if_length ).
+
+    ef_hashxstring = hash(
+      iv_node = ls_algorithm-node
+      iv_data = lv_data ).
+    ef_hashstring    = to_hex( ef_hashxstring ).
+    ef_hashb64string = base64( ef_hashxstring ).
+    ef_hashx         = ef_hashxstring.
   ENDMETHOD.
 
   METHOD calculate_hash_for_char.
+    DATA lv_data TYPE string.
 
-    DATA lv_algorithm TYPE string.
+    IF if_length > 0.
+      lv_data = if_data(if_length).
+    ELSE.
+      lv_data = if_data.
+    ENDIF.
 
-    CLEAR ef_hashxstring.
-    lv_algorithm = to_lower( if_algorithm ).
-    ASSERT lv_algorithm = ''sha1'' OR lv_algorithm = ''md5'' OR lv_algorithm = ''sha256''.
-
-* todo, this doesnt work in browser?
-    WRITE ''@KERNEL const crypto = await import("crypto");''.
-    WRITE ''@KERNEL var shasum = crypto.createHash(lv_algorithm.get());''.
-    WRITE ''@KERNEL shasum.update(if_data.get());''.
-    WRITE ''@KERNEL ef_hashxstring.set(shasum.digest("hex").toUpperCase());''.
-    WRITE ''@KERNEL ef_hashb64string.set(Buffer.from(ef_hashxstring.get(), "hex").toString("base64"));''.
-
-    ef_hashstring = ef_hashxstring.
-
+    calculate_hash_for_raw(
+      EXPORTING
+        if_algorithm     = if_algorithm
+        if_data          = string_to_xstring( lv_data )
+      IMPORTING
+        ef_hashstring    = ef_hashstring
+        ef_hashxstring   = ef_hashxstring
+        ef_hashb64string = ef_hashb64string
+        ef_hashx         = ef_hashx ).
   ENDMETHOD.
-ENDCLASS.');`);
+
+  METHOD string_to_xstring.
+    er_output = cl_abap_codepage=>convert_to( if_input ).
+  ENDMETHOD.
+
+ENDCLASS.
+');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_ABAP_HMAC', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_ABAP_HMAC                            ', 'CLASS cl_abap_hmac DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_ABAP_HMAC                            ', 'CLASS cl_abap_hmac DEFINITION PUBLIC.
   PUBLIC SECTION.
     CLASS-METHODS calculate_hmac_for_raw
       IMPORTING
@@ -335617,8 +336572,10 @@ CLASS cl_abap_hmac IMPLEMENTATION.
     " todo,
     ASSERT if_length = 0.
 
+* validates the name the same way the digest class does (raises for unknown algorithms)
+    cl_abap_message_digest=>get_instance( if_algorithm ).
     lv_algorithm = to_lower( if_algorithm ).
-    ASSERT lv_algorithm = ''sha1'' OR lv_algorithm = ''md5'' OR lv_algorithm = ''sha256''.
+    REPLACE ALL OCCURRENCES OF ''-'' IN lv_algorithm WITH ''''.
 
 * todo, this doesnt work in browser?
     WRITE ''@KERNEL const crypto = await import("crypto");''.
@@ -335657,10 +336614,11 @@ CLASS cl_abap_hmac IMPLEMENTATION.
   METHOD string_to_xstring.
     er_output = cl_abap_codepage=>convert_to( if_input ).
   ENDMETHOD.
-ENDCLASS.');`);
+ENDCLASS.
+');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_ABAP_NOT_IN_WHITELIST', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_ABAP_NOT_IN_WHITELIST                ', 'CLASS cx_abap_not_in_whitelist DEFINITION PUBLIC INHERITING FROM cx_static_check.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_ABAP_NOT_IN_WHITELIST                ', 'CLASS cx_abap_not_in_whitelist DEFINITION PUBLIC INHERITING FROM cx_static_check.
 
 ENDCLASS.
 
@@ -335669,7 +336627,7 @@ CLASS cx_abap_not_in_whitelist IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_ABAP_NOT_IN_PACKAGE', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_ABAP_NOT_IN_PACKAGE                  ', 'CLASS cx_abap_not_in_package DEFINITION PUBLIC INHERITING FROM cx_static_check.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_ABAP_NOT_IN_PACKAGE                  ', 'CLASS cx_abap_not_in_package DEFINITION PUBLIC INHERITING FROM cx_static_check.
 
 ENDCLASS.
 
@@ -335678,7 +336636,7 @@ CLASS cx_abap_not_in_package IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_ABAP_NOT_A_TABLE', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_ABAP_NOT_A_TABLE                     ', 'CLASS cx_abap_not_a_table DEFINITION PUBLIC INHERITING FROM cx_static_check.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_ABAP_NOT_A_TABLE                     ', 'CLASS cx_abap_not_a_table DEFINITION PUBLIC INHERITING FROM cx_static_check.
 
 ENDCLASS.
 
@@ -335687,7 +336645,7 @@ CLASS cx_abap_not_a_table IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_ABAP_INVALID_NAME', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_ABAP_INVALID_NAME                    ', 'CLASS cx_abap_invalid_name DEFINITION PUBLIC INHERITING FROM cx_static_check.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_ABAP_INVALID_NAME                    ', 'CLASS cx_abap_invalid_name DEFINITION PUBLIC INHERITING FROM cx_static_check.
 
 ENDCLASS.
 
@@ -335696,7 +336654,7 @@ CLASS cx_abap_invalid_name IMPLEMENTATION.
 ENDCLASS.');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_ABAP_DYN_PRG', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_ABAP_DYN_PRG                         ', 'CLASS cl_abap_dyn_prg DEFINITION PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_ABAP_DYN_PRG                         ', 'CLASS cl_abap_dyn_prg DEFINITION PUBLIC.
   PUBLIC SECTION.
     CLASS-METHODS check_table_name_str
       IMPORTING
@@ -335841,8 +336799,29 @@ CLASS cl_abap_dyn_prg IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD check_table_name_str.
-* allow everything
+    DATA lv_check  TYPE string.
+    DATA lv_exists TYPE abap_bool.
+
     val_str = val.
+    lv_check = val_str.
+    TRANSLATE lv_check TO UPPER CASE.
+
+    IF val_str IS INITIAL OR strlen( val_str ) > 30.
+      RAISE EXCEPTION TYPE cx_abap_not_a_table.
+    ENDIF.
+
+    FIND REGEX ''^([A-Z_][A-Z0-9_]*|/[A-Z0-9_]+/[A-Z0-9_]+)$'' IN lv_check.
+    IF sy-subrc <> 0.
+      RAISE EXCEPTION TYPE cx_abap_not_a_table.
+    ENDIF.
+
+* the table must be known to the DDIC of the transpiled bundle
+    WRITE ''@KERNEL lv_exists.set(abap.DDIC[lv_check.get()]?.objectType === "TABL" ? "X" : "");''.
+    IF lv_exists = abap_false.
+      RAISE EXCEPTION TYPE cx_abap_not_a_table.
+    ENDIF.
+
+* there is no package information off-stack, every known table is accepted
   ENDMETHOD.
 
   METHOD check_whitelist_str.
@@ -335892,7 +336871,7 @@ ENDCLASS.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'INTF', 'IF_ABAP_API_STATE', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('IF_ABAP_API_STATE                       ', 'INTERFACE if_abap_api_state PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('IF_ABAP_API_STATE                       ', 'INTERFACE if_abap_api_state PUBLIC.
 
   TYPES ty_object_directory_type TYPE c LENGTH 4.
   TYPES ty_object_directory_name TYPE c LENGTH 40.
@@ -335939,7 +336918,7 @@ ENDINTERFACE.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CX_ABAP_API_STATE', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CX_ABAP_API_STATE                       ', 'CLASS cx_abap_api_state DEFINITION PUBLIC INHERITING FROM cx_static_check CREATE PUBLIC.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CX_ABAP_API_STATE                       ', 'CLASS cx_abap_api_state DEFINITION PUBLIC INHERITING FROM cx_static_check CREATE PUBLIC.
 
 ENDCLASS.
 
@@ -335949,7 +336928,7 @@ ENDCLASS.
 ');`);
   insert.push(`INSERT INTO "tadir" ("pgmid", "object", "obj_name", "devclass", "korrnum", "srcsystem", "delflag", "genflag", "edtflag", "masterlang")
       VALUES ('R3TR', 'CLAS', 'CL_ABAP_API_STATE', '$TMP', '', 'ABC', '', '', '', 'E');`);
-  insert.push(`INSERT INTO reposrc ('PROGNAME', 'DATA') VALUES ('CL_ABAP_API_STATE                       ', 'CLASS cl_abap_api_state DEFINITION PUBLIC CREATE PRIVATE.
+  insert.push(`INSERT INTO reposrc (progname, data) VALUES ('CL_ABAP_API_STATE                       ', 'CLASS cl_abap_api_state DEFINITION PUBLIC CREATE PRIVATE.
   PUBLIC SECTION.
     INTERFACES if_abap_api_state.
 
@@ -336002,6 +336981,7 @@ ENDCLASS.
 }
 
 await initializeABAP();
+
 
 
 
@@ -338123,9 +339103,9 @@ class cl_abap_bigint {
     if (io_bigint?.getQualifiedName === undefined || io_bigint.getQualifiedName() !== "CL_ABAP_BIGINT") { io_bigint = undefined; }
     if (io_bigint === undefined) { io_bigint = new abap.types.ABAPObject({qualifiedName: "CL_ABAP_BIGINT", RTTIName: "\\CLASS=CL_ABAP_BIGINT"}).set(INPUT.io_bigint); }
     if (abap.compare.initial(io_bigint)) {
-      const unique341 = await (new abap.Classes['CX_SY_REF_IS_INITIAL']()).constructor_();
-      unique341.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_bigint.clas.abap","INTERNAL_LINE": 97};
-      throw unique341;
+      const unique349 = await (new abap.Classes['CX_SY_REF_IS_INITIAL']()).constructor_();
+      unique349.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_bigint.clas.abap","INTERNAL_LINE": 97};
+      throw unique349;
     }
     ro_myself.set(this.me);
     this.#mv_value.set((BigInt(this.#mv_value.get() || "0") - BigInt(io_bigint.get().#mv_value.get() || "0")).toString());
@@ -338137,9 +339117,9 @@ class cl_abap_bigint {
     if (io_bigint?.getQualifiedName === undefined || io_bigint.getQualifiedName() !== "CL_ABAP_BIGINT") { io_bigint = undefined; }
     if (io_bigint === undefined) { io_bigint = new abap.types.ABAPObject({qualifiedName: "CL_ABAP_BIGINT", RTTIName: "\\CLASS=CL_ABAP_BIGINT"}).set(INPUT.io_bigint); }
     if (abap.compare.initial(io_bigint)) {
-      const unique342 = await (new abap.Classes['CX_SY_REF_IS_INITIAL']()).constructor_();
-      unique342.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_bigint.clas.abap","INTERNAL_LINE": 106};
-      throw unique342;
+      const unique350 = await (new abap.Classes['CX_SY_REF_IS_INITIAL']()).constructor_();
+      unique350.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_bigint.clas.abap","INTERNAL_LINE": 106};
+      throw unique350;
     }
     ro_myself.set(this.me);
     this.#mv_value.set((BigInt(this.#mv_value.get() || "0") * BigInt(io_bigint.get().#mv_value.get() || "0")).toString());
@@ -338152,15 +339132,15 @@ class cl_abap_bigint {
     if (io_bigint === undefined) { io_bigint = new abap.types.ABAPObject({qualifiedName: "CL_ABAP_BIGINT", RTTIName: "\\CLASS=CL_ABAP_BIGINT"}).set(INPUT.io_bigint); }
     let lv_divisor = new abap.types.String({qualifiedName: "STRING"});
     if (abap.compare.initial(io_bigint)) {
-      const unique343 = await (new abap.Classes['CX_SY_REF_IS_INITIAL']()).constructor_();
-      unique343.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_bigint.clas.abap","INTERNAL_LINE": 117};
-      throw unique343;
+      const unique351 = await (new abap.Classes['CX_SY_REF_IS_INITIAL']()).constructor_();
+      unique351.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_bigint.clas.abap","INTERNAL_LINE": 117};
+      throw unique351;
     }
     lv_divisor.set((await io_bigint.get().to_string({rv_string: 1})));
     if (abap.compare.eq(lv_divisor, abap.CharacterFactory.get(1, '0'))) {
-      const unique344 = await (new abap.Classes['CX_SY_ZERODIVIDE']()).constructor_();
-      unique344.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_bigint.clas.abap","INTERNAL_LINE": 122};
-      throw unique344;
+      const unique352 = await (new abap.Classes['CX_SY_ZERODIVIDE']()).constructor_();
+      unique352.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_bigint.clas.abap","INTERNAL_LINE": 122};
+      throw unique352;
     }
     ro_myself.set(this.me);
     this.#mv_value.set((BigInt(this.#mv_value.get() || "0") % BigInt(lv_divisor.get())).toString());
@@ -338177,9 +339157,9 @@ class cl_abap_bigint {
     let lv_value = new abap.types.String({qualifiedName: "STRING"});
     lv_value.set((await this.to_string({rv_string: 1})));
     if (abap.compare.cp(lv_value, abap.CharacterFactory.get(2, '-*'))) {
-      const unique345 = await (new abap.Classes['CX_SY_ARG_OUT_OF_DOMAIN']()).constructor_();
-      unique345.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_bigint.clas.abap","INTERNAL_LINE": 138};
-      throw unique345;
+      const unique353 = await (new abap.Classes['CX_SY_ARG_OUT_OF_DOMAIN']()).constructor_();
+      unique353.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_bigint.clas.abap","INTERNAL_LINE": 138};
+      throw unique353;
     }
     ro_myself.set(this.me);
     { const n = BigInt(this.#mv_value.get() || "0"); if (n < 2n) { this.#mv_value.set(n.toString()); } else { let x0 = n; let x1 = (x0 + 1n) >> 1n; while (x1 < x0) { x0 = x1; x1 = (x1 + n / x1) >> 1n; } this.#mv_value.set(x0.toString()); } }
@@ -338191,9 +339171,9 @@ class cl_abap_bigint {
     if (io_bigint?.getQualifiedName === undefined || io_bigint.getQualifiedName() !== "CL_ABAP_BIGINT") { io_bigint = undefined; }
     if (io_bigint === undefined) { io_bigint = new abap.types.ABAPObject({qualifiedName: "CL_ABAP_BIGINT", RTTIName: "\\CLASS=CL_ABAP_BIGINT"}).set(INPUT.io_bigint); }
     if (abap.compare.initial(io_bigint)) {
-      const unique346 = await (new abap.Classes['CX_SY_REF_IS_INITIAL']()).constructor_();
-      unique346.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_bigint.clas.abap","INTERNAL_LINE": 147};
-      throw unique346;
+      const unique354 = await (new abap.Classes['CX_SY_REF_IS_INITIAL']()).constructor_();
+      unique354.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_bigint.clas.abap","INTERNAL_LINE": 147};
+      throw unique354;
     }
     rv_equal.set(abap.builtin.abap_false);
     rv_equal.set(BigInt(this.#mv_value.get() || "0") === BigInt(io_bigint.get().#mv_value.get() || "0") ? "X" : "");
@@ -338205,9 +339185,9 @@ class cl_abap_bigint {
     if (io_bigint?.getQualifiedName === undefined || io_bigint.getQualifiedName() !== "CL_ABAP_BIGINT") { io_bigint = undefined; }
     if (io_bigint === undefined) { io_bigint = new abap.types.ABAPObject({qualifiedName: "CL_ABAP_BIGINT", RTTIName: "\\CLASS=CL_ABAP_BIGINT"}).set(INPUT.io_bigint); }
     if (abap.compare.initial(io_bigint)) {
-      const unique347 = await (new abap.Classes['CX_SY_REF_IS_INITIAL']()).constructor_();
-      unique347.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_bigint.clas.abap","INTERNAL_LINE": 156};
-      throw unique347;
+      const unique355 = await (new abap.Classes['CX_SY_REF_IS_INITIAL']()).constructor_();
+      unique355.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_bigint.clas.abap","INTERNAL_LINE": 156};
+      throw unique355;
     }
     rv_larger.set(abap.builtin.abap_false);
     rv_larger.set(BigInt(this.#mv_value.get() || "0") > BigInt(io_bigint.get().#mv_value.get() || "0") ? "X" : "");
@@ -338606,7 +339586,8 @@ class cl_abap_context_info {
   "GET_SYSTEM_TIME": {"visibility": "U", "parameters": {"RV_TIME": {"type": () => {return new abap.types.Time({qualifiedName: "CL_ABAP_CONTEXT_INFO=>TY_SYSTEM_TIME"});}, "is_optional": " ", "parm_kind": "R", "type_name": "TimeType"}}},
   "GET_USER_ALIAS": {"visibility": "U", "parameters": {"RV_ALIAS": {"type": () => {return new abap.types.Character(40, {"qualifiedName":"cl_abap_context_info=>ty_user_alias"});}, "is_optional": " ", "parm_kind": "R", "type_name": "CharacterType"}}},
   "GET_USER_TIME_ZONE": {"visibility": "U", "parameters": {"RV_TIMEZONE": {"type": () => {return new abap.types.Character(6, {"qualifiedName":"TIMEZONE","ddicName":"TIMEZONE","description":"TIMEZONE"});}, "is_optional": " ", "parm_kind": "R", "type_name": "CharacterType"}, "IV_BUSER": {"type": () => {return new abap.types.Character();}, "is_optional": " ", "parm_kind": "I", "type_name": "CLikeType"}}},
-  "GET_USER_TECHNICAL_NAME": {"visibility": "U", "parameters": {"RV_TECHNICAL_NAME": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "R", "type_name": "StringType"}}}};
+  "GET_USER_TECHNICAL_NAME": {"visibility": "U", "parameters": {"RV_TECHNICAL_NAME": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "R", "type_name": "StringType"}}},
+  "GET_USER_LANGUAGE_ABAP_FORMAT": {"visibility": "U", "parameters": {"RV_LANGUAGE": {"type": () => {return new abap.types.Character(1, {"qualifiedName":"cl_abap_context_info=>ty_language_key"});}, "is_optional": " ", "parm_kind": "R", "type_name": "CharacterType"}, "IV_BUSER": {"type": () => {return new abap.types.Character(12, {"qualifiedName":"cl_abap_context_info=>ty_user_name"});}, "is_optional": " ", "parm_kind": "I", "type_name": "CharacterType"}}}};
   constructor() {
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
@@ -338659,11 +339640,23 @@ class cl_abap_context_info {
     rv_alias.set(abap.builtin.sy.get().uname);
     return rv_alias;
   }
+  async get_user_language_abap_format(INPUT) {
+    return cl_abap_context_info.get_user_language_abap_format(INPUT);
+  }
+  static async get_user_language_abap_format(INPUT) {
+    let rv_language = new abap.types.Character(1, {"qualifiedName":"cl_abap_context_info=>ty_language_key"});
+    let iv_buser = new abap.types.Character(12, {"qualifiedName":"cl_abap_context_info=>ty_user_name"});
+    if (INPUT && INPUT.iv_buser) {iv_buser.set(INPUT.iv_buser);}
+    rv_language.set(abap.builtin.sy.get().langu);
+    return rv_language;
+  }
 }
 abap.Classes['CL_ABAP_CONTEXT_INFO'] = cl_abap_context_info;
 cl_abap_context_info.ty_system_date = new abap.types.Date({qualifiedName: "CL_ABAP_CONTEXT_INFO=>TY_SYSTEM_DATE"});
 cl_abap_context_info.ty_system_time = new abap.types.Time({qualifiedName: "CL_ABAP_CONTEXT_INFO=>TY_SYSTEM_TIME"});
 cl_abap_context_info.ty_user_alias = new abap.types.Character(40, {"qualifiedName":"cl_abap_context_info=>ty_user_alias"});
+cl_abap_context_info.ty_user_name = new abap.types.Character(12, {"qualifiedName":"cl_abap_context_info=>ty_user_name"});
+cl_abap_context_info.ty_language_key = new abap.types.Character(1, {"qualifiedName":"cl_abap_context_info=>ty_language_key"});
 
 __webpack_async_result__();
 } catch(e) { __webpack_async_result__(e); } }, 1);
@@ -338805,12 +339798,12 @@ class cl_abap_conv_in_ce {
     abap.statements.assert(abap.compare.eq(replacement, abap.CharacterFactory.get(1, '#')));
     abap.statements.assert(abap.compare.initial(endian));
     ret.set(await (new abap.Classes['CL_ABAP_CONV_IN_CE']()).constructor_());
-    let unique339 = encoding;
-    if (abap.compare.eq(unique339, abap.CharacterFactory.get(6, 'UTF-16'))) {
+    let unique347 = encoding;
+    if (abap.compare.eq(unique347, abap.CharacterFactory.get(6, 'UTF-16'))) {
       ret.get().FRIENDS_ACCESS_INSTANCE["mv_js_encoding"].set(abap.CharacterFactory.get(8, 'utf-16le'));
-    } else if (abap.compare.eq(unique339, abap.CharacterFactory.get(5, 'UTF-8'))) {
+    } else if (abap.compare.eq(unique347, abap.CharacterFactory.get(5, 'UTF-8'))) {
       ret.get().FRIENDS_ACCESS_INSTANCE["mv_js_encoding"].set(abap.CharacterFactory.get(4, 'utf8'));
-    } else if (abap.compare.eq(unique339, abap.CharacterFactory.get(4, '4103'))) {
+    } else if (abap.compare.eq(unique347, abap.CharacterFactory.get(4, '4103'))) {
       ret.get().FRIENDS_ACCESS_INSTANCE["mv_js_encoding"].set(abap.CharacterFactory.get(8, 'utf-16le'));
     } else {
       abap.statements.assert(abap.compare.eq(abap.IntegerFactory.get(1), abap.CharacterFactory.get(13, 'not supported')));
@@ -338877,9 +339870,9 @@ class cl_abap_conv_in_ce {
       lv_error.set(abap.builtin.abap_true);
     }
     if (abap.compare.eq(lv_error, abap.builtin.abap_true)) {
-      const unique340 = await (new abap.Classes['CX_SY_CONVERSION_CODEPAGE']()).constructor_();
-      unique340.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_conv_in_ce.clas.abap","INTERNAL_LINE": 127};
-      throw unique340;
+      const unique348 = await (new abap.Classes['CX_SY_CONVERSION_CODEPAGE']()).constructor_();
+      unique348.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_conv_in_ce.clas.abap","INTERNAL_LINE": 127};
+      throw unique348;
     }
   }
   async read(INPUT) {
@@ -338962,10 +339955,10 @@ class cl_abap_conv_out_ce {
     let replacement = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.replacement) {replacement.set(INPUT.replacement);}
     ret.set(await (new abap.Classes['CL_ABAP_CONV_OUT_CE']()).constructor_());
-    let unique338 = encoding;
-    if (abap.compare.eq(unique338, abap.CharacterFactory.get(5, 'UTF-8')) || abap.compare.eq(unique338, abap.CharacterFactory.get(1, ''))) {
+    let unique346 = encoding;
+    if (abap.compare.eq(unique346, abap.CharacterFactory.get(5, 'UTF-8')) || abap.compare.eq(unique346, abap.CharacterFactory.get(1, ''))) {
       ret.get().FRIENDS_ACCESS_INSTANCE["mv_js_encoding"].set(abap.CharacterFactory.get(4, 'utf8'));
-    } else if (abap.compare.eq(unique338, abap.CharacterFactory.get(4, '4103'))) {
+    } else if (abap.compare.eq(unique346, abap.CharacterFactory.get(4, '4103'))) {
       ret.get().FRIENDS_ACCESS_INSTANCE["mv_js_encoding"].set(abap.CharacterFactory.get(7, 'utf16le'));
     } else {
       abap.statements.assert(abap.compare.eq(abap.IntegerFactory.get(1), abap.CharacterFactory.get(13, 'not supported')));
@@ -339164,19 +340157,19 @@ class cl_abap_datfm {
     let regex_yyyymmdd_no_dot = new abap.types.String({qualifiedName: "STRING"});
     regex_yyyymmdd_no_dot.set('^(\\d{4})(0[0-9]|1[012])(0[0-9]|[12][0-9]|3[01])$');
     if (abap.compare.ne(im_datfmdes, cl_abap_datfm.ddmmyyyy_dot_seperated) && abap.compare.ne(im_datfmdes, cl_abap_datfm.yyyymmdd_dot_seperated)) {
-      const unique331 = await (new abap.Classes['CX_ABAP_DATFM']()).constructor_();
-      unique331.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_datfm.clas.abap","INTERNAL_LINE": 50};
-      throw unique331;
+      const unique339 = await (new abap.Classes['CX_ABAP_DATFM']()).constructor_();
+      unique339.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_datfm.clas.abap","INTERNAL_LINE": 50};
+      throw unique339;
     }
     abap.statements.find(im_datext, {regex: regex_ddmmyyyy_dot_seperated, first: false});
     if (abap.compare.eq(abap.builtin.sy.get().subrc, abap.IntegerFactory.get(0))) {
-      ex_datint.set(abap.operators.concat(im_datext.getOffset({offset: 6, length: 4}),abap.operators.concat(im_datext.getOffset({offset: 3, length: 2}),im_datext.getOffset({length: 2}))));
+      ex_datint.set(abap.operators.concat([im_datext.getOffset({offset: 6, length: 4}),im_datext.getOffset({offset: 3, length: 2}),im_datext.getOffset({length: 2})]));
       ex_datfmused.set(cl_abap_datfm.ddmmyyyy_dot_seperated);
       return;
     }
     abap.statements.find(im_datext, {regex: regex_yyyymmdd_dot_seperated, first: false});
     if (abap.compare.eq(abap.builtin.sy.get().subrc, abap.IntegerFactory.get(0))) {
-      ex_datint.set(abap.operators.concat(im_datext.getOffset({length: 4}),abap.operators.concat(im_datext.getOffset({offset: 5, length: 2}),im_datext.getOffset({offset: 8, length: 2}))));
+      ex_datint.set(abap.operators.concat([im_datext.getOffset({length: 4}),im_datext.getOffset({offset: 5, length: 2}),im_datext.getOffset({offset: 8, length: 2})]));
       ex_datfmused.set(cl_abap_datfm.yyyymmdd_dot_seperated);
       return;
     }
@@ -339186,9 +340179,9 @@ class cl_abap_datfm {
       ex_datfmused.set(cl_abap_datfm.yyyymmdd_dot_seperated);
       return;
     }
-    const unique332 = await (new abap.Classes['CX_ABAP_DATFM']()).constructor_();
-    unique332.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_datfm.clas.abap","INTERNAL_LINE": 74};
-    throw unique332;
+    const unique340 = await (new abap.Classes['CX_ABAP_DATFM']()).constructor_();
+    unique340.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_datfm.clas.abap","INTERNAL_LINE": 74};
+    throw unique340;
   }
   async get_date_format_des(INPUT) {
     return cl_abap_datfm.get_date_format_des(INPUT);
@@ -339288,9 +340281,9 @@ class cl_abap_dyn_prg {
     lv_check.set(val_str);
     abap.statements.translate(lv_check, "UPPER");
     if (abap.compare.initial(val_str)) {
-      const unique370 = await (new abap.Classes['CX_ABAP_INVALID_NAME']()).constructor_();
-      unique370.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_dyn_prg.clas.abap","INTERNAL_LINE": 105};
-      throw unique370;
+      const unique384 = await (new abap.Classes['CX_ABAP_INVALID_NAME']()).constructor_();
+      unique384.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_dyn_prg.clas.abap","INTERNAL_LINE": 105};
+      throw unique384;
     }
     if (abap.compare.eq(strict, abap.builtin.abap_true)) {
       abap.statements.find(lv_check, {regex: abap.CharacterFactory.get(43, '^([A-Z_][A-Z0-9_]*|/[A-Z0-9_]+/[A-Z0-9_]+)$')});
@@ -339298,9 +340291,9 @@ class cl_abap_dyn_prg {
       abap.statements.find(lv_check, {regex: abap.CharacterFactory.get(88, '^([A-Z_][A-Z0-9_]*|/[A-Z0-9_]+/[A-Z0-9_]+)(~([A-Z_][A-Z0-9_]*|/[A-Z0-9_]+/[A-Z0-9_]+))?$')});
     }
     if (abap.compare.ne(abap.builtin.sy.get().subrc, abap.IntegerFactory.get(0))) {
-      const unique371 = await (new abap.Classes['CX_ABAP_INVALID_NAME']()).constructor_();
-      unique371.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_dyn_prg.clas.abap","INTERNAL_LINE": 115};
-      throw unique371;
+      const unique385 = await (new abap.Classes['CX_ABAP_INVALID_NAME']()).constructor_();
+      unique385.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_dyn_prg.clas.abap","INTERNAL_LINE": 115};
+      throw unique385;
     }
     return val_str;
   }
@@ -339341,15 +340334,15 @@ class cl_abap_dyn_prg {
     lv_check.set(val_str);
     abap.statements.translate(lv_check, "UPPER");
     if (abap.compare.initial(val_str) || abap.compare.gt(abap.builtin.strlen({val: val_str}), abap.IntegerFactory.get(30))) {
-      const unique372 = await (new abap.Classes['CX_ABAP_NOT_A_TABLE']()).constructor_();
-      unique372.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_dyn_prg.clas.abap","INTERNAL_LINE": 136};
-      throw unique372;
+      const unique386 = await (new abap.Classes['CX_ABAP_NOT_A_TABLE']()).constructor_();
+      unique386.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_dyn_prg.clas.abap","INTERNAL_LINE": 136};
+      throw unique386;
     }
     abap.statements.find(lv_check, {regex: abap.CharacterFactory.get(43, '^([A-Z_][A-Z0-9_]*|/[A-Z0-9_]+/[A-Z0-9_]+)$')});
     if (abap.compare.ne(abap.builtin.sy.get().subrc, abap.IntegerFactory.get(0))) {
-      const unique373 = await (new abap.Classes['CX_ABAP_NOT_A_TABLE']()).constructor_();
-      unique373.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_dyn_prg.clas.abap","INTERNAL_LINE": 141};
-      throw unique373;
+      const unique387 = await (new abap.Classes['CX_ABAP_NOT_A_TABLE']()).constructor_();
+      unique387.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_dyn_prg.clas.abap","INTERNAL_LINE": 141};
+      throw unique387;
     }
     return val_str;
   }
@@ -339362,7 +340355,28 @@ class cl_abap_dyn_prg {
     let packages = INPUT?.packages;
     let incl_sub_packages = new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"});
     if (INPUT && INPUT.incl_sub_packages) {incl_sub_packages.set(INPUT.incl_sub_packages);}
+    let lv_check = new abap.types.String({qualifiedName: "STRING"});
+    let lv_exists = new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"});
     val_str.set(val);
+    lv_check.set(val_str);
+    abap.statements.translate(lv_check, "UPPER");
+    if (abap.compare.initial(val_str) || abap.compare.gt(abap.builtin.strlen({val: val_str}), abap.IntegerFactory.get(30))) {
+      const unique388 = await (new abap.Classes['CX_ABAP_NOT_A_TABLE']()).constructor_();
+      unique388.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_dyn_prg.clas.abap","INTERNAL_LINE": 154};
+      throw unique388;
+    }
+    abap.statements.find(lv_check, {regex: abap.CharacterFactory.get(43, '^([A-Z_][A-Z0-9_]*|/[A-Z0-9_]+/[A-Z0-9_]+)$')});
+    if (abap.compare.ne(abap.builtin.sy.get().subrc, abap.IntegerFactory.get(0))) {
+      const unique389 = await (new abap.Classes['CX_ABAP_NOT_A_TABLE']()).constructor_();
+      unique389.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_dyn_prg.clas.abap","INTERNAL_LINE": 159};
+      throw unique389;
+    }
+    lv_exists.set(abap.DDIC[lv_check.get()]?.objectType === "TABL" ? "X" : "");
+    if (abap.compare.eq(lv_exists, abap.builtin.abap_false)) {
+      const unique390 = await (new abap.Classes['CX_ABAP_NOT_A_TABLE']()).constructor_();
+      unique390.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_dyn_prg.clas.abap","INTERNAL_LINE": 165};
+      throw unique390;
+    }
     return val_str;
   }
   async check_whitelist_str(INPUT) {
@@ -339381,7 +340395,7 @@ class cl_abap_dyn_prg {
   static async quote(INPUT) {
     let out = new abap.types.String({qualifiedName: "STRING"});
     let val = INPUT?.val;
-    out.set(abap.operators.concat(new abap.types.String().set(`'`),abap.operators.concat((await this.escape_quotes({val: val, out: 1})),new abap.types.String().set(`'`))));
+    out.set(abap.operators.concat([new abap.types.String().set(`'`),(await this.escape_quotes({val: val, out: 1})),new abap.types.String().set(`'`)]));
     return out;
   }
   async escape_xss_url(INPUT) {
@@ -339414,9 +340428,9 @@ class cl_abap_dyn_prg {
     let lv_hex = new abap.types.String({qualifiedName: "STRING"});
     out.set(abap.CharacterFactory.get(1, ''));
     const indexBackup1 = abap.builtin.sy.get().index.get();
-    const unique374 = abap.builtin.strlen({val: val}).get();
-    for (let unique375 = 0; unique375 < unique374; unique375++) {
-      abap.builtin.sy.get().index.set(unique375 + 1);
+    const unique391 = abap.builtin.strlen({val: val}).get();
+    for (let unique392 = 0; unique392 < unique391; unique392++) {
+      abap.builtin.sy.get().index.set(unique392 + 1);
       lv_index.set(abap.operators.minus(abap.builtin.sy.get().index,abap.IntegerFactory.get(1)));
       lv_code.set(val.get().charCodeAt(lv_index.get()));
       if (abap.compare.eq(lv_code, abap.IntegerFactory.get(60))) {
@@ -339429,7 +340443,7 @@ class cl_abap_dyn_prg {
         out.set(out.get() + String.fromCharCode(lv_code.get()));
       } else {
         lv_hex.set(lv_code.get().toString(16));
-        out.set(abap.operators.concat(out,abap.operators.concat(abap.CharacterFactory.get(3, '&#x'),abap.operators.concat(lv_hex,abap.CharacterFactory.get(1, ';')))));
+        out.set(abap.operators.concat([out,abap.CharacterFactory.get(3, '&#x'),lv_hex,abap.CharacterFactory.get(1, ';')]));
       }
     }
     abap.builtin.sy.get().index.set(indexBackup1);
@@ -339466,7 +340480,8 @@ class cl_abap_elemdescr extends cl_abap_datadescr {
   static ATTRIBUTES = {"OUTPUT_LENGTH": {"type": () => {return new abap.types.Integer({qualifiedName: "I"});}, "visibility": "U", "is_constant": " ", "is_class": " "},
   "EDIT_MASK": {"type": () => {return new abap.types.Character(7, {"qualifiedName":"abap_editmask"});}, "visibility": "U", "is_constant": " ", "is_class": " "},
   "HELP_ID": {"type": () => {return new abap.types.Character(62, {"qualifiedName":"abap_helpid"});}, "visibility": "U", "is_constant": " ", "is_class": " "}};
-  static METHODS = {"GET_DDIC_FIXED_VALUES": {"visibility": "U", "parameters": {"P_FIXED_VALUES": {"type": () => {return abap.types.TableFactory.construct(new abap.types.Structure({
+  static METHODS = {"DDIC_DATATYPE_FROM_TYPEKIND": {"visibility": "I", "parameters": {"RV_DATATYPE": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "R", "type_name": "StringType"}, "TYPEKIND": {"type": () => {return new abap.types.Character(1, {"qualifiedName":"abap_typekind"});}, "is_optional": " ", "parm_kind": "I", "type_name": "CharacterType"}}},
+  "GET_DDIC_FIXED_VALUES": {"visibility": "U", "parameters": {"P_FIXED_VALUES": {"type": () => {return abap.types.TableFactory.construct(new abap.types.Structure({
   "low": new abap.types.Character(10, {"qualifiedName":"cl_abap_elemdescr=>fixvalue-low"}),
   "high": new abap.types.Character(10, {"qualifiedName":"cl_abap_elemdescr=>fixvalue-high"}),
   "option": new abap.types.Character(2, {"qualifiedName":"cl_abap_elemdescr=>fixvalue-option"}),
@@ -339485,7 +340500,7 @@ class cl_abap_elemdescr extends cl_abap_datadescr {
   "intlen": new abap.types.Numc({length: 6}),
   "outputlen": new abap.types.Numc({length: 6}),
   "decimals": new abap.types.Numc({length: 6}),
-  "datatype": new abap.types.Character(1, {}),
+  "datatype": new abap.types.Character(4, {}),
   "inttype": new abap.types.Character(1, {}),
   "reftable": new abap.types.Character(1, {}),
   "reffield": new abap.types.Character(1, {}),
@@ -339495,7 +340510,7 @@ class cl_abap_elemdescr extends cl_abap_datadescr {
   "logflag": new abap.types.Character(1, {}),
   "mask": new abap.types.Character(20, {}),
   "masklen": new abap.types.Character(1, {}),
-  "convexit": new abap.types.Character(1, {}),
+  "convexit": new abap.types.Character(5, {}),
   "headlen": new abap.types.Character(1, {}),
   "scrlen1": new abap.types.Character(1, {}),
   "scrlen2": new abap.types.Character(1, {}),
@@ -339625,7 +340640,7 @@ class cl_abap_elemdescr extends cl_abap_datadescr {
     "intlen": new abap.types.Numc({length: 6}),
     "outputlen": new abap.types.Numc({length: 6}),
     "decimals": new abap.types.Numc({length: 6}),
-    "datatype": new abap.types.Character(1, {}),
+    "datatype": new abap.types.Character(4, {}),
     "inttype": new abap.types.Character(1, {}),
     "reftable": new abap.types.Character(1, {}),
     "reffield": new abap.types.Character(1, {}),
@@ -339635,7 +340650,7 @@ class cl_abap_elemdescr extends cl_abap_datadescr {
     "logflag": new abap.types.Character(1, {}),
     "mask": new abap.types.Character(20, {}),
     "masklen": new abap.types.Character(1, {}),
-    "convexit": new abap.types.Character(1, {}),
+    "convexit": new abap.types.Character(5, {}),
     "headlen": new abap.types.Character(1, {}),
     "scrlen1": new abap.types.Character(1, {}),
     "scrlen2": new abap.types.Character(1, {}),
@@ -339661,14 +340676,71 @@ class cl_abap_elemdescr extends cl_abap_datadescr {
     let p_langu = new abap.types.Character(1, {"qualifiedName":"sy-langu","conversionExit":"ISOLA"});
     if (INPUT && INPUT.p_langu) {p_langu.set(INPUT.p_langu);}
     if (INPUT === undefined || INPUT.p_langu === undefined) {p_langu = abap.builtin.sy.get().langu;}
+    let lv_datatype = new abap.types.String({qualifiedName: "STRING"});
     p_flddescr.get().tabname.set(this.absolute_name);
+    p_flddescr.get().rollname.set(this.relative_name);
     p_flddescr.get().inttype.set(this.type_kind);
     p_flddescr.get().langu.set(abap.builtin.sy.get().langu);
     p_flddescr.get().position.set(abap.IntegerFactory.get(1));
     p_flddescr.get().leng.set(this.length);
     p_flddescr.get().decimals.set(this.decimals);
+    p_flddescr.get().outputlen.set(this.output_length);
     p_flddescr.get().domname.set(abap.DDIC[this.relative_name.get()]?.domain || "");
+    lv_datatype.set(abap.DDIC[this.relative_name.get()]?.datatype || "");
+    if (abap.compare.initial(lv_datatype)) {
+      lv_datatype.set((await this.ddic_datatype_from_typekind({typekind: this.type_kind, rv_datatype: 1})));
+    }
+    p_flddescr.get().datatype.set(lv_datatype);
+    if (abap.compare.cp(this.edit_mask, abap.CharacterFactory.get(3, '==*'))) {
+      p_flddescr.get().convexit.set(this.edit_mask.getOffset({offset: 2}));
+    }
     return p_flddescr;
+  }
+  async ddic_datatype_from_typekind(INPUT) {
+    return cl_abap_elemdescr.ddic_datatype_from_typekind(INPUT);
+  }
+  static async ddic_datatype_from_typekind(INPUT) {
+    let rv_datatype = new abap.types.String({qualifiedName: "STRING"});
+    let typekind = INPUT?.typekind;
+    if (typekind?.getQualifiedName === undefined || typekind.getQualifiedName() !== "ABAP_TYPEKIND") { typekind = undefined; }
+    if (typekind === undefined) { typekind = new abap.types.Character(1, {"qualifiedName":"abap_typekind"}).set(INPUT.typekind); }
+    let unique217 = typekind;
+    if (abap.compare.eq(unique217, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_char)) {
+      rv_datatype.set(abap.CharacterFactory.get(4, 'CHAR'));
+    } else if (abap.compare.eq(unique217, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_num)) {
+      rv_datatype.set(abap.CharacterFactory.get(4, 'NUMC'));
+    } else if (abap.compare.eq(unique217, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_date)) {
+      rv_datatype.set(abap.CharacterFactory.get(4, 'DATS'));
+    } else if (abap.compare.eq(unique217, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_time)) {
+      rv_datatype.set(abap.CharacterFactory.get(4, 'TIMS'));
+    } else if (abap.compare.eq(unique217, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_packed)) {
+      rv_datatype.set(abap.CharacterFactory.get(3, 'DEC'));
+    } else if (abap.compare.eq(unique217, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_int)) {
+      rv_datatype.set(abap.CharacterFactory.get(4, 'INT4'));
+    } else if (abap.compare.eq(unique217, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_int8)) {
+      rv_datatype.set(abap.CharacterFactory.get(4, 'INT8'));
+    } else if (abap.compare.eq(unique217, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_int1)) {
+      rv_datatype.set(abap.CharacterFactory.get(4, 'INT1'));
+    } else if (abap.compare.eq(unique217, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_int2)) {
+      rv_datatype.set(abap.CharacterFactory.get(4, 'INT2'));
+    } else if (abap.compare.eq(unique217, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_float)) {
+      rv_datatype.set(abap.CharacterFactory.get(4, 'FLTP'));
+    } else if (abap.compare.eq(unique217, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_hex)) {
+      rv_datatype.set(abap.CharacterFactory.get(3, 'RAW'));
+    } else if (abap.compare.eq(unique217, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_string)) {
+      rv_datatype.set(abap.CharacterFactory.get(4, 'STRG'));
+    } else if (abap.compare.eq(unique217, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_xstring)) {
+      rv_datatype.set(abap.CharacterFactory.get(4, 'RSTR'));
+    } else if (abap.compare.eq(unique217, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_decfloat16)) {
+      rv_datatype.set(abap.CharacterFactory.get(4, 'D16N'));
+    } else if (abap.compare.eq(unique217, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_decfloat34)) {
+      rv_datatype.set(abap.CharacterFactory.get(4, 'D34N'));
+    } else if (abap.compare.eq(unique217, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_utclong)) {
+      rv_datatype.set(abap.CharacterFactory.get(4, 'UTCL'));
+    } else {
+      rv_datatype.set(abap.CharacterFactory.get(1, ''));
+    }
+    return rv_datatype;
   }
   async get_i(INPUT) {
     return cl_abap_elemdescr.get_i(INPUT);
@@ -339770,9 +340842,9 @@ class cl_abap_elemdescr extends cl_abap_datadescr {
       ls_row.clear();
         ls_row.get().low.set(f.low || "");
         ls_row.get().high.set(f.high || "");
-        ls_row.get().option.set(f.option || "");
-        ls_row.get().ddlanguage.set(f.ddlanguage || "");
-        ls_row.get().ddtext.set(f.ddtext || "");
+        ls_row.get().option.set(f.high ? "BT" : "EQ");
+        ls_row.get().ddlanguage.set(f.language || "");
+        ls_row.get().ddtext.set(f.description || "");
       abap.statements.append({source: ls_row, target: p_fixed_values});
     }
     return p_fixed_values;
@@ -339897,27 +340969,27 @@ class cl_abap_exceptional_values {
     let lv_decimal_part = new abap.types.String({qualifiedName: "STRING"});
     let fs_out_ = new abap.types.FieldSymbol(new abap.types.Character(4));
     abap.statements.describe({field: $in, type: lv_type});
-    let unique364 = lv_type;
-    if (abap.compare.eq(unique364, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_int)) {
+    let unique376 = lv_type;
+    if (abap.compare.eq(unique376, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_int)) {
       abap.statements.getReference(out, abap.Classes['CL_ABAP_MATH'].max_int4);
-    } else if (abap.compare.eq(unique364, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_packed)) {
+    } else if (abap.compare.eq(unique376, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_packed)) {
       abap.statements.describe({field: $in, length: lv_length, decimals: lv_decimals, mode: 'BYTE'});
       abap.statements.createData(out,{"typeName": "P","length": lv_length,"decimals": lv_decimals});
       abap.statements.assign({target: fs_out_, source: out.dereference()});
       lv_digits_before_decimal.set(abap.operators.minus(abap.operators.minus(abap.operators.multiply(lv_length,abap.IntegerFactory.get(2)),abap.IntegerFactory.get(1)),lv_decimals));
       const indexBackup1 = abap.builtin.sy.get().index.get();
-      const unique365 = lv_digits_before_decimal.get();
-      for (let unique366 = 0; unique366 < unique365; unique366++) {
-        abap.builtin.sy.get().index.set(unique366 + 1);
+      const unique377 = lv_digits_before_decimal.get();
+      for (let unique378 = 0; unique378 < unique377; unique378++) {
+        abap.builtin.sy.get().index.set(unique378 + 1);
         lv_integer_part.set(abap.operators.concat(lv_integer_part,abap.CharacterFactory.get(1, '9')));
       }
       abap.builtin.sy.get().index.set(indexBackup1);
       if (abap.compare.gt(lv_decimals, abap.IntegerFactory.get(0))) {
         lv_decimal_part.set(abap.CharacterFactory.get(1, '.'));
         const indexBackup2 = abap.builtin.sy.get().index.get();
-        const unique367 = lv_decimals.get();
-        for (let unique368 = 0; unique368 < unique367; unique368++) {
-          abap.builtin.sy.get().index.set(unique368 + 1);
+        const unique379 = lv_decimals.get();
+        for (let unique380 = 0; unique380 < unique379; unique380++) {
+          abap.builtin.sy.get().index.set(unique380 + 1);
           lv_decimal_part.set(abap.operators.concat(lv_decimal_part,abap.CharacterFactory.get(1, '9')));
         }
         abap.builtin.sy.get().index.set(indexBackup2);
@@ -339938,10 +341010,10 @@ class cl_abap_exceptional_values {
     let lv_type = new abap.types.Character(1, {});
     let fs_out_ = new abap.types.FieldSymbol(new abap.types.Character(4));
     abap.statements.describe({field: $in, type: lv_type});
-    let unique369 = lv_type;
-    if (abap.compare.eq(unique369, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_int)) {
+    let unique381 = lv_type;
+    if (abap.compare.eq(unique381, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_int)) {
       abap.statements.getReference(out, abap.Classes['CL_ABAP_MATH'].min_int4);
-    } else if (abap.compare.eq(unique369, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_packed)) {
+    } else if (abap.compare.eq(unique381, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_packed)) {
       out.set((await this.get_max_value({in: $in, out: 1})));
       abap.statements.assign({target: fs_out_, source: out.dereference()});
       fs_out_.set(abap.operators.multiply(fs_out_,abap.IntegerFactory.get(-1)));
@@ -340400,8 +341472,9 @@ class cl_abap_hmac {
     ef_hmacstring.clear();
     ef_hmacxstring.clear();
     abap.statements.assert(abap.compare.eq(if_length, abap.IntegerFactory.get(0)));
+    await abap.Classes['CL_ABAP_MESSAGE_DIGEST'].get_instance({if_algorithm: if_algorithm});
     lv_algorithm.set(abap.builtin.to_lower({val: if_algorithm}));
-    abap.statements.assert(abap.compare.eq(lv_algorithm, abap.CharacterFactory.get(4, 'sha1')) || abap.compare.eq(lv_algorithm, abap.CharacterFactory.get(3, 'md5')) || abap.compare.eq(lv_algorithm, abap.CharacterFactory.get(6, 'sha256')));
+    abap.statements.replace({target: lv_algorithm, all: true, with: abap.CharacterFactory.get(1, ''), of: abap.CharacterFactory.get(1, '-')});
     const crypto = await __webpack_require__.e(/*! import() */ "_3c40").then(__webpack_require__.t.bind(__webpack_require__, /*! crypto */ "?3c40", 19));
     if (abap.compare.initial(if_key)) {
       var shasum = crypto.createHash(lv_algorithm.get());
@@ -340852,19 +341925,296 @@ class cl_abap_message_digest {
   static INTERNAL_TYPE = 'CLAS';
   static INTERNAL_NAME = 'CL_ABAP_MESSAGE_DIGEST';
   static IMPLEMENTED_INTERFACES = [];
-  static ATTRIBUTES = {};
-  static METHODS = {"CALCULATE_HASH_FOR_RAW": {"visibility": "U", "parameters": {"IF_ALGORITHM": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "StringType"}, "IF_DATA": {"type": () => {return new abap.types.XString({qualifiedName: "XSTRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "XStringType"}, "EF_HASHXSTRING": {"type": () => {return new abap.types.XString({qualifiedName: "XSTRING"});}, "is_optional": " ", "parm_kind": "E", "type_name": "XStringType"}}},
-  "CALCULATE_HASH_FOR_CHAR": {"visibility": "U", "parameters": {"IF_ALGORITHM": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "StringType"}, "IF_DATA": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "StringType"}, "EF_HASHXSTRING": {"type": () => {return new abap.types.XString({qualifiedName: "XSTRING"});}, "is_optional": " ", "parm_kind": "E", "type_name": "XStringType"}, "EF_HASHSTRING": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "E", "type_name": "StringType"}, "EF_HASHB64STRING": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "E", "type_name": "StringType"}}}};
+  static ATTRIBUTES = {"GT_ALGORITHMS": {"type": () => {return abap.types.TableFactory.construct(new abap.types.Structure({
+  "name": new abap.types.String({qualifiedName: "CL_ABAP_MESSAGE_DIGEST=>TY_ALGORITHM-NAME"}),
+  "node": new abap.types.String({qualifiedName: "CL_ABAP_MESSAGE_DIGEST=>TY_ALGORITHM-NODE"}),
+  "length": new abap.types.Integer({qualifiedName: "CL_ABAP_MESSAGE_DIGEST=>TY_ALGORITHM-LENGTH"})}, "cl_abap_message_digest=>ty_algorithm", undefined, {}, {}), {"withHeader":false,"keyType":"USER","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":["NAME"]},"secondary":[]}, "cl_abap_message_digest=>ty_algorithms");}, "visibility": "I", "is_constant": " ", "is_class": "X"},
+  "MV_ALGORITHM": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "visibility": "I", "is_constant": " ", "is_class": " "},
+  "MS_ALGORITHM": {"type": () => {return new abap.types.Structure({
+  "name": new abap.types.String({qualifiedName: "CL_ABAP_MESSAGE_DIGEST=>TY_ALGORITHM-NAME"}),
+  "node": new abap.types.String({qualifiedName: "CL_ABAP_MESSAGE_DIGEST=>TY_ALGORITHM-NODE"}),
+  "length": new abap.types.Integer({qualifiedName: "CL_ABAP_MESSAGE_DIGEST=>TY_ALGORITHM-LENGTH"})}, "cl_abap_message_digest=>ty_algorithm", undefined, {}, {});}, "visibility": "I", "is_constant": " ", "is_class": " "},
+  "MV_BUFFER": {"type": () => {return new abap.types.XString({qualifiedName: "XSTRING"});}, "visibility": "I", "is_constant": " ", "is_class": " "},
+  "MV_DIGEST": {"type": () => {return new abap.types.XString({qualifiedName: "XSTRING"});}, "visibility": "I", "is_constant": " ", "is_class": " "}};
+  static METHODS = {"RESOLVE": {"visibility": "I", "parameters": {"RS_ALGORITHM": {"type": () => {return new abap.types.Structure({
+  "name": new abap.types.String({qualifiedName: "CL_ABAP_MESSAGE_DIGEST=>TY_ALGORITHM-NAME"}),
+  "node": new abap.types.String({qualifiedName: "CL_ABAP_MESSAGE_DIGEST=>TY_ALGORITHM-NODE"}),
+  "length": new abap.types.Integer({qualifiedName: "CL_ABAP_MESSAGE_DIGEST=>TY_ALGORITHM-LENGTH"})}, "cl_abap_message_digest=>ty_algorithm", undefined, {}, {});}, "is_optional": " ", "parm_kind": "R", "type_name": "StructureType"}, "IF_ALGORITHM": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "StringType"}}},
+  "SLICE": {"visibility": "I", "parameters": {"RV_DATA": {"type": () => {return new abap.types.XString({qualifiedName: "XSTRING"});}, "is_optional": " ", "parm_kind": "R", "type_name": "XStringType"}, "IF_DATA": {"type": () => {return new abap.types.XString({qualifiedName: "XSTRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "XStringType"}, "IF_OFFSET": {"type": () => {return new abap.types.Integer({qualifiedName: "I"});}, "is_optional": " ", "parm_kind": "I", "type_name": "IntegerType"}, "IF_LENGTH": {"type": () => {return new abap.types.Integer({qualifiedName: "I"});}, "is_optional": " ", "parm_kind": "I", "type_name": "IntegerType"}}},
+  "HASH": {"visibility": "I", "parameters": {"RV_HASH": {"type": () => {return new abap.types.XString({qualifiedName: "XSTRING"});}, "is_optional": " ", "parm_kind": "R", "type_name": "XStringType"}, "IV_NODE": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "StringType"}, "IV_DATA": {"type": () => {return new abap.types.XString({qualifiedName: "XSTRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "XStringType"}}},
+  "TO_HEX": {"visibility": "I", "parameters": {"RV_STRING": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "R", "type_name": "StringType"}, "IV_DATA": {"type": () => {return new abap.types.XString({qualifiedName: "XSTRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "XStringType"}}},
+  "BASE64": {"visibility": "I", "parameters": {"RV_BASE64": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "R", "type_name": "StringType"}, "IV_DATA": {"type": () => {return new abap.types.XString({qualifiedName: "XSTRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "XStringType"}}},
+  "CLASS_CONSTRUCTOR": {"visibility": "U", "parameters": {}},
+  "CONSTRUCTOR": {"visibility": "U", "parameters": {"IF_ALGORITHM": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "StringType"}}},
+  "GET_INSTANCE": {"visibility": "U", "parameters": {"RO_OBJECT": {"type": () => {return new abap.types.ABAPObject({qualifiedName: "CL_ABAP_MESSAGE_DIGEST", RTTIName: "\\CLASS=CL_ABAP_MESSAGE_DIGEST"});}, "is_optional": " ", "parm_kind": "R", "type_name": "ObjectReferenceType"}, "IF_ALGORITHM": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "StringType"}}},
+  "GET_ALGORITHM": {"visibility": "U", "parameters": {"RF_ALGORITHM": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "R", "type_name": "StringType"}}},
+  "GET_DIGEST_LENGTH": {"visibility": "U", "parameters": {"RI_LENGTH": {"type": () => {return new abap.types.Integer({qualifiedName: "I"});}, "is_optional": " ", "parm_kind": "R", "type_name": "IntegerType"}}},
+  "GET_DIGEST": {"visibility": "U", "parameters": {"ER_HASH": {"type": () => {return new abap.types.XString({qualifiedName: "XSTRING"});}, "is_optional": " ", "parm_kind": "R", "type_name": "XStringType"}}},
+  "UPDATE": {"visibility": "U", "parameters": {"IF_DATA": {"type": () => {return new abap.types.XString({qualifiedName: "XSTRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "XStringType"}, "IF_OFFSET": {"type": () => {return new abap.types.Integer({qualifiedName: "I"});}, "is_optional": " ", "parm_kind": "I", "type_name": "IntegerType"}, "IF_LENGTH": {"type": () => {return new abap.types.Integer({qualifiedName: "I"});}, "is_optional": " ", "parm_kind": "I", "type_name": "IntegerType"}}},
+  "DIGEST": {"visibility": "U", "parameters": {"IF_DATA": {"type": () => {return new abap.types.XString({qualifiedName: "XSTRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "XStringType"}, "IF_OFFSET": {"type": () => {return new abap.types.Integer({qualifiedName: "I"});}, "is_optional": " ", "parm_kind": "I", "type_name": "IntegerType"}, "IF_LENGTH": {"type": () => {return new abap.types.Integer({qualifiedName: "I"});}, "is_optional": " ", "parm_kind": "I", "type_name": "IntegerType"}, "EF_HASHSTRING": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "E", "type_name": "StringType"}, "EF_HASHXSTRING": {"type": () => {return new abap.types.XString({qualifiedName: "XSTRING"});}, "is_optional": " ", "parm_kind": "E", "type_name": "XStringType"}, "EF_HASHB64STRING": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "E", "type_name": "StringType"}, "EF_HASHX": {"type": () => {return new abap.types.Hex();}, "is_optional": " ", "parm_kind": "E", "type_name": "XSequenceType"}}},
+  "RESET": {"visibility": "U", "parameters": {}},
+  "TO_STRING": {"visibility": "U", "parameters": {"ER_HASHSTRING": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "R", "type_name": "StringType"}}},
+  "TO_BASE64": {"visibility": "U", "parameters": {"ER_HASHB64STRING": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "R", "type_name": "StringType"}}},
+  "IS_EQUAL": {"visibility": "U", "parameters": {"ER_EQUAL": {"type": () => {return new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"});}, "is_optional": " ", "parm_kind": "R", "type_name": "CharacterType"}, "IF_DIGESTA": {"type": () => {return new abap.types.XString({qualifiedName: "XSTRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "XStringType"}, "IF_DIGESTB": {"type": () => {return new abap.types.XString({qualifiedName: "XSTRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "XStringType"}}},
+  "CALCULATE_HASH_FOR_CHAR": {"visibility": "U", "parameters": {"IF_ALGORITHM": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "StringType"}, "IF_DATA": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "StringType"}, "IF_LENGTH": {"type": () => {return new abap.types.Integer({qualifiedName: "I"});}, "is_optional": " ", "parm_kind": "I", "type_name": "IntegerType"}, "EF_HASHSTRING": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "E", "type_name": "StringType"}, "EF_HASHXSTRING": {"type": () => {return new abap.types.XString({qualifiedName: "XSTRING"});}, "is_optional": " ", "parm_kind": "E", "type_name": "XStringType"}, "EF_HASHB64STRING": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "E", "type_name": "StringType"}, "EF_HASHX": {"type": () => {return new abap.types.Hex();}, "is_optional": " ", "parm_kind": "E", "type_name": "XSequenceType"}}},
+  "CALCULATE_HASH_FOR_RAW": {"visibility": "U", "parameters": {"IF_ALGORITHM": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "StringType"}, "IF_DATA": {"type": () => {return new abap.types.XString({qualifiedName: "XSTRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "XStringType"}, "IF_LENGTH": {"type": () => {return new abap.types.Integer({qualifiedName: "I"});}, "is_optional": " ", "parm_kind": "I", "type_name": "IntegerType"}, "EF_HASHSTRING": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "E", "type_name": "StringType"}, "EF_HASHXSTRING": {"type": () => {return new abap.types.XString({qualifiedName: "XSTRING"});}, "is_optional": " ", "parm_kind": "E", "type_name": "XStringType"}, "EF_HASHB64STRING": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "E", "type_name": "StringType"}, "EF_HASHX": {"type": () => {return new abap.types.Hex();}, "is_optional": " ", "parm_kind": "E", "type_name": "XSequenceType"}}},
+  "STRING_TO_XSTRING": {"visibility": "U", "parameters": {"ER_OUTPUT": {"type": () => {return new abap.types.XString({qualifiedName: "XSTRING"});}, "is_optional": " ", "parm_kind": "R", "type_name": "XStringType"}, "IF_INPUT": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "StringType"}}}};
+  #gt_algorithms;
+  #mv_algorithm;
+  #ms_algorithm;
+  #mv_buffer;
+  #mv_digest;
   constructor() {
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
     this.INTERNAL_ID = abap.internalIdCounter++;
     this.FRIENDS_ACCESS_INSTANCE = {
+      "get_algorithm": this.get_algorithm.bind(this),
+      "get_digest_length": this.get_digest_length.bind(this),
+      "get_digest": this.get_digest.bind(this),
+      "update": this.update.bind(this),
+      "digest": this.digest.bind(this),
+      "reset": this.reset.bind(this),
+      "to_string": this.to_string.bind(this),
+      "to_base64": this.to_base64.bind(this),
     };
+    this.gt_algorithms = cl_abap_message_digest.gt_algorithms;
+    this.FRIENDS_ACCESS_INSTANCE["gt_algorithms"] = this.gt_algorithms;
+    this.#mv_algorithm = new abap.types.String({qualifiedName: "STRING"});
+    this.FRIENDS_ACCESS_INSTANCE["mv_algorithm"] = this.#mv_algorithm;
+    this.#ms_algorithm = new abap.types.Structure({
+    "name": new abap.types.String({qualifiedName: "CL_ABAP_MESSAGE_DIGEST=>TY_ALGORITHM-NAME"}),
+    "node": new abap.types.String({qualifiedName: "CL_ABAP_MESSAGE_DIGEST=>TY_ALGORITHM-NODE"}),
+    "length": new abap.types.Integer({qualifiedName: "CL_ABAP_MESSAGE_DIGEST=>TY_ALGORITHM-LENGTH"})}, "cl_abap_message_digest=>ty_algorithm", undefined, {}, {});
+    this.FRIENDS_ACCESS_INSTANCE["ms_algorithm"] = this.#ms_algorithm;
+    this.#mv_buffer = new abap.types.XString({qualifiedName: "XSTRING"});
+    this.FRIENDS_ACCESS_INSTANCE["mv_buffer"] = this.#mv_buffer;
+    this.#mv_digest = new abap.types.XString({qualifiedName: "XSTRING"});
+    this.FRIENDS_ACCESS_INSTANCE["mv_digest"] = this.#mv_digest;
+  }
+  async class_constructor() {
+    return cl_abap_message_digest.class_constructor();
+  }
+  static async class_constructor() {
+    let ls_algorithm = new abap.types.Structure({
+    "name": new abap.types.String({qualifiedName: "CL_ABAP_MESSAGE_DIGEST=>TY_ALGORITHM-NAME"}),
+    "node": new abap.types.String({qualifiedName: "CL_ABAP_MESSAGE_DIGEST=>TY_ALGORITHM-NODE"}),
+    "length": new abap.types.Integer({qualifiedName: "CL_ABAP_MESSAGE_DIGEST=>TY_ALGORITHM-LENGTH"})}, "cl_abap_message_digest=>ty_algorithm", undefined, {}, {});
+    ls_algorithm.get().name.set(abap.CharacterFactory.get(3, 'MD5'));
+    ls_algorithm.get().node.set(abap.CharacterFactory.get(3, 'md5'));
+    ls_algorithm.get().length.set(abap.IntegerFactory.get(16));
+    abap.statements.append({source: ls_algorithm, target: cl_abap_message_digest.gt_algorithms});
+    ls_algorithm.get().name.set(abap.CharacterFactory.get(4, 'SHA1'));
+    ls_algorithm.get().node.set(abap.CharacterFactory.get(4, 'sha1'));
+    ls_algorithm.get().length.set(abap.IntegerFactory.get(20));
+    abap.statements.append({source: ls_algorithm, target: cl_abap_message_digest.gt_algorithms});
+    ls_algorithm.get().name.set(abap.CharacterFactory.get(6, 'SHA224'));
+    ls_algorithm.get().node.set(abap.CharacterFactory.get(6, 'sha224'));
+    ls_algorithm.get().length.set(abap.IntegerFactory.get(28));
+    abap.statements.append({source: ls_algorithm, target: cl_abap_message_digest.gt_algorithms});
+    ls_algorithm.get().name.set(abap.CharacterFactory.get(6, 'SHA256'));
+    ls_algorithm.get().node.set(abap.CharacterFactory.get(6, 'sha256'));
+    ls_algorithm.get().length.set(abap.IntegerFactory.get(32));
+    abap.statements.append({source: ls_algorithm, target: cl_abap_message_digest.gt_algorithms});
+    ls_algorithm.get().name.set(abap.CharacterFactory.get(6, 'SHA384'));
+    ls_algorithm.get().node.set(abap.CharacterFactory.get(6, 'sha384'));
+    ls_algorithm.get().length.set(abap.IntegerFactory.get(48));
+    abap.statements.append({source: ls_algorithm, target: cl_abap_message_digest.gt_algorithms});
+    ls_algorithm.get().name.set(abap.CharacterFactory.get(6, 'SHA512'));
+    ls_algorithm.get().node.set(abap.CharacterFactory.get(6, 'sha512'));
+    ls_algorithm.get().length.set(abap.IntegerFactory.get(64));
+    abap.statements.append({source: ls_algorithm, target: cl_abap_message_digest.gt_algorithms});
+  }
+  async resolve(INPUT) {
+    return cl_abap_message_digest.resolve(INPUT);
+  }
+  static async resolve(INPUT) {
+    let rs_algorithm = new abap.types.Structure({
+    "name": new abap.types.String({qualifiedName: "CL_ABAP_MESSAGE_DIGEST=>TY_ALGORITHM-NAME"}),
+    "node": new abap.types.String({qualifiedName: "CL_ABAP_MESSAGE_DIGEST=>TY_ALGORITHM-NODE"}),
+    "length": new abap.types.Integer({qualifiedName: "CL_ABAP_MESSAGE_DIGEST=>TY_ALGORITHM-LENGTH"})}, "cl_abap_message_digest=>ty_algorithm", undefined, {}, {});
+    let if_algorithm = INPUT?.if_algorithm;
+    if (if_algorithm?.getQualifiedName === undefined || if_algorithm.getQualifiedName() !== "STRING") { if_algorithm = undefined; }
+    if (if_algorithm === undefined) { if_algorithm = new abap.types.String({qualifiedName: "STRING"}).set(INPUT.if_algorithm); }
+    let lv_name = new abap.types.String({qualifiedName: "STRING"});
+    lv_name.set(abap.builtin.to_upper({val: if_algorithm}));
+    abap.statements.replace({target: lv_name, all: true, with: abap.CharacterFactory.get(1, ''), of: abap.CharacterFactory.get(1, '-')});
+    abap.statements.condense(lv_name, {nogaps: true});
+    abap.statements.readTable(cl_abap_message_digest.gt_algorithms,{into: rs_algorithm,
+      withKey: (i) => {return abap.compare.eq(i.name, lv_name);},
+      withKeyValue: [{key: (i) => {return i.name}, value: lv_name}],
+      usesTableLine: false,
+      withKeySimple: {"name": lv_name}});
+    if (abap.compare.ne(abap.builtin.sy.get().subrc, abap.IntegerFactory.get(0))) {
+      const unique382 = await (new abap.Classes['CX_ABAP_MESSAGE_DIGEST']()).constructor_({textid: abap.Classes['CX_ABAP_MESSAGE_DIGEST'].unknown_algorithm, algorithm: if_algorithm});
+      unique382.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_message_digest.clas.abap","INTERNAL_LINE": 213};
+      throw unique382;
+    }
+    return rs_algorithm;
+  }
+  async slice(INPUT) {
+    return cl_abap_message_digest.slice(INPUT);
+  }
+  static async slice(INPUT) {
+    let rv_data = new abap.types.XString({qualifiedName: "XSTRING"});
+    let if_data = INPUT?.if_data;
+    if (if_data?.getQualifiedName === undefined || if_data.getQualifiedName() !== "XSTRING") { if_data = undefined; }
+    if (if_data === undefined) { if_data = new abap.types.XString({qualifiedName: "XSTRING"}).set(INPUT.if_data); }
+    let if_offset = INPUT?.if_offset;
+    if (if_offset?.getQualifiedName === undefined || if_offset.getQualifiedName() !== "I") { if_offset = undefined; }
+    if (if_offset === undefined) { if_offset = new abap.types.Integer({qualifiedName: "I"}).set(INPUT.if_offset); }
+    let if_length = INPUT?.if_length;
+    if (if_length?.getQualifiedName === undefined || if_length.getQualifiedName() !== "I") { if_length = undefined; }
+    if (if_length === undefined) { if_length = new abap.types.Integer({qualifiedName: "I"}).set(INPUT.if_length); }
+    let lv_available = new abap.types.Integer({qualifiedName: "I"});
+    lv_available.set(abap.operators.minus(abap.builtin.xstrlen({val: if_data}),if_offset));
+    if (abap.compare.lt(if_offset, abap.IntegerFactory.get(0)) || abap.compare.lt(if_length, abap.IntegerFactory.get(0)) || abap.compare.lt(lv_available, abap.IntegerFactory.get(0)) || abap.compare.gt(if_length, lv_available)) {
+      const unique383 = await (new abap.Classes['CX_ABAP_MESSAGE_DIGEST']()).constructor_({textid: abap.Classes['CX_ABAP_MESSAGE_DIGEST'].param_error});
+      unique383.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_message_digest.clas.abap","INTERNAL_LINE": 225};
+      throw unique383;
+    }
+    if (abap.compare.eq(if_length, abap.IntegerFactory.get(0))) {
+      rv_data.set(if_data.getOffset({offset: if_offset}));
+    } else {
+      rv_data.set(if_data.getOffset({offset: if_offset, length: if_length}));
+    }
+    return rv_data;
+  }
+  async hash(INPUT) {
+    return cl_abap_message_digest.hash(INPUT);
+  }
+  static async hash(INPUT) {
+    let rv_hash = new abap.types.XString({qualifiedName: "XSTRING"});
+    let iv_node = INPUT?.iv_node;
+    if (iv_node?.getQualifiedName === undefined || iv_node.getQualifiedName() !== "STRING") { iv_node = undefined; }
+    if (iv_node === undefined) { iv_node = new abap.types.String({qualifiedName: "STRING"}).set(INPUT.iv_node); }
+    let iv_data = INPUT?.iv_data;
+    if (iv_data?.getQualifiedName === undefined || iv_data.getQualifiedName() !== "XSTRING") { iv_data = undefined; }
+    if (iv_data === undefined) { iv_data = new abap.types.XString({qualifiedName: "XSTRING"}).set(INPUT.iv_data); }
+    const crypto = await __webpack_require__.e(/*! import() */ "_3c40").then(__webpack_require__.t.bind(__webpack_require__, /*! crypto */ "?3c40", 19));
+    rv_hash.set(crypto.createHash(iv_node.get()).update(iv_data.get(), "hex").digest("hex").toUpperCase());
+    return rv_hash;
+  }
+  async to_hex(INPUT) {
+    return cl_abap_message_digest.to_hex(INPUT);
+  }
+  static async to_hex(INPUT) {
+    let rv_string = new abap.types.String({qualifiedName: "STRING"});
+    let iv_data = INPUT?.iv_data;
+    if (iv_data?.getQualifiedName === undefined || iv_data.getQualifiedName() !== "XSTRING") { iv_data = undefined; }
+    if (iv_data === undefined) { iv_data = new abap.types.XString({qualifiedName: "XSTRING"}).set(INPUT.iv_data); }
+    rv_string.set(iv_data);
+    return rv_string;
+  }
+  async base64(INPUT) {
+    return cl_abap_message_digest.base64(INPUT);
+  }
+  static async base64(INPUT) {
+    let rv_base64 = new abap.types.String({qualifiedName: "STRING"});
+    let iv_data = INPUT?.iv_data;
+    if (iv_data?.getQualifiedName === undefined || iv_data.getQualifiedName() !== "XSTRING") { iv_data = undefined; }
+    if (iv_data === undefined) { iv_data = new abap.types.XString({qualifiedName: "XSTRING"}).set(INPUT.iv_data); }
+    rv_base64.set(Buffer.from(iv_data.get(), "hex").toString("base64"));
+    return rv_base64;
   }
   async constructor_(INPUT) {
-    if (super.constructor_) { await super.constructor_(INPUT); }
+    let if_algorithm = INPUT?.if_algorithm;
+    if (if_algorithm?.getQualifiedName === undefined || if_algorithm.getQualifiedName() !== "STRING") { if_algorithm = undefined; }
+    if (if_algorithm === undefined) { if_algorithm = new abap.types.String({qualifiedName: "STRING"}).set(INPUT.if_algorithm); }
+    this.#ms_algorithm.set((await this.resolve({if_algorithm: if_algorithm, rs_algorithm: 1})));
+    this.#mv_algorithm.set(if_algorithm);
     return this;
+  }
+  async get_instance(INPUT) {
+    return cl_abap_message_digest.get_instance(INPUT);
+  }
+  static async get_instance(INPUT) {
+    let ro_object = new abap.types.ABAPObject({qualifiedName: "CL_ABAP_MESSAGE_DIGEST", RTTIName: "\\CLASS=CL_ABAP_MESSAGE_DIGEST"});
+    let if_algorithm = new abap.types.String({qualifiedName: "STRING"});
+    if (INPUT && INPUT.if_algorithm) {if_algorithm.set(INPUT.if_algorithm);}
+    if (INPUT === undefined || INPUT.if_algorithm === undefined) {if_algorithm = abap.CharacterFactory.get(4, 'SHA1');}
+    ro_object.set((new abap.types.ABAPObject({qualifiedName: "CL_ABAP_MESSAGE_DIGEST", RTTIName: "\\CLASS=CL_ABAP_MESSAGE_DIGEST"}).set(await (new abap.Classes['CL_ABAP_MESSAGE_DIGEST']()).constructor_({if_algorithm: if_algorithm}))));
+    return ro_object;
+  }
+  async get_algorithm(INPUT) {
+    let rf_algorithm = new abap.types.String({qualifiedName: "STRING"});
+    rf_algorithm.set(this.#mv_algorithm);
+    return rf_algorithm;
+  }
+  async get_digest_length(INPUT) {
+    let ri_length = new abap.types.Integer({qualifiedName: "I"});
+    ri_length.set(this.#ms_algorithm.get().length);
+    return ri_length;
+  }
+  async get_digest(INPUT) {
+    let er_hash = new abap.types.XString({qualifiedName: "XSTRING"});
+    er_hash.set(this.#mv_digest);
+    return er_hash;
+  }
+  async update(INPUT) {
+    let if_data = INPUT?.if_data;
+    if (if_data?.getQualifiedName === undefined || if_data.getQualifiedName() !== "XSTRING") { if_data = undefined; }
+    if (if_data === undefined) { if_data = new abap.types.XString({qualifiedName: "XSTRING"}).set(INPUT.if_data); }
+    let if_offset = new abap.types.Integer({qualifiedName: "I"});
+    if (INPUT && INPUT.if_offset) {if_offset.set(INPUT.if_offset);}
+    if (INPUT === undefined || INPUT.if_offset === undefined) {if_offset = abap.IntegerFactory.get(0);}
+    let if_length = new abap.types.Integer({qualifiedName: "I"});
+    if (INPUT && INPUT.if_length) {if_length.set(INPUT.if_length);}
+    if (INPUT === undefined || INPUT.if_length === undefined) {if_length = abap.IntegerFactory.get(0);}
+    let lv_data = new abap.types.XString({qualifiedName: "XSTRING"});
+    lv_data.set((await this.slice({if_data: if_data, if_offset: if_offset, if_length: if_length, rv_data: 1})));
+    abap.statements.concatenate({source: [this.#mv_buffer, lv_data], target: this.#mv_buffer, byteMode: true});
+  }
+  async digest(INPUT) {
+    let if_data = new abap.types.XString({qualifiedName: "XSTRING"});
+    if (INPUT && INPUT.if_data) {if_data.set(INPUT.if_data);}
+    let if_offset = new abap.types.Integer({qualifiedName: "I"});
+    if (INPUT && INPUT.if_offset) {if_offset.set(INPUT.if_offset);}
+    if (INPUT === undefined || INPUT.if_offset === undefined) {if_offset = abap.IntegerFactory.get(0);}
+    let if_length = new abap.types.Integer({qualifiedName: "I"});
+    if (INPUT && INPUT.if_length) {if_length.set(INPUT.if_length);}
+    if (INPUT === undefined || INPUT.if_length === undefined) {if_length = abap.IntegerFactory.get(0);}
+    let ef_hashstring = INPUT?.ef_hashstring || new abap.types.String({qualifiedName: "STRING"});
+    let ef_hashxstring = INPUT?.ef_hashxstring || new abap.types.XString({qualifiedName: "XSTRING"});
+    let ef_hashb64string = INPUT?.ef_hashb64string || new abap.types.String({qualifiedName: "STRING"});
+    let ef_hashx = INPUT?.ef_hashx || new abap.types.Hex();
+    if ((INPUT && INPUT.if_data)) {
+      await this.update({if_data: if_data, if_offset: if_offset, if_length: if_length});
+    }
+    this.#mv_digest.set((await this.hash({iv_node: this.#ms_algorithm.get().node, iv_data: this.#mv_buffer, rv_hash: 1})));
+    this.#mv_buffer.clear();
+    ef_hashxstring.set(this.#mv_digest);
+    ef_hashstring.set((await this.to_hex({iv_data: this.#mv_digest, rv_string: 1})));
+    ef_hashb64string.set((await this.base64({iv_data: this.#mv_digest, rv_base64: 1})));
+    ef_hashx.set(this.#mv_digest);
+  }
+  async reset() {
+    this.#mv_buffer.clear();
+    this.#mv_digest.clear();
+  }
+  async to_string(INPUT) {
+    let er_hashstring = new abap.types.String({qualifiedName: "STRING"});
+    er_hashstring.set((await this.to_hex({iv_data: this.#mv_digest, rv_string: 1})));
+    return er_hashstring;
+  }
+  async to_base64(INPUT) {
+    let er_hashb64string = new abap.types.String({qualifiedName: "STRING"});
+    er_hashb64string.set((await this.base64({iv_data: this.#mv_digest, rv_base64: 1})));
+    return er_hashb64string;
+  }
+  async is_equal(INPUT) {
+    return cl_abap_message_digest.is_equal(INPUT);
+  }
+  static async is_equal(INPUT) {
+    let er_equal = new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"});
+    let if_digesta = INPUT?.if_digesta;
+    if (if_digesta?.getQualifiedName === undefined || if_digesta.getQualifiedName() !== "XSTRING") { if_digesta = undefined; }
+    if (if_digesta === undefined) { if_digesta = new abap.types.XString({qualifiedName: "XSTRING"}).set(INPUT.if_digesta); }
+    let if_digestb = INPUT?.if_digestb;
+    if (if_digestb?.getQualifiedName === undefined || if_digestb.getQualifiedName() !== "XSTRING") { if_digestb = undefined; }
+    if (if_digestb === undefined) { if_digestb = new abap.types.XString({qualifiedName: "XSTRING"}).set(INPUT.if_digestb); }
+    er_equal.set(abap.builtin.xsdbool(abap.compare.eq(if_digesta, if_digestb)));
+    return er_equal;
   }
   async calculate_hash_for_raw(INPUT) {
     return cl_abap_message_digest.calculate_hash_for_raw(INPUT);
@@ -340876,14 +342226,24 @@ class cl_abap_message_digest {
     let if_data = INPUT?.if_data;
     if (if_data?.getQualifiedName === undefined || if_data.getQualifiedName() !== "XSTRING") { if_data = undefined; }
     if (if_data === undefined) { if_data = new abap.types.XString({qualifiedName: "XSTRING"}).set(INPUT.if_data); }
+    let if_length = new abap.types.Integer({qualifiedName: "I"});
+    if (INPUT && INPUT.if_length) {if_length.set(INPUT.if_length);}
+    if (INPUT === undefined || INPUT.if_length === undefined) {if_length = abap.IntegerFactory.get(0);}
+    let ef_hashstring = INPUT?.ef_hashstring || new abap.types.String({qualifiedName: "STRING"});
     let ef_hashxstring = INPUT?.ef_hashxstring || new abap.types.XString({qualifiedName: "XSTRING"});
-    let lv_algorithm = new abap.types.String({qualifiedName: "STRING"});
-    lv_algorithm.set(abap.builtin.to_lower({val: if_algorithm}));
-    abap.statements.assert(abap.compare.eq(lv_algorithm, abap.CharacterFactory.get(4, 'sha1')) || abap.compare.eq(lv_algorithm, abap.CharacterFactory.get(3, 'md5')) || abap.compare.eq(lv_algorithm, abap.CharacterFactory.get(6, 'sha256')));
-    const crypto = await __webpack_require__.e(/*! import() */ "_3c40").then(__webpack_require__.t.bind(__webpack_require__, /*! crypto */ "?3c40", 19));
-    var shasum = crypto.createHash(lv_algorithm.get());
-    shasum.update(if_data.get(), "hex");
-    ef_hashxstring.set(shasum.digest("hex").toUpperCase());
+    let ef_hashb64string = INPUT?.ef_hashb64string || new abap.types.String({qualifiedName: "STRING"});
+    let ef_hashx = INPUT?.ef_hashx || new abap.types.Hex();
+    let ls_algorithm = new abap.types.Structure({
+    "name": new abap.types.String({qualifiedName: "CL_ABAP_MESSAGE_DIGEST=>TY_ALGORITHM-NAME"}),
+    "node": new abap.types.String({qualifiedName: "CL_ABAP_MESSAGE_DIGEST=>TY_ALGORITHM-NODE"}),
+    "length": new abap.types.Integer({qualifiedName: "CL_ABAP_MESSAGE_DIGEST=>TY_ALGORITHM-LENGTH"})}, "cl_abap_message_digest=>ty_algorithm", undefined, {}, {});
+    let lv_data = new abap.types.XString({qualifiedName: "XSTRING"});
+    ls_algorithm.set((await this.resolve({if_algorithm: if_algorithm, rs_algorithm: 1})));
+    lv_data.set((await this.slice({if_data: if_data, if_offset: abap.IntegerFactory.get(0), if_length: if_length, rv_data: 1})));
+    ef_hashxstring.set((await this.hash({iv_node: ls_algorithm.get().node, iv_data: lv_data, rv_hash: 1})));
+    ef_hashstring.set((await this.to_hex({iv_data: ef_hashxstring, rv_string: 1})));
+    ef_hashb64string.set((await this.base64({iv_data: ef_hashxstring, rv_base64: 1})));
+    ef_hashx.set(ef_hashxstring);
   }
   async calculate_hash_for_char(INPUT) {
     return cl_abap_message_digest.calculate_hash_for_char(INPUT);
@@ -340895,22 +342255,47 @@ class cl_abap_message_digest {
     let if_data = INPUT?.if_data;
     if (if_data?.getQualifiedName === undefined || if_data.getQualifiedName() !== "STRING") { if_data = undefined; }
     if (if_data === undefined) { if_data = new abap.types.String({qualifiedName: "STRING"}).set(INPUT.if_data); }
-    let ef_hashxstring = INPUT?.ef_hashxstring || new abap.types.XString({qualifiedName: "XSTRING"});
+    let if_length = new abap.types.Integer({qualifiedName: "I"});
+    if (INPUT && INPUT.if_length) {if_length.set(INPUT.if_length);}
+    if (INPUT === undefined || INPUT.if_length === undefined) {if_length = abap.IntegerFactory.get(0);}
     let ef_hashstring = INPUT?.ef_hashstring || new abap.types.String({qualifiedName: "STRING"});
+    let ef_hashxstring = INPUT?.ef_hashxstring || new abap.types.XString({qualifiedName: "XSTRING"});
     let ef_hashb64string = INPUT?.ef_hashb64string || new abap.types.String({qualifiedName: "STRING"});
-    let lv_algorithm = new abap.types.String({qualifiedName: "STRING"});
-    ef_hashxstring.clear();
-    lv_algorithm.set(abap.builtin.to_lower({val: if_algorithm}));
-    abap.statements.assert(abap.compare.eq(lv_algorithm, abap.CharacterFactory.get(4, 'sha1')) || abap.compare.eq(lv_algorithm, abap.CharacterFactory.get(3, 'md5')) || abap.compare.eq(lv_algorithm, abap.CharacterFactory.get(6, 'sha256')));
-    const crypto = await __webpack_require__.e(/*! import() */ "_3c40").then(__webpack_require__.t.bind(__webpack_require__, /*! crypto */ "?3c40", 19));
-    var shasum = crypto.createHash(lv_algorithm.get());
-    shasum.update(if_data.get());
-    ef_hashxstring.set(shasum.digest("hex").toUpperCase());
-    ef_hashb64string.set(Buffer.from(ef_hashxstring.get(), "hex").toString("base64"));
-    ef_hashstring.set(ef_hashxstring);
+    let ef_hashx = INPUT?.ef_hashx || new abap.types.Hex();
+    let lv_data = new abap.types.String({qualifiedName: "STRING"});
+    if (abap.compare.gt(if_length, abap.IntegerFactory.get(0))) {
+      lv_data.set(if_data.getOffset({length: if_length}));
+    } else {
+      lv_data.set(if_data);
+    }
+    await this.calculate_hash_for_raw({if_algorithm: if_algorithm, if_data: (await this.string_to_xstring({if_input: lv_data, er_output: 1})), ef_hashstring: ef_hashstring, ef_hashxstring: ef_hashxstring, ef_hashb64string: ef_hashb64string, ef_hashx: ef_hashx});
+  }
+  async string_to_xstring(INPUT) {
+    return cl_abap_message_digest.string_to_xstring(INPUT);
+  }
+  static async string_to_xstring(INPUT) {
+    let er_output = new abap.types.XString({qualifiedName: "XSTRING"});
+    let if_input = INPUT?.if_input;
+    if (if_input?.getQualifiedName === undefined || if_input.getQualifiedName() !== "STRING") { if_input = undefined; }
+    if (if_input === undefined) { if_input = new abap.types.String({qualifiedName: "STRING"}).set(INPUT.if_input); }
+    er_output.set((await abap.Classes['CL_ABAP_CODEPAGE'].convert_to({source: if_input, output: 1})));
+    return er_output;
   }
 }
 abap.Classes['CL_ABAP_MESSAGE_DIGEST'] = cl_abap_message_digest;
+cl_abap_message_digest.gt_algorithms = abap.types.TableFactory.construct(new abap.types.Structure({
+"name": new abap.types.String({qualifiedName: "CL_ABAP_MESSAGE_DIGEST=>TY_ALGORITHM-NAME"}),
+"node": new abap.types.String({qualifiedName: "CL_ABAP_MESSAGE_DIGEST=>TY_ALGORITHM-NODE"}),
+"length": new abap.types.Integer({qualifiedName: "CL_ABAP_MESSAGE_DIGEST=>TY_ALGORITHM-LENGTH"})}, "cl_abap_message_digest=>ty_algorithm", undefined, {}, {}), {"withHeader":false,"keyType":"USER","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":["NAME"]},"secondary":[]}, "cl_abap_message_digest=>ty_algorithms");
+await abap.Classes['CL_ABAP_MESSAGE_DIGEST'].class_constructor();
+cl_abap_message_digest.ty_algorithm = new abap.types.Structure({
+"name": new abap.types.String({qualifiedName: "CL_ABAP_MESSAGE_DIGEST=>TY_ALGORITHM-NAME"}),
+"node": new abap.types.String({qualifiedName: "CL_ABAP_MESSAGE_DIGEST=>TY_ALGORITHM-NODE"}),
+"length": new abap.types.Integer({qualifiedName: "CL_ABAP_MESSAGE_DIGEST=>TY_ALGORITHM-LENGTH"})}, "cl_abap_message_digest=>ty_algorithm", undefined, {}, {});
+cl_abap_message_digest.ty_algorithms = abap.types.TableFactory.construct(new abap.types.Structure({
+"name": new abap.types.String({qualifiedName: "CL_ABAP_MESSAGE_DIGEST=>TY_ALGORITHM-NAME"}),
+"node": new abap.types.String({qualifiedName: "CL_ABAP_MESSAGE_DIGEST=>TY_ALGORITHM-NODE"}),
+"length": new abap.types.Integer({qualifiedName: "CL_ABAP_MESSAGE_DIGEST=>TY_ALGORITHM-LENGTH"})}, "cl_abap_message_digest=>ty_algorithm", undefined, {}, {}), {"withHeader":false,"keyType":"USER","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":["NAME"]},"secondary":[]}, "cl_abap_message_digest=>ty_algorithms");
 
 __webpack_async_result__();
 } catch(e) { __webpack_async_result__(e); } }, 1);
@@ -341782,7 +343167,7 @@ class cl_abap_structdescr extends cl_abap_complexdescr {
   "intlen": new abap.types.Numc({length: 6}),
   "outputlen": new abap.types.Numc({length: 6}),
   "decimals": new abap.types.Numc({length: 6}),
-  "datatype": new abap.types.Character(1, {}),
+  "datatype": new abap.types.Character(4, {}),
   "inttype": new abap.types.Character(1, {}),
   "reftable": new abap.types.Character(1, {}),
   "reffield": new abap.types.Character(1, {}),
@@ -341792,7 +343177,7 @@ class cl_abap_structdescr extends cl_abap_complexdescr {
   "logflag": new abap.types.Character(1, {}),
   "mask": new abap.types.Character(20, {}),
   "masklen": new abap.types.Character(1, {}),
-  "convexit": new abap.types.Character(1, {}),
+  "convexit": new abap.types.Character(5, {}),
   "headlen": new abap.types.Character(1, {}),
   "scrlen1": new abap.types.Character(1, {}),
   "scrlen2": new abap.types.Character(1, {}),
@@ -341896,8 +343281,8 @@ class cl_abap_structdescr extends cl_abap_complexdescr {
     "name": new abap.types.String({qualifiedName: "NAME"}),
     "type": new abap.types.ABAPObject({qualifiedName: "CL_ABAP_DATADESCR", RTTIName: "\\CLASS=CL_ABAP_DATADESCR"})}, "abap_simple_componentdescr", undefined, {}, {}));
     lt_components.set((await this.get_components({rt_components: 1})));
-    for await (const unique198 of abap.statements.loop(lt_components)) {
-      fs_ls_component_.assign(unique198);
+    for await (const unique204 of abap.statements.loop(lt_components)) {
+      fs_ls_component_.assign(unique204);
       if (abap.compare.initial(fs_ls_component_.get().name) === false) {
         ls_symbol.get().name.set(fs_ls_component_.get().name);
         ls_symbol.get().type.set(fs_ls_component_.get().type);
@@ -341906,8 +343291,8 @@ class cl_abap_structdescr extends cl_abap_complexdescr {
       if (abap.compare.eq(fs_ls_component_.get().as_include, abap.builtin.abap_true)) {
         await abap.statements.cast(lo_structdescr, fs_ls_component_.get().type);
         lt_symbols.set((await lo_structdescr.get().get_symbols({p_result: 1})));
-        for await (const unique199 of abap.statements.loop(lt_symbols)) {
-          fs_ls_symbol_.assign(unique199);
+        for await (const unique205 of abap.statements.loop(lt_symbols)) {
+          fs_ls_symbol_.assign(unique205);
           abap.statements.concatenate({source: [fs_ls_symbol_.get().name, fs_ls_component_.get().suffix], target: ls_symbol.get().name});
           abap.statements.concatenate({source: [fs_ls_symbol_.get().name, fs_ls_component_.get().suffix], target: ls_symbol.get().name});
           ls_symbol.get().type.set(fs_ls_symbol_.get().type);
@@ -341957,29 +343342,29 @@ class cl_abap_structdescr extends cl_abap_complexdescr {
     "as_include": new abap.types.Character(1, {"qualifiedName":"as_include","ddicName":"ABAP_BOOL"}),
     "suffix": new abap.types.String({qualifiedName: "SUFFIX"})}, "abap_componentdescr", undefined, {}, {});
     if (abap.compare.eq(abap.builtin.lines({val: p_components}), abap.IntegerFactory.get(0))) {
-      const unique200 = await (new abap.Classes['CX_SY_STRUCT_ATTRIBUTES']()).constructor_();
-      unique200.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_structdescr.clas.abap","INTERNAL_LINE": 116};
-      throw unique200;
+      const unique206 = await (new abap.Classes['CX_SY_STRUCT_ATTRIBUTES']()).constructor_();
+      unique206.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_structdescr.clas.abap","INTERNAL_LINE": 116};
+      throw unique206;
     }
-    for await (const unique201 of abap.statements.loop(p_components)) {
-      ls_component.set(unique201);
+    for await (const unique207 of abap.statements.loop(p_components)) {
+      ls_component.set(unique207);
       if (abap.compare.initial(ls_component.get().name)) {
-        const unique202 = await (new abap.Classes['CX_SY_STRUCT_COMP_NAME']()).constructor_();
-        unique202.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_structdescr.clas.abap","INTERNAL_LINE": 121};
-        throw unique202;
+        const unique208 = await (new abap.Classes['CX_SY_STRUCT_COMP_NAME']()).constructor_();
+        unique208.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_structdescr.clas.abap","INTERNAL_LINE": 121};
+        throw unique208;
       } else if (abap.compare.initial(ls_component.get().type)) {
-        const unique203 = await (new abap.Classes['CX_SY_STRUCT_COMP_TYPE']()).constructor_();
-        unique203.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_structdescr.clas.abap","INTERNAL_LINE": 123};
-        throw unique203;
+        const unique209 = await (new abap.Classes['CX_SY_STRUCT_COMP_TYPE']()).constructor_();
+        unique209.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_structdescr.clas.abap","INTERNAL_LINE": 123};
+        throw unique209;
       } else if (abap.compare.gt(abap.builtin.strlen({val: ls_component.get().name}), abap.IntegerFactory.get(30))) {
-        const unique204 = await (new abap.Classes['CX_SY_STRUCT_COMP_NAME']()).constructor_();
-        unique204.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_structdescr.clas.abap","INTERNAL_LINE": 125};
-        throw unique204;
+        const unique210 = await (new abap.Classes['CX_SY_STRUCT_COMP_NAME']()).constructor_();
+        unique210.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_structdescr.clas.abap","INTERNAL_LINE": 125};
+        throw unique210;
       }
     }
     ref.set(await (new abap.Classes['CL_ABAP_STRUCTDESCR']()).constructor_());
-    for await (const unique205 of abap.statements.loop(p_components)) {
-      ls_component.set(unique205);
+    for await (const unique211 of abap.statements.loop(p_components)) {
+      ls_component.set(unique211);
       ls_ref.clear();
       ls_ref.get().name.set(ls_component.get().name);
       ls_ref.get().type.set(ls_component.get().type);
@@ -342006,8 +343391,8 @@ class cl_abap_structdescr extends cl_abap_complexdescr {
     "type": new abap.types.ABAPObject({qualifiedName: "CL_ABAP_DATADESCR", RTTIName: "\\CLASS=CL_ABAP_DATADESCR"}),
     "as_include": new abap.types.Character(1, {"qualifiedName":"as_include","ddicName":"ABAP_BOOL"}),
     "suffix": new abap.types.String({qualifiedName: "SUFFIX"})}, "abap_componentdescr", undefined, {}, {});
-    for await (const unique206 of abap.statements.loop(this.#mt_refs,{where: async (I) => {return abap.compare.eq(I.as_include, abap.builtin.abap_false);},topEquals: {"as_include": abap.builtin.abap_false}})) {
-      ls_ref.set(unique206);
+    for await (const unique212 of abap.statements.loop(this.#mt_refs,{where: async (I) => {return abap.compare.eq(I.as_include, abap.builtin.abap_false);},topEquals: {"as_include": abap.builtin.abap_false}})) {
+      ls_ref.set(unique212);
       ls_view.clear();
       ls_view.get().name.set(ls_ref.get().name);
       ls_view.get().type.set(ls_ref.get().type);
@@ -342029,7 +343414,7 @@ class cl_abap_structdescr extends cl_abap_complexdescr {
     "intlen": new abap.types.Numc({length: 6}),
     "outputlen": new abap.types.Numc({length: 6}),
     "decimals": new abap.types.Numc({length: 6}),
-    "datatype": new abap.types.Character(1, {}),
+    "datatype": new abap.types.Character(4, {}),
     "inttype": new abap.types.Character(1, {}),
     "reftable": new abap.types.Character(1, {}),
     "reffield": new abap.types.Character(1, {}),
@@ -342039,7 +343424,7 @@ class cl_abap_structdescr extends cl_abap_complexdescr {
     "logflag": new abap.types.Character(1, {}),
     "mask": new abap.types.Character(20, {}),
     "masklen": new abap.types.Character(1, {}),
-    "convexit": new abap.types.Character(1, {}),
+    "convexit": new abap.types.Character(5, {}),
     "headlen": new abap.types.Character(1, {}),
     "scrlen1": new abap.types.Character(1, {}),
     "scrlen2": new abap.types.Character(1, {}),
@@ -342091,7 +343476,7 @@ class cl_abap_structdescr extends cl_abap_complexdescr {
     "intlen": new abap.types.Numc({length: 6}),
     "outputlen": new abap.types.Numc({length: 6}),
     "decimals": new abap.types.Numc({length: 6}),
-    "datatype": new abap.types.Character(1, {}),
+    "datatype": new abap.types.Character(4, {}),
     "inttype": new abap.types.Character(1, {}),
     "reftable": new abap.types.Character(1, {}),
     "reffield": new abap.types.Character(1, {}),
@@ -342101,7 +343486,7 @@ class cl_abap_structdescr extends cl_abap_complexdescr {
     "logflag": new abap.types.Character(1, {}),
     "mask": new abap.types.Character(20, {}),
     "masklen": new abap.types.Character(1, {}),
-    "convexit": new abap.types.Character(1, {}),
+    "convexit": new abap.types.Character(5, {}),
     "headlen": new abap.types.Character(1, {}),
     "scrlen1": new abap.types.Character(1, {}),
     "scrlen2": new abap.types.Character(1, {}),
@@ -342127,6 +343512,52 @@ class cl_abap_structdescr extends cl_abap_complexdescr {
     let lv_name = new abap.types.String({qualifiedName: "STRING"});
     let lv_keyfield = new abap.types.String({qualifiedName: "STRING"});
     let lo_elemdescr = new abap.types.ABAPObject({qualifiedName: "CL_ABAP_ELEMDESCR", RTTIName: "\\CLASS=CL_ABAP_ELEMDESCR"});
+    let ls_field = new abap.types.Structure({
+    "tabname": new abap.types.Character(30, {}),
+    "fieldname": new abap.types.Character(30, {}),
+    "langu": new abap.types.Character(1, {}),
+    "position": new abap.types.Numc({length: 4}),
+    "offset": new abap.types.Numc({length: 6}),
+    "domname": new abap.types.Character(30, {}),
+    "rollname": new abap.types.Character(30, {}),
+    "checktable": new abap.types.Character(1, {}),
+    "leng": new abap.types.Numc({length: 6}),
+    "intlen": new abap.types.Numc({length: 6}),
+    "outputlen": new abap.types.Numc({length: 6}),
+    "decimals": new abap.types.Numc({length: 6}),
+    "datatype": new abap.types.Character(4, {}),
+    "inttype": new abap.types.Character(1, {}),
+    "reftable": new abap.types.Character(1, {}),
+    "reffield": new abap.types.Character(1, {}),
+    "precfield": new abap.types.Character(1, {}),
+    "authorid": new abap.types.Character(1, {}),
+    "memoryid": new abap.types.Character(1, {}),
+    "logflag": new abap.types.Character(1, {}),
+    "mask": new abap.types.Character(20, {}),
+    "masklen": new abap.types.Character(1, {}),
+    "convexit": new abap.types.Character(5, {}),
+    "headlen": new abap.types.Character(1, {}),
+    "scrlen1": new abap.types.Character(1, {}),
+    "scrlen2": new abap.types.Character(1, {}),
+    "scrlen3": new abap.types.Character(1, {}),
+    "fieldtext": new abap.types.Character(1, {}),
+    "reptext": new abap.types.Character(1, {}),
+    "scrtext_s": new abap.types.Character(1, {}),
+    "scrtext_m": new abap.types.Character(1, {}),
+    "scrtext_l": new abap.types.Character(1, {}),
+    "keyflag": new abap.types.Character(1, {}),
+    "lowercase": new abap.types.Character(1, {}),
+    "mac": new abap.types.Character(1, {}),
+    "genkey": new abap.types.Character(1, {}),
+    "noforkey": new abap.types.Character(1, {}),
+    "valexi": new abap.types.Character(1, {}),
+    "noauthch": new abap.types.Character(1, {}),
+    "sign": new abap.types.Character(1, {}),
+    "dynpfld": new abap.types.Character(1, {}),
+    "f4availabl": new abap.types.Character(1, {}),
+    "comptype": new abap.types.Character(1, {}),
+    "outputstyle": new abap.types.Character(1, {}),
+    "lfieldname": new abap.types.Character(132, {})}, "DFIES", "DFIES", {}, {});
     let fs_component_ = new abap.types.FieldSymbol(new abap.types.Structure({
     "tabname": new abap.types.Character(30, {}),
     "fieldname": new abap.types.Character(30, {}),
@@ -342140,7 +343571,7 @@ class cl_abap_structdescr extends cl_abap_complexdescr {
     "intlen": new abap.types.Numc({length: 6}),
     "outputlen": new abap.types.Numc({length: 6}),
     "decimals": new abap.types.Numc({length: 6}),
-    "datatype": new abap.types.Character(1, {}),
+    "datatype": new abap.types.Character(4, {}),
     "inttype": new abap.types.Character(1, {}),
     "reftable": new abap.types.Character(1, {}),
     "reffield": new abap.types.Character(1, {}),
@@ -342150,7 +343581,7 @@ class cl_abap_structdescr extends cl_abap_complexdescr {
     "logflag": new abap.types.Character(1, {}),
     "mask": new abap.types.Character(20, {}),
     "masklen": new abap.types.Character(1, {}),
-    "convexit": new abap.types.Character(1, {}),
+    "convexit": new abap.types.Character(5, {}),
     "headlen": new abap.types.Character(1, {}),
     "scrlen1": new abap.types.Character(1, {}),
     "scrlen2": new abap.types.Character(1, {}),
@@ -342176,14 +343607,24 @@ class cl_abap_structdescr extends cl_abap_complexdescr {
     lt_components.set((await this.get_components({rt_components: 1})));
     abap.statements.assert(abap.compare.cp(this.absolute_name, abap.CharacterFactory.get(7, '+TYPE=*')));
     lv_name.set(this.absolute_name.getOffset({offset: 6}));
-    for await (const unique207 of abap.statements.loop(lt_components)) {
-      ls_component.set(unique207);
+    for await (const unique213 of abap.statements.loop(lt_components)) {
+      ls_component.set(unique213);
       ls_return.clear();
       ls_return.get().tabname.set(lv_name);
       ls_return.get().fieldname.set(ls_component.get().name);
+      ls_return.get().position.set(abap.builtin.sy.get().tabix);
       if (abap.compare.eq(ls_component.get().type.get().kind, abap.Classes['CL_ABAP_TYPEDESCR'].kind_elem)) {
         await abap.statements.cast(lo_elemdescr, ls_component.get().type);
+        ls_field.set((await lo_elemdescr.get().get_ddic_field({p_flddescr: 1})));
         ls_return.get().leng.set(lo_elemdescr.get().output_length);
+        ls_return.get().intlen.set(lo_elemdescr.get().length);
+        ls_return.get().outputlen.set(lo_elemdescr.get().output_length);
+        ls_return.get().decimals.set(lo_elemdescr.get().decimals);
+        ls_return.get().inttype.set(lo_elemdescr.get().type_kind);
+        ls_return.get().datatype.set(ls_field.get().datatype);
+        ls_return.get().domname.set(ls_field.get().domname);
+        ls_return.get().rollname.set(ls_field.get().rollname);
+        ls_return.get().convexit.set(ls_field.get().convexit);
       }
       abap.statements.append({source: ls_return, target: rt_components});
     }
@@ -342261,20 +343702,20 @@ class cl_abap_structdescr extends cl_abap_complexdescr {
     "suffix": new abap.types.String({qualifiedName: "SUFFIX"})}, "abap_componentdescr", undefined, {}, {}));
     this.components.clear();
     this.#mt_refs_comp.set(this.#mt_refs);
-    for await (const unique208 of abap.statements.loop(this.#mt_refs)) {
-      fs_ls_ref_.assign(unique208);
+    for await (const unique214 of abap.statements.loop(this.#mt_refs)) {
+      fs_ls_ref_.assign(unique214);
       ls_component.get().name.set(fs_ls_ref_.get().name);
       ls_component.get().type_kind.set(fs_ls_ref_.get().type.get().type_kind);
       ls_component.get().length.set(fs_ls_ref_.get().type.get().length);
       ls_component.get().decimals.set(fs_ls_ref_.get().type.get().decimals);
       abap.statements.append({source: ls_component, target: this.components});
     }
-    for await (const unique209 of abap.statements.loop(this.#mt_refs,{where: async (I) => {return abap.compare.eq(I.as_include, abap.builtin.abap_true);},topEquals: {"as_include": abap.builtin.abap_true}})) {
-      fs_ls_ref_.assign(unique209);
+    for await (const unique215 of abap.statements.loop(this.#mt_refs,{where: async (I) => {return abap.compare.eq(I.as_include, abap.builtin.abap_true);},topEquals: {"as_include": abap.builtin.abap_true}})) {
+      fs_ls_ref_.assign(unique215);
       await abap.statements.cast(lo_structdescr, fs_ls_ref_.get().type);
       lt_components.set((await lo_structdescr.get().get_components({rt_components: 1})));
-      for await (const unique210 of abap.statements.loop(lt_components)) {
-        fs_ls_component_.assign(unique210);
+      for await (const unique216 of abap.statements.loop(lt_components)) {
+        fs_ls_component_.assign(unique216);
         abap.statements.concatenate({source: [fs_ls_component_.get().name, fs_ls_ref_.get().suffix], target: lv_name});
         await abap.statements.deleteInternal(this.#mt_refs_comp,{where: async (I) => {return abap.compare.eq(I.name, lv_name);}});
       }
@@ -342562,12 +344003,12 @@ class cl_abap_tabledescr extends cl_abap_datadescr {
     lv_flag.set(data.getOptions()?.primaryKey?.isUnique === true ? "X" : "");
     descr.get().has_unique_key.set(lv_flag);
     lv_type.set(data.getOptions()?.primaryKey?.type || "");
-    let unique196 = lv_type;
-    if (abap.compare.eq(unique196, abap.CharacterFactory.get(8, 'STANDARD'))) {
+    let unique202 = lv_type;
+    if (abap.compare.eq(unique202, abap.CharacterFactory.get(8, 'STANDARD'))) {
       descr.get().table_kind.set(cl_abap_tabledescr.tablekind_std);
-    } else if (abap.compare.eq(unique196, abap.CharacterFactory.get(6, 'SORTED'))) {
+    } else if (abap.compare.eq(unique202, abap.CharacterFactory.get(6, 'SORTED'))) {
       descr.get().table_kind.set(cl_abap_tabledescr.tablekind_sorted);
-    } else if (abap.compare.eq(unique196, abap.CharacterFactory.get(6, 'HASHED'))) {
+    } else if (abap.compare.eq(unique202, abap.CharacterFactory.get(6, 'HASHED'))) {
       descr.get().table_kind.set(cl_abap_tabledescr.tablekind_hashed);
     } else {
       descr.get().table_kind.set(cl_abap_tabledescr.tablekind_std);
@@ -342590,8 +344031,8 @@ class cl_abap_tabledescr extends cl_abap_datadescr {
       if (abap.compare.eq(((await descr.get().get_table_line_type({type: 1}))).get().kind, cl_abap_tabledescr.kind_struct)) {
         await abap.statements.cast(lo_struct, (await descr.get().get_table_line_type({type: 1})));
         lt_components.set((await lo_struct.get().get_components({rt_components: 1})));
-        for await (const unique197 of abap.statements.loop(lt_components)) {
-          ls_component.set(unique197);
+        for await (const unique203 of abap.statements.loop(lt_components)) {
+          ls_component.set(unique203);
           ls_key.get().name.set(ls_component.get().name);
           abap.statements.append({source: ls_key, target: descr.get().key});
         }
@@ -342678,9 +344119,9 @@ class cl_abap_timefm {
     abap.statements.assert(abap.compare.eq(is_24_allowed, abap.builtin.abap_true));
     abap.statements.find(time_ext, {regex: abap.CharacterFactory.get(44, '^([0-1]?[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$')});
     if (abap.compare.ne(abap.builtin.sy.get().subrc, abap.IntegerFactory.get(0))) {
-      const unique330 = await (new abap.Classes['CX_ABAP_TIMEFM_INVALID']()).constructor_();
-      unique330.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_timefm.clas.abap","INTERNAL_LINE": 42};
-      throw unique330;
+      const unique338 = await (new abap.Classes['CX_ABAP_TIMEFM_INVALID']()).constructor_();
+      unique338.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_timefm.clas.abap","INTERNAL_LINE": 42};
+      throw unique338;
     }
     lv_text.set(time_ext);
     abap.statements.replace({target: lv_text, all: true, with: abap.CharacterFactory.get(1, ''), of: abap.CharacterFactory.get(1, ':')});
@@ -342781,9 +344222,9 @@ class cl_abap_tstmp {
     let lv_date = new abap.types.Date({qualifiedName: "D"});
     let lv_time = new abap.types.Time({qualifiedName: "T"});
     if (abap.compare.initial(utclong)) {
-      const unique328 = await (new abap.Classes['CX_SY_CONVERSION_NO_DATE_TIME']()).constructor_();
-      unique328.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_tstmp.clas.abap","INTERNAL_LINE": 126};
-      throw unique328;
+      const unique336 = await (new abap.Classes['CX_SY_CONVERSION_NO_DATE_TIME']()).constructor_();
+      unique336.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_tstmp.clas.abap","INTERNAL_LINE": 126};
+      throw unique336;
     }
     abap.statements.convert({utclong: utclong,zone: abap.CharacterFactory.get(3, 'UTC')}, {date: lv_date,time: lv_time});
     abap.statements.convert({date: lv_date,time: lv_time,zone: abap.CharacterFactory.get(3, 'UTC')}, {stamp: timestamp});
@@ -342842,9 +344283,9 @@ class cl_abap_tstmp {
     if (syst_time === undefined) { syst_time = new abap.types.Time({qualifiedName: "T"}).set(INPUT.syst_time); }
     let utc_tstmp = INPUT?.utc_tstmp || new abap.types.Packed({length: 8, decimals: 0, qualifiedName: "TIMESTAMP"});
     if (abap.compare.initial(syst_date)) {
-      const unique329 = await (new abap.Classes['CX_PARAMETER_INVALID_RANGE']()).constructor_();
-      unique329.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_tstmp.clas.abap","INTERNAL_LINE": 159};
-      throw unique329;
+      const unique337 = await (new abap.Classes['CX_PARAMETER_INVALID_RANGE']()).constructor_();
+      unique337.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_tstmp.clas.abap","INTERNAL_LINE": 159};
+      throw unique337;
     }
     abap.statements.convert({date: syst_date,time: syst_time}, {stamp: utc_tstmp});
   }
@@ -343252,8 +344693,8 @@ class cl_abap_typedescr {
     let lo_current = new abap.types.ABAPObject({qualifiedName: "CL_ABAP_TYPEDESCR", RTTIName: "\\CLASS=CL_ABAP_TYPEDESCR"});
     let lo_struct = new abap.types.ABAPObject({qualifiedName: "CL_ABAP_STRUCTDESCR", RTTIName: "\\CLASS=CL_ABAP_STRUCTDESCR"});
     abap.statements.split({source: p_name, at: abap.CharacterFactory.get(1, '-'), table: lt_parts});
-    for await (const unique192 of abap.statements.loop(lt_parts)) {
-      lv_part.set(unique192);
+    for await (const unique198 of abap.statements.loop(lt_parts)) {
+      lv_part.set(unique198);
       if (abap.compare.initial(lo_current)) {
         lo_current.set((await this.describe_by_name({p_name: lv_part, type: 1})));
       } else if (abap.compare.eq(lo_current.get().kind, cl_abap_typedescr.kind_struct)) {
@@ -343292,8 +344733,8 @@ class cl_abap_typedescr {
     }
     oo_type.set(abap.Classes[p_name.get().toUpperCase().trimEnd()]?.INTERNAL_TYPE || "");
     lv_any = abap.Classes[p_name.get().toUpperCase().trimEnd()];
-    let unique193 = oo_type;
-    if (abap.compare.eq(unique193, abap.CharacterFactory.get(4, 'INTF'))) {
+    let unique199 = oo_type;
+    if (abap.compare.eq(unique199, abap.CharacterFactory.get(4, 'INTF'))) {
       type.set((await abap.Classes['CL_ABAP_INTFDESCR']._construct({p_object: lv_any, descr: 1})));
       type.get().type_kind.set(cl_abap_typedescr.typekind_intf);
       type.get().kind.set(cl_abap_typedescr.kind_intf);
@@ -343302,7 +344743,7 @@ class cl_abap_typedescr {
       await abap.statements.cast(objectdescr, type);
       objectdescr.get().mv_object_name.set(abap.builtin.to_upper({val: p_name}));
       objectdescr.get().mv_object_type.set(oo_type);
-    } else if (abap.compare.eq(unique193, abap.CharacterFactory.get(4, 'CLAS'))) {
+    } else if (abap.compare.eq(unique199, abap.CharacterFactory.get(4, 'CLAS'))) {
       type.set((await abap.Classes['CL_ABAP_CLASSDESCR']._construct({p_object: lv_any, descr: 1})));
       type.get().type_kind.set(cl_abap_typedescr.typekind_class);
       type.get().kind.set(cl_abap_typedescr.kind_class);
@@ -343403,8 +344844,8 @@ class cl_abap_typedescr {
     "suffix": new abap.types.String({qualifiedName: "SUFFIX"})}, "abap_componentdescr", undefined, {}, {}));
     lt_components.set((await io_struct.get().get_components({rt_components: 1})));
     rv_deep.set(abap.builtin.abap_false);
-    for await (const unique194 of abap.statements.loop(lt_components)) {
-      fs_ls_component_.assign(unique194);
+    for await (const unique200 of abap.statements.loop(lt_components)) {
+      fs_ls_component_.assign(unique200);
       if (abap.compare.eq(fs_ls_component_.get().type.get().kind, cl_abap_typedescr.kind_struct) || abap.compare.eq(fs_ls_component_.get().type.get().type_kind, cl_abap_typedescr.typekind_string) || abap.compare.eq(fs_ls_component_.get().type.get().type_kind, cl_abap_typedescr.typekind_xstring) || abap.compare.eq(fs_ls_component_.get().type.get().kind, cl_abap_typedescr.kind_table)) {
         rv_deep.set(abap.builtin.abap_true);
         return rv_deep;
@@ -343479,8 +344920,8 @@ class cl_abap_typedescr {
             lv_length.set(p_data.getLength ? p_data.getLength() : 0);
             lv_decimals.set(p_data.getDecimals ? p_data.getDecimals() : 0);
             lv_generic.set(p_data.constructor.name === "DataReference" && p_data.getPointer() === undefined && p_data.type?.constructor?.name === "Character" && p_data.type?.length === 4 && p_data.type?.extra === undefined ? "X" : " ");
-            let unique195 = lv_name;
-            if (abap.compare.eq(unique195, abap.CharacterFactory.get(7, 'Integer'))) {
+            let unique201 = lv_name;
+            if (abap.compare.eq(unique201, abap.CharacterFactory.get(7, 'Integer'))) {
               type.set(await (new abap.Classes['CL_ABAP_ELEMDESCR']()).constructor_());
               type.get().type_kind.set(cl_abap_typedescr.typekind_int);
               type.get().kind.set(cl_abap_typedescr.kind_elem);
@@ -343488,7 +344929,7 @@ class cl_abap_typedescr {
               await abap.statements.cast(lo_elem, type);
               lo_elem.get().output_length.set(abap.IntegerFactory.get(11));
               type.get().absolute_name.set(abap.CharacterFactory.get(1, 'I'));
-            } else if (abap.compare.eq(unique195, abap.CharacterFactory.get(8, 'Integer8'))) {
+            } else if (abap.compare.eq(unique201, abap.CharacterFactory.get(8, 'Integer8'))) {
               type.set(await (new abap.Classes['CL_ABAP_ELEMDESCR']()).constructor_());
               type.get().type_kind.set(cl_abap_typedescr.typekind_int8);
               type.get().kind.set(cl_abap_typedescr.kind_elem);
@@ -343496,21 +344937,21 @@ class cl_abap_typedescr {
               await abap.statements.cast(lo_elem, type);
               lo_elem.get().output_length.set(abap.IntegerFactory.get(20));
               type.get().absolute_name.set(abap.CharacterFactory.get(4, 'INT8'));
-            } else if (abap.compare.eq(unique195, abap.CharacterFactory.get(4, 'Numc'))) {
+            } else if (abap.compare.eq(unique201, abap.CharacterFactory.get(4, 'Numc'))) {
               type.set(await (new abap.Classes['CL_ABAP_ELEMDESCR']()).constructor_());
               type.get().type_kind.set(cl_abap_typedescr.typekind_num);
               type.get().kind.set(cl_abap_typedescr.kind_elem);
               type.get().length.set(abap.operators.multiply(lv_length,abap.IntegerFactory.get(2)));
               await abap.statements.cast(lo_elem, type);
               lo_elem.get().output_length.set(lv_length);
-            } else if (abap.compare.eq(unique195, abap.CharacterFactory.get(3, 'Hex')) || abap.compare.eq(unique195, abap.CharacterFactory.get(8, 'HexUInt8'))) {
+            } else if (abap.compare.eq(unique201, abap.CharacterFactory.get(3, 'Hex')) || abap.compare.eq(unique201, abap.CharacterFactory.get(8, 'HexUInt8'))) {
               type.set(await (new abap.Classes['CL_ABAP_ELEMDESCR']()).constructor_());
               type.get().type_kind.set(cl_abap_typedescr.typekind_hex);
               type.get().kind.set(cl_abap_typedescr.kind_elem);
               type.get().length.set(lv_length);
               await abap.statements.cast(lo_elem, type);
               lo_elem.get().output_length.set(abap.operators.multiply(lv_length,abap.IntegerFactory.get(2)));
-            } else if (abap.compare.eq(unique195, abap.CharacterFactory.get(4, 'Date'))) {
+            } else if (abap.compare.eq(unique201, abap.CharacterFactory.get(4, 'Date'))) {
               type.set(await (new abap.Classes['CL_ABAP_ELEMDESCR']()).constructor_());
               type.get().type_kind.set(cl_abap_typedescr.typekind_date);
               type.get().kind.set(cl_abap_typedescr.kind_elem);
@@ -343518,13 +344959,13 @@ class cl_abap_typedescr {
               await abap.statements.cast(lo_elem, type);
               lo_elem.get().output_length.set(abap.IntegerFactory.get(8));
               type.get().absolute_name.set(abap.CharacterFactory.get(1, 'D'));
-            } else if (abap.compare.eq(unique195, abap.CharacterFactory.get(6, 'Packed'))) {
+            } else if (abap.compare.eq(unique201, abap.CharacterFactory.get(6, 'Packed'))) {
               type.set(await (new abap.Classes['CL_ABAP_ELEMDESCR']()).constructor_());
               type.get().type_kind.set(cl_abap_typedescr.typekind_packed);
               type.get().kind.set(cl_abap_typedescr.kind_elem);
               type.get().length.set(lv_length);
               type.get().decimals.set(lv_decimals);
-            } else if (abap.compare.eq(unique195, abap.CharacterFactory.get(4, 'Time'))) {
+            } else if (abap.compare.eq(unique201, abap.CharacterFactory.get(4, 'Time'))) {
               type.set(await (new abap.Classes['CL_ABAP_ELEMDESCR']()).constructor_());
               type.get().type_kind.set(cl_abap_typedescr.typekind_time);
               type.get().kind.set(cl_abap_typedescr.kind_elem);
@@ -343532,16 +344973,16 @@ class cl_abap_typedescr {
               await abap.statements.cast(lo_elem, type);
               lo_elem.get().output_length.set(abap.IntegerFactory.get(6));
               type.get().absolute_name.set(abap.CharacterFactory.get(1, 'T'));
-            } else if (abap.compare.eq(unique195, abap.CharacterFactory.get(5, 'Float'))) {
+            } else if (abap.compare.eq(unique201, abap.CharacterFactory.get(5, 'Float'))) {
               type.set(await (new abap.Classes['CL_ABAP_ELEMDESCR']()).constructor_());
               type.get().type_kind.set(cl_abap_typedescr.typekind_float);
               type.get().kind.set(cl_abap_typedescr.kind_elem);
               type.get().absolute_name.set(abap.CharacterFactory.get(1, 'F'));
-            } else if (abap.compare.eq(unique195, abap.CharacterFactory.get(10, 'DecFloat34'))) {
+            } else if (abap.compare.eq(unique201, abap.CharacterFactory.get(10, 'DecFloat34'))) {
               type.set(await (new abap.Classes['CL_ABAP_ELEMDESCR']()).constructor_());
               type.get().type_kind.set(cl_abap_typedescr.typekind_decfloat34);
               type.get().kind.set(cl_abap_typedescr.kind_elem);
-            } else if (abap.compare.eq(unique195, abap.CharacterFactory.get(9, 'Structure'))) {
+            } else if (abap.compare.eq(unique201, abap.CharacterFactory.get(9, 'Structure'))) {
               lo_struct.set((await abap.Classes['CL_ABAP_STRUCTDESCR'].construct_from_data({data: p_data, descr: 1})));
               await abap.statements.cast(type, lo_struct);
               if (abap.compare.eq((await this.is_deep({io_struct: lo_struct, rv_deep: 1})), abap.builtin.abap_true)) {
@@ -343550,35 +344991,35 @@ class cl_abap_typedescr {
                 type.get().type_kind.set(cl_abap_typedescr.typekind_struct1);
               }
               type.get().kind.set(cl_abap_typedescr.kind_struct);
-            } else if (abap.compare.eq(unique195, abap.CharacterFactory.get(5, 'Table')) || abap.compare.eq(unique195, abap.CharacterFactory.get(11, 'HashedTable'))) {
+            } else if (abap.compare.eq(unique201, abap.CharacterFactory.get(5, 'Table')) || abap.compare.eq(unique201, abap.CharacterFactory.get(11, 'HashedTable'))) {
               await abap.statements.cast(type, (await abap.Classes['CL_ABAP_TABLEDESCR'].construct_from_data({data: p_data, descr: 1})));
               type.get().type_kind.set(cl_abap_typedescr.typekind_table);
               type.get().kind.set(cl_abap_typedescr.kind_table);
               type.get().length.set(abap.IntegerFactory.get(8));
-            } else if (abap.compare.eq(unique195, abap.CharacterFactory.get(7, 'XString'))) {
+            } else if (abap.compare.eq(unique201, abap.CharacterFactory.get(7, 'XString'))) {
               type.set(await (new abap.Classes['CL_ABAP_ELEMDESCR']()).constructor_());
               type.get().type_kind.set(cl_abap_typedescr.typekind_xstring);
               type.get().kind.set(cl_abap_typedescr.kind_elem);
               type.get().length.set(abap.IntegerFactory.get(8));
               type.get().absolute_name.set(abap.CharacterFactory.get(7, 'XSTRING'));
-            } else if (abap.compare.eq(unique195, abap.CharacterFactory.get(6, 'String'))) {
+            } else if (abap.compare.eq(unique201, abap.CharacterFactory.get(6, 'String'))) {
               type.set(await (new abap.Classes['CL_ABAP_ELEMDESCR']()).constructor_());
               type.get().type_kind.set(cl_abap_typedescr.typekind_string);
               type.get().kind.set(cl_abap_typedescr.kind_elem);
               type.get().length.set(abap.IntegerFactory.get(8));
               type.get().absolute_name.set(abap.CharacterFactory.get(6, 'STRING'));
-            } else if (abap.compare.eq(unique195, abap.CharacterFactory.get(9, 'Character'))) {
+            } else if (abap.compare.eq(unique201, abap.CharacterFactory.get(9, 'Character'))) {
               type.set(await (new abap.Classes['CL_ABAP_ELEMDESCR']()).constructor_());
               type.get().type_kind.set(cl_abap_typedescr.typekind_char);
               type.get().kind.set(cl_abap_typedescr.kind_elem);
               type.get().length.set(abap.operators.multiply(lv_length,abap.IntegerFactory.get(2)));
               await abap.statements.cast(lo_elem, type);
               lo_elem.get().output_length.set(lv_length);
-            } else if (abap.compare.eq(unique195, abap.CharacterFactory.get(11, 'FieldSymbol'))) {
+            } else if (abap.compare.eq(unique201, abap.CharacterFactory.get(11, 'FieldSymbol'))) {
               lv_name = p_data.getPointer();
               type.set((await this.describe_by_data({p_data: lv_name, type: 1})));
               return type;
-            } else if (abap.compare.eq(unique195, abap.CharacterFactory.get(10, 'ABAPObject'))) {
+            } else if (abap.compare.eq(unique201, abap.CharacterFactory.get(10, 'ABAPObject'))) {
               if (abap.compare.initial(p_data)) {
                 lv_rtti_name.set(p_data.RTTIName || "");
                 lv_name.set(p_data.qualifiedName || "");
@@ -343599,11 +345040,11 @@ class cl_abap_typedescr {
               type.set((await abap.Classes['CL_ABAP_REFDESCR'].create({p_referenced_type: lo_referenced, p_result: 1})));
               type.get().type_kind.set(cl_abap_typedescr.typekind_oref);
               type.get().kind.set(cl_abap_typedescr.kind_ref);
-            } else if (abap.compare.eq(unique195, abap.CharacterFactory.get(7, 'UTCLong'))) {
+            } else if (abap.compare.eq(unique201, abap.CharacterFactory.get(7, 'UTCLong'))) {
               type.set(await (new abap.Classes['CL_ABAP_ELEMDESCR']()).constructor_());
               type.get().type_kind.set(cl_abap_typedescr.typekind_utclong);
               type.get().kind.set(cl_abap_typedescr.kind_elem);
-            } else if (abap.compare.eq(unique195, abap.CharacterFactory.get(13, 'DataReference'))) {
+            } else if (abap.compare.eq(unique201, abap.CharacterFactory.get(13, 'DataReference'))) {
               if (abap.compare.eq(lv_generic, abap.builtin.abap_true)) {
                 lo_referenced.set(await (new abap.Classes['CL_ABAP_DATADESCR']()).constructor_());
                 lo_referenced.get().type_kind.set(cl_abap_typedescr.typekind_data);
@@ -343641,7 +345082,7 @@ class cl_abap_typedescr {
             } else if (abap.compare.cs(type.get().absolute_name, abap.CharacterFactory.get(2, '=>'))) {
               abap.statements.split({source: type.get().absolute_name, at: abap.CharacterFactory.get(2, '=>'), targets: [lv_prefix,type.get().absolute_name]});
               type.get().relative_name.set(type.get().absolute_name);
-              type.get().absolute_name.set(abap.operators.concat(abap.CharacterFactory.get(7, '\\CLASS='),abap.operators.concat(lv_prefix,abap.operators.concat(abap.CharacterFactory.get(6, '\\TYPE='),type.get().absolute_name))));
+              type.get().absolute_name.set(abap.operators.concat([abap.CharacterFactory.get(7, '\\CLASS='),lv_prefix,abap.CharacterFactory.get(6, '\\TYPE='),type.get().absolute_name]));
             } else if (abap.compare.eq(type.get().type_kind, cl_abap_typedescr.typekind_oref)) {
               type.get().relative_name.set(type.get().absolute_name);
               type.get().absolute_name.set(abap.operators.concat(abap.CharacterFactory.get(7, '\\CLASS='),type.get().absolute_name));
@@ -343817,20 +345258,20 @@ class cl_abap_unit_assert {
     let fs_tab2_ = new abap.types.FieldSymbol(abap.types.TableFactory.construct(new abap.types.Character(4), {"withHeader":false,"keyType":"USER"}));
     let fs_row2_ = new abap.types.FieldSymbol(new abap.types.Character(4));
     if (abap.compare.ne(abap.builtin.lines({val: act}), abap.builtin.lines({val: exp}))) {
-      const unique124 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: new abap.types.String().set(`Expected table to contain ${abap.templateFormatting(abap.builtin.lines({val: exp}))} rows, got ${abap.templateFormatting(abap.builtin.lines({val: act}))}`)});
-      unique124.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 195};
-      throw unique124;
+      const unique130 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: new abap.types.String().set(`Expected table to contain ${abap.templateFormatting(abap.builtin.lines({val: exp}))} rows, got ${abap.templateFormatting(abap.builtin.lines({val: act}))}`)});
+      unique130.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 195};
+      throw unique130;
     }
     abap.statements.assign({target: fs_tab1_, source: act});
     abap.statements.assign({target: fs_tab2_, source: exp});
     await abap.statements.cast(type1, (await abap.Classes['CL_ABAP_TYPEDESCR'].describe_by_data({p_data: act, type: 1})));
     await abap.statements.cast(type2, (await abap.Classes['CL_ABAP_TYPEDESCR'].describe_by_data({p_data: exp, type: 1})));
     if (abap.compare.eq(type1.get().table_kind, abap.Classes['CL_ABAP_TABLEDESCR'].tablekind_hashed) || abap.compare.eq(type2.get().table_kind, abap.Classes['CL_ABAP_TABLEDESCR'].tablekind_hashed)) {
-      for await (const unique125 of abap.statements.loop(fs_tab1_)) {
-        fs_row1_.assign(unique125);
+      for await (const unique131 of abap.statements.loop(fs_tab1_)) {
+        fs_row1_.assign(unique131);
         lv_match.set(abap.builtin.abap_false);
-        for await (const unique126 of abap.statements.loop(fs_tab2_)) {
-          fs_row2_.assign(unique126);
+        for await (const unique132 of abap.statements.loop(fs_tab2_)) {
+          fs_row2_.assign(unique132);
           try {
             await this.assert_equals({act: fs_row1_, exp: fs_row2_});
             lv_match.set(abap.builtin.abap_true);
@@ -343843,16 +345284,16 @@ class cl_abap_unit_assert {
           }
         }
         if (abap.compare.eq(lv_match, abap.builtin.abap_false)) {
-          const unique127 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: new abap.types.String().set(`Hashed table contents differs`)});
-          unique127.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 221};
-          throw unique127;
+          const unique133 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: new abap.types.String().set(`Hashed table contents differs`)});
+          unique133.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 221};
+          throw unique133;
         }
       }
     } else {
       const indexBackup1 = abap.builtin.sy.get().index.get();
-      const unique128 = abap.builtin.lines({val: act}).get();
-      for (let unique129 = 0; unique129 < unique128; unique129++) {
-        abap.builtin.sy.get().index.set(unique129 + 1);
+      const unique134 = abap.builtin.lines({val: act}).get();
+      for (let unique135 = 0; unique135 < unique134; unique135++) {
+        abap.builtin.sy.get().index.set(unique135 + 1);
         index.set(abap.builtin.sy.get().index);
         abap.statements.readTable(fs_tab1_,{index: index,
           assigning: fs_row1_});
@@ -343876,9 +345317,9 @@ class cl_abap_unit_assert {
     abap.statements.describe({field: act, type: type1});
     abap.statements.describe({field: exp, type: type2});
     if ((abap.compare.eq(type1, abap.CharacterFactory.get(1, 'X')) && abap.compare.eq(type2, abap.CharacterFactory.get(1, 'y'))) || (abap.compare.eq(type1, abap.CharacterFactory.get(1, 'y')) && abap.compare.eq(type2, abap.CharacterFactory.get(1, 'X')))) {
-      const unique130 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: new abap.types.String().set(`Types are not comparable`)});
-      unique130.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 251};
-      throw unique130;
+      const unique136 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: new abap.types.String().set(`Types are not comparable`)});
+      unique136.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 251};
+      throw unique136;
     }
   }
   async assert_text_matches(INPUT) {
@@ -343896,9 +345337,9 @@ class cl_abap_unit_assert {
     let lv_match = new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"});
     lv_match.set(abap.builtin.boolc(abap.compare.eq(abap.builtin.contains({val: text, regex: pattern}), abap.builtin.abap_true)));
     if (abap.compare.eq(lv_match, abap.builtin.abap_false)) {
-      const unique131 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({expected: pattern, actual: text, msg: msg});
-      unique131.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 263};
-      throw unique131;
+      const unique137 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({expected: pattern, actual: text, msg: msg});
+      unique137.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 263};
+      throw unique137;
     }
     return assertion_failed;
   }
@@ -343925,9 +345366,9 @@ class cl_abap_unit_assert {
     let level = new abap.types.Integer({qualifiedName: "I"});
     if (INPUT && INPUT.level) {level.set(INPUT.level);}
     if (abap.compare.initial(act)) {
-      const unique132 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: new abap.types.String().set(`Expected value to be bound`)});
-      unique132.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 277};
-      throw unique132;
+      const unique138 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: new abap.types.String().set(`Expected value to be bound`)});
+      unique138.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 277};
+      throw unique138;
     }
     return assertion_failed;
   }
@@ -343943,9 +345384,9 @@ class cl_abap_unit_assert {
     let level = new abap.types.Integer({qualifiedName: "I"});
     if (INPUT && INPUT.level) {level.set(INPUT.level);}
     if (abap.compare.initial(act) === false) {
-      const unique133 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: new abap.types.String().set(`Expected value to not be bound`)});
-      unique133.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 285};
-      throw unique133;
+      const unique139 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: new abap.types.String().set(`Expected value to not be bound`)});
+      unique139.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 285};
+      throw unique139;
     }
     return assertion_failed;
   }
@@ -343963,9 +345404,9 @@ class cl_abap_unit_assert {
     let level = new abap.types.Integer({qualifiedName: "I"});
     if (INPUT && INPUT.level) {level.set(INPUT.level);}
     if (abap.compare.np(act, exp)) {
-      const unique134 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({expected: exp, actual: act, msg: msg});
-      unique134.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 293};
-      throw unique134;
+      const unique140 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({expected: exp, actual: act, msg: msg});
+      unique140.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 293};
+      throw unique140;
     }
     return assertion_failed;
   }
@@ -343982,9 +345423,9 @@ class cl_abap_unit_assert {
     let level = new abap.types.Integer({qualifiedName: "I"});
     if (INPUT && INPUT.level) {level.set(INPUT.level);}
     if (abap.compare.cp(act, exp)) {
-      const unique135 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: new abap.types.String().set(`Actual: ${abap.templateFormatting(act)}`)});
-      unique135.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 303};
-      throw unique135;
+      const unique141 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: new abap.types.String().set(`Actual: ${abap.templateFormatting(act)}`)});
+      unique141.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 303};
+      throw unique141;
     }
     return assertion_failed;
   }
@@ -343998,9 +345439,9 @@ class cl_abap_unit_assert {
     let level = new abap.types.Integer({qualifiedName: "I"});
     if (INPUT && INPUT.level) {level.set(INPUT.level);}
     let detail = INPUT?.detail || new abap.types.Character();
-    const unique136 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: msg});
-    unique136.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 310};
-    throw unique136;
+    const unique142 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: msg});
+    unique142.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 310};
+    throw unique142;
   }
   async skip(INPUT) {
     return cl_abap_unit_assert.skip(INPUT);
@@ -344025,9 +345466,9 @@ class cl_abap_unit_assert {
     await this.check_comparable({act: act, exp: exp});
     try {
       await this.assert_equals({act: act, exp: exp});
-      const unique137 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: new abap.types.String().set(`Expected different values`), actual: act, expected: exp});
-      unique137.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 327};
-      throw unique137;
+      const unique143 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: new abap.types.String().set(`Expected different values`), actual: act, expected: exp});
+      unique143.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 327};
+      throw unique143;
     } catch (e) {
       if ((abap.Classes['KERNEL_CX_ASSERT'] && e instanceof abap.Classes['KERNEL_CX_ASSERT'])) {
         return assertion_failed;
@@ -344058,9 +345499,9 @@ class cl_abap_unit_assert {
       } else {
         lv_msg.set(new abap.types.String().set(`Expected abap_true`));
       }
-      const unique138 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: lv_msg});
-      unique138.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 347};
-      throw unique138;
+      const unique144 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: lv_msg});
+      unique144.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 347};
+      throw unique144;
     }
     return assertion_failed;
   }
@@ -344084,9 +345525,9 @@ class cl_abap_unit_assert {
       } else {
         lv_msg.set(new abap.types.String().set(`Expected abap_false`));
       }
-      const unique139 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: lv_msg});
-      unique139.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 363};
-      throw unique139;
+      const unique145 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: lv_msg});
+      unique145.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 363};
+      throw unique145;
     }
     return assertion_failed;
   }
@@ -344120,16 +345561,16 @@ class cl_abap_unit_assert {
     if (abap.compare.ca(type1, abap.CharacterFactory.get(12, 'CgyIFPDTXN8e'))) {
       if (abap.compare.initial(type2) === false) {
         if (abap.compare.na(type2, abap.CharacterFactory.get(12, 'CgyIFPDTXN8e'))) {
-          const unique140 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: new abap.types.String().set(`Unexpected types`)});
-          unique140.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 393};
-          throw unique140;
+          const unique146 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: new abap.types.String().set(`Unexpected types`)});
+          unique146.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 393};
+          throw unique146;
         }
       }
     } else if (abap.compare.initial(type1) === false && abap.compare.initial(type2) === false) {
       if (abap.compare.ne(type1, type2)) {
-        const unique141 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: new abap.types.String().set(`Unexpected types`)});
-        unique141.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 401};
-        throw unique141;
+        const unique147 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: new abap.types.String().set(`Unexpected types`)});
+        unique147.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 401};
+        throw unique147;
       }
     }
     if (abap.compare.eq(type1, abap.CharacterFactory.get(1, 'h'))) {
@@ -344137,9 +345578,9 @@ class cl_abap_unit_assert {
     } else if (abap.compare.initial(tol) === false) {
       diff.set(abap.operators.minus(exp,act));
       if (abap.compare.ge(diff, tol)) {
-        const unique142 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: new abap.types.String().set(`Expected values to differ less than ${abap.templateFormatting(tol)}, got ${abap.templateFormatting(diff)}`)});
-        unique142.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 416};
-        throw unique142;
+        const unique148 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: new abap.types.String().set(`Expected values to differ less than ${abap.templateFormatting(tol)}, got ${abap.templateFormatting(diff)}`)});
+        unique148.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 416};
+        throw unique148;
       }
     } else if (abap.compare.eq(type1, abap.CharacterFactory.get(1, 'l'))) {
       abap.statements.assign({target: fs_act_, source: act.dereference()});
@@ -344164,9 +345605,9 @@ class cl_abap_unit_assert {
         } else {
           lv_msg.set(new abap.types.String().set(`Expected '${abap.templateFormatting(lv_exp)}', got '${abap.templateFormatting(lv_act)}'`));
         }
-        const unique143 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: lv_msg, actual: lv_act, expected: lv_exp});
-        unique143.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 446};
-        throw unique143;
+        const unique149 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: lv_msg, actual: lv_act, expected: lv_exp});
+        unique149.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 446};
+        throw unique149;
       }
     } else if (abap.compare.ne(act, exp)) {
       lv_act.set((await abap.Classes['CLAS-CL_ABAP_UNIT_ASSERT-LCL_DUMP'].to_string({iv_val: act, rv_str: 1})));
@@ -344176,9 +345617,9 @@ class cl_abap_unit_assert {
       } else {
         lv_msg.set(new abap.types.String().set(`Expected '${abap.templateFormatting(lv_exp)}', got '${abap.templateFormatting(lv_act)}'`));
       }
-      const unique144 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: lv_msg, actual: lv_act, expected: lv_exp});
-      unique144.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 460};
-      throw unique144;
+      const unique150 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: lv_msg, actual: lv_act, expected: lv_exp});
+      unique150.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 460};
+      throw unique150;
     }
     return assertion_failed;
   }
@@ -344199,9 +345640,9 @@ class cl_abap_unit_assert {
       if (abap.compare.initial(lv_msg)) {
         lv_msg.set(new abap.types.String().set(`Expected non initial value`));
       }
-      const unique145 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: lv_msg});
-      unique145.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 475};
-      throw unique145;
+      const unique151 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: lv_msg});
+      unique151.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 475};
+      throw unique151;
     }
     return assertion_failed;
   }
@@ -344222,9 +345663,9 @@ class cl_abap_unit_assert {
       if (abap.compare.initial(lv_msg)) {
         lv_msg.set(new abap.types.String().set(`Expected initial value`));
       }
-      const unique146 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: lv_msg});
-      unique146.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 488};
-      throw unique146;
+      const unique152 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: lv_msg});
+      unique152.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 488};
+      throw unique152;
     }
     return assertion_failed;
   }
@@ -344250,9 +345691,9 @@ class cl_abap_unit_assert {
       if (abap.compare.initial(lv_msg)) {
         lv_msg.set(new abap.types.String().set(`Expected sy-subrc to equal ${abap.templateFormatting(exp)}, got ${abap.templateFormatting(act)}`));
       }
-      const unique147 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: lv_msg});
-      unique147.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 501};
-      throw unique147;
+      const unique153 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: lv_msg});
+      unique153.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 501};
+      throw unique153;
     }
     return assertion_failed;
   }
@@ -344284,9 +345725,9 @@ class cl_abap_unit_assert {
     let lv_msg = new abap.types.String({qualifiedName: "STRING"});
     if (abap.compare.lt(number, lower) || abap.compare.gt(number, upper)) {
       lv_msg.set(msg);
-      const unique148 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: lv_msg});
-      unique148.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 512};
-      throw unique148;
+      const unique154 = await (new abap.Classes['KERNEL_CX_ASSERT']()).constructor_({msg: lv_msg});
+      unique154.EXTRA_CX = {"INTERNAL_FILENAME": "cl_abap_unit_assert.clas.abap","INTERNAL_LINE": 512};
+      throw unique154;
     }
     return assertion_failed;
   }
@@ -344377,7 +345818,8 @@ class cl_abap_zip {
   "MT_CONTENTS": {"type": () => {return abap.types.TableFactory.construct(new abap.types.Structure({
   "name": new abap.types.String({qualifiedName: "CL_ABAP_ZIP=>TY_CONTENTS-NAME"}),
   "content": new abap.types.XString({qualifiedName: "CL_ABAP_ZIP=>TY_CONTENTS-CONTENT"}),
-  "compressed": new abap.types.XString({qualifiedName: "CL_ABAP_ZIP=>TY_CONTENTS-COMPRESSED"})}, "cl_abap_zip=>ty_contents", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "");}, "visibility": "I", "is_constant": " ", "is_class": " "}};
+  "compressed": new abap.types.XString({qualifiedName: "CL_ABAP_ZIP=>TY_CONTENTS-COMPRESSED"}),
+  "crc": new abap.types.Hex({length: 4, qualifiedName: "CL_ABAP_ZIP=>TY_CONTENTS-CRC"})}, "cl_abap_zip=>ty_contents", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "");}, "visibility": "I", "is_constant": " ", "is_class": " "}};
   static METHODS = {"ADD": {"visibility": "U", "parameters": {"NAME": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "StringType"}, "CONTENT": {"type": () => {return new abap.types.XString({qualifiedName: "XSTRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "XStringType"}}},
   "SAVE": {"visibility": "U", "parameters": {"VAL": {"type": () => {return new abap.types.XString({qualifiedName: "XSTRING"});}, "is_optional": " ", "parm_kind": "R", "type_name": "XStringType"}}},
   "LOAD": {"visibility": "U", "parameters": {"ZIP": {"type": () => {return new abap.types.XString({qualifiedName: "XSTRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "XStringType"}}},
@@ -344402,7 +345844,8 @@ class cl_abap_zip {
     this.#mt_contents = abap.types.TableFactory.construct(new abap.types.Structure({
     "name": new abap.types.String({qualifiedName: "CL_ABAP_ZIP=>TY_CONTENTS-NAME"}),
     "content": new abap.types.XString({qualifiedName: "CL_ABAP_ZIP=>TY_CONTENTS-CONTENT"}),
-    "compressed": new abap.types.XString({qualifiedName: "CL_ABAP_ZIP=>TY_CONTENTS-COMPRESSED"})}, "cl_abap_zip=>ty_contents", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "");
+    "compressed": new abap.types.XString({qualifiedName: "CL_ABAP_ZIP=>TY_CONTENTS-COMPRESSED"}),
+    "crc": new abap.types.Hex({length: 4, qualifiedName: "CL_ABAP_ZIP=>TY_CONTENTS-CRC"})}, "cl_abap_zip=>ty_contents", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "");
     this.FRIENDS_ACCESS_INSTANCE["mt_contents"] = this.#mt_contents;
   }
   async constructor_(INPUT) {
@@ -344452,7 +345895,8 @@ class cl_abap_zip {
     let ls_contents = new abap.types.Structure({
     "name": new abap.types.String({qualifiedName: "CL_ABAP_ZIP=>TY_CONTENTS-NAME"}),
     "content": new abap.types.XString({qualifiedName: "CL_ABAP_ZIP=>TY_CONTENTS-CONTENT"}),
-    "compressed": new abap.types.XString({qualifiedName: "CL_ABAP_ZIP=>TY_CONTENTS-COMPRESSED"})}, "cl_abap_zip=>ty_contents", undefined, {}, {});
+    "compressed": new abap.types.XString({qualifiedName: "CL_ABAP_ZIP=>TY_CONTENTS-COMPRESSED"}),
+    "crc": new abap.types.Hex({length: 4, qualifiedName: "CL_ABAP_ZIP=>TY_CONTENTS-CRC"})}, "cl_abap_zip=>ty_contents", undefined, {}, {});
     abap.statements.assert(abap.compare.initial(name) === false);
     abap.statements.assert(abap.compare.initial(index));
     abap.statements.readTable(this.#mt_contents,{into: ls_contents,
@@ -344475,7 +345919,8 @@ class cl_abap_zip {
     let ls_contents = new abap.types.Structure({
     "name": new abap.types.String({qualifiedName: "CL_ABAP_ZIP=>TY_CONTENTS-NAME"}),
     "content": new abap.types.XString({qualifiedName: "CL_ABAP_ZIP=>TY_CONTENTS-CONTENT"}),
-    "compressed": new abap.types.XString({qualifiedName: "CL_ABAP_ZIP=>TY_CONTENTS-COMPRESSED"})}, "cl_abap_zip=>ty_contents", undefined, {}, {});
+    "compressed": new abap.types.XString({qualifiedName: "CL_ABAP_ZIP=>TY_CONTENTS-COMPRESSED"}),
+    "crc": new abap.types.Hex({length: 4, qualifiedName: "CL_ABAP_ZIP=>TY_CONTENTS-CRC"})}, "cl_abap_zip=>ty_contents", undefined, {}, {});
     ls_contents.get().name.set(name);
     ls_contents.get().content.set(content);
     await abap.Classes['CL_ABAP_GZIP'].compress_binary({raw_in: content, gzip_out: ls_contents.get().compressed});
@@ -344496,10 +345941,12 @@ class cl_abap_zip {
     let lv_extra_len = new abap.types.Integer({qualifiedName: "I"});
     let lv_name_x = new abap.types.XString({qualifiedName: "XSTRING"});
     let lv_name_off = new abap.types.Integer({qualifiedName: "I"});
+    let lv_crc_off = new abap.types.Integer({qualifiedName: "I"});
     let ls_contents = new abap.types.Structure({
     "name": new abap.types.String({qualifiedName: "CL_ABAP_ZIP=>TY_CONTENTS-NAME"}),
     "content": new abap.types.XString({qualifiedName: "CL_ABAP_ZIP=>TY_CONTENTS-CONTENT"}),
-    "compressed": new abap.types.XString({qualifiedName: "CL_ABAP_ZIP=>TY_CONTENTS-COMPRESSED"})}, "cl_abap_zip=>ty_contents", undefined, {}, {});
+    "compressed": new abap.types.XString({qualifiedName: "CL_ABAP_ZIP=>TY_CONTENTS-COMPRESSED"}),
+    "crc": new abap.types.Hex({length: 4, qualifiedName: "CL_ABAP_ZIP=>TY_CONTENTS-CRC"})}, "cl_abap_zip=>ty_contents", undefined, {}, {});
     let ls_file = new abap.types.Structure({
     "name": new abap.types.String({qualifiedName: "CL_ABAP_ZIP=>T_FILE-NAME"}),
     "size": new abap.types.Integer({qualifiedName: "CL_ABAP_ZIP=>T_FILE-SIZE"})}, "cl_abap_zip=>t_file", undefined, {}, {});
@@ -344510,15 +345957,17 @@ class cl_abap_zip {
     lv_length.set(abap.builtin.xstrlen({val: zip}));
     lv_offset.set(abap.IntegerFactory.get(0));
     const indexBackup1 = abap.builtin.sy.get().index.get();
-    let unique362 = 1;
+    let unique374 = 1;
     while (abap.compare.le(abap.operators.add(lv_offset,abap.IntegerFactory.get(30)), lv_length)) {
-      abap.builtin.sy.get().index.set(unique362++);
+      abap.builtin.sy.get().index.set(unique374++);
       lv_sig.set(zip.getOffset({offset: lv_offset, length: 4}));
       if (abap.compare.ne(lv_sig, lc_local_sig)) {
         break;
       }
       ls_contents.clear();
       lv_comp_method.set((await abap.Classes['CLAS-CL_ABAP_ZIP-LCL_STREAM'].read_int2({iv_xstr: zip, iv_offset: abap.operators.add(lv_offset,abap.IntegerFactory.get(8)), rv_int: 1})));
+      lv_crc_off.set(abap.operators.add(lv_offset,abap.IntegerFactory.get(14)));
+      ls_contents.get().crc.set(zip.getOffset({offset: lv_crc_off, length: 4}));
       lv_comp_size.set((await abap.Classes['CLAS-CL_ABAP_ZIP-LCL_STREAM'].read_int4({iv_xstr: zip, iv_offset: abap.operators.add(lv_offset,abap.IntegerFactory.get(18)), rv_int: 1})));
       lv_name_len.set((await abap.Classes['CLAS-CL_ABAP_ZIP-LCL_STREAM'].read_int2({iv_xstr: zip, iv_offset: abap.operators.add(lv_offset,abap.IntegerFactory.get(26)), rv_int: 1})));
       lv_extra_len.set((await abap.Classes['CLAS-CL_ABAP_ZIP-LCL_STREAM'].read_int2({iv_xstr: zip, iv_offset: abap.operators.add(lv_offset,abap.IntegerFactory.get(28)), rv_int: 1})));
@@ -344554,7 +346003,8 @@ class cl_abap_zip {
     let ls_contents = new abap.types.Structure({
     "name": new abap.types.String({qualifiedName: "CL_ABAP_ZIP=>TY_CONTENTS-NAME"}),
     "content": new abap.types.XString({qualifiedName: "CL_ABAP_ZIP=>TY_CONTENTS-CONTENT"}),
-    "compressed": new abap.types.XString({qualifiedName: "CL_ABAP_ZIP=>TY_CONTENTS-COMPRESSED"})}, "cl_abap_zip=>ty_contents", undefined, {}, {});
+    "compressed": new abap.types.XString({qualifiedName: "CL_ABAP_ZIP=>TY_CONTENTS-COMPRESSED"}),
+    "crc": new abap.types.Hex({length: 4, qualifiedName: "CL_ABAP_ZIP=>TY_CONTENTS-CRC"})}, "cl_abap_zip=>ty_contents", undefined, {}, {});
     let lv_buffer = new abap.types.XString({qualifiedName: "XSTRING"});
     let lv_tmp = new abap.types.XString({qualifiedName: "XSTRING"});
     let lv_start = new abap.types.Integer({qualifiedName: "I"});
@@ -344562,8 +346012,8 @@ class cl_abap_zip {
     lo_central.set(await (new abap.Classes['CLAS-CL_ABAP_ZIP-LCL_STREAM']()).constructor_());
     lo_total.set(await (new abap.Classes['CLAS-CL_ABAP_ZIP-LCL_STREAM']()).constructor_());
     lo_conv.set((await abap.Classes['CL_ABAP_CONV_OUT_CE'].create({ret: 1})));
-    for await (const unique363 of abap.statements.loop(this.#mt_contents)) {
-      ls_contents.set(unique363);
+    for await (const unique375 of abap.statements.loop(this.#mt_contents)) {
+      ls_contents.set(unique375);
       await lo_conv.get().convert({data: ls_contents.get().name, buffer: lv_buffer});
       lo_file.set(await (new abap.Classes['CLAS-CL_ABAP_ZIP-LCL_STREAM']()).constructor_());
       await lo_file.get().append({iv_xstr: abap.CharacterFactory.get(8, '504B0304')});
@@ -344572,7 +346022,11 @@ class cl_abap_zip {
       await lo_file.get().append({iv_xstr: abap.CharacterFactory.get(4, '0800')});
       await lo_file.get().append({iv_xstr: abap.CharacterFactory.get(4, '0699')});
       await lo_file.get().append({iv_xstr: abap.CharacterFactory.get(4, 'F856')});
-      await lo_file.get().append_crc({iv_little_endian: abap.builtin.abap_true, iv_xstring: ls_contents.get().content});
+      if (abap.compare.initial(ls_contents.get().crc)) {
+        await lo_file.get().append_crc({iv_little_endian: abap.builtin.abap_true, iv_xstring: ls_contents.get().content});
+      } else {
+        await lo_file.get().append({iv_xstr: ls_contents.get().crc});
+      }
       await lo_file.get().append_int4({iv_int: abap.builtin.xstrlen({val: ls_contents.get().compressed})});
       await lo_file.get().append_int4({iv_int: abap.builtin.xstrlen({val: ls_contents.get().content})});
       await lo_file.get().append_int2({iv_int: abap.builtin.xstrlen({val: lv_buffer})});
@@ -344616,7 +346070,8 @@ cl_abap_zip.t_files = abap.types.TableFactory.construct(new abap.types.Structure
 cl_abap_zip.ty_contents = new abap.types.Structure({
 "name": new abap.types.String({qualifiedName: "CL_ABAP_ZIP=>TY_CONTENTS-NAME"}),
 "content": new abap.types.XString({qualifiedName: "CL_ABAP_ZIP=>TY_CONTENTS-CONTENT"}),
-"compressed": new abap.types.XString({qualifiedName: "CL_ABAP_ZIP=>TY_CONTENTS-COMPRESSED"})}, "cl_abap_zip=>ty_contents", undefined, {}, {});
+"compressed": new abap.types.XString({qualifiedName: "CL_ABAP_ZIP=>TY_CONTENTS-COMPRESSED"}),
+"crc": new abap.types.Hex({length: 4, qualifiedName: "CL_ABAP_ZIP=>TY_CONTENTS-CRC"})}, "cl_abap_zip=>ty_contents", undefined, {}, {});
 
 __webpack_async_result__();
 } catch(e) { __webpack_async_result__(e); } }, 1);
@@ -345209,9 +346664,9 @@ class cl_aunit_authority_check {
     if (INPUT && INPUT.test_abort_behavior) {test_abort_behavior.set(INPUT.test_abort_behavior);}
     let lo_objset = new abap.types.ABAPObject({qualifiedName: "CL_AUNIT_AUTHORITY_CHECK", RTTIName: "\\CLASS=CL_AUNIT_AUTHORITY_CHECK"});
     if (abap.compare.initial(auth_objset)) {
-      const unique161 = await (new abap.Classes['CX_ABAP_AUTH_CHECK_EXCEPTION']()).constructor_({textid: abap.Classes['CX_ABAP_AUTH_CHECK_EXCEPTION'].missing_auth_objset});
-      unique161.EXTRA_CX = {"INTERNAL_FILENAME": "cl_aunit_authority_check.clas.abap","INTERNAL_LINE": 71};
-      throw unique161;
+      const unique167 = await (new abap.Classes['CX_ABAP_AUTH_CHECK_EXCEPTION']()).constructor_({textid: abap.Classes['CX_ABAP_AUTH_CHECK_EXCEPTION'].missing_auth_objset});
+      unique167.EXTRA_CX = {"INTERNAL_FILENAME": "cl_aunit_authority_check.clas.abap","INTERNAL_LINE": 71};
+      throw unique167;
     }
     await abap.statements.cast(lo_objset, auth_objset);
     this.#mt_authorizations.set(lo_objset.get().#mt_authorizations);
@@ -345225,9 +346680,9 @@ class cl_aunit_authority_check {
     if (INPUT && INPUT.fail_execution) {fail_execution.set(INPUT.fail_execution);}
     let lo_objset = new abap.types.ABAPObject({qualifiedName: "CL_AUNIT_AUTHORITY_CHECK", RTTIName: "\\CLASS=CL_AUNIT_AUTHORITY_CHECK"});
     if (abap.compare.initial(pass_execution)) {
-      const unique162 = await (new abap.Classes['CX_ABAP_AUTH_CHECK_EXCEPTION']()).constructor_({textid: abap.Classes['CX_ABAP_AUTH_CHECK_EXCEPTION'].missing_auth_objset});
-      unique162.EXTRA_CX = {"INTERNAL_FILENAME": "cl_aunit_authority_check.clas.abap","INTERNAL_LINE": 82};
-      throw unique162;
+      const unique168 = await (new abap.Classes['CX_ABAP_AUTH_CHECK_EXCEPTION']()).constructor_({textid: abap.Classes['CX_ABAP_AUTH_CHECK_EXCEPTION'].missing_auth_objset});
+      unique168.EXTRA_CX = {"INTERNAL_FILENAME": "cl_aunit_authority_check.clas.abap","INTERNAL_LINE": 82};
+      throw unique168;
     }
     await abap.statements.cast(lo_objset, pass_execution);
     this.#mt_pass_expected.set(lo_objset.get().#mt_authorizations);
@@ -345379,9 +346834,9 @@ class cl_aunit_authority_check {
     if (auth_objset === undefined) { auth_objset = new abap.types.ABAPObject({qualifiedName: "IF_AUNIT_AUTHORITY_OBJSET", RTTIName: "\\INTERFACE=IF_AUNIT_AUTHORITY_OBJSET"}).set(INPUT.auth_objset); }
     let lo_objset = new abap.types.ABAPObject({qualifiedName: "CL_AUNIT_AUTHORITY_CHECK", RTTIName: "\\CLASS=CL_AUNIT_AUTHORITY_CHECK"});
     if (abap.compare.initial(auth_objset)) {
-      const unique163 = await (new abap.Classes['CX_ABAP_AUTH_CHECK_EXCEPTION']()).constructor_({textid: abap.Classes['CX_ABAP_AUTH_CHECK_EXCEPTION'].missing_auth_objset});
-      unique163.EXTRA_CX = {"INTERNAL_FILENAME": "cl_aunit_authority_check.clas.abap","INTERNAL_LINE": 157};
-      throw unique163;
+      const unique169 = await (new abap.Classes['CX_ABAP_AUTH_CHECK_EXCEPTION']()).constructor_({textid: abap.Classes['CX_ABAP_AUTH_CHECK_EXCEPTION'].missing_auth_objset});
+      unique169.EXTRA_CX = {"INTERNAL_FILENAME": "cl_aunit_authority_check.clas.abap","INTERNAL_LINE": 157};
+      throw unique169;
     }
     await abap.statements.cast(lo_objset, auth_objset);
     abap.statements.append({source: lo_objset.get().#mt_authorizations, lines: true, target: this.#mt_authorizations});
@@ -345603,8 +347058,8 @@ class cl_aunit_authority_check {
     "lower_value": new abap.types.Character(40, {}),
     "upper_value": new abap.types.Character(40, {})}, "AUTHVALINTERVAL", "AUTHVALINTERVAL", {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"isUnique":false,"type":"STANDARD","keyFields":[],"name":"primary_key"},"secondary":[]}, "AUTHVALINTERVAL_TAB")}, "cl_aunit_auth_check_types_def=>authfield_values", undefined, {}, {}), {"withHeader":false,"keyType":"USER","primaryKey":{"name":"primary_key","type":"HASHED","isUnique":true,"keyFields":["FIELDNAME"]},"secondary":[]}, "cl_aunit_auth_check_types_def=>authorization"), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "cl_aunit_auth_check_types_def=>authorizations")}, "cl_aunit_auth_check_types_def=>authorizations_for_object", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "cl_aunit_auth_check_types_def=>role_auth_objects"),
     "users": abap.types.TableFactory.construct(new abap.types.Character(12, {"qualifiedName":"cl_aunit_auth_check_types_def=>auth_user"}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "cl_aunit_auth_check_types_def=>auth_users")}, "cl_aunit_auth_check_types_def=>user_role_authorization", undefined, {}, {});
-    for await (const unique164 of abap.statements.loop(user_role_authorizations)) {
-      ls_user_auth.set(unique164);
+    for await (const unique170 of abap.statements.loop(user_role_authorizations)) {
+      ls_user_auth.set(unique170);
       await this.#remove_objects({role_authorizations: ls_user_auth.get().role_authorizations, users: ls_user_auth.get().users});
     }
   }
@@ -345664,14 +347119,14 @@ class cl_aunit_authority_check {
     "upper_value": new abap.types.Character(40, {})}, "AUTHVALINTERVAL", "AUTHVALINTERVAL", {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"isUnique":false,"type":"STANDARD","keyFields":[],"name":"primary_key"},"secondary":[]}, "AUTHVALINTERVAL_TAB")}, "cl_aunit_auth_check_types_def=>authfield_values", undefined, {}, {}), {"withHeader":false,"keyType":"USER","primaryKey":{"name":"primary_key","type":"HASHED","isUnique":true,"keyFields":["FIELDNAME"]},"secondary":[]}, "cl_aunit_auth_check_types_def=>authorization"), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "cl_aunit_auth_check_types_def=>authorizations")}, "cl_aunit_auth_check_types_def=>authorizations_for_object", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "cl_aunit_auth_check_types_def=>role_auth_objects"),
     "users": abap.types.TableFactory.construct(new abap.types.Character(12, {"qualifiedName":"cl_aunit_auth_check_types_def=>auth_user"}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "cl_aunit_auth_check_types_def=>auth_users")}, "cl_aunit_auth_check_types_def=>user_role_authorization", undefined, {}, {});
     let lv_index = new abap.types.Integer({qualifiedName: "I"});
-    for await (const unique165 of abap.statements.loop(this.#mt_authorizations)) {
-      ls_user_auth.set(unique165);
+    for await (const unique171 of abap.statements.loop(this.#mt_authorizations)) {
+      ls_user_auth.set(unique171);
       lv_index.set(abap.builtin.sy.get().tabix);
       if (abap.compare.initial(users) === false && abap.compare.ne(ls_user_auth.get().users, users)) {
         continue;
       }
-      for await (const unique166 of abap.statements.loop(role_authorizations)) {
-        ls_remove.set(unique166);
+      for await (const unique172 of abap.statements.loop(role_authorizations)) {
+        ls_remove.set(unique172);
         await abap.statements.deleteInternal(ls_user_auth.get().role_authorizations,{where: async (I) => {return abap.compare.eq(I.object, ls_remove.get().object);}});
       }
       abap.statements.modifyInternal(this.#mt_authorizations,{index: lv_index,from: ls_user_auth});
@@ -345735,23 +347190,23 @@ class cl_aunit_authority_check {
     "upper_value": new abap.types.Character(40, {})}, "AUTHVALINTERVAL", "AUTHVALINTERVAL", {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"isUnique":false,"type":"STANDARD","keyFields":[],"name":"primary_key"},"secondary":[]}, "AUTHVALINTERVAL_TAB")}, "cl_aunit_auth_check_types_def=>authfield_values", undefined, {}, {}), {"withHeader":false,"keyType":"USER","primaryKey":{"name":"primary_key","type":"HASHED","isUnique":true,"keyFields":["FIELDNAME"]},"secondary":[]}, "cl_aunit_auth_check_types_def=>authorization"),
     "user": new abap.types.Character(12, {"qualifiedName":"sy-uname"}),
     "description": new abap.types.String({qualifiedName: "CL_AUNIT_AUTH_CHECK_TYPES_DEF=>AUTH_CTXTSET_MSG-DESCRIPTION"})}, "cl_aunit_auth_check_types_def=>auth_ctxtset_msg", undefined, {}, {});
-    for await (const unique167 of abap.statements.loop(authorizations)) {
-      ls_user_auth.set(unique167);
+    for await (const unique173 of abap.statements.loop(authorizations)) {
+      ls_user_auth.set(unique173);
       lt_users.set(ls_user_auth.get().users);
       if (abap.compare.initial(lt_users)) {
         abap.statements.append({source: abap.builtin.sy.get().uname, target: lt_users});
       }
-      for await (const unique168 of abap.statements.loop(ls_user_auth.get().role_authorizations)) {
-        ls_role.set(unique168);
+      for await (const unique174 of abap.statements.loop(ls_user_auth.get().role_authorizations)) {
+        ls_role.set(unique174);
         lt_auths.set(ls_role.get().authorizations);
         if (abap.compare.initial(lt_auths)) {
           ls_auth.clear();
           abap.statements.append({source: ls_auth, target: lt_auths});
         }
-        for await (const unique169 of abap.statements.loop(lt_users)) {
-          lv_user.set(unique169);
-          for await (const unique170 of abap.statements.loop(lt_auths)) {
-            ls_auth.set(unique170);
+        for await (const unique175 of abap.statements.loop(lt_users)) {
+          lv_user.set(unique175);
+          for await (const unique176 of abap.statements.loop(lt_auths)) {
+            ls_auth.set(unique176);
             ls_context.clear();
             ls_context.get().object.set(ls_role.get().object);
             ls_context.get().user.set(lv_user);
@@ -345797,8 +347252,8 @@ class cl_aunit_authority_check {
     "user": new abap.types.Character(12, {"qualifiedName":"sy-uname"}),
     "description": new abap.types.String({qualifiedName: "CL_AUNIT_AUTH_CHECK_TYPES_DEF=>AUTH_CTXTSET_MSG-DESCRIPTION"})}, "cl_aunit_auth_check_types_def=>auth_ctxtset_msg", undefined, {}, {});
     result.set(abap.builtin.abap_false);
-    for await (const unique171 of abap.statements.loop(contexts)) {
-      ls_context.set(unique171);
+    for await (const unique177 of abap.statements.loop(contexts)) {
+      ls_context.set(unique177);
       if (abap.compare.eq(ls_context.get().object, context.get().object) && abap.compare.eq(ls_context.get().user, context.get().user) && abap.compare.eq(ls_context.get().authorizations, context.get().authorizations)) {
         result.set(abap.builtin.abap_true);
         return result;
@@ -345862,8 +347317,8 @@ class cl_aunit_authority_check {
     await abap.Classes['KERNEL_AUTHORITY_CHECK'].get_execution_status({passed_execution: lt_passed, failed_execution: lt_failed});
     lt_pass_expected.set((await this.#flatten({authorizations: this.#mt_pass_expected, result: 1})));
     lt_fail_expected.set((await this.#flatten({authorizations: this.#mt_fail_expected, result: 1})));
-    for await (const unique172 of abap.statements.loop(lt_pass_expected)) {
-      ls_context.set(unique172);
+    for await (const unique178 of abap.statements.loop(lt_pass_expected)) {
+      ls_context.set(unique178);
       if (abap.compare.eq((await this.#contains_context({contexts: lt_passed, context: ls_context, result: 1})), abap.builtin.abap_true)) {
         continue;
       } else if (abap.compare.eq((await this.#contains_context({contexts: lt_failed, context: ls_context, result: 1})), abap.builtin.abap_true)) {
@@ -345874,8 +347329,8 @@ class cl_aunit_authority_check {
         abap.statements.append({source: ls_context, target: this.#mt_pass_not_executed});
       }
     }
-    for await (const unique173 of abap.statements.loop(lt_fail_expected)) {
-      ls_context.set(unique173);
+    for await (const unique179 of abap.statements.loop(lt_fail_expected)) {
+      ls_context.set(unique179);
       if (abap.compare.eq((await this.#contains_context({contexts: lt_failed, context: ls_context, result: 1})), abap.builtin.abap_true)) {
         continue;
       } else if (abap.compare.eq((await this.#contains_context({contexts: lt_passed, context: ls_context, result: 1})), abap.builtin.abap_true)) {
@@ -345886,15 +347341,15 @@ class cl_aunit_authority_check {
         abap.statements.append({source: ls_context, target: this.#mt_fail_not_executed});
       }
     }
-    for await (const unique174 of abap.statements.loop(lt_passed)) {
-      ls_context.set(unique174);
+    for await (const unique180 of abap.statements.loop(lt_passed)) {
+      ls_context.set(unique180);
       if (abap.compare.eq((await this.#contains_context({contexts: lt_pass_expected, context: ls_context, result: 1})), abap.builtin.abap_false) && abap.compare.eq((await this.#contains_context({contexts: lt_fail_expected, context: ls_context, result: 1})), abap.builtin.abap_false)) {
         ls_context.get().description.set(abap.CharacterFactory.get(27, 'Passed but was not expected'));
         abap.statements.append({source: ls_context, target: this.#mt_pass_unexpected});
       }
     }
-    for await (const unique175 of abap.statements.loop(lt_failed)) {
-      ls_context.set(unique175);
+    for await (const unique181 of abap.statements.loop(lt_failed)) {
+      ls_context.set(unique181);
       if (abap.compare.eq((await this.#contains_context({contexts: lt_pass_expected, context: ls_context, result: 1})), abap.builtin.abap_false) && abap.compare.eq((await this.#contains_context({contexts: lt_fail_expected, context: ls_context, result: 1})), abap.builtin.abap_false)) {
         ls_context.get().description.set(abap.CharacterFactory.get(27, 'Failed but was not expected'));
         abap.statements.append({source: ls_context, target: this.#mt_fail_unexpected});
@@ -346608,8 +348063,8 @@ class cl_function_test_environment {
     abap.statements.assert(abap.compare.gt(abap.builtin.lines({val: function_modules}), abap.IntegerFactory.get(0)));
     function_test_environment.set(await (new abap.Classes['CL_FUNCTION_TEST_ENVIRONMENT']()).constructor_());
     function_test_environment.value.REVERT = {};
-    for await (const unique159 of abap.statements.loop(function_modules)) {
-      lv_module.set(unique159);
+    for await (const unique165 of abap.statements.loop(function_modules)) {
+      lv_module.set(unique165);
       ls_row.get().name.set(lv_module);
       ls_row.get().double.set(await (new abap.Classes['CLAS-CL_FUNCTION_TEST_ENVIRONMENT-LCL_DOUBLE']()).constructor_({iv_name: lv_module}));
       function_test_environment.value.REVERT[lv_module.get().trimEnd()] = abap.FunctionModules[lv_module.get().trimEnd()];
@@ -346638,8 +348093,8 @@ class cl_function_test_environment {
     let fs_ls_row_ = new abap.types.FieldSymbol(new abap.types.Structure({
     "name": new abap.types.Character(30, {"qualifiedName":"SXCO_FM_NAME","ddicName":"SXCO_FM_NAME","description":"Function module name"}),
     "double": new abap.types.ABAPObject({qualifiedName: "IF_FUNCTION_TESTDOUBLE", RTTIName: "\\INTERFACE=IF_FUNCTION_TESTDOUBLE"})}, "cl_function_test_environment=>ty_backup", undefined, {}, {}));
-    for await (const unique160 of abap.statements.loop(cl_function_test_environment.gt_backup)) {
-      fs_ls_row_.assign(unique160);
+    for await (const unique166 of abap.statements.loop(cl_function_test_environment.gt_backup)) {
+      fs_ls_row_.assign(unique166);
       abap.FunctionModules[fs_ls_row_.get().name.get().trimEnd()] = this.REVERT[fs_ls_row_.get().name.get().trimEnd()];
     }
     cl_function_test_environment.gt_backup.clear();
@@ -346705,10 +348160,10 @@ class cl_gdt_conversion {
     let ex_value = INPUT?.ex_value || new abap.types.typeTodoPGenericType();
     let ex_currency_code = INPUT?.ex_currency_code || new abap.types.Character(3, {"qualifiedName":"ISOCD","ddicName":"ISOCD","description":"Iso"});
     let lv_value = new abap.types.DecFloat34();
-    let unique333 = im_currency_code;
-    if (abap.compare.eq(unique333, abap.CharacterFactory.get(3, 'DKK')) || abap.compare.eq(unique333, abap.CharacterFactory.get(3, 'EUR')) || abap.compare.eq(unique333, abap.CharacterFactory.get(3, 'USD'))) {
+    let unique341 = im_currency_code;
+    if (abap.compare.eq(unique341, abap.CharacterFactory.get(3, 'DKK')) || abap.compare.eq(unique341, abap.CharacterFactory.get(3, 'EUR')) || abap.compare.eq(unique341, abap.CharacterFactory.get(3, 'USD'))) {
       ex_value.set(im_value);
-    } else if (abap.compare.eq(unique333, abap.CharacterFactory.get(3, 'VND'))) {
+    } else if (abap.compare.eq(unique341, abap.CharacterFactory.get(3, 'VND'))) {
       lv_value.set(abap.operators.multiply(im_value,abap.IntegerFactory.get(100)));
       ex_value.set(lv_value);
     } else {
@@ -346731,16 +348186,16 @@ class cl_gdt_conversion {
     if (im_value?.getQualifiedName === undefined || im_value.getQualifiedName() !== "MSEHI") { im_value = undefined; }
     if (im_value === undefined) { im_value = new abap.types.Character(3, {"qualifiedName":"MSEHI","ddicName":"MSEHI","description":"UOM"}).set(INPUT.im_value); }
     let ex_value = INPUT?.ex_value || new abap.types.Character();
-    let unique334 = im_value;
-    if (abap.compare.eq(unique334, abap.CharacterFactory.get(1, ''))) {
-      const unique335 = await (new abap.Classes['CX_GDT_CONVERSION']()).constructor_();
-      unique335.EXTRA_CX = {"INTERNAL_FILENAME": "cl_gdt_conversion.clas.abap","INTERNAL_LINE": 85};
-      throw unique335;
-    } else if (abap.compare.eq(unique334, abap.CharacterFactory.get(2, 'ST'))) {
+    let unique342 = im_value;
+    if (abap.compare.eq(unique342, abap.CharacterFactory.get(1, ''))) {
+      const unique343 = await (new abap.Classes['CX_GDT_CONVERSION']()).constructor_();
+      unique343.EXTRA_CX = {"INTERNAL_FILENAME": "cl_gdt_conversion.clas.abap","INTERNAL_LINE": 85};
+      throw unique343;
+    } else if (abap.compare.eq(unique342, abap.CharacterFactory.get(2, 'ST'))) {
       ex_value.set(abap.CharacterFactory.get(3, 'PCE'));
-    } else if (abap.compare.eq(unique334, abap.CharacterFactory.get(2, 'KG'))) {
+    } else if (abap.compare.eq(unique342, abap.CharacterFactory.get(2, 'KG'))) {
       ex_value.set(abap.CharacterFactory.get(3, 'KGM'));
-    } else if (abap.compare.eq(unique334, abap.CharacterFactory.get(3, 'CDM'))) {
+    } else if (abap.compare.eq(unique342, abap.CharacterFactory.get(3, 'CDM'))) {
       ex_value.set(abap.CharacterFactory.get(3, 'DMQ'));
     } else {
       abap.statements.assert(abap.compare.eq(abap.IntegerFactory.get(1), abap.CharacterFactory.get(4, 'todo')));
@@ -346779,14 +348234,14 @@ class cl_gdt_conversion {
   static async unit_code_inbound(INPUT) {
     let im_value = INPUT?.im_value;
     let ex_value = INPUT?.ex_value || new abap.types.Character(3, {"qualifiedName":"MSEHI","ddicName":"MSEHI","description":"UOM"});
-    let unique336 = im_value;
-    if (abap.compare.eq(unique336, abap.CharacterFactory.get(3, 'MTR'))) {
+    let unique344 = im_value;
+    if (abap.compare.eq(unique344, abap.CharacterFactory.get(3, 'MTR'))) {
       ex_value.set(abap.CharacterFactory.get(1, 'M'));
-    } else if (abap.compare.eq(unique336, abap.CharacterFactory.get(3, 'PCE'))) {
+    } else if (abap.compare.eq(unique344, abap.CharacterFactory.get(3, 'PCE'))) {
       ex_value.set(abap.CharacterFactory.get(2, 'PC'));
-    } else if (abap.compare.eq(unique336, abap.CharacterFactory.get(3, 'KGM'))) {
+    } else if (abap.compare.eq(unique344, abap.CharacterFactory.get(3, 'KGM'))) {
       ex_value.set(abap.CharacterFactory.get(2, 'KG'));
-    } else if (abap.compare.eq(unique336, abap.CharacterFactory.get(3, 'LTR'))) {
+    } else if (abap.compare.eq(unique344, abap.CharacterFactory.get(3, 'LTR'))) {
       ex_value.set(abap.CharacterFactory.get(1, 'L'));
     } else {
       abap.statements.assert(abap.compare.eq(abap.IntegerFactory.get(1), abap.CharacterFactory.get(4, 'todo')));
@@ -346815,9 +348270,9 @@ class cl_gdt_conversion {
       }
       abap.statements.translate(ex_value, "LOWER");
       if (abap.compare.ne(abap.builtin.sy.get().subrc, abap.IntegerFactory.get(0))) {
-        const unique337 = await (new abap.Classes['CX_GDT_CONVERSION']()).constructor_();
-        unique337.EXTRA_CX = {"INTERNAL_FILENAME": "cl_gdt_conversion.clas.abap","INTERNAL_LINE": 147};
-        throw unique337;
+        const unique345 = await (new abap.Classes['CX_GDT_CONVERSION']()).constructor_();
+        unique345.EXTRA_CX = {"INTERNAL_FILENAME": "cl_gdt_conversion.clas.abap","INTERNAL_LINE": 147};
+        throw unique345;
       }
     }
   }
@@ -347000,17 +348455,17 @@ class cl_http_client {
     lv_url.set(abap.operators.concat(this.#mv_host,lv_url));
     await this.if_http_client$request.get().if_http_entity$get_form_fields({fields: lt_form_fields});
     if (abap.compare.gt(abap.builtin.lines({val: lt_form_fields}), abap.IntegerFactory.get(0))) {
-      let unique324 = lv_method;
-      if (abap.compare.eq(unique324, abap.CharacterFactory.get(3, 'GET'))) {
-        lv_url.set(abap.operators.concat(lv_url,abap.operators.concat(abap.CharacterFactory.get(1, '?'),(await abap.Classes['CL_HTTP_UTILITY'].if_http_utility$fields_to_string({fields: lt_form_fields, string: 1})))));
-      } else if (abap.compare.eq(unique324, abap.CharacterFactory.get(4, 'POST'))) {
+      let unique332 = lv_method;
+      if (abap.compare.eq(unique332, abap.CharacterFactory.get(3, 'GET'))) {
+        lv_url.set(abap.operators.concat([lv_url,abap.CharacterFactory.get(1, '?'),(await abap.Classes['CL_HTTP_UTILITY'].if_http_utility$fields_to_string({fields: lt_form_fields, string: 1}))]));
+      } else if (abap.compare.eq(unique332, abap.CharacterFactory.get(4, 'POST'))) {
         await this.if_http_client$request.get().if_http_entity$set_cdata({data: (await abap.Classes['CL_HTTP_UTILITY'].if_http_utility$fields_to_string({fields: lt_form_fields, string: 1}))});
       }
     }
     await this.if_http_client$request.get().if_http_entity$get_header_fields({fields: lt_header_fields});
     let headers = {};
-    for await (const unique325 of abap.statements.loop(lt_header_fields,{where: async (I) => {return abap.compare.ne(I.name, abap.CharacterFactory.get(12, '~request_uri'));}})) {
-      ls_field.set(unique325);
+    for await (const unique333 of abap.statements.loop(lt_header_fields,{where: async (I) => {return abap.compare.ne(I.name, abap.CharacterFactory.get(12, '~request_uri'));}})) {
+      ls_field.set(unique333);
       headers[ls_field.get().name.get()] = ls_field.get().value.get();
     }
     lv_content_type.set((await this.if_http_client$request.get().if_http_entity$get_content_type({content_type: 1})));
@@ -347562,8 +349017,8 @@ class cl_http_entity {
     let ls_field = new abap.types.Structure({
     "name": new abap.types.String({qualifiedName: "STRING"}),
     "value": new abap.types.String({qualifiedName: "STRING"})}, "IHTTPNVP", "IHTTPNVP", {}, {});
-    for await (const unique322 of abap.statements.loop(fields)) {
-      ls_field.set(unique322);
+    for await (const unique329 of abap.statements.loop(fields)) {
+      ls_field.set(unique329);
       await this.if_http_entity$set_header_field({name: ls_field.get().name, value: ls_field.get().value});
     }
   }
@@ -347752,8 +349207,8 @@ class cl_http_entity {
     let ls_field = new abap.types.Structure({
     "name": new abap.types.String({qualifiedName: "STRING"}),
     "value": new abap.types.String({qualifiedName: "STRING"})}, "IHTTPNVP", "IHTTPNVP", {}, {});
-    for await (const unique323 of abap.statements.loop(this.mt_form_fields)) {
-      ls_field.set(unique323);
+    for await (const unique330 of abap.statements.loop(this.mt_form_fields)) {
+      ls_field.set(unique330);
       abap.statements.translate(ls_field.get().name, "LOWER");
       abap.statements.append({source: ls_field, target: fields});
     }
@@ -347766,13 +349221,14 @@ class cl_http_entity {
     let ls_field = new abap.types.Structure({
     "name": new abap.types.String({qualifiedName: "STRING"}),
     "value": new abap.types.String({qualifiedName: "STRING"})}, "IHTTPNVP", "IHTTPNVP", {}, {});
-    abap.statements.readTable(this.mt_form_fields,{into: ls_field,
-      withKey: (i) => {return abap.compare.eq(i.name, abap.builtin.to_lower({val: name}));},
-      withKeyValue: [{key: (i) => {return i.name}, value: abap.builtin.to_lower({val: name})}],
-      usesTableLine: false,
-      withKeySimple: {"name": abap.builtin.to_lower({val: name})}});
-    if (abap.compare.eq(abap.builtin.sy.get().subrc, abap.IntegerFactory.get(0))) {
-      value.set(ls_field.get().value);
+    let lv_name = new abap.types.String({qualifiedName: "STRING"});
+    lv_name.set(abap.builtin.to_lower({val: name}));
+    for await (const unique331 of abap.statements.loop(this.mt_form_fields)) {
+      ls_field.set(unique331);
+      if (abap.compare.eq(abap.builtin.to_lower({val: ls_field.get().name}), lv_name)) {
+        value.set(ls_field.get().value);
+        return value;
+      }
     }
     return value;
   }
@@ -348340,8 +349796,8 @@ class cl_http_utility {
     "value": new abap.types.String({qualifiedName: "STRING"})}, "IHTTPNVP", "IHTTPNVP", {}, {});
     abap.statements.assert(abap.compare.eq(ignore_parenthesis, abap.IntegerFactory.get(0)));
     abap.statements.split({source: string, at: abap.CharacterFactory.get(1, '&'), table: tab});
-    for await (const unique318 of abap.statements.loop(tab)) {
-      str.set(unique318);
+    for await (const unique325 of abap.statements.loop(tab)) {
+      str.set(unique325);
       abap.statements.split({source: str, at: abap.CharacterFactory.get(1, '='), targets: [ls_field.get().name,ls_field.get().value]});
       ls_field.get().value.set((await this.if_http_utility$unescape_url({escaped: ls_field.get().value, unescaped: 1})));
       abap.statements.append({source: ls_field, target: fields});
@@ -348386,10 +349842,10 @@ class cl_http_utility {
     let ls_field = new abap.types.Structure({
     "name": new abap.types.String({qualifiedName: "STRING"}),
     "value": new abap.types.String({qualifiedName: "STRING"})}, "IHTTPNVP", "IHTTPNVP", {}, {});
-    for await (const unique319 of abap.statements.loop(fields)) {
-      ls_field.set(unique319);
+    for await (const unique326 of abap.statements.loop(fields)) {
+      ls_field.set(unique326);
       ls_field.get().value.set((await this.if_http_utility$escape_url({unescaped: ls_field.get().value, escaped: 1})));
-      str.set(abap.operators.concat(ls_field.get().name,abap.operators.concat(abap.CharacterFactory.get(1, '='),ls_field.get().value)));
+      str.set(abap.operators.concat([ls_field.get().name,abap.CharacterFactory.get(1, '='),ls_field.get().value]));
       abap.statements.append({source: str, target: tab});
     }
     string.set(abap.builtin.concat_lines_of({table: tab, sep: abap.CharacterFactory.get(1, '&')}));
@@ -348444,15 +349900,15 @@ class cl_http_utility {
     let lv_index = new abap.types.Integer({qualifiedName: "I"});
     let lv_char = new abap.types.String({qualifiedName: "STRING"});
     const indexBackup1 = abap.builtin.sy.get().index.get();
-    const unique320 = abap.builtin.strlen({val: unescaped}).get();
-    for (let unique321 = 0; unique321 < unique320; unique321++) {
-      abap.builtin.sy.get().index.set(unique321 + 1);
+    const unique327 = abap.builtin.strlen({val: unescaped}).get();
+    for (let unique328 = 0; unique328 < unique327; unique328++) {
+      abap.builtin.sy.get().index.set(unique328 + 1);
       lv_index.set(abap.operators.minus(abap.builtin.sy.get().index,abap.IntegerFactory.get(1)));
       lv_char.set(unescaped.getOffset({offset: lv_index, length: 1}));
       if (abap.compare.ca(abap.builtin.to_upper({val: lv_char}), abap.builtin.sy.get().abcde) || abap.compare.ca(lv_char, abap.CharacterFactory.get(15, '0123456789.-_()'))) {
         escaped.set(abap.operators.concat(escaped,lv_char));
       } else {
-        escaped.set(abap.operators.concat(escaped,abap.operators.concat(abap.CharacterFactory.get(1, '%'),(abap.builtin.to_lower({val: (await abap.Classes['CL_ABAP_CODEPAGE'].convert_to({source: lv_char, output: 1}))})))));
+        escaped.set(abap.operators.concat([escaped,abap.CharacterFactory.get(1, '%'),(abap.builtin.to_lower({val: (await abap.Classes['CL_ABAP_CODEPAGE'].convert_to({source: lv_char, output: 1}))}))]));
       }
     }
     abap.builtin.sy.get().index.set(indexBackup1);
@@ -348532,90 +349988,90 @@ class cl_i18n_languages {
     let im_lang_sap2 = INPUT?.im_lang_sap2;
     if (im_lang_sap2?.getQualifiedName === undefined || im_lang_sap2.getQualifiedName() !== "LAISO") { im_lang_sap2 = undefined; }
     if (im_lang_sap2 === undefined) { im_lang_sap2 = new abap.types.Character(2, {"qualifiedName":"LAISO","ddicName":"LAISO","description":"LAISO"}).set(INPUT.im_lang_sap2); }
-    let unique111 = abap.builtin.to_upper({val: im_lang_sap2});
-    if (abap.compare.eq(unique111, abap.CharacterFactory.get(2, 'SR'))) {
+    let unique117 = abap.builtin.to_upper({val: im_lang_sap2});
+    if (abap.compare.eq(unique117, abap.CharacterFactory.get(2, 'SR'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, '0'));
-    } else if (abap.compare.eq(unique111, abap.CharacterFactory.get(2, 'ZH'))) {
+    } else if (abap.compare.eq(unique117, abap.CharacterFactory.get(2, 'ZH'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, '1'));
-    } else if (abap.compare.eq(unique111, abap.CharacterFactory.get(2, 'TH'))) {
+    } else if (abap.compare.eq(unique117, abap.CharacterFactory.get(2, 'TH'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, '2'));
-    } else if (abap.compare.eq(unique111, abap.CharacterFactory.get(2, 'KO'))) {
+    } else if (abap.compare.eq(unique117, abap.CharacterFactory.get(2, 'KO'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, '3'));
-    } else if (abap.compare.eq(unique111, abap.CharacterFactory.get(2, 'RO'))) {
+    } else if (abap.compare.eq(unique117, abap.CharacterFactory.get(2, 'RO'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, '4'));
-    } else if (abap.compare.eq(unique111, abap.CharacterFactory.get(2, 'SL'))) {
+    } else if (abap.compare.eq(unique117, abap.CharacterFactory.get(2, 'SL'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, '5'));
-    } else if (abap.compare.eq(unique111, abap.CharacterFactory.get(2, 'HR'))) {
+    } else if (abap.compare.eq(unique117, abap.CharacterFactory.get(2, 'HR'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, '6'));
-    } else if (abap.compare.eq(unique111, abap.CharacterFactory.get(2, 'MS'))) {
+    } else if (abap.compare.eq(unique117, abap.CharacterFactory.get(2, 'MS'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, '7'));
-    } else if (abap.compare.eq(unique111, abap.CharacterFactory.get(2, 'UK'))) {
+    } else if (abap.compare.eq(unique117, abap.CharacterFactory.get(2, 'UK'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, '8'));
-    } else if (abap.compare.eq(unique111, abap.CharacterFactory.get(2, 'ET'))) {
+    } else if (abap.compare.eq(unique117, abap.CharacterFactory.get(2, 'ET'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, '9'));
-    } else if (abap.compare.eq(unique111, abap.CharacterFactory.get(2, 'AR'))) {
+    } else if (abap.compare.eq(unique117, abap.CharacterFactory.get(2, 'AR'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, 'A'));
-    } else if (abap.compare.eq(unique111, abap.CharacterFactory.get(2, 'HE'))) {
+    } else if (abap.compare.eq(unique117, abap.CharacterFactory.get(2, 'HE'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, 'B'));
-    } else if (abap.compare.eq(unique111, abap.CharacterFactory.get(2, 'CS'))) {
+    } else if (abap.compare.eq(unique117, abap.CharacterFactory.get(2, 'CS'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, 'C'));
-    } else if (abap.compare.eq(unique111, abap.CharacterFactory.get(2, 'DE'))) {
+    } else if (abap.compare.eq(unique117, abap.CharacterFactory.get(2, 'DE'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, 'D'));
-    } else if (abap.compare.eq(unique111, abap.CharacterFactory.get(2, 'EN'))) {
+    } else if (abap.compare.eq(unique117, abap.CharacterFactory.get(2, 'EN'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, 'E'));
-    } else if (abap.compare.eq(unique111, abap.CharacterFactory.get(2, 'FR'))) {
+    } else if (abap.compare.eq(unique117, abap.CharacterFactory.get(2, 'FR'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, 'F'));
-    } else if (abap.compare.eq(unique111, abap.CharacterFactory.get(2, 'EL'))) {
+    } else if (abap.compare.eq(unique117, abap.CharacterFactory.get(2, 'EL'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, 'G'));
-    } else if (abap.compare.eq(unique111, abap.CharacterFactory.get(2, 'HU'))) {
+    } else if (abap.compare.eq(unique117, abap.CharacterFactory.get(2, 'HU'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, 'H'));
-    } else if (abap.compare.eq(unique111, abap.CharacterFactory.get(2, 'IT'))) {
+    } else if (abap.compare.eq(unique117, abap.CharacterFactory.get(2, 'IT'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, 'I'));
-    } else if (abap.compare.eq(unique111, abap.CharacterFactory.get(2, 'JA'))) {
+    } else if (abap.compare.eq(unique117, abap.CharacterFactory.get(2, 'JA'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, 'J'));
-    } else if (abap.compare.eq(unique111, abap.CharacterFactory.get(2, 'DA'))) {
+    } else if (abap.compare.eq(unique117, abap.CharacterFactory.get(2, 'DA'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, 'K'));
-    } else if (abap.compare.eq(unique111, abap.CharacterFactory.get(2, 'PL'))) {
+    } else if (abap.compare.eq(unique117, abap.CharacterFactory.get(2, 'PL'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, 'L'));
-    } else if (abap.compare.eq(unique111, abap.CharacterFactory.get(2, 'ZF'))) {
+    } else if (abap.compare.eq(unique117, abap.CharacterFactory.get(2, 'ZF'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, 'M'));
-    } else if (abap.compare.eq(unique111, abap.CharacterFactory.get(2, 'NL'))) {
+    } else if (abap.compare.eq(unique117, abap.CharacterFactory.get(2, 'NL'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, 'N'));
-    } else if (abap.compare.eq(unique111, abap.CharacterFactory.get(2, 'NO'))) {
+    } else if (abap.compare.eq(unique117, abap.CharacterFactory.get(2, 'NO'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, 'O'));
-    } else if (abap.compare.eq(unique111, abap.CharacterFactory.get(2, 'PT'))) {
+    } else if (abap.compare.eq(unique117, abap.CharacterFactory.get(2, 'PT'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, 'P'));
-    } else if (abap.compare.eq(unique111, abap.CharacterFactory.get(2, 'SK'))) {
+    } else if (abap.compare.eq(unique117, abap.CharacterFactory.get(2, 'SK'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, 'Q'));
-    } else if (abap.compare.eq(unique111, abap.CharacterFactory.get(2, 'RU'))) {
+    } else if (abap.compare.eq(unique117, abap.CharacterFactory.get(2, 'RU'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, 'R'));
-    } else if (abap.compare.eq(unique111, abap.CharacterFactory.get(2, 'ES'))) {
+    } else if (abap.compare.eq(unique117, abap.CharacterFactory.get(2, 'ES'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, 'S'));
-    } else if (abap.compare.eq(unique111, abap.CharacterFactory.get(2, 'TR'))) {
+    } else if (abap.compare.eq(unique117, abap.CharacterFactory.get(2, 'TR'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, 'T'));
-    } else if (abap.compare.eq(unique111, abap.CharacterFactory.get(2, 'FI'))) {
+    } else if (abap.compare.eq(unique117, abap.CharacterFactory.get(2, 'FI'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, 'U'));
-    } else if (abap.compare.eq(unique111, abap.CharacterFactory.get(2, 'SV'))) {
+    } else if (abap.compare.eq(unique117, abap.CharacterFactory.get(2, 'SV'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, 'V'));
-    } else if (abap.compare.eq(unique111, abap.CharacterFactory.get(2, 'BG'))) {
+    } else if (abap.compare.eq(unique117, abap.CharacterFactory.get(2, 'BG'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, 'W'));
-    } else if (abap.compare.eq(unique111, abap.CharacterFactory.get(2, 'LT'))) {
+    } else if (abap.compare.eq(unique117, abap.CharacterFactory.get(2, 'LT'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, 'X'));
-    } else if (abap.compare.eq(unique111, abap.CharacterFactory.get(2, 'LV'))) {
+    } else if (abap.compare.eq(unique117, abap.CharacterFactory.get(2, 'LV'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, 'Y'));
-    } else if (abap.compare.eq(unique111, abap.CharacterFactory.get(2, 'Z1'))) {
+    } else if (abap.compare.eq(unique117, abap.CharacterFactory.get(2, 'Z1'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, 'Z'));
-    } else if (abap.compare.eq(unique111, abap.CharacterFactory.get(2, 'AF'))) {
+    } else if (abap.compare.eq(unique117, abap.CharacterFactory.get(2, 'AF'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, 'a'));
-    } else if (abap.compare.eq(unique111, abap.CharacterFactory.get(2, 'IS'))) {
+    } else if (abap.compare.eq(unique117, abap.CharacterFactory.get(2, 'IS'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, 'b'));
-    } else if (abap.compare.eq(unique111, abap.CharacterFactory.get(2, 'CA'))) {
+    } else if (abap.compare.eq(unique117, abap.CharacterFactory.get(2, 'CA'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, 'c'));
-    } else if (abap.compare.eq(unique111, abap.CharacterFactory.get(2, 'SH'))) {
+    } else if (abap.compare.eq(unique117, abap.CharacterFactory.get(2, 'SH'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, 'd'));
-    } else if (abap.compare.eq(unique111, abap.CharacterFactory.get(2, 'ID'))) {
+    } else if (abap.compare.eq(unique117, abap.CharacterFactory.get(2, 'ID'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, 'i'));
-    } else if (abap.compare.eq(unique111, abap.CharacterFactory.get(2, '1Q'))) {
+    } else if (abap.compare.eq(unique117, abap.CharacterFactory.get(2, '1Q'))) {
       re_lang_sap1.set(abap.CharacterFactory.get(1, ''));
     } else {
       throw new abap.ClassicError({classic: "no_assignment"});
@@ -348631,88 +350087,88 @@ class cl_i18n_languages {
     let im_lang_sap1 = INPUT?.im_lang_sap1;
     if (im_lang_sap1?.getQualifiedName === undefined || im_lang_sap1.getQualifiedName() !== "SY-LANGU") { im_lang_sap1 = undefined; }
     if (im_lang_sap1 === undefined) { im_lang_sap1 = new abap.types.Character(1, {"qualifiedName":"sy-langu","conversionExit":"ISOLA"}).set(INPUT.im_lang_sap1); }
-    let unique112 = im_lang_sap1;
-    if (abap.compare.eq(unique112, abap.CharacterFactory.get(1, '0'))) {
+    let unique118 = im_lang_sap1;
+    if (abap.compare.eq(unique118, abap.CharacterFactory.get(1, '0'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'SR'));
-    } else if (abap.compare.eq(unique112, abap.CharacterFactory.get(1, '1'))) {
+    } else if (abap.compare.eq(unique118, abap.CharacterFactory.get(1, '1'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'ZH'));
-    } else if (abap.compare.eq(unique112, abap.CharacterFactory.get(1, '2'))) {
+    } else if (abap.compare.eq(unique118, abap.CharacterFactory.get(1, '2'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'TH'));
-    } else if (abap.compare.eq(unique112, abap.CharacterFactory.get(1, '3'))) {
+    } else if (abap.compare.eq(unique118, abap.CharacterFactory.get(1, '3'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'KO'));
-    } else if (abap.compare.eq(unique112, abap.CharacterFactory.get(1, '4'))) {
+    } else if (abap.compare.eq(unique118, abap.CharacterFactory.get(1, '4'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'RO'));
-    } else if (abap.compare.eq(unique112, abap.CharacterFactory.get(1, '5'))) {
+    } else if (abap.compare.eq(unique118, abap.CharacterFactory.get(1, '5'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'SL'));
-    } else if (abap.compare.eq(unique112, abap.CharacterFactory.get(1, '6'))) {
+    } else if (abap.compare.eq(unique118, abap.CharacterFactory.get(1, '6'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'HR'));
-    } else if (abap.compare.eq(unique112, abap.CharacterFactory.get(1, '7'))) {
+    } else if (abap.compare.eq(unique118, abap.CharacterFactory.get(1, '7'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'MS'));
-    } else if (abap.compare.eq(unique112, abap.CharacterFactory.get(1, '8'))) {
+    } else if (abap.compare.eq(unique118, abap.CharacterFactory.get(1, '8'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'UK'));
-    } else if (abap.compare.eq(unique112, abap.CharacterFactory.get(1, '9'))) {
+    } else if (abap.compare.eq(unique118, abap.CharacterFactory.get(1, '9'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'ET'));
-    } else if (abap.compare.eq(unique112, abap.CharacterFactory.get(1, 'A'))) {
+    } else if (abap.compare.eq(unique118, abap.CharacterFactory.get(1, 'A'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'AR'));
-    } else if (abap.compare.eq(unique112, abap.CharacterFactory.get(1, 'B'))) {
+    } else if (abap.compare.eq(unique118, abap.CharacterFactory.get(1, 'B'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'HE'));
-    } else if (abap.compare.eq(unique112, abap.CharacterFactory.get(1, 'C'))) {
+    } else if (abap.compare.eq(unique118, abap.CharacterFactory.get(1, 'C'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'CS'));
-    } else if (abap.compare.eq(unique112, abap.CharacterFactory.get(1, 'D'))) {
+    } else if (abap.compare.eq(unique118, abap.CharacterFactory.get(1, 'D'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'DE'));
-    } else if (abap.compare.eq(unique112, abap.CharacterFactory.get(1, 'E'))) {
+    } else if (abap.compare.eq(unique118, abap.CharacterFactory.get(1, 'E'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'EN'));
-    } else if (abap.compare.eq(unique112, abap.CharacterFactory.get(1, 'F'))) {
+    } else if (abap.compare.eq(unique118, abap.CharacterFactory.get(1, 'F'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'FR'));
-    } else if (abap.compare.eq(unique112, abap.CharacterFactory.get(1, 'G'))) {
+    } else if (abap.compare.eq(unique118, abap.CharacterFactory.get(1, 'G'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'EL'));
-    } else if (abap.compare.eq(unique112, abap.CharacterFactory.get(1, 'H'))) {
+    } else if (abap.compare.eq(unique118, abap.CharacterFactory.get(1, 'H'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'HU'));
-    } else if (abap.compare.eq(unique112, abap.CharacterFactory.get(1, 'I'))) {
+    } else if (abap.compare.eq(unique118, abap.CharacterFactory.get(1, 'I'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'IT'));
-    } else if (abap.compare.eq(unique112, abap.CharacterFactory.get(1, 'J'))) {
+    } else if (abap.compare.eq(unique118, abap.CharacterFactory.get(1, 'J'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'JA'));
-    } else if (abap.compare.eq(unique112, abap.CharacterFactory.get(1, 'K'))) {
+    } else if (abap.compare.eq(unique118, abap.CharacterFactory.get(1, 'K'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'DA'));
-    } else if (abap.compare.eq(unique112, abap.CharacterFactory.get(1, 'L'))) {
+    } else if (abap.compare.eq(unique118, abap.CharacterFactory.get(1, 'L'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'PL'));
-    } else if (abap.compare.eq(unique112, abap.CharacterFactory.get(1, 'M'))) {
+    } else if (abap.compare.eq(unique118, abap.CharacterFactory.get(1, 'M'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'ZF'));
-    } else if (abap.compare.eq(unique112, abap.CharacterFactory.get(1, 'N'))) {
+    } else if (abap.compare.eq(unique118, abap.CharacterFactory.get(1, 'N'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'NL'));
-    } else if (abap.compare.eq(unique112, abap.CharacterFactory.get(1, 'O'))) {
+    } else if (abap.compare.eq(unique118, abap.CharacterFactory.get(1, 'O'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'NO'));
-    } else if (abap.compare.eq(unique112, abap.CharacterFactory.get(1, 'P'))) {
+    } else if (abap.compare.eq(unique118, abap.CharacterFactory.get(1, 'P'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'PT'));
-    } else if (abap.compare.eq(unique112, abap.CharacterFactory.get(1, 'Q'))) {
+    } else if (abap.compare.eq(unique118, abap.CharacterFactory.get(1, 'Q'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'SK'));
-    } else if (abap.compare.eq(unique112, abap.CharacterFactory.get(1, 'R'))) {
+    } else if (abap.compare.eq(unique118, abap.CharacterFactory.get(1, 'R'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'RU'));
-    } else if (abap.compare.eq(unique112, abap.CharacterFactory.get(1, 'S'))) {
+    } else if (abap.compare.eq(unique118, abap.CharacterFactory.get(1, 'S'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'ES'));
-    } else if (abap.compare.eq(unique112, abap.CharacterFactory.get(1, 'T'))) {
+    } else if (abap.compare.eq(unique118, abap.CharacterFactory.get(1, 'T'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'TR'));
-    } else if (abap.compare.eq(unique112, abap.CharacterFactory.get(1, 'U'))) {
+    } else if (abap.compare.eq(unique118, abap.CharacterFactory.get(1, 'U'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'FI'));
-    } else if (abap.compare.eq(unique112, abap.CharacterFactory.get(1, 'V'))) {
+    } else if (abap.compare.eq(unique118, abap.CharacterFactory.get(1, 'V'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'SV'));
-    } else if (abap.compare.eq(unique112, abap.CharacterFactory.get(1, 'W'))) {
+    } else if (abap.compare.eq(unique118, abap.CharacterFactory.get(1, 'W'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'BG'));
-    } else if (abap.compare.eq(unique112, abap.CharacterFactory.get(1, 'X'))) {
+    } else if (abap.compare.eq(unique118, abap.CharacterFactory.get(1, 'X'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'LT'));
-    } else if (abap.compare.eq(unique112, abap.CharacterFactory.get(1, 'Y'))) {
+    } else if (abap.compare.eq(unique118, abap.CharacterFactory.get(1, 'Y'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'LV'));
-    } else if (abap.compare.eq(unique112, abap.CharacterFactory.get(1, 'Z'))) {
+    } else if (abap.compare.eq(unique118, abap.CharacterFactory.get(1, 'Z'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'Z1'));
-    } else if (abap.compare.eq(unique112, abap.CharacterFactory.get(1, 'a'))) {
+    } else if (abap.compare.eq(unique118, abap.CharacterFactory.get(1, 'a'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'AF'));
-    } else if (abap.compare.eq(unique112, abap.CharacterFactory.get(1, 'b'))) {
+    } else if (abap.compare.eq(unique118, abap.CharacterFactory.get(1, 'b'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'IS'));
-    } else if (abap.compare.eq(unique112, abap.CharacterFactory.get(1, 'c'))) {
+    } else if (abap.compare.eq(unique118, abap.CharacterFactory.get(1, 'c'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'CA'));
-    } else if (abap.compare.eq(unique112, abap.CharacterFactory.get(1, 'd'))) {
+    } else if (abap.compare.eq(unique118, abap.CharacterFactory.get(1, 'd'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'SH'));
-    } else if (abap.compare.eq(unique112, abap.CharacterFactory.get(1, 'i'))) {
+    } else if (abap.compare.eq(unique118, abap.CharacterFactory.get(1, 'i'))) {
       re_lang_sap2.set(abap.CharacterFactory.get(2, 'ID'));
     } else {
       throw new abap.ClassicError({classic: "no_assignment"});
@@ -348729,100 +350185,100 @@ class cl_i18n_languages {
     if (im_lang_sap2 === undefined) { im_lang_sap2 = new abap.types.Character(2, {"qualifiedName":"LAISO","ddicName":"LAISO","description":"LAISO"}).set(INPUT.im_lang_sap2); }
     let ex_lang_iso639 = INPUT?.ex_lang_iso639 || new abap.types.String({qualifiedName: "STRING"});
     let ex_country = INPUT?.ex_country || new abap.types.Character(3, {"qualifiedName":"LAND1","ddicName":"LAND1","description":"LAND1"});
-    let unique113 = im_lang_sap2;
-    if (abap.compare.eq(unique113, abap.CharacterFactory.get(2, 'SR'))) {
+    let unique119 = im_lang_sap2;
+    if (abap.compare.eq(unique119, abap.CharacterFactory.get(2, 'SR'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'sr'));
-    } else if (abap.compare.eq(unique113, abap.CharacterFactory.get(2, 'ZH'))) {
+    } else if (abap.compare.eq(unique119, abap.CharacterFactory.get(2, 'ZH'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'zh'));
       ex_country.set(abap.CharacterFactory.get(2, 'CN'));
-    } else if (abap.compare.eq(unique113, abap.CharacterFactory.get(2, 'TH'))) {
+    } else if (abap.compare.eq(unique119, abap.CharacterFactory.get(2, 'TH'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'th'));
-    } else if (abap.compare.eq(unique113, abap.CharacterFactory.get(2, 'KO'))) {
+    } else if (abap.compare.eq(unique119, abap.CharacterFactory.get(2, 'KO'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'ko'));
       ex_country.set(abap.CharacterFactory.get(2, 'KR'));
-    } else if (abap.compare.eq(unique113, abap.CharacterFactory.get(2, 'RO'))) {
+    } else if (abap.compare.eq(unique119, abap.CharacterFactory.get(2, 'RO'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'ro'));
       ex_country.set(abap.CharacterFactory.get(2, 'RO'));
-    } else if (abap.compare.eq(unique113, abap.CharacterFactory.get(2, 'SL'))) {
+    } else if (abap.compare.eq(unique119, abap.CharacterFactory.get(2, 'SL'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'sl'));
-    } else if (abap.compare.eq(unique113, abap.CharacterFactory.get(2, 'HR'))) {
+    } else if (abap.compare.eq(unique119, abap.CharacterFactory.get(2, 'HR'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'hr'));
-    } else if (abap.compare.eq(unique113, abap.CharacterFactory.get(2, 'MS'))) {
+    } else if (abap.compare.eq(unique119, abap.CharacterFactory.get(2, 'MS'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'ms'));
       ex_country.set(abap.CharacterFactory.get(2, 'MY'));
-    } else if (abap.compare.eq(unique113, abap.CharacterFactory.get(2, 'UK'))) {
+    } else if (abap.compare.eq(unique119, abap.CharacterFactory.get(2, 'UK'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'uk'));
-    } else if (abap.compare.eq(unique113, abap.CharacterFactory.get(2, 'ET'))) {
+    } else if (abap.compare.eq(unique119, abap.CharacterFactory.get(2, 'ET'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'et'));
-    } else if (abap.compare.eq(unique113, abap.CharacterFactory.get(2, 'AR'))) {
+    } else if (abap.compare.eq(unique119, abap.CharacterFactory.get(2, 'AR'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'ar'));
       ex_country.set(abap.CharacterFactory.get(2, 'SA'));
-    } else if (abap.compare.eq(unique113, abap.CharacterFactory.get(2, 'HE'))) {
+    } else if (abap.compare.eq(unique119, abap.CharacterFactory.get(2, 'HE'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'he'));
-    } else if (abap.compare.eq(unique113, abap.CharacterFactory.get(2, 'CS'))) {
+    } else if (abap.compare.eq(unique119, abap.CharacterFactory.get(2, 'CS'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'cs'));
-    } else if (abap.compare.eq(unique113, abap.CharacterFactory.get(2, 'DE'))) {
+    } else if (abap.compare.eq(unique119, abap.CharacterFactory.get(2, 'DE'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'de'));
       ex_country.set(abap.CharacterFactory.get(2, 'DE'));
-    } else if (abap.compare.eq(unique113, abap.CharacterFactory.get(2, 'EN'))) {
+    } else if (abap.compare.eq(unique119, abap.CharacterFactory.get(2, 'EN'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'en'));
       ex_country.set(abap.CharacterFactory.get(2, 'US'));
-    } else if (abap.compare.eq(unique113, abap.CharacterFactory.get(2, 'FR'))) {
+    } else if (abap.compare.eq(unique119, abap.CharacterFactory.get(2, 'FR'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'fr'));
       ex_country.set(abap.CharacterFactory.get(2, 'FR'));
-    } else if (abap.compare.eq(unique113, abap.CharacterFactory.get(2, 'EL'))) {
+    } else if (abap.compare.eq(unique119, abap.CharacterFactory.get(2, 'EL'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'el'));
-    } else if (abap.compare.eq(unique113, abap.CharacterFactory.get(2, 'HU'))) {
+    } else if (abap.compare.eq(unique119, abap.CharacterFactory.get(2, 'HU'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'hu'));
-    } else if (abap.compare.eq(unique113, abap.CharacterFactory.get(2, 'IT'))) {
+    } else if (abap.compare.eq(unique119, abap.CharacterFactory.get(2, 'IT'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'it'));
       ex_country.set(abap.CharacterFactory.get(2, 'IT'));
-    } else if (abap.compare.eq(unique113, abap.CharacterFactory.get(2, 'JA'))) {
+    } else if (abap.compare.eq(unique119, abap.CharacterFactory.get(2, 'JA'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'ja'));
-    } else if (abap.compare.eq(unique113, abap.CharacterFactory.get(2, 'DA'))) {
+    } else if (abap.compare.eq(unique119, abap.CharacterFactory.get(2, 'DA'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'da'));
-    } else if (abap.compare.eq(unique113, abap.CharacterFactory.get(2, 'PL'))) {
+    } else if (abap.compare.eq(unique119, abap.CharacterFactory.get(2, 'PL'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'pl'));
-    } else if (abap.compare.eq(unique113, abap.CharacterFactory.get(2, 'ZF'))) {
+    } else if (abap.compare.eq(unique119, abap.CharacterFactory.get(2, 'ZF'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'zh'));
       ex_country.set(abap.CharacterFactory.get(2, 'TW'));
-    } else if (abap.compare.eq(unique113, abap.CharacterFactory.get(2, 'NL'))) {
+    } else if (abap.compare.eq(unique119, abap.CharacterFactory.get(2, 'NL'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'nl'));
       ex_country.set(abap.CharacterFactory.get(2, 'NL'));
-    } else if (abap.compare.eq(unique113, abap.CharacterFactory.get(2, 'NO'))) {
+    } else if (abap.compare.eq(unique119, abap.CharacterFactory.get(2, 'NO'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'no'));
-    } else if (abap.compare.eq(unique113, abap.CharacterFactory.get(2, 'PT'))) {
+    } else if (abap.compare.eq(unique119, abap.CharacterFactory.get(2, 'PT'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'pt'));
       ex_country.set(abap.CharacterFactory.get(2, 'BR'));
-    } else if (abap.compare.eq(unique113, abap.CharacterFactory.get(2, 'SK'))) {
+    } else if (abap.compare.eq(unique119, abap.CharacterFactory.get(2, 'SK'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'sk'));
-    } else if (abap.compare.eq(unique113, abap.CharacterFactory.get(2, 'RU'))) {
+    } else if (abap.compare.eq(unique119, abap.CharacterFactory.get(2, 'RU'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'ru'));
       ex_country.set(abap.CharacterFactory.get(2, 'RU'));
-    } else if (abap.compare.eq(unique113, abap.CharacterFactory.get(2, 'ES'))) {
+    } else if (abap.compare.eq(unique119, abap.CharacterFactory.get(2, 'ES'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'es'));
       ex_country.set(abap.CharacterFactory.get(2, 'ES'));
-    } else if (abap.compare.eq(unique113, abap.CharacterFactory.get(2, 'TR'))) {
+    } else if (abap.compare.eq(unique119, abap.CharacterFactory.get(2, 'TR'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'tr'));
-    } else if (abap.compare.eq(unique113, abap.CharacterFactory.get(2, 'FI'))) {
+    } else if (abap.compare.eq(unique119, abap.CharacterFactory.get(2, 'FI'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'fi'));
-    } else if (abap.compare.eq(unique113, abap.CharacterFactory.get(2, 'SV'))) {
+    } else if (abap.compare.eq(unique119, abap.CharacterFactory.get(2, 'SV'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'sv'));
-    } else if (abap.compare.eq(unique113, abap.CharacterFactory.get(2, 'BG'))) {
+    } else if (abap.compare.eq(unique119, abap.CharacterFactory.get(2, 'BG'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'bg'));
-    } else if (abap.compare.eq(unique113, abap.CharacterFactory.get(2, 'LT'))) {
+    } else if (abap.compare.eq(unique119, abap.CharacterFactory.get(2, 'LT'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'lt'));
-    } else if (abap.compare.eq(unique113, abap.CharacterFactory.get(2, 'LV'))) {
+    } else if (abap.compare.eq(unique119, abap.CharacterFactory.get(2, 'LV'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'lv'));
-    } else if (abap.compare.eq(unique113, abap.CharacterFactory.get(2, 'AF'))) {
+    } else if (abap.compare.eq(unique119, abap.CharacterFactory.get(2, 'AF'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'af'));
-    } else if (abap.compare.eq(unique113, abap.CharacterFactory.get(2, 'IS'))) {
+    } else if (abap.compare.eq(unique119, abap.CharacterFactory.get(2, 'IS'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'is'));
-    } else if (abap.compare.eq(unique113, abap.CharacterFactory.get(2, 'CA'))) {
+    } else if (abap.compare.eq(unique119, abap.CharacterFactory.get(2, 'CA'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'ca'));
-    } else if (abap.compare.eq(unique113, abap.CharacterFactory.get(2, 'SH'))) {
+    } else if (abap.compare.eq(unique119, abap.CharacterFactory.get(2, 'SH'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'sr'));
-    } else if (abap.compare.eq(unique113, abap.CharacterFactory.get(2, 'ID'))) {
+    } else if (abap.compare.eq(unique119, abap.CharacterFactory.get(2, 'ID'))) {
       ex_lang_iso639.set(abap.CharacterFactory.get(2, 'id'));
     } else {
       throw new abap.ClassicError({classic: "no_assignment"});
@@ -348990,9 +350446,9 @@ class cl_message_helper {
     let li_t100_message = new abap.types.ABAPObject({qualifiedName: "IF_T100_MESSAGE", RTTIName: "\\INTERFACE=IF_T100_MESSAGE"});
     lx_exception.set(exception);
     const indexBackup1 = abap.builtin.sy.get().index.get();
-    let unique109 = 1;
+    let unique115 = 1;
     while (abap.compare.initial(lx_exception) === false) {
-      abap.builtin.sy.get().index.set(unique109++);
+      abap.builtin.sy.get().index.set(unique115++);
       try {
         await abap.statements.cast(li_t100_message, lx_exception);
         result.set(li_t100_message);
@@ -349071,9 +350527,9 @@ class cl_message_helper {
     if (text === undefined) { text = new abap.types.ABAPObject({qualifiedName: "IF_MESSAGE", RTTIName: "\\INTERFACE=IF_MESSAGE"}).set(INPUT.text); }
     let string = INPUT?.string || new abap.types.String({qualifiedName: "STRING"});
     if (abap.compare.initial(text)) {
-      const unique110 = await (new abap.Classes['CX_SY_MESSAGE_ILLEGAL_TEXT']()).constructor_();
-      unique110.EXTRA_CX = {"INTERNAL_FILENAME": "cl_message_helper.clas.abap","INTERNAL_LINE": 111};
-      throw unique110;
+      const unique116 = await (new abap.Classes['CX_SY_MESSAGE_ILLEGAL_TEXT']()).constructor_();
+      unique116.EXTRA_CX = {"INTERNAL_FILENAME": "cl_message_helper.clas.abap","INTERNAL_LINE": 111};
+      throw unique116;
     }
     string.set((await this.get_text_for_message({text: text, result: 1})));
     if (abap.compare.ne(string, cl_message_helper.gc_fallback)) {
@@ -349799,9 +351255,9 @@ class cl_oa2c_config_writer_api {
       usesTableLine: false,
       withKeySimple: {"configuration": i_configuration}});
     if (abap.compare.ne(abap.builtin.sy.get().subrc, abap.IntegerFactory.get(0))) {
-      const unique220 = await (new abap.Classes['CX_OA2C_CONFIG_NOT_FOUND']()).constructor_();
-      unique220.EXTRA_CX = {"INTERNAL_FILENAME": "cl_oa2c_config_writer_api.clas.abap","INTERNAL_LINE": 137};
-      throw unique220;
+      const unique227 = await (new abap.Classes['CX_OA2C_CONFIG_NOT_FOUND']()).constructor_();
+      unique227.EXTRA_CX = {"INTERNAL_FILENAME": "cl_oa2c_config_writer_api.clas.abap","INTERNAL_LINE": 137};
+      throw unique227;
     }
     ro_config_writer_api.set(await (new abap.Classes['CL_OA2C_CONFIG_WRITER_API']()).constructor_());
     ro_config_writer_api.get().FRIENDS_ACCESS_INSTANCE["ms_config"].set(ls_config);
@@ -349964,9 +351420,9 @@ class cl_oauth2_client {
         }
       }
       if (abap.compare.ne(abap.builtin.sy.get().subrc, abap.IntegerFactory.get(0))) {
-        const unique212 = await (new abap.Classes['CX_OA2C']()).constructor_();
-        unique212.EXTRA_CX = {"INTERNAL_FILENAME": "cl_oauth2_client.clas.abap","INTERNAL_LINE": 75};
-        throw unique212;
+        const unique219 = await (new abap.Classes['CX_OA2C']()).constructor_();
+        unique219.EXTRA_CX = {"INTERNAL_FILENAME": "cl_oauth2_client.clas.abap","INTERNAL_LINE": 75};
+        throw unique219;
       }
       li_http_client.get().if_http_client$propertytype_logon_popup.set(abap.Classes['IF_HTTP_CLIENT'].if_http_client$co_disabled);
       await li_http_client.get().if_http_client$request.get().if_http_request$set_method({method: abap.CharacterFactory.get(4, 'POST')});
@@ -349992,9 +351448,9 @@ class cl_oauth2_client {
           }
         }
         if (abap.compare.ne(abap.builtin.sy.get().subrc, abap.IntegerFactory.get(0))) {
-          const unique213 = await (new abap.Classes['CX_OA2C']()).constructor_();
-          unique213.EXTRA_CX = {"INTERNAL_FILENAME": "cl_oauth2_client.clas.abap","INTERNAL_LINE": 104};
-          throw unique213;
+          const unique220 = await (new abap.Classes['CX_OA2C']()).constructor_();
+          unique220.EXTRA_CX = {"INTERNAL_FILENAME": "cl_oauth2_client.clas.abap","INTERNAL_LINE": 104};
+          throw unique220;
         }
         try {
           await li_http_client.get().if_http_client$receive();
@@ -350013,24 +351469,24 @@ class cl_oauth2_client {
           }
           if (abap.compare.ne(abap.builtin.sy.get().subrc, abap.IntegerFactory.get(0))) {
             await li_http_client.get().if_http_client$get_last_error({code: lv_code, message: lv_message});
-            const unique214 = await (new abap.Classes['CX_OA2C']()).constructor_();
-            unique214.EXTRA_CX = {"INTERNAL_FILENAME": "cl_oauth2_client.clas.abap","INTERNAL_LINE": 118};
-            throw unique214;
+            const unique221 = await (new abap.Classes['CX_OA2C']()).constructor_();
+            unique221.EXTRA_CX = {"INTERNAL_FILENAME": "cl_oauth2_client.clas.abap","INTERNAL_LINE": 118};
+            throw unique221;
           }
           await li_http_client.get().if_http_client$response.get().if_http_response$get_status({code: lv_code});
           lv_cdata.set((await li_http_client.get().if_http_client$response.get().if_http_entity$get_cdata({data: 1})));
           await li_http_client.get().if_http_client$close();
           if (abap.compare.ne(lv_code, abap.IntegerFactory.get(200))) {
-            const unique215 = await (new abap.Classes['CX_OA2C']()).constructor_();
-            unique215.EXTRA_CX = {"INTERNAL_FILENAME": "cl_oauth2_client.clas.abap","INTERNAL_LINE": 126};
-            throw unique215;
+            const unique222 = await (new abap.Classes['CX_OA2C']()).constructor_();
+            unique222.EXTRA_CX = {"INTERNAL_FILENAME": "cl_oauth2_client.clas.abap","INTERNAL_LINE": 126};
+            throw unique222;
           }
           await abap.Classes['/UI2/CL_JSON'].deserialize({json: lv_cdata, data: ls_token_response});
           this.#mv_token.set(ls_token_response.get().access_token);
           if (abap.compare.initial(this.#mv_token)) {
-            const unique216 = await (new abap.Classes['CX_OA2C']()).constructor_();
-            unique216.EXTRA_CX = {"INTERNAL_FILENAME": "cl_oauth2_client.clas.abap","INTERNAL_LINE": 136};
-            throw unique216;
+            const unique223 = await (new abap.Classes['CX_OA2C']()).constructor_();
+            unique223.EXTRA_CX = {"INTERNAL_FILENAME": "cl_oauth2_client.clas.abap","INTERNAL_LINE": 136};
+            throw unique223;
           }
         }
         async if_oauth2_client$set_token(INPUT) {
@@ -350040,19 +351496,19 @@ class cl_oauth2_client {
           let i_param_kind = new abap.types.String({qualifiedName: "STRING"});
           if (INPUT && INPUT.i_param_kind) {i_param_kind.set(INPUT.i_param_kind);}
           if (abap.compare.initial(this.#mv_token)) {
-            const unique217 = await (new abap.Classes['CX_OA2C_AT_NOT_AVAILABLE']()).constructor_();
-            unique217.EXTRA_CX = {"INTERNAL_FILENAME": "cl_oauth2_client.clas.abap","INTERNAL_LINE": 143};
-            throw unique217;
+            const unique224 = await (new abap.Classes['CX_OA2C_AT_NOT_AVAILABLE']()).constructor_();
+            unique224.EXTRA_CX = {"INTERNAL_FILENAME": "cl_oauth2_client.clas.abap","INTERNAL_LINE": 143};
+            throw unique224;
           }
-          let unique218 = i_param_kind;
-          if (abap.compare.eq(unique218, abap.Classes['IF_OAUTH2_CLIENT'].if_oauth2_client$c_param_kind_form_field)) {
+          let unique225 = i_param_kind;
+          if (abap.compare.eq(unique225, abap.Classes['IF_OAUTH2_CLIENT'].if_oauth2_client$c_param_kind_form_field)) {
             await io_http_client.get().if_http_client$request.get().if_http_entity$set_form_field({name: abap.CharacterFactory.get(12, 'access_token'), value: this.#mv_token});
-          } else if (abap.compare.eq(unique218, abap.Classes['IF_OAUTH2_CLIENT'].if_oauth2_client$c_param_kind_header_field) || abap.compare.eq(unique218, abap.builtin.space)) {
+          } else if (abap.compare.eq(unique225, abap.Classes['IF_OAUTH2_CLIENT'].if_oauth2_client$c_param_kind_header_field) || abap.compare.eq(unique225, abap.builtin.space)) {
             await io_http_client.get().if_http_client$request.get().if_http_entity$set_header_field({name: abap.CharacterFactory.get(13, 'Authorization'), value: new abap.types.String().set(`Bearer ${abap.templateFormatting(this.#mv_token)}`)});
           } else {
-            const unique219 = await (new abap.Classes['CX_OA2C']()).constructor_();
-            unique219.EXTRA_CX = {"INTERNAL_FILENAME": "cl_oauth2_client.clas.abap","INTERNAL_LINE": 158};
-            throw unique219;
+            const unique226 = await (new abap.Classes['CX_OA2C']()).constructor_();
+            unique226.EXTRA_CX = {"INTERNAL_FILENAME": "cl_oauth2_client.clas.abap","INTERNAL_LINE": 158};
+            throw unique226;
           }
         }
       }
@@ -350128,9 +351584,9 @@ class cl_oo_factory {
     this.#mv_name.set(abap.builtin.to_upper({val: clif_name}));
     await abap.statements.select(ls_data, {select: "SELECT * FROM " + abap.buildDbTableName("reposrc") + " WHERE \"progname\" = '" + this.#mv_name.get() + "' UP TO 1 ROWS", primaryKey: ["progname"]});
     if (abap.compare.ne(abap.builtin.sy.get().subrc, abap.IntegerFactory.get(0))) {
-      const unique211 = await (new abap.Classes['CX_OO_CLIF_NOT_EXISTS']()).constructor_();
-      unique211.EXTRA_CX = {"INTERNAL_FILENAME": "cl_oo_factory.clas.abap","INTERNAL_LINE": 35};
-      throw unique211;
+      const unique218 = await (new abap.Classes['CX_OO_CLIF_NOT_EXISTS']()).constructor_();
+      unique218.EXTRA_CX = {"INTERNAL_FILENAME": "cl_oo_factory.clas.abap","INTERNAL_LINE": 35};
+      throw unique218;
     }
     return result;
   }
@@ -350646,9 +352102,9 @@ class cl_osql_test_environment {
     let lo_env = new abap.types.ABAPObject({qualifiedName: "CL_OSQL_TEST_ENVIRONMENT", RTTIName: "\\CLASS=CL_OSQL_TEST_ENVIRONMENT"});
     abap.statements.assert(abap.compare.eq(abap.builtin.sy.get().dbsys, abap.CharacterFactory.get(6, 'sqlite')));
     if (abap.compare.initial(cl_osql_test_environment.go_active) === false) {
-      const unique149 = await (new abap.Classes['CX_OSQL_FAILURE']()).constructor_({reason: new abap.types.String().set(`cl_osql_test_environment: environment already created, call destroy( ) before creating a new one`)});
-      unique149.EXTRA_CX = {"INTERNAL_FILENAME": "cl_osql_test_environment.clas.abap","INTERNAL_LINE": 34};
-      throw unique149;
+      const unique155 = await (new abap.Classes['CX_OSQL_FAILURE']()).constructor_({reason: new abap.types.String().set(`cl_osql_test_environment: environment already created, call destroy( ) before creating a new one`)});
+      unique155.EXTRA_CX = {"INTERNAL_FILENAME": "cl_osql_test_environment.clas.abap","INTERNAL_LINE": 34};
+      throw unique155;
     }
     lo_env.set(await (new abap.Classes['CL_OSQL_TEST_ENVIRONMENT']()).constructor_());
     lo_env.get().FRIENDS_ACCESS_INSTANCE["mt_tables"].set(i_dependency_list);
@@ -350662,8 +352118,8 @@ class cl_osql_test_environment {
     let ref = new abap.types.DataReference(new abap.types.Character(4));
     let lv_table = new abap.types.Character(30, {"qualifiedName":"abap_compname"});
     let fs_fs_ = new abap.types.FieldSymbol(new abap.types.Character(4));
-    for await (const unique150 of abap.statements.loop(this.#mt_tables)) {
-      lv_table.set(unique150);
+    for await (const unique156 of abap.statements.loop(this.#mt_tables)) {
+      lv_table.set(unique156);
       try {
         abap.statements.createData(ref,{"name": lv_table.get()});
         abap.statements.assign({target: fs_fs_, source: ref.dereference()});
@@ -350685,8 +352141,8 @@ class cl_osql_test_environment {
     if (abap.dbo.schemaPrefix !== "") throw new Error("already prefixed");
     await this.#validate();
     await this.#mo_sql.get().execute_update({statement: new abap.types.String().set(`ATTACH DATABASE ':memory:' AS ${abap.templateFormatting(cl_osql_test_environment.mv_schema)};`)});
-    for await (const unique151 of abap.statements.loop(this.#mt_tables)) {
-      lv_table.set(unique151);
+    for await (const unique157 of abap.statements.loop(this.#mt_tables)) {
+      lv_table.set(unique157);
       lv_table.set(abap.builtin.to_lower({val: lv_table}));
       lo_result.set((await this.#mo_sql.get().execute_query({statement: new abap.types.String().set(`SELECT sql FROM main.sqlite_master WHERE type='table' AND name='${abap.templateFormatting(lv_table)}';`), result_set: 1})));
       abap.statements.getReference(lr_ref, lv_sql);
@@ -350704,17 +352160,17 @@ class cl_osql_test_environment {
   }
   async if_osql_test_environment$clear_doubles() {
     let lv_table = new abap.types.Character(30, {"qualifiedName":"abap_compname"});
-    for await (const unique152 of abap.statements.loop(this.#mt_tables)) {
-      lv_table.set(unique152);
+    for await (const unique158 of abap.statements.loop(this.#mt_tables)) {
+      lv_table.set(unique158);
       lv_table.set(abap.builtin.to_lower({val: lv_table}));
       await this.#mo_sql.get().execute_update({statement: new abap.types.String().set(`DELETE FROM ${abap.templateFormatting(cl_osql_test_environment.mv_schema)}."${abap.templateFormatting(lv_table)}";`)});
     }
   }
   async if_osql_test_environment$destroy() {
     if (abap.compare.ne(cl_osql_test_environment.go_active, this.me)) {
-      const unique153 = await (new abap.Classes['CX_OSQL_FAILURE']()).constructor_({reason: new abap.types.String().set(`cl_osql_test_environment: environment already destroyed`)});
-      unique153.EXTRA_CX = {"INTERNAL_FILENAME": "cl_osql_test_environment.clas.abap","INTERNAL_LINE": 118};
-      throw unique153;
+      const unique159 = await (new abap.Classes['CX_OSQL_FAILURE']()).constructor_({reason: new abap.types.String().set(`cl_osql_test_environment: environment already destroyed`)});
+      unique159.EXTRA_CX = {"INTERNAL_FILENAME": "cl_osql_test_environment.clas.abap","INTERNAL_LINE": 118};
+      throw unique159;
     }
     await abap.statements.commit();
     await this.#mo_sql.get().execute_update({statement: new abap.types.String().set(`DETACH DATABASE ${abap.templateFormatting(cl_osql_test_environment.mv_schema)};`)});
@@ -351193,10 +352649,10 @@ class cl_sec_sxml_writer {
     if (INPUT === undefined || INPUT.algorithm === undefined) {algorithm = this.co_aes128_algorithm;}
     let result = INPUT?.result || new abap.types.XString({qualifiedName: "XSTRING"});
     let lv_algo = new abap.types.String({qualifiedName: "STRING"});
-    let unique187 = algorithm;
-    if (abap.compare.eq(unique187, cl_sec_sxml_writer.co_aes128_algorithm)) {
+    let unique193 = algorithm;
+    if (abap.compare.eq(unique193, cl_sec_sxml_writer.co_aes128_algorithm)) {
       lv_algo.set(abap.CharacterFactory.get(11, 'aes-128-ctr'));
-    } else if (abap.compare.eq(unique187, cl_sec_sxml_writer.co_aes256_algorithm)) {
+    } else if (abap.compare.eq(unique193, cl_sec_sxml_writer.co_aes256_algorithm)) {
       lv_algo.set(abap.CharacterFactory.get(11, 'aes-256-ctr'));
     } else {
       abap.statements.assert(abap.compare.eq(abap.IntegerFactory.get(1), abap.CharacterFactory.get(4, 'todo')));
@@ -351449,14 +352905,14 @@ class cl_shm_area extends cx_shm_general_error {
     if (abap.compare.eq(sneak_mode, abap.builtin.abap_false) && abap.compare.initial(cl_shm_area.mo_root)) {
       lv_name.set(area_name);
       abap.statements.replace({target: lv_name, all: false, with: abap.CharacterFactory.get(5, '_ROOT'), of: abap.CharacterFactory.get(5, '_AREA')});
-      let unique188 = abap.Classes["CLAS-CL_SHM_AREA-"+lv_name.get().trimEnd()];
-      if (unique188 === undefined) { unique188 = abap.Classes[lv_name.get().trimEnd()]; }
-      if (unique188 === undefined && abap.Classes['KERNEL_INTERNAL_NAME'] !== undefined) {
-          const unique189 = await abap.Classes['KERNEL_INTERNAL_NAME'].rtti_to_internal({iv_rtti: lv_name.get()});
-          unique188 = abap.Classes[unique189.get().trimEnd()];
+      let unique194 = abap.Classes["CLAS-CL_SHM_AREA-"+lv_name.get().trimEnd()];
+      if (unique194 === undefined) { unique194 = abap.Classes[lv_name.get().trimEnd()]; }
+      if (unique194 === undefined && abap.Classes['KERNEL_INTERNAL_NAME'] !== undefined) {
+          const unique195 = await abap.Classes['KERNEL_INTERNAL_NAME'].rtti_to_internal({iv_rtti: lv_name.get()});
+          unique194 = abap.Classes[unique195.get().trimEnd()];
       }
-      if (unique188 === undefined) { throw new abap.Classes['CX_SY_CREATE_OBJECT_ERROR']; }
-      created.set(await (new unique188()).constructor_());
+      if (unique194 === undefined) { throw new abap.Classes['CX_SY_CREATE_OBJECT_ERROR']; }
+      created.set(await (new unique194()).constructor_());
       await this._set_root({root: created});
     }
     root.set(cl_shm_area.mo_root);
@@ -351627,14 +353083,14 @@ class cl_shm_area extends cx_shm_general_error {
     let lv_name = new abap.types.String({qualifiedName: "STRING"});
     if (abap.compare.initial(cl_shm_area.mo_root)) {
       abap.statements.replace({target: lv_name, all: false, with: abap.CharacterFactory.get(5, '_ROOT'), of: abap.CharacterFactory.get(5, '_AREA')});
-      let unique190 = abap.Classes["CLAS-CL_SHM_AREA-"+lv_name.get().trimEnd()];
-      if (unique190 === undefined) { unique190 = abap.Classes[lv_name.get().trimEnd()]; }
-      if (unique190 === undefined && abap.Classes['KERNEL_INTERNAL_NAME'] !== undefined) {
-          const unique191 = await abap.Classes['KERNEL_INTERNAL_NAME'].rtti_to_internal({iv_rtti: lv_name.get()});
-          unique190 = abap.Classes[unique191.get().trimEnd()];
+      let unique196 = abap.Classes["CLAS-CL_SHM_AREA-"+lv_name.get().trimEnd()];
+      if (unique196 === undefined) { unique196 = abap.Classes[lv_name.get().trimEnd()]; }
+      if (unique196 === undefined && abap.Classes['KERNEL_INTERNAL_NAME'] !== undefined) {
+          const unique197 = await abap.Classes['KERNEL_INTERNAL_NAME'].rtti_to_internal({iv_rtti: lv_name.get()});
+          unique196 = abap.Classes[unique197.get().trimEnd()];
       }
-      if (unique190 === undefined) { throw new abap.Classes['CX_SY_CREATE_OBJECT_ERROR']; }
-      created.set(await (new unique190()).constructor_());
+      if (unique196 === undefined) { throw new abap.Classes['CX_SY_CREATE_OBJECT_ERROR']; }
+      created.set(await (new unique196()).constructor_());
       await this._set_root({root: created});
     }
     root.set(cl_shm_area.mo_root);
@@ -352138,9 +353594,9 @@ class cl_sql_statement {
       lv_sql_message.set(abap.CharacterFactory.get(19, 'not connected to db'));
     }
     if (abap.compare.initial(lv_sql_message) === false) {
-      const unique348 = await (new abap.Classes['CX_SQL_EXCEPTION']()).constructor_();
-      unique348.EXTRA_CX = {"INTERNAL_FILENAME": "cl_sql_statement.clas.abap","INTERNAL_LINE": 98};
-      throw unique348;
+      const unique356 = await (new abap.Classes['CX_SQL_EXCEPTION']()).constructor_();
+      unique356.EXTRA_CX = {"INTERNAL_FILENAME": "cl_sql_statement.clas.abap","INTERNAL_LINE": 98};
+      throw unique356;
     }
     try {
         await abap.context.databaseConnections[connection.get()].execute(statement.get());
@@ -352148,9 +353604,9 @@ class cl_sql_statement {
         lv_sql_message.set(e + "");
     }
     if (abap.compare.initial(lv_sql_message) === false) {
-      const unique349 = await (new abap.Classes['CX_SQL_EXCEPTION']()).constructor_();
-      unique349.EXTRA_CX = {"INTERNAL_FILENAME": "cl_sql_statement.clas.abap","INTERNAL_LINE": 107};
-      throw unique349;
+      const unique357 = await (new abap.Classes['CX_SQL_EXCEPTION']()).constructor_();
+      unique357.EXTRA_CX = {"INTERNAL_FILENAME": "cl_sql_statement.clas.abap","INTERNAL_LINE": 107};
+      throw unique357;
     }
     return rows_updated;
   }
@@ -352171,9 +353627,9 @@ class cl_sql_statement {
       lv_sql_message.set(abap.CharacterFactory.get(19, 'not connected to db'));
     }
     if (abap.compare.initial(lv_sql_message) === false) {
-      const unique350 = await (new abap.Classes['CX_SQL_EXCEPTION']()).constructor_({sql_message: lv_sql_message});
-      unique350.EXTRA_CX = {"INTERNAL_FILENAME": "cl_sql_statement.clas.abap","INTERNAL_LINE": 127};
-      throw unique350;
+      const unique358 = await (new abap.Classes['CX_SQL_EXCEPTION']()).constructor_({sql_message: lv_sql_message});
+      unique358.EXTRA_CX = {"INTERNAL_FILENAME": "cl_sql_statement.clas.abap","INTERNAL_LINE": 127};
+      throw unique358;
     }
     result_set.set(await (new abap.Classes['CL_SQL_RESULT_SET']()).constructor_());
     try {
@@ -352182,9 +353638,9 @@ class cl_sql_statement {
     } catch (e) {
       if ((abap.Classes['CX_SY_DYNAMIC_OSQL_SEMANTICS'] && e instanceof abap.Classes['CX_SY_DYNAMIC_OSQL_SEMANTICS'])) {
         lx_osql.set(e);
-        const unique351 = await (new abap.Classes['CX_SQL_EXCEPTION']()).constructor_({sql_message: lx_osql.get().sqlmsg});
-        unique351.EXTRA_CX = {"INTERNAL_FILENAME": "cl_sql_statement.clas.abap","INTERNAL_LINE": 137};
-        throw unique351;
+        const unique359 = await (new abap.Classes['CX_SQL_EXCEPTION']()).constructor_({sql_message: lx_osql.get().sqlmsg});
+        unique359.EXTRA_CX = {"INTERNAL_FILENAME": "cl_sql_statement.clas.abap","INTERNAL_LINE": 137};
+        throw unique359;
       } else {
         throw e;
       }
@@ -352490,10 +353946,10 @@ class cl_sxml_string_writer {
       await this.#append_text({text: abap.CharacterFactory.get(1, ',')});
     }
     abap.statements.append({source: name, target: this.#mt_stack});
-    let unique176 = name;
-    if (abap.compare.eq(unique176, abap.CharacterFactory.get(6, 'object'))) {
+    let unique182 = name;
+    if (abap.compare.eq(unique182, abap.CharacterFactory.get(6, 'object'))) {
       await this.#append_text({text: abap.CharacterFactory.get(1, '{')});
-    } else if (abap.compare.eq(unique176, abap.CharacterFactory.get(5, 'array'))) {
+    } else if (abap.compare.eq(unique182, abap.CharacterFactory.get(5, 'array'))) {
       await this.#append_text({text: abap.CharacterFactory.get(1, '[')});
     }
   }
@@ -352516,10 +353972,10 @@ class cl_sxml_string_writer {
   async #json_close_element() {
     let name = new abap.types.String({qualifiedName: "STRING"});
     name.set((await this.#remove({rv_name: 1})));
-    let unique177 = name;
-    if (abap.compare.eq(unique177, abap.CharacterFactory.get(6, 'object'))) {
+    let unique183 = name;
+    if (abap.compare.eq(unique183, abap.CharacterFactory.get(6, 'object'))) {
       await this.#append_text({text: abap.CharacterFactory.get(1, '}')});
-    } else if (abap.compare.eq(unique177, abap.CharacterFactory.get(5, 'array'))) {
+    } else if (abap.compare.eq(unique183, abap.CharacterFactory.get(5, 'array'))) {
       await this.#append_text({text: abap.CharacterFactory.get(1, ']')});
     }
   }
@@ -352571,12 +354027,12 @@ class cl_sxml_string_writer {
     if (value === undefined) { value = new abap.types.String({qualifiedName: "STRING"}).set(INPUT.value); }
     let name = new abap.types.String({qualifiedName: "STRING"});
     name.set((await this.#peek({rv_name: 1})));
-    let unique178 = name;
-    if (abap.compare.eq(unique178, abap.CharacterFactory.get(3, 'str'))) {
+    let unique184 = name;
+    if (abap.compare.eq(unique184, abap.CharacterFactory.get(3, 'str'))) {
       await this.#append_text({text: abap.CharacterFactory.get(1, '"')});
       await this.#append_text({text: abap.builtin.condense({val: value})});
       await this.#append_text({text: abap.CharacterFactory.get(1, '"')});
-    } else if (abap.compare.eq(unique178, abap.CharacterFactory.get(3, 'num'))) {
+    } else if (abap.compare.eq(unique184, abap.CharacterFactory.get(3, 'num'))) {
       await this.#append_text({text: abap.builtin.condense({val: value})});
     } else {
       console.dir(name);
@@ -353514,9 +354970,58 @@ class cx_abap_message_digest extends cx_static_check {
   static STATIC_SUPER = cx_static_check;
   static INTERNAL_TYPE = 'CLAS';
   static INTERNAL_NAME = 'CX_ABAP_MESSAGE_DIGEST';
-  static IMPLEMENTED_INTERFACES = ["IF_MESSAGE","IF_MESSAGE"];
-  static ATTRIBUTES = {};
-  static METHODS = {};
+  static IMPLEMENTED_INTERFACES = ["IF_T100_MESSAGE","IF_MESSAGE","IF_MESSAGE","IF_MESSAGE"];
+  static ATTRIBUTES = {"ALGORITHM": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "visibility": "U", "is_constant": " ", "is_class": " "},
+  "RC": {"type": () => {return new abap.types.Integer({qualifiedName: "I"});}, "visibility": "U", "is_constant": " ", "is_class": " "},
+  "UNKNOWN_ALGORITHM": {"type": () => {return new abap.types.Structure({
+  "msgid": new abap.types.Character(20, {"qualifiedName":"SYMSGID","ddicName":"SYMSGID","description":"SYMSGID"}),
+  "msgno": new abap.types.Numc({length: 3, qualifiedName: "SYMSGNO"}),
+  "attr1": new abap.types.String({qualifiedName: "SCX_ATTRNAME"}),
+  "attr2": new abap.types.String({qualifiedName: "SCX_ATTRNAME"}),
+  "attr3": new abap.types.String({qualifiedName: "SCX_ATTRNAME"}),
+  "attr4": new abap.types.String({qualifiedName: "SCX_ATTRNAME"})}, undefined, undefined, {}, {});}, "visibility": "U", "is_constant": "X", "is_class": "X"},
+  "PARAM_ERROR": {"type": () => {return new abap.types.Structure({
+  "msgid": new abap.types.Character(20, {"qualifiedName":"SYMSGID","ddicName":"SYMSGID","description":"SYMSGID"}),
+  "msgno": new abap.types.Numc({length: 3, qualifiedName: "SYMSGNO"}),
+  "attr1": new abap.types.String({qualifiedName: "SCX_ATTRNAME"}),
+  "attr2": new abap.types.String({qualifiedName: "SCX_ATTRNAME"}),
+  "attr3": new abap.types.String({qualifiedName: "SCX_ATTRNAME"}),
+  "attr4": new abap.types.String({qualifiedName: "SCX_ATTRNAME"})}, undefined, undefined, {}, {});}, "visibility": "U", "is_constant": "X", "is_class": "X"},
+  "CONV_ERROR": {"type": () => {return new abap.types.Structure({
+  "msgid": new abap.types.Character(20, {"qualifiedName":"SYMSGID","ddicName":"SYMSGID","description":"SYMSGID"}),
+  "msgno": new abap.types.Numc({length: 3, qualifiedName: "SYMSGNO"}),
+  "attr1": new abap.types.String({qualifiedName: "SCX_ATTRNAME"}),
+  "attr2": new abap.types.String({qualifiedName: "SCX_ATTRNAME"}),
+  "attr3": new abap.types.String({qualifiedName: "SCX_ATTRNAME"}),
+  "attr4": new abap.types.String({qualifiedName: "SCX_ATTRNAME"})}, undefined, undefined, {}, {});}, "visibility": "U", "is_constant": "X", "is_class": "X"},
+  "KEY_ERROR": {"type": () => {return new abap.types.Structure({
+  "msgid": new abap.types.Character(20, {"qualifiedName":"SYMSGID","ddicName":"SYMSGID","description":"SYMSGID"}),
+  "msgno": new abap.types.Numc({length: 3, qualifiedName: "SYMSGNO"}),
+  "attr1": new abap.types.String({qualifiedName: "SCX_ATTRNAME"}),
+  "attr2": new abap.types.String({qualifiedName: "SCX_ATTRNAME"}),
+  "attr3": new abap.types.String({qualifiedName: "SCX_ATTRNAME"}),
+  "attr4": new abap.types.String({qualifiedName: "SCX_ATTRNAME"})}, undefined, undefined, {}, {});}, "visibility": "U", "is_constant": "X", "is_class": "X"},
+  "IF_T100_MESSAGE~T100KEY": {"type": () => {return new abap.types.Structure({
+  "msgid": new abap.types.Character(20, {"qualifiedName":"SYMSGID","ddicName":"SYMSGID","description":"SYMSGID"}),
+  "msgno": new abap.types.Numc({length: 3, qualifiedName: "SYMSGNO"}),
+  "attr1": new abap.types.String({qualifiedName: "SCX_ATTRNAME"}),
+  "attr2": new abap.types.String({qualifiedName: "SCX_ATTRNAME"}),
+  "attr3": new abap.types.String({qualifiedName: "SCX_ATTRNAME"}),
+  "attr4": new abap.types.String({qualifiedName: "SCX_ATTRNAME"})}, "SCX_T100KEY", "SCX_T100KEY", {}, {});}, "visibility": "U", "is_constant": " ", "is_class": " "},
+  "IF_T100_MESSAGE~DEFAULT_TEXTID": {"type": () => {return new abap.types.Structure({
+  "msgid": new abap.types.Character(20, {"qualifiedName":"SYMSGID","ddicName":"SYMSGID","description":"SYMSGID"}),
+  "msgno": new abap.types.Numc({length: 3, qualifiedName: "SYMSGNO"}),
+  "attr1": new abap.types.String({qualifiedName: "SCX_ATTRNAME"}),
+  "attr2": new abap.types.String({qualifiedName: "SCX_ATTRNAME"}),
+  "attr3": new abap.types.String({qualifiedName: "SCX_ATTRNAME"}),
+  "attr4": new abap.types.String({qualifiedName: "SCX_ATTRNAME"})}, undefined, undefined, {}, {});}, "visibility": "U", "is_constant": "X", "is_class": "X"}};
+  static METHODS = {"CONSTRUCTOR": {"visibility": "U", "parameters": {"TEXTID": {"type": () => {return new abap.types.Structure({
+  "msgid": new abap.types.Character(20, {"qualifiedName":"SYMSGID","ddicName":"SYMSGID","description":"SYMSGID"}),
+  "msgno": new abap.types.Numc({length: 3, qualifiedName: "SYMSGNO"}),
+  "attr1": new abap.types.String({qualifiedName: "SCX_ATTRNAME"}),
+  "attr2": new abap.types.String({qualifiedName: "SCX_ATTRNAME"}),
+  "attr3": new abap.types.String({qualifiedName: "SCX_ATTRNAME"}),
+  "attr4": new abap.types.String({qualifiedName: "SCX_ATTRNAME"})}, "SCX_T100KEY", "SCX_T100KEY", {}, {});}, "is_optional": " ", "parm_kind": "I", "type_name": "StructureType"}, "PREVIOUS": {"type": () => {return new abap.types.ABAPObject({qualifiedName: "CX_ROOT", RTTIName: "\\CLASS=CX_ROOT"});}, "is_optional": " ", "parm_kind": "I", "type_name": "ObjectReferenceType"}, "ALGORITHM": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "StringType"}, "RC": {"type": () => {return new abap.types.Integer({qualifiedName: "I"});}, "is_optional": " ", "parm_kind": "I", "type_name": "IntegerType"}}}};
   constructor() {
     const sup = super();
     this.me = new abap.types.ABAPObject();
@@ -353524,13 +355029,115 @@ class cx_abap_message_digest extends cx_static_check {
     this.INTERNAL_ID = abap.internalIdCounter++;
     this.FRIENDS_ACCESS_INSTANCE = Object.create(sup.FRIENDS_ACCESS_INSTANCE || null);
     this.FRIENDS_ACCESS_INSTANCE["SUPER"] = sup.FRIENDS_ACCESS_INSTANCE;
+    this.algorithm = new abap.types.String({qualifiedName: "STRING"});
+    this.rc = new abap.types.Integer({qualifiedName: "I"});
+    this.if_t100_message$default_textid = abap.Classes['IF_T100_MESSAGE'].if_t100_message$default_textid;
+    if (this.if_t100_message$t100key === undefined) this.if_t100_message$t100key = new abap.types.Structure({
+    "msgid": new abap.types.Character(20, {"qualifiedName":"SYMSGID","ddicName":"SYMSGID","description":"SYMSGID"}),
+    "msgno": new abap.types.Numc({length: 3, qualifiedName: "SYMSGNO"}),
+    "attr1": new abap.types.String({qualifiedName: "SCX_ATTRNAME"}),
+    "attr2": new abap.types.String({qualifiedName: "SCX_ATTRNAME"}),
+    "attr3": new abap.types.String({qualifiedName: "SCX_ATTRNAME"}),
+    "attr4": new abap.types.String({qualifiedName: "SCX_ATTRNAME"})}, "SCX_T100KEY", "SCX_T100KEY", {}, {});
+    this.unknown_algorithm = cx_abap_message_digest.unknown_algorithm;
+    this.param_error = cx_abap_message_digest.param_error;
+    this.conv_error = cx_abap_message_digest.conv_error;
+    this.key_error = cx_abap_message_digest.key_error;
   }
   async constructor_(INPUT) {
-    if (super.constructor_) { await super.constructor_(INPUT); }
+    let textid = new abap.types.Structure({
+    "msgid": new abap.types.Character(20, {"qualifiedName":"SYMSGID","ddicName":"SYMSGID","description":"SYMSGID"}),
+    "msgno": new abap.types.Numc({length: 3, qualifiedName: "SYMSGNO"}),
+    "attr1": new abap.types.String({qualifiedName: "SCX_ATTRNAME"}),
+    "attr2": new abap.types.String({qualifiedName: "SCX_ATTRNAME"}),
+    "attr3": new abap.types.String({qualifiedName: "SCX_ATTRNAME"}),
+    "attr4": new abap.types.String({qualifiedName: "SCX_ATTRNAME"})}, "SCX_T100KEY", "SCX_T100KEY", {}, {});
+    if (INPUT && INPUT.textid) {textid.set(INPUT.textid);}
+    let previous = new abap.types.ABAPObject({qualifiedName: "CX_ROOT", RTTIName: "\\CLASS=CX_ROOT"});
+    if (INPUT && INPUT.previous) {previous.set(INPUT.previous);}
+    let algorithm = new abap.types.String({qualifiedName: "STRING"});
+    if (INPUT && INPUT.algorithm) {algorithm.set(INPUT.algorithm);}
+    let rc = new abap.types.Integer({qualifiedName: "I"});
+    if (INPUT && INPUT.rc) {rc.set(INPUT.rc);}
+    if (INPUT === undefined || INPUT.rc === undefined) {rc = abap.IntegerFactory.get(0);}
+    await super.constructor_({previous: previous});
+    this.me.get().algorithm.set(algorithm);
+    this.me.get().rc.set(rc);
+    this.me.get().textid.clear();
+    if (abap.compare.initial(textid)) {
+      this.if_t100_message$t100key.set(abap.Classes['IF_T100_MESSAGE'].if_t100_message$default_textid);
+    } else {
+      this.if_t100_message$t100key.set(textid);
+    }
     return this;
   }
 }
 abap.Classes['CX_ABAP_MESSAGE_DIGEST'] = cx_abap_message_digest;
+cx_abap_message_digest.unknown_algorithm = new abap.types.Structure({
+"msgid": new abap.types.Character(20, {"qualifiedName":"SYMSGID","ddicName":"SYMSGID","description":"SYMSGID"}),
+"msgno": new abap.types.Numc({length: 3, qualifiedName: "SYMSGNO"}),
+"attr1": new abap.types.String({qualifiedName: "SCX_ATTRNAME"}),
+"attr2": new abap.types.String({qualifiedName: "SCX_ATTRNAME"}),
+"attr3": new abap.types.String({qualifiedName: "SCX_ATTRNAME"}),
+"attr4": new abap.types.String({qualifiedName: "SCX_ATTRNAME"})}, undefined, undefined, {}, {});
+cx_abap_message_digest.unknown_algorithm.get().msgid.set('MD5');
+cx_abap_message_digest.unknown_algorithm.get().msgno.set('004');
+cx_abap_message_digest.unknown_algorithm.get().attr1.set('ALGORITHM');
+cx_abap_message_digest.unknown_algorithm.get().attr2.set('');
+cx_abap_message_digest.unknown_algorithm.get().attr3.set('');
+cx_abap_message_digest.unknown_algorithm.get().attr4.set('');
+cx_abap_message_digest.param_error = new abap.types.Structure({
+"msgid": new abap.types.Character(20, {"qualifiedName":"SYMSGID","ddicName":"SYMSGID","description":"SYMSGID"}),
+"msgno": new abap.types.Numc({length: 3, qualifiedName: "SYMSGNO"}),
+"attr1": new abap.types.String({qualifiedName: "SCX_ATTRNAME"}),
+"attr2": new abap.types.String({qualifiedName: "SCX_ATTRNAME"}),
+"attr3": new abap.types.String({qualifiedName: "SCX_ATTRNAME"}),
+"attr4": new abap.types.String({qualifiedName: "SCX_ATTRNAME"})}, undefined, undefined, {}, {});
+cx_abap_message_digest.param_error.get().msgid.set('MD5');
+cx_abap_message_digest.param_error.get().msgno.set('005');
+cx_abap_message_digest.param_error.get().attr1.set('');
+cx_abap_message_digest.param_error.get().attr2.set('');
+cx_abap_message_digest.param_error.get().attr3.set('');
+cx_abap_message_digest.param_error.get().attr4.set('');
+cx_abap_message_digest.conv_error = new abap.types.Structure({
+"msgid": new abap.types.Character(20, {"qualifiedName":"SYMSGID","ddicName":"SYMSGID","description":"SYMSGID"}),
+"msgno": new abap.types.Numc({length: 3, qualifiedName: "SYMSGNO"}),
+"attr1": new abap.types.String({qualifiedName: "SCX_ATTRNAME"}),
+"attr2": new abap.types.String({qualifiedName: "SCX_ATTRNAME"}),
+"attr3": new abap.types.String({qualifiedName: "SCX_ATTRNAME"}),
+"attr4": new abap.types.String({qualifiedName: "SCX_ATTRNAME"})}, undefined, undefined, {}, {});
+cx_abap_message_digest.conv_error.get().msgid.set('MD5');
+cx_abap_message_digest.conv_error.get().msgno.set('021');
+cx_abap_message_digest.conv_error.get().attr1.set('');
+cx_abap_message_digest.conv_error.get().attr2.set('');
+cx_abap_message_digest.conv_error.get().attr3.set('');
+cx_abap_message_digest.conv_error.get().attr4.set('');
+cx_abap_message_digest.key_error = new abap.types.Structure({
+"msgid": new abap.types.Character(20, {"qualifiedName":"SYMSGID","ddicName":"SYMSGID","description":"SYMSGID"}),
+"msgno": new abap.types.Numc({length: 3, qualifiedName: "SYMSGNO"}),
+"attr1": new abap.types.String({qualifiedName: "SCX_ATTRNAME"}),
+"attr2": new abap.types.String({qualifiedName: "SCX_ATTRNAME"}),
+"attr3": new abap.types.String({qualifiedName: "SCX_ATTRNAME"}),
+"attr4": new abap.types.String({qualifiedName: "SCX_ATTRNAME"})}, undefined, undefined, {}, {});
+cx_abap_message_digest.key_error.get().msgid.set('MD5');
+cx_abap_message_digest.key_error.get().msgno.set('001');
+cx_abap_message_digest.key_error.get().attr1.set('');
+cx_abap_message_digest.key_error.get().attr2.set('');
+cx_abap_message_digest.key_error.get().attr3.set('');
+cx_abap_message_digest.key_error.get().attr4.set('');
+cx_abap_message_digest.if_t100_message$default_textid = new abap.types.Structure({
+"msgid": new abap.types.Character(20, {"qualifiedName":"SYMSGID","ddicName":"SYMSGID","description":"SYMSGID"}),
+"msgno": new abap.types.Numc({length: 3, qualifiedName: "SYMSGNO"}),
+"attr1": new abap.types.String({qualifiedName: "SCX_ATTRNAME"}),
+"attr2": new abap.types.String({qualifiedName: "SCX_ATTRNAME"}),
+"attr3": new abap.types.String({qualifiedName: "SCX_ATTRNAME"}),
+"attr4": new abap.types.String({qualifiedName: "SCX_ATTRNAME"})}, undefined, undefined, {}, {});
+cx_abap_message_digest.if_t100_message$default_textid.get().msgid.set('AB');
+cx_abap_message_digest.if_t100_message$default_textid.get().msgno.set('123');
+cx_abap_message_digest.if_t100_message$default_textid.get().attr1.set('');
+cx_abap_message_digest.if_t100_message$default_textid.get().attr2.set('');
+cx_abap_message_digest.if_t100_message$default_textid.get().attr3.set('');
+cx_abap_message_digest.if_t100_message$default_textid.get().attr4.set('');
 
 __webpack_async_result__();
 } catch(e) { __webpack_async_result__(e); } }, 1);
@@ -359813,6 +361420,24 @@ abap.DDIC["DATS"] = {
 
 /***/ },
 
+/***/ "../output/datum.dtel.mjs"
+/*!********************************!*\
+  !*** ../output/datum.dtel.mjs ***!
+  \********************************/
+(__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+abap.DDIC["DATUM"] = {
+  "objectType": "DTEL",
+  "type": (() => { let _t; return () => (_t ??= new abap.types.Date({qualifiedName: "DATUM"})); })(),
+  "domain": undefined,
+  "fixedValues": undefined,
+  "description": "Date",
+};
+
+/***/ },
+
 /***/ "../output/dd_x031l_table.ttyp.mjs"
 /*!*****************************************!*\
   !*** ../output/dd_x031l_table.ttyp.mjs ***!
@@ -359879,7 +361504,7 @@ abap.DDIC["DDFIELDS"] = {
 "intlen": new abap.types.Numc({length: 6}),
 "outputlen": new abap.types.Numc({length: 6}),
 "decimals": new abap.types.Numc({length: 6}),
-"datatype": new abap.types.Character(1, {}),
+"datatype": new abap.types.Character(4, {}),
 "inttype": new abap.types.Character(1, {}),
 "reftable": new abap.types.Character(1, {}),
 "reffield": new abap.types.Character(1, {}),
@@ -359889,7 +361514,7 @@ abap.DDIC["DDFIELDS"] = {
 "logflag": new abap.types.Character(1, {}),
 "mask": new abap.types.Character(20, {}),
 "masklen": new abap.types.Character(1, {}),
-"convexit": new abap.types.Character(1, {}),
+"convexit": new abap.types.Character(5, {}),
 "headlen": new abap.types.Character(1, {}),
 "scrlen1": new abap.types.Character(1, {}),
 "scrlen2": new abap.types.Character(1, {}),
@@ -359994,7 +361619,7 @@ abap.DDIC["DFIES"] = {
 "intlen": new abap.types.Numc({length: 6}),
 "outputlen": new abap.types.Numc({length: 6}),
 "decimals": new abap.types.Numc({length: 6}),
-"datatype": new abap.types.Character(1, {}),
+"datatype": new abap.types.Character(4, {}),
 "inttype": new abap.types.Character(1, {}),
 "reftable": new abap.types.Character(1, {}),
 "reffield": new abap.types.Character(1, {}),
@@ -360004,7 +361629,7 @@ abap.DDIC["DFIES"] = {
 "logflag": new abap.types.Character(1, {}),
 "mask": new abap.types.Character(20, {}),
 "masklen": new abap.types.Character(1, {}),
-"convexit": new abap.types.Character(1, {}),
+"convexit": new abap.types.Character(5, {}),
 "headlen": new abap.types.Character(1, {}),
 "scrlen1": new abap.types.Character(1, {}),
 "scrlen2": new abap.types.Character(1, {}),
@@ -364723,8 +366348,8 @@ class kernel_authority_check {
       if (abap.compare.initial(object)) {
         return result;
       }
-      for await (const unique230 of abap.statements.loop(kernel_authority_check.gt_authorizations)) {
-        ls_user_auth.set(unique230);
+      for await (const unique237 of abap.statements.loop(kernel_authority_check.gt_authorizations)) {
+        ls_user_auth.set(unique237);
         lt_users.set(ls_user_auth.get().users);
         if (abap.compare.initial(lt_users) === false) {
           abap.statements.readTable(lt_users,{withKey: (i) => {return abap.compare.eq(i.table_line, user);},
@@ -364735,14 +366360,14 @@ class kernel_authority_check {
             continue;
           }
         }
-        for await (const unique231 of abap.statements.loop(ls_user_auth.get().role_authorizations,{where: async (I) => {return abap.compare.eq(I.object, object);},topEquals: {"object": object}})) {
-          ls_object.set(unique231);
+        for await (const unique238 of abap.statements.loop(ls_user_auth.get().role_authorizations,{where: async (I) => {return abap.compare.eq(I.object, object);},topEquals: {"object": object}})) {
+          ls_object.set(unique238);
           if (abap.compare.initial(ls_object.get().authorizations)) {
             result.set(abap.builtin.abap_true);
             return result;
           }
-          for await (const unique232 of abap.statements.loop(ls_object.get().authorizations)) {
-            ls_configured.set(unique232);
+          for await (const unique239 of abap.statements.loop(ls_object.get().authorizations)) {
+            ls_configured.set(unique239);
             if (abap.compare.eq((await this.authorization_matches({configured: ls_configured, requested: authorization, result: 1})), abap.builtin.abap_true)) {
               result.set(abap.builtin.abap_true);
               return result;
@@ -364793,8 +366418,8 @@ class kernel_authority_check {
       if (abap.compare.initial(configured)) {
         return result;
       }
-      for await (const unique233 of abap.statements.loop(requested)) {
-        ls_requested.set(unique233);
+      for await (const unique240 of abap.statements.loop(requested)) {
+        ls_requested.set(unique240);
         if (abap.compare.initial(ls_requested.get().fieldvalues)) {
           continue;
         }
@@ -364809,12 +366434,12 @@ class kernel_authority_check {
           result.set(abap.builtin.abap_false);
           return result;
         }
-        for await (const unique234 of abap.statements.loop(ls_requested.get().fieldvalues)) {
-          ls_requested_value.set(unique234);
+        for await (const unique241 of abap.statements.loop(ls_requested.get().fieldvalues)) {
+          ls_requested_value.set(unique241);
           lv_value.set(ls_requested_value.get().lower_value);
           lv_matched.set(abap.builtin.abap_false);
-          for await (const unique235 of abap.statements.loop(ls_configured.get().fieldvalues)) {
-            ls_configured_value.set(unique235);
+          for await (const unique242 of abap.statements.loop(ls_configured.get().fieldvalues)) {
+            ls_configured_value.set(unique242);
             if (abap.compare.eq(ls_configured_value.get().lower_value, abap.CharacterFactory.get(1, '*')) || (abap.compare.initial(ls_configured_value.get().upper_value) && ((abap.compare.cs(ls_configured_value.get().lower_value, abap.CharacterFactory.get(1, '*')) && abap.compare.cp(lv_value, ls_configured_value.get().lower_value)) || (abap.compare.ns(ls_configured_value.get().lower_value, abap.CharacterFactory.get(1, '*')) && abap.compare.eq(lv_value, ls_configured_value.get().lower_value)))) || (abap.compare.initial(ls_configured_value.get().upper_value) === false && abap.compare.ge(lv_value, ls_configured_value.get().lower_value) && abap.compare.le(lv_value, ls_configured_value.get().upper_value))) {
               lv_matched.set(abap.builtin.abap_true);
               break;
@@ -365018,9 +366643,9 @@ class kernel_call_transformation {
         lv_type.set(abap.CharacterFactory.get(4, 'JSON'));
         kernel_call_transformation.mi_doc.set((await abap.Classes['KERNEL_JSON_TO_IXML'].build({iv_json: lv_source, ri_doc: 1})));
       } else {
-        const unique270 = await (new abap.Classes['CX_XSLT_FORMAT_ERROR']()).constructor_();
-        unique270.EXTRA_CX = {"INTERNAL_FILENAME": "kernel_call_transformation.clas.abap","INTERNAL_LINE": 85};
-        throw unique270;
+        const unique277 = await (new abap.Classes['CX_XSLT_FORMAT_ERROR']()).constructor_();
+        unique277.EXTRA_CX = {"INTERNAL_FILENAME": "kernel_call_transformation.clas.abap","INTERNAL_LINE": 85};
+        throw unique277;
       }
     }
     if (typeof INPUT.source === "object"
@@ -365063,14 +366688,14 @@ class kernel_call_transformation {
         return;
       }
       if (abap.compare.initial(lv_source) && abap.compare.initial(kernel_call_transformation.mi_doc)) {
-        const unique271 = await (new abap.Classes['CX_XSLT_RUNTIME_ERROR']()).constructor_();
-        unique271.EXTRA_CX = {"INTERNAL_FILENAME": "kernel_call_transformation.clas.abap","INTERNAL_LINE": 146};
-        throw unique271;
+        const unique278 = await (new abap.Classes['CX_XSLT_RUNTIME_ERROR']()).constructor_();
+        unique278.EXTRA_CX = {"INTERNAL_FILENAME": "kernel_call_transformation.clas.abap","INTERNAL_LINE": 146};
+        throw unique278;
       }
       if (INPUT.result.constructor.name === "Table") {
         lt_rtab = INPUT.result;
-        for await (const unique272 of abap.statements.loop(lt_rtab)) {
-          ls_rtab.set(unique272);
+        for await (const unique279 of abap.statements.loop(lt_rtab)) {
+          ls_rtab.set(unique279);
           await abap.Classes['KERNEL_IXML_XML_TO_DATA'].build({iv_name: ls_rtab.get().name, iv_ref: ls_rtab.get().value, ii_doc: kernel_call_transformation.mi_doc});
         }
       } else {
@@ -365194,26 +366819,26 @@ class kernel_create_data_handle {
     let dref = new abap.types.DataReference(new abap.types.Character(4));
     if (INPUT && INPUT.dref) {dref = INPUT.dref;}
     if (abap.compare.initial(handle)) {
-      const unique222 = await (new abap.Classes['CX_SY_REF_IS_INITIAL']()).constructor_();
-      unique222.EXTRA_CX = {"INTERNAL_FILENAME": "kernel_create_data_handle.clas.abap","INTERNAL_LINE": 36};
-      throw unique222;
+      const unique229 = await (new abap.Classes['CX_SY_REF_IS_INITIAL']()).constructor_();
+      unique229.EXTRA_CX = {"INTERNAL_FILENAME": "kernel_create_data_handle.clas.abap","INTERNAL_LINE": 36};
+      throw unique229;
     }
     if (abap.compare.eq(handle.get().type_kind, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_data) && abap.compare.eq(allow_generic, abap.builtin.abap_false)) {
-      const unique223 = await (new abap.Classes['CX_SY_CREATE_DATA_ERROR']()).constructor_();
-      unique223.EXTRA_CX = {"INTERNAL_FILENAME": "kernel_create_data_handle.clas.abap","INTERNAL_LINE": 41};
-      throw unique223;
+      const unique230 = await (new abap.Classes['CX_SY_CREATE_DATA_ERROR']()).constructor_();
+      unique230.EXTRA_CX = {"INTERNAL_FILENAME": "kernel_create_data_handle.clas.abap","INTERNAL_LINE": 41};
+      throw unique230;
     }
     if (dref.constructor.name === "FieldSymbol") {
         dref = dref.getPointer();
     }
-    let unique224 = handle.get().kind;
-    if (abap.compare.eq(unique224, abap.Classes['CL_ABAP_TYPEDESCR'].kind_elem)) {
+    let unique231 = handle.get().kind;
+    if (abap.compare.eq(unique231, abap.Classes['CL_ABAP_TYPEDESCR'].kind_elem)) {
       await this.elem({handle: handle, dref: dref});
-    } else if (abap.compare.eq(unique224, abap.Classes['CL_ABAP_TYPEDESCR'].kind_struct)) {
+    } else if (abap.compare.eq(unique231, abap.Classes['CL_ABAP_TYPEDESCR'].kind_struct)) {
       await this.struct({handle: handle, dref: dref});
-    } else if (abap.compare.eq(unique224, abap.Classes['CL_ABAP_TYPEDESCR'].kind_table)) {
+    } else if (abap.compare.eq(unique231, abap.Classes['CL_ABAP_TYPEDESCR'].kind_table)) {
       await this.table({handle: handle, dref: dref});
-    } else if (abap.compare.eq(unique224, abap.Classes['CL_ABAP_TYPEDESCR'].kind_ref)) {
+    } else if (abap.compare.eq(unique231, abap.Classes['CL_ABAP_TYPEDESCR'].kind_ref)) {
       await this.ref({handle: handle, dref: dref});
     } else {
       console.dir(handle);
@@ -365236,8 +366861,8 @@ class kernel_create_data_handle {
     let lv_relative_name = new abap.types.String({qualifiedName: "STRING"});
     let lv_absolute_name = new abap.types.String({qualifiedName: "STRING"});
     await abap.statements.cast(lo_refdescr, handle);
-    let unique225 = lo_refdescr.get().type_kind;
-    if (abap.compare.eq(unique225, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_oref)) {
+    let unique232 = lo_refdescr.get().type_kind;
+    if (abap.compare.eq(unique232, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_oref)) {
       await abap.statements.cast(lo_classdescr, (await lo_refdescr.get().get_referenced_type({type: 1})));
       lv_relative_name.set(lo_classdescr.get().relative_name);
       lv_absolute_name.set(lo_classdescr.get().absolute_name);
@@ -365276,8 +366901,8 @@ class kernel_create_data_handle {
     let obj = {};
     let suffix = {};
     let asInclude = {};
-    for await (const unique226 of abap.statements.loop(lt_components)) {
-      fs_ls_component_.assign(unique226);
+    for await (const unique233 of abap.statements.loop(lt_components)) {
+      fs_ls_component_.assign(unique233);
       await this.call({handle: (await lo_struct.get().get_component_type({p_name: fs_ls_component_.get().name, p_descr_ref: 1})), dref: field});
       lv_name.set(abap.builtin.to_lower({val: fs_ls_component_.get().name}));
       obj[lv_name.get()] = field.getPointer();
@@ -365324,8 +366949,8 @@ class kernel_create_data_handle {
     let options = {primaryKey: undefined, keyType: "DEFAULT", withHeader: false};
     options.primaryKey = {name: "primary_key", type: "STANDARD", keyFields: [], isUnique: false};
     lt_keys.set((await lo_table.get().get_keys({p_keys: 1})));
-    for await (const unique227 of abap.statements.loop(lt_keys,{where: async (I) => {return abap.compare.eq(I.is_primary, abap.builtin.abap_true);},topEquals: {"is_primary": abap.builtin.abap_true}})) {
-      fs_ls_key_.assign(unique227);
+    for await (const unique234 of abap.statements.loop(lt_keys,{where: async (I) => {return abap.compare.eq(I.is_primary, abap.builtin.abap_true);},topEquals: {"is_primary": abap.builtin.abap_true}})) {
+      fs_ls_key_.assign(unique234);
       if (abap.compare.eq(fs_ls_key_.get().access_kind, abap.Classes['CL_ABAP_TABLEDESCR'].tablekind_sorted)) {
         options.primaryKey.type = "SORTED";
       } else if (abap.compare.eq(fs_ls_key_.get().access_kind, abap.Classes['CL_ABAP_TABLEDESCR'].tablekind_hashed)) {
@@ -365334,8 +366959,8 @@ class kernel_create_data_handle {
       if (abap.compare.eq(fs_ls_key_.get().is_unique, abap.builtin.abap_true)) {
         options.primaryKey.isUnique = true;
       }
-      for await (const unique228 of abap.statements.loop(fs_ls_key_.get().components)) {
-        lv_component.set(unique228);
+      for await (const unique235 of abap.statements.loop(fs_ls_key_.get().components)) {
+        lv_component.set(unique235);
         options.primaryKey.keyFields.push(lv_component.get().toLowerCase());
       }
     }
@@ -365351,51 +366976,51 @@ class kernel_create_data_handle {
     let dref = new abap.types.DataReference(new abap.types.Character(4));
     if (INPUT && INPUT.dref) {dref = INPUT.dref;}
     let lv_half = new abap.types.Integer({qualifiedName: "I"});
-    let unique229 = handle.get().type_kind;
-    if (abap.compare.eq(unique229, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_data)) {
+    let unique236 = handle.get().type_kind;
+    if (abap.compare.eq(unique236, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_data)) {
       dref.assign(new abap.types.Character(4));
-    } else if (abap.compare.eq(unique229, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_float)) {
+    } else if (abap.compare.eq(unique236, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_float)) {
       abap.statements.createData(dref,{"typeName": "F"});
       dref.getPointer().qualifiedName = handle.get().internal_qualified_name;
-    } else if (abap.compare.eq(unique229, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_string)) {
+    } else if (abap.compare.eq(unique236, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_string)) {
       abap.statements.createData(dref,{"typeName": "STRING"});
       dref.getPointer().qualifiedName = handle.get().internal_qualified_name;
-    } else if (abap.compare.eq(unique229, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_xstring)) {
+    } else if (abap.compare.eq(unique236, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_xstring)) {
       abap.statements.createData(dref,{"typeName": "XSTRING"});
       dref.getPointer().qualifiedName = handle.get().internal_qualified_name;
-    } else if (abap.compare.eq(unique229, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_int)) {
+    } else if (abap.compare.eq(unique236, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_int)) {
       abap.statements.createData(dref,{"typeName": "I"});
       dref.getPointer().qualifiedName = handle.get().internal_qualified_name;
-    } else if (abap.compare.eq(unique229, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_utclong)) {
+    } else if (abap.compare.eq(unique236, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_utclong)) {
       abap.statements.createData(dref,{"typeName": "UTCLONG"});
       dref.getPointer().qualifiedName = handle.get().internal_qualified_name;
-    } else if (abap.compare.eq(unique229, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_date)) {
+    } else if (abap.compare.eq(unique236, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_date)) {
       abap.statements.createData(dref,{"typeName": "D"});
       dref.getPointer().qualifiedName = handle.get().internal_qualified_name;
-    } else if (abap.compare.eq(unique229, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_hex)) {
+    } else if (abap.compare.eq(unique236, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_hex)) {
       abap.statements.createData(dref,{"typeName": "X","length": handle.get().length});
       dref.getPointer().qualifiedName = handle.get().internal_qualified_name;
-    } else if (abap.compare.eq(unique229, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_packed)) {
+    } else if (abap.compare.eq(unique236, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_packed)) {
       abap.statements.createData(dref,{"typeName": "P","length": handle.get().length,"decimals": handle.get().decimals});
       dref.getPointer().qualifiedName = handle.get().internal_qualified_name;
-    } else if (abap.compare.eq(unique229, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_char)) {
+    } else if (abap.compare.eq(unique236, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_char)) {
       lv_half.set(abap.operators.divide(handle.get().length,abap.IntegerFactory.get(2)));
       abap.statements.createData(dref,{"typeName": "C","length": lv_half});
       dref.getPointer().extra = {"qualifiedName": handle.get().internal_qualified_name};
-    } else if (abap.compare.eq(unique229, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_num)) {
+    } else if (abap.compare.eq(unique236, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_num)) {
       lv_half.set(abap.operators.divide(handle.get().length,abap.IntegerFactory.get(2)));
       abap.statements.createData(dref,{"typeName": "N","length": lv_half});
       dref.getPointer().qualifiedName = handle.get().internal_qualified_name;
-    } else if (abap.compare.eq(unique229, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_time)) {
+    } else if (abap.compare.eq(unique236, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_time)) {
       abap.statements.createData(dref,{"typeName": "T"});
       dref.getPointer().qualifiedName = handle.get().internal_qualified_name;
-    } else if (abap.compare.eq(unique229, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_int8)) {
+    } else if (abap.compare.eq(unique236, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_int8)) {
       abap.statements.createData(dref,{"typeName": "INT8"});
       dref.getPointer().qualifiedName = handle.get().internal_qualified_name;
-    } else if (abap.compare.eq(unique229, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_decfloat16)) {
+    } else if (abap.compare.eq(unique236, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_decfloat16)) {
       abap.statements.createData(dref,{"typeName": "DECFLOAT16"});
       dref.getPointer().qualifiedName = handle.get().internal_qualified_name;
-    } else if (abap.compare.eq(unique229, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_decfloat34)) {
+    } else if (abap.compare.eq(unique236, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_decfloat34)) {
       abap.statements.createData(dref,{"typeName": "DECFLOAT34"});
       dref.getPointer().qualifiedName = handle.get().internal_qualified_name;
     } else {
@@ -365639,9 +367264,9 @@ class kernel_ixml_json_to_data {
     if (abap.compare.initial(attr) === false) {
       li_aiterator.set((await attr.get().if_ixml_named_node_map$create_iterator({iterator: 1})));
       const indexBackup1 = abap.builtin.sy.get().index.get();
-      let unique251 = 1;
+      let unique258 = 1;
       while (true) {
-        abap.builtin.sy.get().index.set(unique251++);
+        abap.builtin.sy.get().index.set(unique258++);
         li_anode.set((await li_aiterator.get().if_ixml_node_iterator$get_next({rval: 1})));
         if (abap.compare.initial(li_anode)) {
           break;
@@ -365674,9 +367299,9 @@ class kernel_ixml_json_to_data {
     abap.statements.assert(abap.compare.eq((await li_first.get().if_ixml_node$get_name({val: 1})), abap.CharacterFactory.get(6, 'object')));
     li_iterator.set((await (await li_first.get().if_ixml_node$get_children({val: 1})).get().if_ixml_node_list$create_iterator({rval: 1})));
     const indexBackup1 = abap.builtin.sy.get().index.get();
-    let unique252 = 1;
+    let unique259 = 1;
     while (true) {
-      abap.builtin.sy.get().index.set(unique252++);
+      abap.builtin.sy.get().index.set(unique259++);
       li_node.set((await li_iterator.get().if_ixml_node_iterator$get_next({rval: 1})));
       if (abap.compare.initial(li_node)) {
         break;
@@ -365709,14 +367334,14 @@ class kernel_ixml_json_to_data {
     let fs_tab_ = new abap.types.FieldSymbol(abap.types.TableFactory.construct(new abap.types.Character(4), {"withHeader":false,"keyType":"USER"}));
     abap.statements.assign({target: fs_any_, source: iv_ref.dereference()});
     lo_type.set((await abap.Classes['CL_ABAP_TYPEDESCR'].describe_by_data({p_data: fs_any_, type: 1})));
-    let unique253 = lo_type.get().kind;
-    if (abap.compare.eq(unique253, abap.Classes['CL_ABAP_TYPEDESCR'].kind_struct)) {
+    let unique260 = lo_type.get().kind;
+    if (abap.compare.eq(unique260, abap.Classes['CL_ABAP_TYPEDESCR'].kind_struct)) {
       abap.statements.assert(abap.compare.eq((await ii_node.get().if_ixml_node$get_name({val: 1})), abap.CharacterFactory.get(6, 'object')));
       li_iterator.set((await (await ii_node.get().if_ixml_node$get_children({val: 1})).get().if_ixml_node_list$create_iterator({rval: 1})));
       const indexBackup1 = abap.builtin.sy.get().index.get();
-      let unique254 = 1;
+      let unique261 = 1;
       while (true) {
-        abap.builtin.sy.get().index.set(unique254++);
+        abap.builtin.sy.get().index.set(unique261++);
         li_child.set((await li_iterator.get().if_ixml_node_iterator$get_next({rval: 1})));
         if (abap.compare.initial(li_child)) {
           break;
@@ -365729,21 +367354,21 @@ class kernel_ixml_json_to_data {
         }
       }
       abap.builtin.sy.get().index.set(indexBackup1);
-    } else if (abap.compare.eq(unique253, abap.Classes['CL_ABAP_TYPEDESCR'].kind_elem)) {
+    } else if (abap.compare.eq(unique260, abap.Classes['CL_ABAP_TYPEDESCR'].kind_elem)) {
       li_child.set((await ii_node.get().if_ixml_node$get_first_child({node: 1})));
       abap.statements.assert(abap.compare.eq((await li_child.get().if_ixml_node$get_name({val: 1})), abap.CharacterFactory.get(5, '#text')));
       fs_any_.set((await li_child.get().if_ixml_node$get_value({val: 1})));
       if (abap.compare.eq(lo_type.get().type_kind, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_char) || abap.compare.eq(lo_type.get().type_kind, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_clike) || abap.compare.eq(lo_type.get().type_kind, abap.Classes['CL_ABAP_TYPEDESCR'].typekind_string)) {
         abap.statements.replace({target: fs_any_, all: true, with: abap.CharacterFactory.get(1, '"'), of: abap.CharacterFactory.get(2, '\\"')});
       }
-    } else if (abap.compare.eq(unique253, abap.Classes['CL_ABAP_TYPEDESCR'].kind_table)) {
+    } else if (abap.compare.eq(unique260, abap.Classes['CL_ABAP_TYPEDESCR'].kind_table)) {
       abap.statements.assert(abap.compare.eq((await ii_node.get().if_ixml_node$get_name({val: 1})), abap.CharacterFactory.get(5, 'array')));
       abap.statements.assign({target: fs_tab_, source: iv_ref.dereference()});
       li_iterator.set((await (await ii_node.get().if_ixml_node$get_children({val: 1})).get().if_ixml_node_list$create_iterator({rval: 1})));
       const indexBackup2 = abap.builtin.sy.get().index.get();
-      let unique255 = 1;
+      let unique262 = 1;
       while (true) {
-        abap.builtin.sy.get().index.set(unique255++);
+        abap.builtin.sy.get().index.set(unique262++);
         li_child.set((await li_iterator.get().if_ixml_node_iterator$get_next({rval: 1})));
         if (abap.compare.initial(li_child)) {
           break;
@@ -365842,9 +367467,9 @@ class kernel_ixml_xml_to_data {
     abap.statements.assert(abap.compare.initial(iv_href) === false);
     li_iterator.set((await (await kernel_ixml_xml_to_data.mi_heap.get().if_ixml_element$get_children({val: 1})).get().if_ixml_node_list$create_iterator({rval: 1})));
     const indexBackup1 = abap.builtin.sy.get().index.get();
-    let unique246 = 1;
+    let unique253 = 1;
     while (true) {
-      abap.builtin.sy.get().index.set(unique246++);
+      abap.builtin.sy.get().index.set(unique253++);
       li_child.set((await li_iterator.get().if_ixml_node_iterator$get_next({rval: 1})));
       if (abap.compare.initial(li_child)) {
         break;
@@ -365884,14 +367509,14 @@ class kernel_ixml_xml_to_data {
     let fs_ref_ = new abap.types.FieldSymbol(new abap.types.Character(4));
     abap.statements.assign({target: fs_ref_, source: iv_ref.dereference()});
     lo_type.set((await abap.Classes['CL_ABAP_TYPEDESCR'].describe_by_data({p_data: fs_ref_, type: 1})));
-    let unique247 = lo_type.get().kind;
-    if (abap.compare.eq(unique247, abap.Classes['CL_ABAP_TYPEDESCR'].kind_struct)) {
+    let unique254 = lo_type.get().kind;
+    if (abap.compare.eq(unique254, abap.Classes['CL_ABAP_TYPEDESCR'].kind_struct)) {
       abap.statements.assign({target: fs_any_, source: iv_ref.dereference()});
       li_iterator.set((await (await ii_node.get().if_ixml_node$get_children({val: 1})).get().if_ixml_node_list$create_iterator({rval: 1})));
       const indexBackup1 = abap.builtin.sy.get().index.get();
-      let unique248 = 1;
+      let unique255 = 1;
       while (true) {
-        abap.builtin.sy.get().index.set(unique248++);
+        abap.builtin.sy.get().index.set(unique255++);
         li_child.set((await li_iterator.get().if_ixml_node_iterator$get_next({rval: 1})));
         if (abap.compare.initial(li_child)) {
           break;
@@ -365904,19 +367529,19 @@ class kernel_ixml_xml_to_data {
         }
       }
       abap.builtin.sy.get().index.set(indexBackup1);
-    } else if (abap.compare.eq(unique247, abap.Classes['CL_ABAP_TYPEDESCR'].kind_elem)) {
+    } else if (abap.compare.eq(unique254, abap.Classes['CL_ABAP_TYPEDESCR'].kind_elem)) {
       li_child.set((await ii_node.get().if_ixml_node$get_first_child({node: 1})));
       if (abap.compare.initial(li_child) === false) {
         abap.statements.assign({target: fs_any_, source: iv_ref.dereference()});
         fs_any_.set((await li_child.get().if_ixml_node$get_value({val: 1})));
       }
-    } else if (abap.compare.eq(unique247, abap.Classes['CL_ABAP_TYPEDESCR'].kind_table)) {
+    } else if (abap.compare.eq(unique254, abap.Classes['CL_ABAP_TYPEDESCR'].kind_table)) {
       abap.statements.assign({target: fs_tab_, source: iv_ref.dereference()});
       li_iterator.set((await (await ii_node.get().if_ixml_node$get_children({val: 1})).get().if_ixml_node_list$create_iterator({rval: 1})));
       const indexBackup2 = abap.builtin.sy.get().index.get();
-      let unique249 = 1;
+      let unique256 = 1;
       while (true) {
-        abap.builtin.sy.get().index.set(unique249++);
+        abap.builtin.sy.get().index.set(unique256++);
         li_child.set((await li_iterator.get().if_ixml_node_iterator$get_next({rval: 1})));
         if (abap.compare.initial(li_child)) {
           break;
@@ -365927,7 +367552,7 @@ class kernel_ixml_xml_to_data {
         abap.statements.insertInternal({data: fs_any_, table: fs_tab_});
       }
       abap.builtin.sy.get().index.set(indexBackup2);
-    } else if (abap.compare.eq(unique247, abap.Classes['CL_ABAP_TYPEDESCR'].kind_ref)) {
+    } else if (abap.compare.eq(unique254, abap.Classes['CL_ABAP_TYPEDESCR'].kind_ref)) {
       abap.statements.assign({target: fs_any_, source: iv_ref.dereference()});
       if (abap.compare.initial(fs_any_)) {
         li_href.set((await (await ii_node.get().if_ixml_node$get_attributes({map: 1})).get().if_ixml_named_node_map$get_named_item_ns({name: abap.CharacterFactory.get(4, 'href'), val: 1})));
@@ -365947,9 +367572,9 @@ class kernel_ixml_xml_to_data {
           fs_any_.pointer.value = new abap.Classes[lv_value.get()]();
           li_iterator.set((await (await (await li_heap.get().if_ixml_node$get_first_child({node: 1})).get().if_ixml_node$get_children({val: 1})).get().if_ixml_node_list$create_iterator({rval: 1})));
           const indexBackup3 = abap.builtin.sy.get().index.get();
-          let unique250 = 1;
+          let unique257 = 1;
           while (true) {
-            abap.builtin.sy.get().index.set(unique250++);
+            abap.builtin.sy.get().index.set(unique257++);
             li_child.set((await li_iterator.get().if_ixml_node_iterator$get_next({rval: 1})));
             if (abap.compare.initial(li_child)) {
               break;
@@ -366045,20 +367670,20 @@ class kernel_json_to_ixml {
     ri_doc.set((await (await abap.Classes['CL_IXML'].create({xml: 1})).get().if_ixml$create_document({doc: 1})));
     li_current.set((await ri_doc.get().if_ixml_document$get_root({node: 1})));
     const indexBackup1 = abap.builtin.sy.get().index.get();
-    let unique243 = 1;
+    let unique250 = 1;
     while (true) {
-      abap.builtin.sy.get().index.set(unique243++);
+      abap.builtin.sy.get().index.set(unique250++);
       li_node.set((await li_reader.get().if_sxml_reader$read_next_node({node: 1})));
       if (abap.compare.initial(li_node)) {
         break;
       }
-      let unique244 = li_node.get().if_sxml_node$type;
-      if (abap.compare.eq(unique244, abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_element_open)) {
+      let unique251 = li_node.get().if_sxml_node$type;
+      if (abap.compare.eq(unique251, abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_element_open)) {
         await abap.statements.cast(li_open, li_node);
         lv_name.clear();
         lt_attributes.set((await li_open.get().if_sxml_open_element$get_attributes({attr: 1})));
-        for await (const unique245 of abap.statements.loop(lt_attributes)) {
-          li_attribute.set(unique245);
+        for await (const unique252 of abap.statements.loop(lt_attributes)) {
+          li_attribute.set(unique252);
           lv_name.set((await li_attribute.get().if_sxml_attribute$get_value({value: 1})));
         }
         li_element.set((await ri_doc.get().if_ixml_document$create_element_ns({name: li_open.get().if_sxml_open_element$qname.get().name, element: 1})));
@@ -366072,10 +367697,10 @@ class kernel_json_to_ixml {
           li_map.set((await li_current.get().if_ixml_node$get_attributes({map: 1})));
           await li_map.get().if_ixml_named_node_map$set_named_item_ns({node: li_new});
         }
-      } else if (abap.compare.eq(unique244, abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_element_close)) {
+      } else if (abap.compare.eq(unique251, abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_element_close)) {
         await abap.statements.cast(li_close, li_node);
         li_current.set((await li_current.get().if_ixml_node$get_parent({val: 1})));
-      } else if (abap.compare.eq(unique244, abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_value)) {
+      } else if (abap.compare.eq(unique251, abap.Classes['IF_SXML_NODE'].if_sxml_node$co_nt_value)) {
         await abap.statements.cast(li_value, li_node);
         li_element.set((await ri_doc.get().if_ixml_document$create_element_ns({name: abap.CharacterFactory.get(5, '#text'), element: 1})));
         await li_element.get().if_ixml_element$set_value({value: (await li_value.get().if_sxml_value_node$get_value({value: 1}))});
@@ -366279,9 +367904,9 @@ class kernel_push_channels {
     lv_seconds.set(abap.operators.multiply(seconds,new abap.types.Integer().set(1000)));
     abap.statements.assert(abap.compare.gt(lv_seconds, abap.IntegerFactory.get(0)));
     const indexBackup1 = abap.builtin.sy.get().index.get();
-    let unique221 = 1;
+    let unique228 = 1;
     while (abap.compare.gt(lv_seconds, abap.IntegerFactory.get(0))) {
-      abap.builtin.sy.get().index.set(unique221++);
+      abap.builtin.sy.get().index.set(unique228++);
       await new Promise(resolve => setTimeout(resolve, 100));
       lv_condition = cond() ? "X" : " ";
       if (abap.compare.eq(lv_condition, abap.builtin.abap_true)) {
@@ -366491,8 +368116,8 @@ class kernel_scan_abap_source {
     "back": new abap.types.Integer({qualifiedName: "I"})}, "SSTRUC", "SSTRUC", {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"isUnique":false,"type":"STANDARD","keyFields":[],"name":"primary_key"},"secondary":[]}, "SSTRUC_TAB");
     lv_source.set(INPUT.scan_abap_source.array ? INPUT.scan_abap_source.array().map(e => e.get()).join("\n") : INPUT.scan_abap_source.get());
     await this.call_internal({source: lv_source, et_stokesx: lt_stokesx, et_sstmnt: lt_sstmnt});
-    for await (const unique236 of abap.statements.loop(lt_stokesx)) {
-      ls_stokesx.set(unique236);
+    for await (const unique243 of abap.statements.loop(lt_stokesx)) {
+      ls_stokesx.set(unique243);
       ls_stokes.clear();
       abap.statements.moveCorresponding(ls_stokesx, ls_stokes);
       abap.statements.append({source: ls_stokes, target: lt_stokes});
@@ -366634,9 +368259,9 @@ class kernel_scan_abap_source {
     "enhmt": new abap.types.Integer({qualifiedName: "I"})}, "SSTMNT", "SSTMNT", {}, {}));
     mode.set(c_mode.get().normal);
     const indexBackup1 = abap.builtin.sy.get().index.get();
-    let unique237 = 1;
+    let unique244 = 1;
     while (abap.compare.initial(source) === false) {
-      abap.builtin.sy.get().index.set(unique237++);
+      abap.builtin.sy.get().index.set(unique244++);
       character.set(source.getOffset({length: 1}));
       source.set(source.getOffset({offset: 1}));
       if (abap.compare.assigned(fs_trow_) === false && abap.compare.ne(character, abap.CharacterFactory.get(1, '')) && abap.compare.ne(character, new abap.types.String().set(`\n`))) {
@@ -366768,13 +368393,13 @@ class kernel_scan_abap_source {
     "type": new abap.types.Character(1, {})}, "STOKESX", "STOKESX", {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "kernel_scan_abap_source=>ty_stokesx");
     let lt_delete = abap.types.TableFactory.construct(new abap.types.Integer({qualifiedName: "I"}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "");
     let lv_index = new abap.types.Integer({qualifiedName: "I"});
-    for await (const unique238 of abap.statements.loop(ct_statements)) {
-      fs_ls_statement_.assign(unique238);
+    for await (const unique245 of abap.statements.loop(ct_statements)) {
+      fs_ls_statement_.assign(unique245);
       lv_statement_index.set(abap.builtin.sy.get().tabix);
       contains_comment.set(abap.builtin.abap_false);
       contains_normal.set(abap.builtin.abap_false);
-      for await (const unique239 of abap.statements.loop(ct_tokens,{from: fs_ls_statement_.get().from,to: fs_ls_statement_.get().to})) {
-        ls_token.set(unique239);
+      for await (const unique246 of abap.statements.loop(ct_tokens,{from: fs_ls_statement_.get().from,to: fs_ls_statement_.get().to})) {
+        ls_token.set(unique246);
         if (abap.compare.eq(ls_token.get().type, kernel_scan_abap_source.gc_token.get().comment)) {
           contains_comment.set(abap.builtin.abap_true);
         } else {
@@ -366785,20 +368410,20 @@ class kernel_scan_abap_source {
         lv_count.set(abap.IntegerFactory.get(0));
         lt_insert.clear();
         lt_delete.clear();
-        for await (const unique240 of abap.statements.loop(ct_tokens,{from: fs_ls_statement_.get().from,to: fs_ls_statement_.get().to})) {
-          ls_token.set(unique240);
+        for await (const unique247 of abap.statements.loop(ct_tokens,{from: fs_ls_statement_.get().from,to: fs_ls_statement_.get().to})) {
+          ls_token.set(unique247);
           if (abap.compare.eq(ls_token.get().type, kernel_scan_abap_source.gc_token.get().comment)) {
             abap.statements.insertInternal({data: abap.builtin.sy.get().tabix, index: abap.IntegerFactory.get(1), table: lt_delete});
             abap.statements.insertInternal({data: ls_token, index: abap.IntegerFactory.get(1), table: lt_insert});
             lv_count.set(abap.operators.add(lv_count,abap.IntegerFactory.get(1)));
           }
         }
-        for await (const unique241 of abap.statements.loop(lt_delete)) {
-          lv_index.set(unique241);
+        for await (const unique248 of abap.statements.loop(lt_delete)) {
+          lv_index.set(unique248);
           await abap.statements.deleteInternal(ct_tokens,{index: lv_index});
         }
-        for await (const unique242 of abap.statements.loop(lt_insert)) {
-          ls_token.set(unique242);
+        for await (const unique249 of abap.statements.loop(lt_insert)) {
+          ls_token.set(unique249);
           abap.statements.insertInternal({data: ls_token, index: fs_ls_statement_.get().from, table: ct_tokens});
         }
         ls_statement.clear();
@@ -366962,8 +368587,8 @@ class kernel_unit_runner {
     let lv_found = new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"});
     lv_stack.set(INPUT.ix_error.get().stack);
     abap.statements.split({source: lv_stack, at: new abap.types.String().set(`\n`), table: lt_lines});
-    for await (const unique115 of abap.statements.loop(lt_lines)) {
-      lv_stack.set(unique115);
+    for await (const unique121 of abap.statements.loop(lt_lines)) {
+      lv_stack.set(unique121);
       if (abap.compare.cp(lv_stack, abap.CharacterFactory.get(21, '*cl_abap_unit_assert*'))) {
         lv_found.set(abap.builtin.abap_true);
         continue;
@@ -367007,8 +368632,8 @@ class kernel_unit_runner {
     let lt_strings = abap.types.TableFactory.construct(new abap.types.String({qualifiedName: "STRING"}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "");
     let lv_string = new abap.types.String({qualifiedName: "STRING"});
     let lv_message = new abap.types.String({qualifiedName: "STRING"});
-    for await (const unique116 of abap.statements.loop(it_list)) {
-      ls_list.set(unique116);
+    for await (const unique122 of abap.statements.loop(it_list)) {
+      ls_list.set(unique122);
       lv_message.set(ls_list.get().message);
       abap.statements.replace({target: lv_message, all: true, with: new abap.types.String().set(`\\"`), of: new abap.types.String().set(`"`)});
       abap.statements.replace({target: lv_message, all: true, with: new abap.types.String().set(`\\n`), of: new abap.types.String().set(`\n`)});
@@ -367022,7 +368647,7 @@ class kernel_unit_runner {
       abap.statements.append({source: lv_string, target: lt_strings});
     }
     abap.statements.concatenate({source: [lt_strings], target: rv_json, separatedBy: abap.CharacterFactory.get(1, ','), lines: true});
-    rv_json.set(abap.operators.concat(abap.CharacterFactory.get(1, '['),abap.operators.concat(rv_json,abap.CharacterFactory.get(1, ']'))));
+    rv_json.set(abap.operators.concat([abap.CharacterFactory.get(1, '['),rv_json,abap.CharacterFactory.get(1, ']')]));
     return rv_json;
   }
   async unique_classes(INPUT) {
@@ -367045,8 +368670,8 @@ class kernel_unit_runner {
     let ls_class = new abap.types.Structure({
     "class_name": new abap.types.Character(30, {"qualifiedName":"kernel_unit_runner=>ty_class_item-class_name"}),
     "testclass_name": new abap.types.Character(30, {"qualifiedName":"kernel_unit_runner=>ty_class_item-testclass_name"})}, "kernel_unit_runner=>ty_class_item", undefined, {}, {});
-    for await (const unique117 of abap.statements.loop(it_input)) {
-      ls_input.set(unique117);
+    for await (const unique123 of abap.statements.loop(it_input)) {
+      ls_input.set(unique123);
       abap.statements.moveCorresponding(ls_input, ls_class);
       abap.statements.insertInternal({data: ls_class, table: rt_classes});
     }
@@ -367104,17 +368729,17 @@ class kernel_unit_runner {
     "js_location": new abap.types.String({qualifiedName: "KERNEL_UNIT_RUNNER=>TY_RESULT_ITEM-JS_LOCATION"}),
     "console": new abap.types.String({qualifiedName: "KERNEL_UNIT_RUNNER=>TY_RESULT_ITEM-CONSOLE"})}, "kernel_unit_runner=>ty_result_item", undefined, {}, {}));
     lt_classes.set((await this.unique_classes({it_input: it_input, rt_classes: 1})));
-    for await (const unique118 of abap.statements.loop(lt_classes)) {
-      ls_class.set(unique118);
+    for await (const unique124 of abap.statements.loop(lt_classes)) {
+      ls_class.set(unique124);
       lv_name.set(new abap.types.String().set(`CLAS-${abap.templateFormatting(ls_class.get().class_name)}-${abap.templateFormatting(ls_class.get().testclass_name)}`));
-      let unique119 = abap.Classes["CLAS-KERNEL_UNIT_RUNNER-"+lv_name.get().trimEnd()];
-      if (unique119 === undefined) { unique119 = abap.Classes[lv_name.get().trimEnd()]; }
-      if (unique119 === undefined && abap.Classes['KERNEL_INTERNAL_NAME'] !== undefined) {
-          const unique120 = await abap.Classes['KERNEL_INTERNAL_NAME'].rtti_to_internal({iv_rtti: lv_name.get()});
-          unique119 = abap.Classes[unique120.get().trimEnd()];
+      let unique125 = abap.Classes["CLAS-KERNEL_UNIT_RUNNER-"+lv_name.get().trimEnd()];
+      if (unique125 === undefined) { unique125 = abap.Classes[lv_name.get().trimEnd()]; }
+      if (unique125 === undefined && abap.Classes['KERNEL_INTERNAL_NAME'] !== undefined) {
+          const unique126 = await abap.Classes['KERNEL_INTERNAL_NAME'].rtti_to_internal({iv_rtti: lv_name.get()});
+          unique125 = abap.Classes[unique126.get().trimEnd()];
       }
-      if (unique119 === undefined) { throw new abap.Classes['CX_SY_CREATE_OBJECT_ERROR']; }
-      lo_obj.set(await (new unique119()).constructor_());
+      if (unique125 === undefined) { throw new abap.Classes['CX_SY_CREATE_OBJECT_ERROR']; }
+      lo_obj.set(await (new unique125()).constructor_());
       try {
         await abap.dynamicCallLookup(lo_obj.get(), "class_setup")();
       } catch (e) {
@@ -367123,8 +368748,8 @@ class kernel_unit_runner {
           throw e;
         }
       }
-      for await (const unique121 of abap.statements.loop(it_input,{where: async (I) => {return abap.compare.eq(I.class_name, ls_class.get().class_name) && abap.compare.eq(I.testclass_name, ls_class.get().testclass_name);},topEquals: {"class_name": ls_class.get().class_name,"testclass_name": ls_class.get().testclass_name}})) {
-        ls_input.set(unique121);
+      for await (const unique127 of abap.statements.loop(it_input,{where: async (I) => {return abap.compare.eq(I.class_name, ls_class.get().class_name) && abap.compare.eq(I.testclass_name, ls_class.get().testclass_name);},topEquals: {"class_name": ls_class.get().class_name,"testclass_name": ls_class.get().testclass_name}})) {
+        ls_input.set(unique127);
         fs_ls_result_.assign(rs_result.get().list.appendInitial());
         abap.statements.moveCorresponding(ls_input, fs_ls_result_);
         try {
@@ -367878,9 +369503,9 @@ async function conversion_exit_isola_output(INPUT) {
     output.set(input);
     abap.statements.shift(output, {direction: 'LEFT',deletingLeading: abap.CharacterFactory.get(1, '0')});
     const indexBackup1 = abap.builtin.sy.get().index.get();
-    const unique326 = abap.operators.minus(abap.builtin.strlen({val: input}),abap.builtin.strlen({val: output}).get()).get();
-    for (let unique327 = 0; unique327 < unique326; unique327++) {
-      abap.builtin.sy.get().index.set(unique327 + 1);
+    const unique334 = abap.operators.minus(abap.builtin.strlen({val: input}),abap.builtin.strlen({val: output}).get()).get();
+    for (let unique335 = 0; unique335 < unique334; unique335++) {
+      abap.builtin.sy.get().index.set(unique335 + 1);
       output.set(abap.operators.concat(output,new abap.types.String().set(` `)));
     }
     abap.builtin.sy.get().index.set(indexBackup1);
@@ -370343,9 +371968,9 @@ class zcl_oapi_abap_name {
       lv_offset.set(abap.IntegerFactory.get(26));
     }
     const indexBackup1 = abap.builtin.sy.get().index.get();
-    const unique87 = abap.IntegerFactory.get(99).get();
-    for (let unique88 = 0; unique88 < unique87; unique88++) {
-      abap.builtin.sy.get().index.set(unique88 + 1);
+    const unique93 = abap.IntegerFactory.get(99).get();
+    for (let unique94 = 0; unique94 < unique93; unique94++) {
+      abap.builtin.sy.get().index.set(unique94 + 1);
       lv_number.set(abap.builtin.sy.get().index);
       rv_name.set(iv_name);
       new abap.OffsetLength(rv_name, {offset: lv_offset}).set(lv_number);
@@ -370381,6 +372006,7 @@ class zcl_oapi_abap_name {
     abap.statements.replace({target: rv_name, all: true, with: abap.CharacterFactory.get(1, ''), of: abap.CharacterFactory.get(1, '+')});
     abap.statements.replace({target: rv_name, all: true, with: abap.CharacterFactory.get(1, ''), of: abap.CharacterFactory.get(1, '{')});
     abap.statements.replace({target: rv_name, all: true, with: abap.CharacterFactory.get(1, ''), of: abap.CharacterFactory.get(1, '}')});
+    abap.statements.replace({target: rv_name, all: true, with: abap.CharacterFactory.get(1, '_'), regex: abap.CharacterFactory.get(10, '[^a-z0-9_]')});
     if (abap.compare.co(rv_name, abap.CharacterFactory.get(10, '0123456789'))) {
       rv_name.set(abap.operators.concat(abap.CharacterFactory.get(1, 'n'),rv_name));
     }
@@ -370627,6 +372253,7 @@ class zcl_oapi_generator_v2 {
   "BUILD_PATTERN_SUPPORT": {"visibility": "I", "parameters": {"RV_ABAP": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "R", "type_name": "StringType"}}},
   "COLLECT_PATTERN_RULES": {"visibility": "I", "parameters": {"IO_SCHEMA": {"type": () => {return new abap.types.ABAPObject({qualifiedName: "ZIF_OAPI_SCHEMA", RTTIName: "\\INTERFACE=ZIF_OAPI_SCHEMA"});}, "is_optional": " ", "parm_kind": "I", "type_name": "ObjectReferenceType"}, "IV_SCHEMA_REF": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "StringType"}, "IV_PATH": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "StringType"}, "CT_RULES": {"type": () => {return abap.types.TableFactory.construct(new abap.types.String({qualifiedName: "STRING"}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"isUnique":false,"type":"STANDARD","keyFields":[],"name":"primary_key"},"secondary":[]}, "STRING_TABLE");}, "is_optional": " ", "parm_kind": "C", "type_name": "TableType"}, "CT_VISITED_SCHEMA_REFS": {"type": () => {return abap.types.TableFactory.construct(new abap.types.String({qualifiedName: "STRING"}), {"withHeader":false,"keyType":"USER","primaryKey":{"name":"primary_key","type":"HASHED","isUnique":true,"keyFields":["TABLE_LINE"]},"secondary":[]}, "zcl_oapi_generator_v2=>ty_strings");}, "is_optional": " ", "parm_kind": "C", "type_name": "TableType"}}},
   "ESCAPE_ABAP_LITERAL": {"visibility": "I", "parameters": {"RV_VALUE": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "R", "type_name": "StringType"}, "IV_VALUE": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "StringType"}}},
+  "SINGLE_LINE": {"visibility": "I", "parameters": {"RV_VALUE": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "R", "type_name": "StringType"}, "IV_VALUE": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "StringType"}, "IV_MAX_LENGTH": {"type": () => {return new abap.types.Integer({qualifiedName: "I"});}, "is_optional": " ", "parm_kind": "I", "type_name": "IntegerType"}}},
   "BUILD_VALIDATION_CODE": {"visibility": "I", "parameters": {"RV_ABAP": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "R", "type_name": "StringType"}, "IO_SCHEMA": {"type": () => {return new abap.types.ABAPObject({qualifiedName: "ZIF_OAPI_SCHEMA", RTTIName: "\\INTERFACE=ZIF_OAPI_SCHEMA"});}, "is_optional": " ", "parm_kind": "I", "type_name": "ObjectReferenceType"}, "IV_SCHEMA_REF": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "StringType"}, "IV_EXPRESSION": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "StringType"}, "IV_PATH": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "StringType"}, "IV_VALIDATOR_CLASS": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "StringType"}}},
   "FIND_INPUT_PARAMETERS": {"visibility": "I", "parameters": {"RV_ABAP": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "R", "type_name": "StringType"}, "IS_OPERATION": {"type": () => {return new abap.types.Structure({
   "path": new abap.types.String({qualifiedName: "ZIF_OAPI_SPECIFICATION_V3=>TY_OPERATION-PATH"}),
@@ -370742,6 +372369,7 @@ class zcl_oapi_generator_v2 {
       "build_pattern_support": this.#build_pattern_support.bind(this),
       "collect_pattern_rules": this.#collect_pattern_rules.bind(this),
       "escape_abap_literal": this.#escape_abap_literal.bind(this),
+      "single_line": this.#single_line.bind(this),
       "build_validation_code": this.#build_validation_code.bind(this),
       "find_input_parameters": this.#find_input_parameters.bind(this),
       "find_parameter_type": this.#find_parameter_type.bind(this),
@@ -371127,7 +372755,7 @@ class zcl_oapi_generator_v2 {
     for await (const unique12 of abap.statements.loop(lt_name_mappings)) {
       ls_name_mapping.set(unique12);
       lv_json_name.set(ls_name_mapping.get().json);
-      abap.statements.replace({target: lv_json_name, all: true, with: abap.CharacterFactory.get(1, '\'\''), of: abap.CharacterFactory.get(1, '\'')});
+      abap.statements.replace({target: lv_json_name, all: true, with: abap.CharacterFactory.get(2, '\'\''), of: abap.CharacterFactory.get(1, '\'')});
       rv_abap.set(new abap.types.String().set(`${abap.templateFormatting(rv_abap)}                ( abap = '${abap.templateFormatting(ls_name_mapping.get().abap)}' json = '${abap.templateFormatting(lv_json_name)}' )\n`));
     }
     rv_abap.set(new abap.types.String().set(`${abap.templateFormatting(rv_abap)}              )`));
@@ -371332,7 +372960,25 @@ class zcl_oapi_generator_v2 {
     if (iv_value?.getQualifiedName === undefined || iv_value.getQualifiedName() !== "STRING") { iv_value = undefined; }
     if (iv_value === undefined) { iv_value = new abap.types.String({qualifiedName: "STRING"}).set(INPUT.iv_value); }
     rv_value.set(iv_value);
-    abap.statements.replace({target: rv_value, all: true, with: abap.CharacterFactory.get(1, '\'\''), of: abap.CharacterFactory.get(1, '\'')});
+    abap.statements.replace({target: rv_value, all: true, with: abap.CharacterFactory.get(2, '\'\''), of: abap.CharacterFactory.get(1, '\'')});
+    return rv_value;
+  }
+  async #single_line(INPUT) {
+    let rv_value = new abap.types.String({qualifiedName: "STRING"});
+    let iv_value = INPUT?.iv_value;
+    if (iv_value?.getQualifiedName === undefined || iv_value.getQualifiedName() !== "STRING") { iv_value = undefined; }
+    if (iv_value === undefined) { iv_value = new abap.types.String({qualifiedName: "STRING"}).set(INPUT.iv_value); }
+    let iv_max_length = new abap.types.Integer({qualifiedName: "I"});
+    if (INPUT && INPUT.iv_max_length) {iv_max_length.set(INPUT.iv_max_length);}
+    if (INPUT === undefined || INPUT.iv_max_length === undefined) {iv_max_length = abap.IntegerFactory.get(150);}
+    rv_value.set(iv_value);
+    abap.statements.replace({target: rv_value, all: true, with: new abap.types.String().set(` `), of: abap.Classes['CL_ABAP_CHAR_UTILITIES'].cr_lf});
+    abap.statements.replace({target: rv_value, all: true, with: new abap.types.String().set(` `), of: abap.Classes['CL_ABAP_CHAR_UTILITIES'].newline});
+    abap.statements.replace({target: rv_value, all: true, with: new abap.types.String().set(` `), of: abap.Classes['CL_ABAP_CHAR_UTILITIES'].horizontal_tab});
+    abap.statements.condense(rv_value, {nogaps: false});
+    if (abap.compare.gt(abap.builtin.strlen({val: rv_value}), iv_max_length)) {
+      rv_value.set(rv_value.getOffset({length: iv_max_length}));
+    }
     return rv_value;
   }
   async #collect_pattern_rules(INPUT) {
@@ -371387,13 +373033,13 @@ class zcl_oapi_generator_v2 {
       } else {
         lv_negative.set(abap.operators.concat(abap.builtin.substring({val: lv_negative, off: abap.IntegerFactory.get(0), len: abap.operators.minus(abap.builtin.strlen({val: lv_negative}),abap.IntegerFactory.get(1))}),abap.CharacterFactory.get(1, '!')));
       }
-      abap.statements.append({source: abap.operators.concat(lv_schema_name,abap.operators.concat(abap.Classes['CL_ABAP_CHAR_UTILITIES'].horizontal_tab,abap.operators.concat(iv_path,abap.operators.concat(abap.Classes['CL_ABAP_CHAR_UTILITIES'].horizontal_tab,abap.operators.concat(lo_schema_impl.get().mv_json_pattern,abap.operators.concat(abap.Classes['CL_ABAP_CHAR_UTILITIES'].horizontal_tab,abap.operators.concat(lo_schema_impl.get().mv_json_example,abap.operators.concat(abap.Classes['CL_ABAP_CHAR_UTILITIES'].horizontal_tab,lv_negative)))))))), target: ct_rules});
+      abap.statements.append({source: abap.operators.concat([lv_schema_name,abap.Classes['CL_ABAP_CHAR_UTILITIES'].horizontal_tab,iv_path,abap.Classes['CL_ABAP_CHAR_UTILITIES'].horizontal_tab,lo_schema_impl.get().mv_json_pattern,abap.Classes['CL_ABAP_CHAR_UTILITIES'].horizontal_tab,lo_schema_impl.get().mv_json_example,abap.Classes['CL_ABAP_CHAR_UTILITIES'].horizontal_tab,lv_negative]), target: ct_rules});
     }
     for await (const unique17 of abap.statements.loop(lo_schema.get().zif_oapi_schema$properties)) {
       ls_property.set(unique17);
       lv_path.set((new abap.types.String({qualifiedName: "STRING"}).set(await (async () => {
         if (abap.compare.initial(iv_path)) { return ls_property.get().abap_name; }
-        return abap.operators.concat(iv_path,abap.operators.concat(abap.CharacterFactory.get(1, '.'),ls_property.get().abap_name));
+        return abap.operators.concat([iv_path,abap.CharacterFactory.get(1, '.'),ls_property.get().abap_name]);
       })())));
       await this.#collect_pattern_rules({io_schema: ls_property.get().schema, iv_schema_ref: ls_property.get().ref, iv_path: lv_path, ct_rules: ct_rules, ct_visited_schema_refs: ct_visited_schema_refs});
     }
@@ -371465,7 +373111,7 @@ class zcl_oapi_generator_v2 {
     }
     lv_validator_class.set(abap.operators.concat((await this.#sanitize_abap_name({iv_name: new abap.types.String().set(`${abap.templateFormatting(this.#ms_input.get().clas_icf_impl)}`), iv_max_length: abap.IntegerFactory.get(24), rv_abap: 1})),abap.CharacterFactory.get(4, '_val')));
     lv_test_class.set(abap.operators.concat((await this.#sanitize_abap_name({iv_name: new abap.types.String().set(`${abap.templateFormatting(this.#ms_input.get().clas_icf_impl)}`), iv_max_length: abap.IntegerFactory.get(24), rv_abap: 1})),abap.CharacterFactory.get(4, '_tst')));
-    rv_abap.set(abap.operators.concat(new abap.types.String().set(`\n\nCLASS ${abap.templateFormatting(lv_validator_class)} DEFINITION PUBLIC FINAL CREATE PUBLIC.\n`),abap.operators.concat(new abap.types.String().set(`  PUBLIC SECTION.\n`),abap.operators.concat(new abap.types.String().set(`    CLASS-METHODS check IMPORTING iv_schema_name TYPE string iv_value TYPE string RETURNING VALUE(rv_valid) TYPE abap_bool.\n`),abap.operators.concat(new abap.types.String().set(`ENDCLASS.\n\nCLASS ${abap.templateFormatting(lv_validator_class)} IMPLEMENTATION.\n`),abap.operators.concat(new abap.types.String().set(`  METHOD check.\n`),abap.operators.concat(new abap.types.String().set(`    DATA lo_regex TYPE REF TO cl_abap_regex.\n`),abap.operators.concat(new abap.types.String().set(`    DATA lo_matcher TYPE REF TO cl_abap_matcher.\n`),new abap.types.String().set(`    rv_valid = abap_false.\n`)))))))));
+    rv_abap.set(abap.operators.concat([new abap.types.String().set(`\n\nCLASS ${abap.templateFormatting(lv_validator_class)} DEFINITION PUBLIC FINAL CREATE PUBLIC.\n`),new abap.types.String().set(`  PUBLIC SECTION.\n`),new abap.types.String().set(`    CLASS-METHODS check IMPORTING iv_schema_name TYPE string iv_value TYPE string RETURNING VALUE(rv_valid) TYPE abap_bool.\n`),new abap.types.String().set(`ENDCLASS.\n\nCLASS ${abap.templateFormatting(lv_validator_class)} IMPLEMENTATION.\n`),new abap.types.String().set(`  METHOD check.\n`),new abap.types.String().set(`    DATA lo_regex TYPE REF TO cl_abap_regex.\n`),new abap.types.String().set(`    DATA lo_matcher TYPE REF TO cl_abap_matcher.\n`),new abap.types.String().set(`    rv_valid = abap_false.\n`)]));
     for await (const unique20 of abap.statements.loop(lt_rules)) {
       lv_rule.set(unique20);
       abap.statements.split({source: lv_rule, at: abap.Classes['CL_ABAP_CHAR_UTILITIES'].horizontal_tab, table: lt_parts});
@@ -371479,9 +373125,9 @@ class zcl_oapi_generator_v2 {
       if (abap.compare.ne(abap.builtin.sy.get().subrc, abap.IntegerFactory.get(0))) {
         continue;
       }
-      rv_abap.set(abap.operators.concat(rv_abap,abap.operators.concat(new abap.types.String().set(`    IF iv_schema_name = '${abap.templateFormatting((await this.#escape_abap_literal({iv_value: lv_schema_name, rv_value: 1})))}'.\n`),abap.operators.concat(new abap.types.String().set(`      CREATE OBJECT lo_regex EXPORTING pattern = '${abap.templateFormatting((await this.#escape_abap_literal({iv_value: lv_pattern, rv_value: 1})))}'.\n`),abap.operators.concat(new abap.types.String().set(`      lo_matcher = lo_regex->create_matcher( text = iv_value ).\n`),abap.operators.concat(new abap.types.String().set(`      rv_valid = lo_matcher->match( ).\n`),abap.operators.concat(new abap.types.String().set(`      RETURN.\n`),new abap.types.String().set(`    ENDIF.\n`))))))));
+      rv_abap.set(abap.operators.concat([rv_abap,new abap.types.String().set(`    IF iv_schema_name = '${abap.templateFormatting((await this.#escape_abap_literal({iv_value: lv_schema_name, rv_value: 1})))}'.\n`),new abap.types.String().set(`      CREATE OBJECT lo_regex EXPORTING pattern = '${abap.templateFormatting((await this.#escape_abap_literal({iv_value: lv_pattern, rv_value: 1})))}'.\n`),new abap.types.String().set(`      lo_matcher = lo_regex->create_matcher( text = iv_value ).\n`),new abap.types.String().set(`      rv_valid = lo_matcher->match( ).\n`),new abap.types.String().set(`      RETURN.\n`),new abap.types.String().set(`    ENDIF.\n`)]));
     }
-    rv_abap.set(abap.operators.concat(rv_abap,abap.operators.concat(new abap.types.String().set(`  ENDMETHOD.\nENDCLASS.\n`),abap.operators.concat(new abap.types.String().set(`CLASS ${abap.templateFormatting(lv_test_class)} DEFINITION FINAL FOR TESTING DURATION SHORT RISK LEVEL HARMLESS.\n`),new abap.types.String().set(`ENDCLASS.\n\nCLASS ${abap.templateFormatting(lv_test_class)} IMPLEMENTATION.\nENDCLASS.`)))));
+    rv_abap.set(abap.operators.concat([rv_abap,new abap.types.String().set(`  ENDMETHOD.\nENDCLASS.\n`),new abap.types.String().set(`CLASS ${abap.templateFormatting(lv_test_class)} DEFINITION FINAL FOR TESTING DURATION SHORT RISK LEVEL HARMLESS.\n`),new abap.types.String().set(`ENDCLASS.\n\nCLASS ${abap.templateFormatting(lv_test_class)} IMPLEMENTATION.\nENDCLASS.`)]));
     return rv_abap;
   }
   async #build_validation_code(INPUT) {
@@ -371530,16 +373176,16 @@ class zcl_oapi_generator_v2 {
       if (abap.compare.initial(lv_schema_name)) {
         lv_schema_name.set(iv_path);
       }
-      rv_abap.set(abap.operators.concat(new abap.types.String().set(`          IF ${abap.templateFormatting(iv_validator_class)}=>check( iv_schema_name = '${abap.templateFormatting((await this.#escape_abap_literal({iv_value: lv_schema_name, rv_value: 1})))}' iv_value = ${abap.templateFormatting(iv_expression)} ) = abap_false.\n`),abap.operators.concat(new abap.types.String().set(`            server->response->set_status( code = 400 reason = 'Pattern validation failed' ).\n`),abap.operators.concat(new abap.types.String().set(`            RETURN.\n`),new abap.types.String().set(`          ENDIF.\n`)))));
+      rv_abap.set(abap.operators.concat([new abap.types.String().set(`          IF ${abap.templateFormatting(iv_validator_class)}=>check( iv_schema_name = '${abap.templateFormatting((await this.#escape_abap_literal({iv_value: lv_schema_name, rv_value: 1})))}' iv_value = ${abap.templateFormatting(iv_expression)} ) = abap_false.\n`),new abap.types.String().set(`            server->response->set_status( code = 400 reason = 'Pattern validation failed' ).\n`),new abap.types.String().set(`            RETURN.\n`),new abap.types.String().set(`          ENDIF.\n`)]));
       return rv_abap;
     }
     for await (const unique21 of abap.statements.loop(lo_schema.get().zif_oapi_schema$properties)) {
       ls_property.set(unique21);
       lv_path.set((new abap.types.String({qualifiedName: "STRING"}).set(await (async () => {
         if (abap.compare.initial(iv_path)) { return ls_property.get().abap_name; }
-        return abap.operators.concat(iv_path,abap.operators.concat(abap.CharacterFactory.get(1, '.'),ls_property.get().abap_name));
+        return abap.operators.concat([iv_path,abap.CharacterFactory.get(1, '.'),ls_property.get().abap_name]);
       })())));
-      lv_expression.set(abap.operators.concat(iv_expression,abap.operators.concat(abap.CharacterFactory.get(1, '-'),ls_property.get().abap_name)));
+      lv_expression.set(abap.operators.concat([iv_expression,abap.CharacterFactory.get(1, '-'),ls_property.get().abap_name]));
       rv_abap.set(abap.operators.concat(rv_abap,(await this.#build_validation_code({io_schema: ls_property.get().schema, iv_schema_ref: ls_property.get().ref, iv_expression: lv_expression, iv_path: lv_path, iv_validator_class: iv_validator_class, rv_abap: 1}))));
     }
     return rv_abap;
@@ -371619,21 +373265,21 @@ class zcl_oapi_generator_v2 {
     lo_response_name.set(await (new abap.Classes['ZCL_OAPI_RESPONSE_NAME']()).constructor_());
     lv_name_mappings.set((await this.#build_name_mappings({rv_abap: 1})));
     lv_validator_class.set(abap.operators.concat((await this.#sanitize_abap_name({iv_name: new abap.types.String().set(`${abap.templateFormatting(this.#ms_input.get().clas_icf_impl)}`), iv_max_length: abap.IntegerFactory.get(24), rv_abap: 1})),abap.CharacterFactory.get(4, '_val')));
-    rv_abap.set(abap.operators.concat(new abap.types.String().set(`CLASS ${abap.templateFormatting(this.#ms_input.get().clas_icf_serv)} DEFINITION PUBLIC.\n`),abap.operators.concat((await this.#generation_information({rv_info: 1})),abap.operators.concat(new abap.types.String().set(`  PUBLIC SECTION.\n`),abap.operators.concat(new abap.types.String().set(`    INTERFACES if_http_extension.\n`),abap.operators.concat(new abap.types.String().set(`    CLASS-METHODS class_constructor.\n`),abap.operators.concat(new abap.types.String().set(`  PRIVATE SECTION.\n`),new abap.types.String().set(`    CLASS-DATA mt_name_mappings TYPE /ui2/cl_json=>name_mappings.\n`))))))));
-    rv_abap.set(abap.operators.concat(rv_abap,abap.operators.concat(new abap.types.String().set(`ENDCLASS.\n\n`),abap.operators.concat(new abap.types.String().set(`CLASS ${abap.templateFormatting(this.#ms_input.get().clas_icf_serv)} IMPLEMENTATION.\n`),abap.operators.concat(new abap.types.String().set(`  METHOD class_constructor.\n`),abap.operators.concat((new abap.types.String({qualifiedName: "STRING"}).set(await (async () => {
+    rv_abap.set(abap.operators.concat([new abap.types.String().set(`CLASS ${abap.templateFormatting(this.#ms_input.get().clas_icf_serv)} DEFINITION PUBLIC.\n`),(await this.#generation_information({rv_info: 1})),new abap.types.String().set(`  PUBLIC SECTION.\n`),new abap.types.String().set(`    INTERFACES if_http_extension.\n`),new abap.types.String().set(`    CLASS-METHODS class_constructor.\n`),new abap.types.String().set(`  PRIVATE SECTION.\n`),new abap.types.String().set(`    CLASS-DATA mt_name_mappings TYPE /ui2/cl_json=>name_mappings.\n`)]));
+    rv_abap.set(abap.operators.concat([rv_abap,new abap.types.String().set(`ENDCLASS.\n\n`),new abap.types.String().set(`CLASS ${abap.templateFormatting(this.#ms_input.get().clas_icf_serv)} IMPLEMENTATION.\n`),new abap.types.String().set(`  METHOD class_constructor.\n`),abap.operators.concat((new abap.types.String({qualifiedName: "STRING"}).set(await (async () => {
       if (abap.compare.initial(lv_name_mappings) === false) { return new abap.types.String().set(`    mt_name_mappings = ${abap.templateFormatting(lv_name_mappings)}.\n`); }
       return new abap.types.String({qualifiedName: "STRING"});
-    })())),new abap.types.String().set(`  ENDMETHOD.\n\n`)))))));
-    rv_abap.set(abap.operators.concat(rv_abap,abap.operators.concat(new abap.types.String().set(`  METHOD if_http_extension~handle_request.\n`),abap.operators.concat(new abap.types.String().set(`    DATA li_handler      TYPE REF TO ${abap.templateFormatting(this.#ms_input.get().intf)}.\n`),abap.operators.concat(new abap.types.String().set(`    DATA lv_method       TYPE string.\n`),abap.operators.concat(new abap.types.String().set(`    DATA lv_path         TYPE string.\n`),abap.operators.concat(new abap.types.String().set(`    CREATE OBJECT li_handler TYPE ${abap.templateFormatting(this.#ms_input.get().clas_icf_impl)}.\n`),abap.operators.concat(new abap.types.String().set(`    lv_path = server->request->get_header_field( '~path' ).\n`),abap.operators.concat(new abap.types.String().set(`    REPLACE FIRST OCCURRENCE OF ${abap.templateFormatting(this.#ms_input.get().intf)}=>base_path IN lv_path WITH ''.\n`),new abap.types.String().set(`    lv_method = server->request->get_method( ).\n\n`))))))))));
+    })())),new abap.types.String().set(`  ENDMETHOD.\n\n`))]));
+    rv_abap.set(abap.operators.concat([rv_abap,new abap.types.String().set(`  METHOD if_http_extension~handle_request.\n`),new abap.types.String().set(`    DATA li_handler      TYPE REF TO ${abap.templateFormatting(this.#ms_input.get().intf)}.\n`),new abap.types.String().set(`    DATA lv_method       TYPE string.\n`),new abap.types.String().set(`    DATA lv_path         TYPE string.\n`),new abap.types.String().set(`    CREATE OBJECT li_handler TYPE ${abap.templateFormatting(this.#ms_input.get().clas_icf_impl)}.\n`),new abap.types.String().set(`    lv_path = server->request->get_header_field( '~path' ).\n`),new abap.types.String().set(`    REPLACE FIRST OCCURRENCE OF ${abap.templateFormatting(this.#ms_input.get().intf)}=>base_path IN lv_path WITH ''.\n`),new abap.types.String().set(`    lv_method = server->request->get_method( ).\n\n`)]));
     for await (const unique22 of abap.statements.loop(this.#ms_specification.get().operations)) {
       ls_operation.set(unique22);
       lv_counter.set(abap.operators.add(lv_counter,abap.IntegerFactory.get(1)));
       lv_path_match.set(ls_operation.get().path);
       abap.statements.replace({target: lv_path_match, all: true, with: abap.CharacterFactory.get(1, '*'), regex: abap.CharacterFactory.get(9, '\\{[^}]+\\}')});
-      rv_abap.set(abap.operators.concat(rv_abap,abap.operators.concat(new abap.types.String().set(`    TRY.\n`),(new abap.types.String({qualifiedName: "STRING"}).set(await (async () => {
+      rv_abap.set(abap.operators.concat([rv_abap,new abap.types.String().set(`    TRY.\n`),(new abap.types.String({qualifiedName: "STRING"}).set(await (async () => {
         if (abap.compare.eq(lv_path_match, ls_operation.get().path)) { return new abap.types.String().set(`        IF lv_path = '${abap.templateFormatting(ls_operation.get().path)}' AND lv_method = '${abap.templateFormatting(abap.builtin.to_upper({val: ls_operation.get().method}))}'.\n`); }
         return new abap.types.String().set(`        IF lv_path CP '${abap.templateFormatting(lv_path_match)}' AND lv_method = '${abap.templateFormatting(abap.builtin.to_upper({val: ls_operation.get().method}))}'.\n`);
-      })())))));
+      })()))]));
       lv_parameters.clear();
       lv_path_parameter_setup.clear();
       lt_template_segments.clear();
@@ -371653,7 +373299,7 @@ class zcl_oapi_generator_v2 {
             } else {
               lv_path_parameter_setup.set(abap.operators.concat(lv_path_parameter_setup,new abap.types.String().set(`          DATA lt_path_segments_${abap.templateFormatting(lv_counter)} TYPE STANDARD TABLE OF string WITH DEFAULT KEY.\n`)));
             }
-            lv_path_parameter_setup.set(abap.operators.concat(lv_path_parameter_setup,abap.operators.concat(new abap.types.String().set(`          SPLIT lv_path AT '/' INTO TABLE lt_path_segments_${abap.templateFormatting(lv_counter)}.\n`),new abap.types.String().set(`          DELETE lt_path_segments_${abap.templateFormatting(lv_counter)} WHERE table_line IS INITIAL.\n`))));
+            lv_path_parameter_setup.set(abap.operators.concat([lv_path_parameter_setup,new abap.types.String().set(`          SPLIT lv_path AT '/' INTO TABLE lt_path_segments_${abap.templateFormatting(lv_counter)}.\n`),new abap.types.String().set(`          DELETE lt_path_segments_${abap.templateFormatting(lv_counter)} WHERE table_line IS INITIAL.\n`)]));
           }
           lv_path_placeholder.set(new abap.types.String().set(`\{${abap.templateFormatting(ls_parameter.get().name)}\}`));
           lv_segment_index.clear();
@@ -371666,7 +373312,7 @@ class zcl_oapi_generator_v2 {
           }
           if (abap.compare.gt(lv_segment_index, abap.IntegerFactory.get(0))) {
             lv_path_segment_var.set(new abap.types.String().set(`lv_path_segment_${abap.templateFormatting(lv_counter)}_${abap.templateFormatting(lv_segment_index)}`));
-            lv_path_parameter_setup.set(abap.operators.concat(lv_path_parameter_setup,abap.operators.concat(new abap.types.String().set(`          DATA ${abap.templateFormatting(lv_path_segment_var)} TYPE ${abap.templateFormatting((await this.#find_parameter_type({is_parameter: ls_parameter, rv_type: 1})))}.\n`),abap.operators.concat(new abap.types.String().set(`          READ TABLE lt_path_segments_${abap.templateFormatting(lv_counter)} INDEX ${abap.templateFormatting(lv_segment_index)} INTO ${abap.templateFormatting(lv_path_segment_var)}.\n`),new abap.types.String().set(`          ASSERT sy-subrc = 0.\n`)))));
+            lv_path_parameter_setup.set(abap.operators.concat([lv_path_parameter_setup,new abap.types.String().set(`          DATA ${abap.templateFormatting(lv_path_segment_var)} TYPE ${abap.templateFormatting((await this.#find_parameter_type({is_parameter: ls_parameter, rv_type: 1})))}.\n`),new abap.types.String().set(`          READ TABLE lt_path_segments_${abap.templateFormatting(lv_counter)} INDEX ${abap.templateFormatting(lv_segment_index)} INTO ${abap.templateFormatting(lv_path_segment_var)}.\n`),new abap.types.String().set(`          ASSERT sy-subrc = 0.\n`)]));
             lv_parameters.set(abap.operators.concat(lv_parameters,new abap.types.String().set(`\n            ${abap.templateFormatting(ls_parameter.get().abap_name)} = ${abap.templateFormatting(lv_path_segment_var)}`)));
           } else {
             lv_parameters.set(abap.operators.concat(lv_parameters,new abap.types.String().set(`\n            ${abap.templateFormatting(ls_parameter.get().abap_name)} = ''`)));
@@ -371676,7 +373322,7 @@ class zcl_oapi_generator_v2 {
         }
       }
       if (abap.compare.initial(ls_operation.get().request_body.get().schema_ref) === false) {
-        rv_abap.set(abap.operators.concat(rv_abap,abap.operators.concat(new abap.types.String().set(`          DATA ${abap.templateFormatting(ls_operation.get().abap_name)} TYPE ${abap.templateFormatting(this.#ms_input.get().intf)}=>${abap.templateFormatting(((await this.#find_schema({iv_name: ls_operation.get().request_body.get().schema_ref, rs_schema: 1}))).get().abap_name)}.\n`),abap.operators.concat(new abap.types.String().set(`          /ui2/cl_json=>deserialize(\n`),abap.operators.concat(new abap.types.String().set(`            EXPORTING\n`),abap.operators.concat(new abap.types.String().set(`              json          = server->request->get_cdata( )\n`),abap.operators.concat(new abap.types.String().set(`              pretty_name   = ${abap.templateFormatting(this.#ms_input.get().pretty_name)}\n`),abap.operators.concat(new abap.types.String().set(`              name_mappings = mt_name_mappings\n`),abap.operators.concat(new abap.types.String().set(`            CHANGING\n`),new abap.types.String().set(`              data          = ${abap.templateFormatting(ls_operation.get().abap_name)} ).\n`))))))))));
+        rv_abap.set(abap.operators.concat([rv_abap,new abap.types.String().set(`          DATA ${abap.templateFormatting(ls_operation.get().abap_name)} TYPE ${abap.templateFormatting(this.#ms_input.get().intf)}=>${abap.templateFormatting(((await this.#find_schema({iv_name: ls_operation.get().request_body.get().schema_ref, rs_schema: 1}))).get().abap_name)}.\n`),new abap.types.String().set(`          /ui2/cl_json=>deserialize(\n`),new abap.types.String().set(`            EXPORTING\n`),new abap.types.String().set(`              json          = server->request->get_cdata( )\n`),new abap.types.String().set(`              pretty_name   = ${abap.templateFormatting(this.#ms_input.get().pretty_name)}\n`),new abap.types.String().set(`              name_mappings = mt_name_mappings\n`),new abap.types.String().set(`            CHANGING\n`),new abap.types.String().set(`              data          = ${abap.templateFormatting(ls_operation.get().abap_name)} ).\n`)]));
         rv_abap.set(abap.operators.concat(rv_abap,(await this.#build_validation_code({io_schema: ((await this.#find_schema({iv_name: ls_operation.get().request_body.get().schema_ref, rs_schema: 1}))).get().schema, iv_expression: ls_operation.get().abap_name, iv_path: ((await this.#find_schema({iv_name: ls_operation.get().request_body.get().schema_ref, rs_schema: 1}))).get().abap_name, iv_validator_class: lv_validator_class, rv_abap: 1}))));
         lv_parameters.set(abap.operators.concat(lv_parameters,new abap.types.String().set(`\n            body = ${abap.templateFormatting(ls_operation.get().abap_name)}`)));
       } else if (abap.compare.initial(ls_operation.get().request_body.get().schema) === false) {
@@ -371711,7 +373357,7 @@ class zcl_oapi_generator_v2 {
           lv_code.set(ls_response.get().code);
         }
         if (abap.compare.eq(abap.builtin.lines({val: ls_response.get().content}), abap.IntegerFactory.get(0))) {
-          lv_post.set(abap.operators.concat(lv_post,abap.operators.concat(new abap.types.String().set(`          server->response->set_status( code = ${abap.templateFormatting(lv_code)} reason = '${abap.templateFormatting(ls_response.get().description)}' ).\n`),new abap.types.String().set(`          RETURN.\n`))));
+          lv_post.set(abap.operators.concat([lv_post,new abap.types.String().set(`          server->response->set_status( code = ${abap.templateFormatting(lv_code)} reason = '${abap.templateFormatting((await this.#escape_abap_literal({iv_value: (await this.#single_line({iv_value: ls_response.get().description, iv_max_length: abap.IntegerFactory.get(100), rv_value: 1})), rv_value: 1})))}' ).\n`),new abap.types.String().set(`          RETURN.\n`)]));
         } else {
           for await (const unique26 of abap.statements.loop(ls_response.get().content)) {
             ls_content.set(unique26);
@@ -371721,7 +373367,7 @@ class zcl_oapi_generator_v2 {
               lv_post.set(abap.operators.concat(lv_post,new abap.types.String().set(`          IF ${abap.templateFormatting(lv_typename)}-${abap.templateFormatting(lv_response_name)} IS NOT INITIAL.\n`)));
               lv_indentation.set(new abap.types.String().set(`  `));
             }
-            lv_post.set(abap.operators.concat(lv_post,abap.operators.concat(new abap.types.String().set(`${abap.templateFormatting(lv_indentation)}          server->response->set_content_type( '${abap.templateFormatting(ls_content.get().type)}' ).\n`),abap.operators.concat(new abap.types.String().set(`${abap.templateFormatting(lv_indentation)}          server->response->set_cdata( /ui2/cl_json=>serialize(\n`),abap.operators.concat(new abap.types.String().set(`${abap.templateFormatting(lv_indentation)}            data          = ${abap.templateFormatting(lv_typename)}-${abap.templateFormatting(lv_response_name)}\n`),abap.operators.concat(new abap.types.String().set(`${abap.templateFormatting(lv_indentation)}            pretty_name   = ${abap.templateFormatting(this.#ms_input.get().pretty_name)}\n`),abap.operators.concat(new abap.types.String().set(`${abap.templateFormatting(lv_indentation)}            name_mappings = mt_name_mappings ) ).\n`),abap.operators.concat(new abap.types.String().set(`${abap.templateFormatting(lv_indentation)}          server->response->set_status( code = ${abap.templateFormatting(lv_code)} reason = '${abap.templateFormatting(ls_response.get().description)}' ).\n`),new abap.types.String().set(`${abap.templateFormatting(lv_indentation)}          RETURN.\n`)))))))));
+            lv_post.set(abap.operators.concat([lv_post,new abap.types.String().set(`${abap.templateFormatting(lv_indentation)}          server->response->set_content_type( '${abap.templateFormatting(ls_content.get().type)}' ).\n`),new abap.types.String().set(`${abap.templateFormatting(lv_indentation)}          server->response->set_cdata( /ui2/cl_json=>serialize(\n`),new abap.types.String().set(`${abap.templateFormatting(lv_indentation)}            data          = ${abap.templateFormatting(lv_typename)}-${abap.templateFormatting(lv_response_name)}\n`),new abap.types.String().set(`${abap.templateFormatting(lv_indentation)}            pretty_name   = ${abap.templateFormatting(this.#ms_input.get().pretty_name)}\n`),new abap.types.String().set(`${abap.templateFormatting(lv_indentation)}            name_mappings = mt_name_mappings ) ).\n`),new abap.types.String().set(`${abap.templateFormatting(lv_indentation)}          server->response->set_status( code = ${abap.templateFormatting(lv_code)} reason = '${abap.templateFormatting((await this.#escape_abap_literal({iv_value: (await this.#single_line({iv_value: ls_response.get().description, iv_max_length: abap.IntegerFactory.get(100), rv_value: 1})), rv_value: 1})))}' ).\n`),new abap.types.String().set(`${abap.templateFormatting(lv_indentation)}          RETURN.\n`)]));
             if (abap.compare.gt(abap.builtin.lines({val: ls_response.get().content}), abap.IntegerFactory.get(1))) {
               lv_post.set(abap.operators.concat(lv_post,new abap.types.String().set(`          ENDIF.\n`)));
             }
@@ -371734,9 +373380,9 @@ class zcl_oapi_generator_v2 {
         lv_pre.set(new abap.types.String().set(`          `));
         lv_post.set(new abap.types.String().set(`          RETURN.\n`));
       }
-      rv_abap.set(abap.operators.concat(rv_abap,abap.operators.concat(lv_path_parameter_setup,abap.operators.concat(lv_pre,abap.operators.concat(new abap.types.String().set(`li_handler->${abap.templateFormatting(ls_operation.get().abap_name)}(${abap.templateFormatting(lv_parameters)} ).\n`),abap.operators.concat(lv_post,abap.operators.concat(new abap.types.String().set(`        ENDIF.\n`),abap.operators.concat(new abap.types.String().set(`      CATCH cx_static_check INTO DATA(lx_error${abap.templateFormatting(lv_counter)}).\n`),abap.operators.concat(new abap.types.String().set(`        server->response->set_content_type( 'text/plain' ).\n`),abap.operators.concat(new abap.types.String().set(`        server->response->set_cdata( lx_error${abap.templateFormatting(lv_counter)}->get_text( ) ).\n`),abap.operators.concat(new abap.types.String().set(`        server->response->set_status( code = 500 reason = 'Error' ).\n`),new abap.types.String().set(`    ENDTRY.\n`))))))))))));
+      rv_abap.set(abap.operators.concat([rv_abap,lv_path_parameter_setup,lv_pre,new abap.types.String().set(`li_handler->${abap.templateFormatting(ls_operation.get().abap_name)}(${abap.templateFormatting(lv_parameters)} ).\n`),lv_post,new abap.types.String().set(`        ENDIF.\n`),new abap.types.String().set(`      CATCH cx_static_check INTO DATA(lx_error${abap.templateFormatting(lv_counter)}).\n`),new abap.types.String().set(`        server->response->set_content_type( 'text/plain' ).\n`),new abap.types.String().set(`        server->response->set_cdata( lx_error${abap.templateFormatting(lv_counter)}->get_text( ) ).\n`),new abap.types.String().set(`        server->response->set_status( code = 500 reason = 'Error' ).\n`),new abap.types.String().set(`    ENDTRY.\n`)]));
     }
-    rv_abap.set(abap.operators.concat(rv_abap,abap.operators.concat(new abap.types.String().set(`\n`),abap.operators.concat(new abap.types.String().set(`    server->response->set_content_type( 'text/plain' ).\n`),abap.operators.concat(new abap.types.String().set(`    server->response->set_cdata( \|No handler found for \{ lv_path \} \{ lv_method \}\| ).\n`),abap.operators.concat(new abap.types.String().set(`    server->response->set_status( code = 500 reason = 'Error' ).\n`),abap.operators.concat(new abap.types.String().set(`  ENDMETHOD.\n`),new abap.types.String().set(`ENDCLASS.`))))))));
+    rv_abap.set(abap.operators.concat([rv_abap,new abap.types.String().set(`\n`),new abap.types.String().set(`    server->response->set_content_type( 'text/plain' ).\n`),new abap.types.String().set(`    server->response->set_cdata( \|No handler found for \{ lv_path \} \{ lv_method \}\| ).\n`),new abap.types.String().set(`    server->response->set_status( code = 500 reason = 'Error' ).\n`),new abap.types.String().set(`  ENDMETHOD.\n`),new abap.types.String().set(`ENDCLASS.`)]));
     return rv_abap;
   }
   async #build_clas_icf_impl(INPUT) {
@@ -371771,10 +373417,10 @@ class zcl_oapi_generator_v2 {
     "schema": new abap.types.ABAPObject({qualifiedName: "ZIF_OAPI_SCHEMA", RTTIName: "\\INTERFACE=ZIF_OAPI_SCHEMA"}),
     "schema_ref": new abap.types.String({qualifiedName: "ZIF_OAPI_SPECIFICATION_V3=>TY_MEDIA_TYPE-SCHEMA_REF"})}, "zif_oapi_specification_v3=>ty_media_type", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "zif_oapi_specification_v3=>ty_media_types"),
     "ref": new abap.types.String({qualifiedName: "ZIF_OAPI_SPECIFICATION_V3=>TY_OPERATION_RESPONSE-REF"})}, "zif_oapi_specification_v3=>ty_operation_response", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "zif_oapi_specification_v3=>ty_operation_responses")}, "zif_oapi_specification_v3=>ty_operation", undefined, {}, {});
-    rv_abap.set(abap.operators.concat(new abap.types.String().set(`CLASS ${abap.templateFormatting(this.#ms_input.get().clas_icf_impl)} DEFINITION PUBLIC.\n`),abap.operators.concat(new abap.types.String().set(`  PUBLIC SECTION.\n`),abap.operators.concat(new abap.types.String().set(`    INTERFACES ${abap.templateFormatting(this.#ms_input.get().intf)}.\n`),abap.operators.concat(new abap.types.String().set(`ENDCLASS.\n\n`),new abap.types.String().set(`CLASS ${abap.templateFormatting(this.#ms_input.get().clas_icf_impl)} IMPLEMENTATION.\n\n`))))));
+    rv_abap.set(abap.operators.concat([new abap.types.String().set(`CLASS ${abap.templateFormatting(this.#ms_input.get().clas_icf_impl)} DEFINITION PUBLIC.\n`),new abap.types.String().set(`  PUBLIC SECTION.\n`),new abap.types.String().set(`    INTERFACES ${abap.templateFormatting(this.#ms_input.get().intf)}.\n`),new abap.types.String().set(`ENDCLASS.\n\n`),new abap.types.String().set(`CLASS ${abap.templateFormatting(this.#ms_input.get().clas_icf_impl)} IMPLEMENTATION.\n\n`)]));
     for await (const unique27 of abap.statements.loop(this.#ms_specification.get().operations)) {
       ls_operation.set(unique27);
-      rv_abap.set(abap.operators.concat(rv_abap,abap.operators.concat(new abap.types.String().set(`  METHOD ${abap.templateFormatting(this.#ms_input.get().intf)}~${abap.templateFormatting(ls_operation.get().abap_name)}.\n`),abap.operators.concat(new abap.types.String().set(`* Add implementation logic here\n`),new abap.types.String().set(`  ENDMETHOD.\n\n`)))));
+      rv_abap.set(abap.operators.concat([rv_abap,new abap.types.String().set(`  METHOD ${abap.templateFormatting(this.#ms_input.get().intf)}~${abap.templateFormatting(ls_operation.get().abap_name)}.\n`),new abap.types.String().set(`* Add implementation logic here\n`),new abap.types.String().set(`  ENDMETHOD.\n\n`)]));
     }
     rv_abap.set(abap.operators.concat(rv_abap,new abap.types.String().set(`ENDCLASS.`)));
     return rv_abap;
@@ -371845,13 +373491,13 @@ class zcl_oapi_generator_v2 {
     let lv_name_mappings = new abap.types.String({qualifiedName: "STRING"});
     lo_response_name.set(await (new abap.Classes['ZCL_OAPI_RESPONSE_NAME']()).constructor_());
     lv_name_mappings.set((await this.#build_name_mappings({rv_abap: 1})));
-    rv_abap.set(abap.operators.concat(new abap.types.String().set(`CLASS ${abap.templateFormatting(this.#ms_input.get().clas_client)} DEFINITION PUBLIC.\n`),abap.operators.concat((await this.#generation_information({rv_info: 1})),abap.operators.concat(new abap.types.String().set(`  PUBLIC SECTION.\n`),abap.operators.concat(new abap.types.String().set(`    INTERFACES ${abap.templateFormatting(this.#ms_input.get().intf)}.\n`),abap.operators.concat(new abap.types.String().set(`    "! Supply http client and possibily extra http headers to instantiate the openAPI client\n`),abap.operators.concat(new abap.types.String().set(`    "! Use cl_http_client=>create_by_destination() or cl_http_client=>create_by_url() to create the client\n`),abap.operators.concat(new abap.types.String().set(`    "! the caller must close() the client\n`),abap.operators.concat(new abap.types.String().set(`    CLASS-METHODS class_constructor.\n`),abap.operators.concat(new abap.types.String().set(`    METHODS constructor\n`),abap.operators.concat(new abap.types.String().set(`      IMPORTING\n`),abap.operators.concat(new abap.types.String().set(`        ii_client        TYPE REF TO if_http_client\n`),abap.operators.concat(new abap.types.String().set(`        iv_uri_prefix    TYPE string OPTIONAL\n`),abap.operators.concat(new abap.types.String().set(`        it_extra_headers TYPE tihttpnvp OPTIONAL\n`),abap.operators.concat(new abap.types.String().set(`        iv_logon_popup   TYPE i DEFAULT if_http_client=>co_disabled\n`),abap.operators.concat(new abap.types.String().set(`        iv_timeout       TYPE i DEFAULT if_http_client=>co_timeout_default.\n`),abap.operators.concat(new abap.types.String().set(`  PROTECTED SECTION.\n`),abap.operators.concat(new abap.types.String().set(`    DATA mi_client        TYPE REF TO if_http_client.\n`),abap.operators.concat(new abap.types.String().set(`    DATA mv_timeout       TYPE i.\n`),abap.operators.concat(new abap.types.String().set(`    DATA mv_logon_popup   TYPE i.\n`),abap.operators.concat(new abap.types.String().set(`    DATA mv_uri_prefix    TYPE string.\n`),abap.operators.concat(new abap.types.String().set(`    DATA mt_extra_headers TYPE tihttpnvp.\n`),abap.operators.concat(new abap.types.String().set(`  PRIVATE SECTION.\n`),abap.operators.concat(new abap.types.String().set(`    CLASS-DATA mt_name_mappings TYPE /ui2/cl_json=>name_mappings.\n`),abap.operators.concat(new abap.types.String().set(`ENDCLASS.\n\n`),abap.operators.concat(new abap.types.String().set(`CLASS ${abap.templateFormatting(this.#ms_input.get().clas_client)} IMPLEMENTATION.\n`),abap.operators.concat(new abap.types.String().set(`  METHOD constructor.\n`),abap.operators.concat(new abap.types.String().set(`    mi_client = ii_client.\n`),abap.operators.concat(new abap.types.String().set(`    mv_timeout = iv_timeout.\n`),abap.operators.concat(new abap.types.String().set(`    mv_logon_popup = iv_logon_popup.\n`),abap.operators.concat(new abap.types.String().set(`    mv_uri_prefix = iv_uri_prefix.\n`),abap.operators.concat(new abap.types.String().set(`    mt_extra_headers = it_extra_headers.\n`),abap.operators.concat(new abap.types.String().set(`  ENDMETHOD.\n\n`),abap.operators.concat(new abap.types.String().set(`  METHOD class_constructor.\n`),abap.operators.concat((new abap.types.String({qualifiedName: "STRING"}).set(await (async () => {
+    rv_abap.set(abap.operators.concat([new abap.types.String().set(`CLASS ${abap.templateFormatting(this.#ms_input.get().clas_client)} DEFINITION PUBLIC.\n`),(await this.#generation_information({rv_info: 1})),new abap.types.String().set(`  PUBLIC SECTION.\n`),new abap.types.String().set(`    INTERFACES ${abap.templateFormatting(this.#ms_input.get().intf)}.\n`),new abap.types.String().set(`    "! Supply http client and possibily extra http headers to instantiate the openAPI client\n`),new abap.types.String().set(`    "! Use cl_http_client=>create_by_destination() or cl_http_client=>create_by_url() to create the client\n`),new abap.types.String().set(`    "! the caller must close() the client\n`),new abap.types.String().set(`    CLASS-METHODS class_constructor.\n`),new abap.types.String().set(`    METHODS constructor\n`),new abap.types.String().set(`      IMPORTING\n`),new abap.types.String().set(`        ii_client        TYPE REF TO if_http_client\n`),new abap.types.String().set(`        iv_uri_prefix    TYPE string OPTIONAL\n`),new abap.types.String().set(`        it_extra_headers TYPE tihttpnvp OPTIONAL\n`),new abap.types.String().set(`        iv_logon_popup   TYPE i DEFAULT if_http_client=>co_disabled\n`),new abap.types.String().set(`        iv_timeout       TYPE i DEFAULT if_http_client=>co_timeout_default.\n`),new abap.types.String().set(`  PROTECTED SECTION.\n`),new abap.types.String().set(`    DATA mi_client        TYPE REF TO if_http_client.\n`),new abap.types.String().set(`    DATA mv_timeout       TYPE i.\n`),new abap.types.String().set(`    DATA mv_logon_popup   TYPE i.\n`),new abap.types.String().set(`    DATA mv_uri_prefix    TYPE string.\n`),new abap.types.String().set(`    DATA mt_extra_headers TYPE tihttpnvp.\n`),new abap.types.String().set(`  PRIVATE SECTION.\n`),new abap.types.String().set(`    CLASS-DATA mt_name_mappings TYPE /ui2/cl_json=>name_mappings.\n`),new abap.types.String().set(`ENDCLASS.\n\n`),new abap.types.String().set(`CLASS ${abap.templateFormatting(this.#ms_input.get().clas_client)} IMPLEMENTATION.\n`),new abap.types.String().set(`  METHOD constructor.\n`),new abap.types.String().set(`    mi_client = ii_client.\n`),new abap.types.String().set(`    mv_timeout = iv_timeout.\n`),new abap.types.String().set(`    mv_logon_popup = iv_logon_popup.\n`),new abap.types.String().set(`    mv_uri_prefix = iv_uri_prefix.\n`),new abap.types.String().set(`    mt_extra_headers = it_extra_headers.\n`),new abap.types.String().set(`  ENDMETHOD.\n\n`),new abap.types.String().set(`  METHOD class_constructor.\n`),abap.operators.concat((new abap.types.String({qualifiedName: "STRING"}).set(await (async () => {
       if (abap.compare.initial(lv_name_mappings) === false) { return new abap.types.String().set(`    mt_name_mappings = ${abap.templateFormatting(lv_name_mappings)}.\n`); }
       return new abap.types.String({qualifiedName: "STRING"});
-    })())),new abap.types.String().set(`  ENDMETHOD.\n\n`))))))))))))))))))))))))))))))))))));
+    })())),new abap.types.String().set(`  ENDMETHOD.\n\n`))]));
     for await (const unique28 of abap.statements.loop(this.#ms_specification.get().operations)) {
       ls_operation.set(unique28);
-      rv_abap.set(abap.operators.concat(rv_abap,abap.operators.concat(new abap.types.String().set(`  METHOD ${abap.templateFormatting(this.#ms_input.get().intf)}~${abap.templateFormatting(ls_operation.get().abap_name)}.\n`),abap.operators.concat(new abap.types.String().set(`    DATA lv_uri          TYPE string.\n`),abap.operators.concat(new abap.types.String().set(`    DATA ls_header       LIKE LINE OF mt_extra_headers.\n`),abap.operators.concat(new abap.types.String().set(`    DATA lv_dummy        TYPE string.\n`),abap.operators.concat(new abap.types.String().set(`    DATA lv_content_type TYPE string.\n`),abap.operators.concat(new abap.types.String().set(`\n`),abap.operators.concat(new abap.types.String().set(`    mi_client->propertytype_logon_popup = mv_logon_popup.\n`),abap.operators.concat(new abap.types.String().set(`    mi_client->request->set_method( '${abap.templateFormatting(abap.builtin.to_upper({val: ls_operation.get().method}))}' ).\n`),new abap.types.String().set(`    mi_client->request->set_version( if_http_request=>co_protocol_version_1_1 ).\n`)))))))))));
+      rv_abap.set(abap.operators.concat([rv_abap,new abap.types.String().set(`  METHOD ${abap.templateFormatting(this.#ms_input.get().intf)}~${abap.templateFormatting(ls_operation.get().abap_name)}.\n`),new abap.types.String().set(`    DATA lv_uri          TYPE string.\n`),new abap.types.String().set(`    DATA ls_header       LIKE LINE OF mt_extra_headers.\n`),new abap.types.String().set(`    DATA lv_dummy        TYPE string.\n`),new abap.types.String().set(`    DATA lv_content_type TYPE string.\n`),new abap.types.String().set(`\n`),new abap.types.String().set(`    mi_client->propertytype_logon_popup = mv_logon_popup.\n`),new abap.types.String().set(`    mi_client->request->set_method( '${abap.templateFormatting(abap.builtin.to_upper({val: ls_operation.get().method}))}' ).\n`),new abap.types.String().set(`    mi_client->request->set_version( if_http_request=>co_protocol_version_1_1 ).\n`)]));
       if (abap.compare.eq(this.#ms_input.get().no_compression, abap.builtin.abap_false)) {
         rv_abap.set(abap.operators.concat(rv_abap,new abap.types.String().set(`    mi_client->request->set_compression( ).\n`)));
       }
@@ -371860,14 +373506,14 @@ class zcl_oapi_generator_v2 {
         ls_parameter.set(unique29);
         let unique30 = ls_parameter.get().in;
         if (abap.compare.eq(unique30, abap.CharacterFactory.get(6, 'header'))) {
-          rv_abap.set(abap.operators.concat(rv_abap,abap.operators.concat(new abap.types.String().set(`    mi_client->request->set_header_field(\n`),abap.operators.concat(new abap.types.String().set(`      name  = '${abap.templateFormatting(ls_parameter.get().name)}'\n`),new abap.types.String().set(`      value = ${abap.templateFormatting(ls_parameter.get().abap_name)} ).\n`)))));
+          rv_abap.set(abap.operators.concat([rv_abap,new abap.types.String().set(`    mi_client->request->set_header_field(\n`),new abap.types.String().set(`      name  = '${abap.templateFormatting(ls_parameter.get().name)}'\n`),new abap.types.String().set(`      value = ${abap.templateFormatting(ls_parameter.get().abap_name)} ).\n`)]));
         } else if (abap.compare.eq(unique30, abap.CharacterFactory.get(4, 'path'))) {
           rv_abap.set(abap.operators.concat(rv_abap,new abap.types.String().set(`    REPLACE FIRST OCCURRENCE OF '\{${abap.templateFormatting(ls_parameter.get().name)}\}' IN lv_uri WITH ${abap.templateFormatting(ls_parameter.get().abap_name)}.\n`)));
         } else {
           rv_abap.set(abap.operators.concat(rv_abap,new abap.types.String().set(`" todo, in=${abap.templateFormatting(ls_parameter.get().in)} name=${abap.templateFormatting(ls_parameter.get().name)}\n`)));
         }
       }
-      rv_abap.set(abap.operators.concat(rv_abap,abap.operators.concat(new abap.types.String().set(`    cl_http_utility=>set_request_uri(\n`),abap.operators.concat(new abap.types.String().set(`      request = mi_client->request\n`),abap.operators.concat(new abap.types.String().set(`      uri     = lv_uri ).\n`),abap.operators.concat(new abap.types.String().set(`    LOOP AT mt_extra_headers INTO ls_header.\n`),abap.operators.concat(new abap.types.String().set(`      mi_client->request->set_header_field(\n`),abap.operators.concat(new abap.types.String().set(`        name  = ls_header-name\n`),abap.operators.concat(new abap.types.String().set(`        value = ls_header-value ).\n`),new abap.types.String().set(`    ENDLOOP.\n`))))))))));
+      rv_abap.set(abap.operators.concat([rv_abap,new abap.types.String().set(`    cl_http_utility=>set_request_uri(\n`),new abap.types.String().set(`      request = mi_client->request\n`),new abap.types.String().set(`      uri     = lv_uri ).\n`),new abap.types.String().set(`    LOOP AT mt_extra_headers INTO ls_header.\n`),new abap.types.String().set(`      mi_client->request->set_header_field(\n`),new abap.types.String().set(`        name  = ls_header-name\n`),new abap.types.String().set(`        value = ls_header-value ).\n`),new abap.types.String().set(`    ENDLOOP.\n`)]));
       if (abap.compare.initial(ls_operation.get().request_body.get().type) === false) {
         rv_abap.set(abap.operators.concat(rv_abap,new abap.types.String().set(`    mi_client->request->set_content_type( '${abap.templateFormatting(ls_operation.get().request_body.get().type)}' ).\n`)));
       }
@@ -371879,9 +373525,9 @@ class zcl_oapi_generator_v2 {
           rv_abap.set(abap.operators.concat(rv_abap,new abap.types.String().set(`    mi_client->request->set_cdata( body ).\n`)));
         }
       } else if (abap.compare.initial(ls_operation.get().request_body.get().schema_ref) === false && abap.compare.eq(ls_operation.get().request_body.get().type, abap.CharacterFactory.get(16, 'application/json'))) {
-        rv_abap.set(abap.operators.concat(rv_abap,abap.operators.concat(new abap.types.String().set(`    mi_client->request->set_cdata( /ui2/cl_json=>serialize(\n`),abap.operators.concat(new abap.types.String().set(`      data          = body\n`),abap.operators.concat(new abap.types.String().set(`      ts_as_iso8601 = abap_true\n`),abap.operators.concat(new abap.types.String().set(`      pretty_name   = ${abap.templateFormatting(this.#ms_input.get().pretty_name)}\n`),new abap.types.String().set(`      name_mappings = mt_name_mappings ) ).\n`)))))));
+        rv_abap.set(abap.operators.concat([rv_abap,new abap.types.String().set(`    mi_client->request->set_cdata( /ui2/cl_json=>serialize(\n`),new abap.types.String().set(`      data          = body\n`),new abap.types.String().set(`      ts_as_iso8601 = abap_true\n`),new abap.types.String().set(`      pretty_name   = ${abap.templateFormatting(this.#ms_input.get().pretty_name)}\n`),new abap.types.String().set(`      name_mappings = mt_name_mappings ) ).\n`)]));
       }
-      rv_abap.set(abap.operators.concat(rv_abap,abap.operators.concat(new abap.types.String().set(`    mi_client->send( mv_timeout ).\n`),abap.operators.concat(new abap.types.String().set(`    mi_client->receive(\n`),abap.operators.concat(new abap.types.String().set(`      EXCEPTIONS\n`),abap.operators.concat(new abap.types.String().set(`        http_communication_failure = 1\n`),abap.operators.concat(new abap.types.String().set(`        http_invalid_state         = 2\n`),abap.operators.concat(new abap.types.String().set(`        http_processing_failed     = 3\n`),abap.operators.concat(new abap.types.String().set(`        OTHERS                     = 4 ).\n`),abap.operators.concat(new abap.types.String().set(`    IF sy-subrc <> 0.\n`),abap.operators.concat(new abap.types.String().set(`      mi_client->get_last_error(\n`),abap.operators.concat(new abap.types.String().set(`        IMPORTING\n`),abap.operators.concat(new abap.types.String().set(`          code    = return-code\n`),abap.operators.concat(new abap.types.String().set(`          message = return-reason ).\n`),abap.operators.concat(new abap.types.String().set(`      ASSERT 1 = 2.\n`),abap.operators.concat(new abap.types.String().set(`    ENDIF.\n`),abap.operators.concat(new abap.types.String().set(`\n`),abap.operators.concat(new abap.types.String().set(`    lv_content_type = mi_client->response->get_content_type( ).\n`),abap.operators.concat(new abap.types.String().set(`    mi_client->response->get_status(\n`),abap.operators.concat(new abap.types.String().set(`      IMPORTING\n`),abap.operators.concat(new abap.types.String().set(`        code   = return-code\n`),abap.operators.concat(new abap.types.String().set(`        reason = return-reason ).\n`),new abap.types.String().set(`    CASE return-code.\n`)))))))))))))))))))))));
+      rv_abap.set(abap.operators.concat([rv_abap,new abap.types.String().set(`    mi_client->send( mv_timeout ).\n`),new abap.types.String().set(`    mi_client->receive(\n`),new abap.types.String().set(`      EXCEPTIONS\n`),new abap.types.String().set(`        http_communication_failure = 1\n`),new abap.types.String().set(`        http_invalid_state         = 2\n`),new abap.types.String().set(`        http_processing_failed     = 3\n`),new abap.types.String().set(`        OTHERS                     = 4 ).\n`),new abap.types.String().set(`    IF sy-subrc <> 0.\n`),new abap.types.String().set(`      mi_client->get_last_error(\n`),new abap.types.String().set(`        IMPORTING\n`),new abap.types.String().set(`          code    = return-code\n`),new abap.types.String().set(`          message = return-reason ).\n`),new abap.types.String().set(`      ASSERT 1 = 2.\n`),new abap.types.String().set(`    ENDIF.\n`),new abap.types.String().set(`\n`),new abap.types.String().set(`    lv_content_type = mi_client->response->get_content_type( ).\n`),new abap.types.String().set(`    mi_client->response->get_status(\n`),new abap.types.String().set(`      IMPORTING\n`),new abap.types.String().set(`        code   = return-code\n`),new abap.types.String().set(`        reason = return-reason ).\n`),new abap.types.String().set(`    CASE return-code.\n`)]));
       lv_has_others.set(abap.builtin.abap_false);
       for await (const unique32 of abap.statements.loop(ls_operation.get().responses)) {
         ls_response.set(unique32);
@@ -371889,7 +373535,7 @@ class zcl_oapi_generator_v2 {
           rv_abap.set(abap.operators.concat(rv_abap,new abap.types.String().set(`      WHEN OTHERS.\n`)));
           lv_has_others.set(abap.builtin.abap_true);
         } else if (abap.compare.initial(ls_response.get().description) === false) {
-          rv_abap.set(abap.operators.concat(rv_abap,new abap.types.String().set(`      WHEN ${abap.templateFormatting(ls_response.get().code)}. " ${abap.templateFormatting(ls_response.get().description)}\n`)));
+          rv_abap.set(abap.operators.concat(rv_abap,new abap.types.String().set(`      WHEN ${abap.templateFormatting(ls_response.get().code)}. " ${abap.templateFormatting((await this.#single_line({iv_value: ls_response.get().description, rv_value: 1})))}\n`)));
         } else {
           rv_abap.set(abap.operators.concat(rv_abap,new abap.types.String().set(`      WHEN ${abap.templateFormatting(ls_response.get().code)}.\n`)));
         }
@@ -371906,18 +373552,18 @@ class zcl_oapi_generator_v2 {
           }
         }
         if (abap.compare.gt(abap.builtin.lines({val: ls_response.get().content}), abap.IntegerFactory.get(0))) {
-          rv_abap.set(abap.operators.concat(rv_abap,abap.operators.concat(new abap.types.String().set(`        SPLIT lv_content_type AT ';' INTO lv_content_type lv_dummy.\n`),new abap.types.String().set(`        CASE lv_content_type.\n`))));
+          rv_abap.set(abap.operators.concat([rv_abap,new abap.types.String().set(`        SPLIT lv_content_type AT ';' INTO lv_content_type lv_dummy.\n`),new abap.types.String().set(`        CASE lv_content_type.\n`)]));
           for await (const unique33 of abap.statements.loop(ls_response.get().content)) {
             ls_content.set(unique33);
             rv_abap.set(abap.operators.concat(rv_abap,new abap.types.String().set(`          WHEN '${abap.templateFormatting(ls_content.get().type)}'.\n`)));
             if (abap.compare.eq(ls_content.get().type, abap.CharacterFactory.get(16, 'application/json')) || abap.compare.cp(ls_content.get().type, abap.CharacterFactory.get(19, 'application/*#+json'))) {
               lv_name.set((await lo_response_name.get().generate_response_name({iv_content_type: ls_content.get().type, iv_code: ls_response.get().code, rv_name: 1})));
-              rv_abap.set(abap.operators.concat(rv_abap,abap.operators.concat(new abap.types.String().set(`            /ui2/cl_json=>deserialize(\n`),abap.operators.concat(new abap.types.String().set(`              EXPORTING\n`),abap.operators.concat(new abap.types.String().set(`                json          = mi_client->response->get_cdata( )\n`),abap.operators.concat(new abap.types.String().set(`                pretty_name   = ${abap.templateFormatting(this.#ms_input.get().pretty_name)}\n`),abap.operators.concat(new abap.types.String().set(`                name_mappings = mt_name_mappings\n`),abap.operators.concat(new abap.types.String().set(`              CHANGING\n`),new abap.types.String().set(`                data          = return-${abap.templateFormatting(lv_name)} ).\n`)))))))));
+              rv_abap.set(abap.operators.concat([rv_abap,new abap.types.String().set(`            /ui2/cl_json=>deserialize(\n`),new abap.types.String().set(`              EXPORTING\n`),new abap.types.String().set(`                json          = mi_client->response->get_cdata( )\n`),new abap.types.String().set(`                pretty_name   = ${abap.templateFormatting(this.#ms_input.get().pretty_name)}\n`),new abap.types.String().set(`                name_mappings = mt_name_mappings\n`),new abap.types.String().set(`              CHANGING\n`),new abap.types.String().set(`                data          = return-${abap.templateFormatting(lv_name)} ).\n`)]));
             } else {
               rv_abap.set(abap.operators.concat(rv_abap,new abap.types.String().set(`* todo, content type = '${abap.templateFormatting(ls_content.get().type)}'\n`)));
             }
           }
-          rv_abap.set(abap.operators.concat(rv_abap,abap.operators.concat(new abap.types.String().set(`          WHEN OTHERS.\n`),abap.operators.concat(new abap.types.String().set(`* unexpected content type\n`),new abap.types.String().set(`        ENDCASE.\n`)))));
+          rv_abap.set(abap.operators.concat([rv_abap,new abap.types.String().set(`          WHEN OTHERS.\n`),new abap.types.String().set(`* unexpected content type\n`),new abap.types.String().set(`        ENDCASE.\n`)]));
         } else if (abap.compare.initial(ls_response.get().ref) === false) {
           rv_abap.set(abap.operators.concat(rv_abap,new abap.types.String().set(`* todo, no content types ${abap.templateFormatting(ls_response.get().ref)}\n`)));
         } else {
@@ -371925,9 +373571,9 @@ class zcl_oapi_generator_v2 {
         }
       }
       if (abap.compare.eq(lv_has_others, abap.builtin.abap_false)) {
-        rv_abap.set(abap.operators.concat(rv_abap,abap.operators.concat(new abap.types.String().set(`      WHEN OTHERS.\n`),new abap.types.String().set(`* todo, error handling\n`))));
+        rv_abap.set(abap.operators.concat([rv_abap,new abap.types.String().set(`      WHEN OTHERS.\n`),new abap.types.String().set(`* todo, error handling\n`)]));
       }
-      rv_abap.set(abap.operators.concat(rv_abap,abap.operators.concat(new abap.types.String().set(`    ENDCASE.\n\n`),new abap.types.String().set(`  ENDMETHOD.\n\n`))));
+      rv_abap.set(abap.operators.concat([rv_abap,new abap.types.String().set(`    ENDCASE.\n\n`),new abap.types.String().set(`  ENDMETHOD.\n\n`)]));
     }
     rv_abap.set(abap.operators.concat(rv_abap,new abap.types.String().set(`ENDCLASS.`)));
     return rv_abap;
@@ -371975,7 +373621,8 @@ class zcl_oapi_generator_v2 {
     "schema": new abap.types.ABAPObject({qualifiedName: "ZIF_OAPI_SCHEMA", RTTIName: "\\INTERFACE=ZIF_OAPI_SCHEMA"})}, "zif_oapi_specification_v3=>ty_component_schema", undefined, {}, {});
     let ls_server = new abap.types.Structure({
     "url": new abap.types.String({qualifiedName: "ZIF_OAPI_SPECIFICATION_V3=>TY_SERVER-URL"})}, "zif_oapi_specification_v3=>ty_server", undefined, {}, {});
-    rv_abap.set(abap.operators.concat(new abap.types.String().set(`INTERFACE ${abap.templateFormatting(this.#ms_input.get().intf)} PUBLIC.\n`),abap.operators.concat((await this.#generation_information({rv_info: 1})),new abap.types.String().set(`\n`))));
+    let lo_names = new abap.types.ABAPObject({qualifiedName: "ZCL_OAPI_ABAP_NAME", RTTIName: "\\CLASS=ZCL_OAPI_ABAP_NAME"});
+    rv_abap.set(abap.operators.concat([new abap.types.String().set(`INTERFACE ${abap.templateFormatting(this.#ms_input.get().intf)} PUBLIC.\n`),(await this.#generation_information({rv_info: 1})),new abap.types.String().set(`\n`)]));
     if (abap.compare.initial(this.#ms_specification.get().servers) === false) {
       abap.statements.readTable(this.#ms_specification.get().servers,{index: abap.IntegerFactory.get(1),
         into: ls_server});
@@ -371985,16 +373632,21 @@ class zcl_oapi_generator_v2 {
     } else {
       rv_abap.set(abap.operators.concat(rv_abap,new abap.types.String().set(`  CONSTANTS base_path TYPE string VALUE ''.\n\n`)));
     }
+    lo_names.set(await (new abap.Classes['ZCL_OAPI_ABAP_NAME']()).constructor_());
     for await (const unique34 of abap.statements.loop(this.#ms_specification.get().components.get().schemas)) {
       ls_component_schema.set(unique34);
+      await lo_names.get().add_used({iv_name: ls_component_schema.get().abap_name});
+    }
+    for await (const unique35 of abap.statements.loop(this.#ms_specification.get().components.get().schemas)) {
+      ls_component_schema.set(unique35);
       rv_abap.set(abap.operators.concat(rv_abap,new abap.types.String().set(`* ${abap.templateFormatting(ls_component_schema.get().name)}\n`)));
-      rv_abap.set(abap.operators.concat(rv_abap,(await ls_component_schema.get().schema.get().zif_oapi_schema$build_type_definition2({iv_name: ls_component_schema.get().abap_name, is_specification: this.#ms_specification, iv_use_empty_key: this.#ms_input.get().use_empty_key, rv_abap: 1}))));
+      rv_abap.set(abap.operators.concat(rv_abap,(await ls_component_schema.get().schema.get().zif_oapi_schema$build_type_definition({iv_name: ls_component_schema.get().abap_name, it_refs: this.#ms_specification.get().components.get().schemas, io_names: lo_names, iv_use_empty_key: this.#ms_input.get().use_empty_key, rv_abap: 1}))));
     }
     if (abap.compare.eq(abap.builtin.sy.get().subrc, abap.IntegerFactory.get(0))) {
       rv_abap.set(abap.operators.concat(rv_abap,new abap.types.String().set(`\n`)));
     }
-    for await (const unique35 of abap.statements.loop(this.#ms_specification.get().operations)) {
-      ls_operation.set(unique35);
+    for await (const unique36 of abap.statements.loop(this.#ms_specification.get().operations)) {
+      ls_operation.set(unique36);
       ls_returning.set((await this.#find_returning_parameter({is_operation: ls_operation, rs_returning: 1})));
       rv_abap.set(abap.operators.concat(rv_abap,ls_returning.get().type));
       if (abap.compare.initial(ls_operation.get().summary) === false) {
@@ -372071,8 +373723,8 @@ class zcl_oapi_generator_v2 {
     "schema": new abap.types.ABAPObject({qualifiedName: "ZIF_OAPI_SCHEMA", RTTIName: "\\INTERFACE=ZIF_OAPI_SCHEMA"}),
     "schema_ref": new abap.types.String({qualifiedName: "ZIF_OAPI_SPECIFICATION_V3=>TY_PARAMETER-SCHEMA_REF"})}, "zif_oapi_specification_v3=>ty_parameter", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "zif_oapi_specification_v3=>ty_parameters");
     lt_parameters.set(is_operation.get().parameters);
-    for await (const unique36 of abap.statements.loop(is_operation.get().parameters_ref)) {
-      ls_parameter_ref.set(unique36);
+    for await (const unique37 of abap.statements.loop(is_operation.get().parameters_ref)) {
+      ls_parameter_ref.set(unique37);
       lv_name.set(ls_parameter_ref);
       abap.statements.replace({target: lv_name, all: false, with: abap.CharacterFactory.get(1, ''), of: abap.CharacterFactory.get(24, '#/components/parameters/')});
       abap.statements.readTable(this.#ms_specification.get().components.get().parameters,{into: ls_cparameter,
@@ -372084,8 +373736,8 @@ class zcl_oapi_generator_v2 {
         abap.statements.append({source: ls_cparameter, target: lt_parameters});
       }
     }
-    for await (const unique37 of abap.statements.loop(lt_parameters)) {
-      ls_parameter.set(unique37);
+    for await (const unique38 of abap.statements.loop(lt_parameters)) {
+      ls_parameter.set(unique38);
       lv_str.set(new abap.types.String().set(`      ${abap.templateFormatting(ls_parameter.get().abap_name)} TYPE ${abap.templateFormatting((await this.#find_parameter_type({is_parameter: ls_parameter, rv_type: 1})))}`));
       if (abap.compare.eq(ls_parameter.get().required, abap.builtin.abap_false)) {
         lv_str.set(abap.operators.concat(lv_str,new abap.types.String().set(` OPTIONAL`)));
@@ -372195,8 +373847,8 @@ class zcl_oapi_generator_v2 {
     "ref": new abap.types.String({qualifiedName: "ZIF_OAPI_SPECIFICATION_V3=>TY_OPERATION_RESPONSE-REF"})}, "zif_oapi_specification_v3=>ty_operation_response", undefined, {}, {}));
     lo_response_name.set(await (new abap.Classes['ZCL_OAPI_RESPONSE_NAME']()).constructor_());
     lv_typename.set(abap.operators.concat(abap.CharacterFactory.get(2, 'r_'),is_operation.get().abap_name));
-    for await (const unique38 of abap.statements.loop(is_operation.get().responses)) {
-      fs_ls_response_.assign(unique38);
+    for await (const unique39 of abap.statements.loop(is_operation.get().responses)) {
+      fs_ls_response_.assign(unique39);
       if (abap.compare.initial(fs_ls_response_.get().ref) === false) {
         lv_name.set(fs_ls_response_.get().ref);
         abap.statements.replace({target: lv_name, all: false, with: abap.CharacterFactory.get(1, ''), of: abap.CharacterFactory.get(23, '#/components/responses/')});
@@ -372209,18 +373861,21 @@ class zcl_oapi_generator_v2 {
           abap.statements.append({source: ls_cresponse.get().content, lines: true, target: fs_ls_response_.get().content});
         }
       }
-      for await (const unique39 of abap.statements.loop(fs_ls_response_.get().content)) {
-        ls_content.set(unique39);
+      for await (const unique40 of abap.statements.loop(fs_ls_response_.get().content)) {
+        ls_content.set(unique40);
         lv_response_name.set((await lo_response_name.get().generate_response_name({iv_content_type: ls_content.get().type, iv_code: fs_ls_response_.get().code, rv_name: 1})));
         if (abap.compare.eq(ls_content.get().schema_ref, abap.builtin.space)) {
-          lv_returning_type.set(ls_content.get().schema.get().zif_oapi_schema$type);
+          lv_returning_type.set((await ls_content.get().schema.get().zif_oapi_schema$get_simple_type({rv_simple: 1})));
+          if (abap.compare.initial(lv_returning_type) || abap.compare.eq(lv_returning_type, abap.CharacterFactory.get(3, 'any'))) {
+            lv_returning_type.set(abap.CharacterFactory.get(6, 'string'));
+          }
         } else {
           lv_returning_type.set(((await this.#find_schema({iv_name: ls_content.get().schema_ref, rs_schema: 1}))).get().abap_name);
         }
         rs_returning.get().type.set(abap.operators.concat(rs_returning.get().type,new abap.types.String().set(`           ${abap.templateFormatting(lv_response_name)} TYPE ${abap.templateFormatting(lv_returning_type)},\n`)));
       }
     }
-    rs_returning.get().type.set(abap.operators.concat(new abap.types.String().set(`  TYPES: BEGIN OF ${abap.templateFormatting(lv_typename)},\n`),abap.operators.concat(new abap.types.String().set(`           code          TYPE i,\n`),abap.operators.concat(new abap.types.String().set(`           reason        TYPE string,\n`),abap.operators.concat(new abap.types.String().set(`${abap.templateFormatting(rs_returning.get().type)}`),new abap.types.String().set(`         END OF ${abap.templateFormatting(lv_typename)}.\n`))))));
+    rs_returning.get().type.set(abap.operators.concat([new abap.types.String().set(`  TYPES: BEGIN OF ${abap.templateFormatting(lv_typename)},\n`),new abap.types.String().set(`           code          TYPE i,\n`),new abap.types.String().set(`           reason        TYPE string,\n`),new abap.types.String().set(`${abap.templateFormatting(rs_returning.get().type)}`),new abap.types.String().set(`         END OF ${abap.templateFormatting(lv_typename)}.\n`)]));
     rs_returning.get().abap.set(abap.operators.concat(rs_returning.get().abap,new abap.types.String().set(`\n    RETURNING\n      VALUE(return) TYPE ${abap.templateFormatting(lv_typename)}`)));
     return rs_returning;
   }
@@ -372237,13 +373892,13 @@ class zcl_oapi_generator_v2 {
     let fs_ls_desc2_ = new abap.types.FieldSymbol(new abap.types.String({qualifiedName: "STRING"}));
     cv_info.set(abap.operators.concat(cv_info,new abap.types.String().set(`* Description:`)));
     abap.statements.split({source: iv_description, at: abap.Classes['CL_ABAP_CHAR_UTILITIES'].newline, table: lt_descr1});
-    for await (const unique40 of abap.statements.loop(lt_descr1)) {
-      fs_ls_desc1_.assign(unique40);
+    for await (const unique41 of abap.statements.loop(lt_descr1)) {
+      fs_ls_desc1_.assign(unique41);
       lt_descr2.clear();
       fs_ls_desc2_.unassign();
       lt_descr2.set((await this.#split_string({iv_size: abap.IntegerFactory.get(200), iv_input: fs_ls_desc1_, rt_output: 1})));
-      for await (const unique41 of abap.statements.loop(lt_descr2)) {
-        fs_ls_desc2_.assign(unique41);
+      for await (const unique42 of abap.statements.loop(lt_descr2)) {
+        fs_ls_desc2_.assign(unique42);
         if (abap.compare.eq(lv_first_time, abap.builtin.abap_false)) {
           cv_info.set(abap.operators.concat(cv_info,new abap.types.String().set(` ${abap.templateFormatting(fs_ls_desc2_)}\n`)));
           lv_first_time.set(abap.builtin.abap_true);
@@ -372268,9 +373923,9 @@ class zcl_oapi_generator_v2 {
     lv_size.set(abap.operators.div(abap.builtin.strlen({val: iv_input}),iv_size));
     lv_size_end.set(abap.operators.mod(abap.builtin.strlen({val: iv_input}),iv_size));
     const indexBackup1 = abap.builtin.sy.get().index.get();
-    const unique42 = lv_size.get();
-    for (let unique43 = 0; unique43 < unique42; unique43++) {
-      abap.builtin.sy.get().index.set(unique43 + 1);
+    const unique43 = lv_size.get();
+    for (let unique44 = 0; unique44 < unique43; unique44++) {
+      abap.builtin.sy.get().index.set(unique44 + 1);
       lv_substring.clear();
       lv_substring.set(abap.builtin.substring({val: iv_input, off: lv_pos, len: iv_size}));
       lv_pos.set(abap.operators.add(lv_pos,iv_size));
@@ -372334,11 +373989,17 @@ class zcl_oapi_graph {
   static ATTRIBUTES = {"MT_VERTICES": {"type": () => {return abap.types.TableFactory.construct(new abap.types.String({qualifiedName: "STRING"}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "");}, "visibility": "I", "is_constant": " ", "is_class": " "},
   "MT_EDGES": {"type": () => {return abap.types.TableFactory.construct(new abap.types.Structure({
   "from": new abap.types.String({qualifiedName: "ZCL_OAPI_GRAPH=>TY_EDGE-FROM"}),
-  "to": new abap.types.String({qualifiedName: "ZCL_OAPI_GRAPH=>TY_EDGE-TO"})}, "zcl_oapi_graph=>ty_edge", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "");}, "visibility": "I", "is_constant": " ", "is_class": " "}};
-  static METHODS = {"ADD_VERTEX": {"visibility": "U", "parameters": {"IV_VERTEX": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "StringType"}}},
+  "to": new abap.types.String({qualifiedName: "ZCL_OAPI_GRAPH=>TY_EDGE-TO"})}, "zcl_oapi_graph=>ty_edge", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "zcl_oapi_graph=>ty_edges");}, "visibility": "I", "is_constant": " ", "is_class": " "}};
+  static METHODS = {"REMOVE_CYCLES_DFS": {"visibility": "I", "parameters": {"IV_VERTEX": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "StringType"}, "CT_VISITED": {"type": () => {return abap.types.TableFactory.construct(new abap.types.String({qualifiedName: "STRING"}), {"withHeader":false,"keyType":"USER","primaryKey":{"name":"primary_key","type":"HASHED","isUnique":true,"keyFields":["TABLE_LINE"]},"secondary":[]}, "zcl_oapi_graph=>ty_strings");}, "is_optional": " ", "parm_kind": "C", "type_name": "TableType"}, "CT_STACK": {"type": () => {return abap.types.TableFactory.construct(new abap.types.String({qualifiedName: "STRING"}), {"withHeader":false,"keyType":"USER","primaryKey":{"name":"primary_key","type":"HASHED","isUnique":true,"keyFields":["TABLE_LINE"]},"secondary":[]}, "zcl_oapi_graph=>ty_strings");}, "is_optional": " ", "parm_kind": "C", "type_name": "TableType"}, "CT_REMOVED": {"type": () => {return abap.types.TableFactory.construct(new abap.types.Structure({
+  "from": new abap.types.String({qualifiedName: "ZCL_OAPI_GRAPH=>TY_EDGE-FROM"}),
+  "to": new abap.types.String({qualifiedName: "ZCL_OAPI_GRAPH=>TY_EDGE-TO"})}, "zcl_oapi_graph=>ty_edge", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "zcl_oapi_graph=>ty_edges");}, "is_optional": " ", "parm_kind": "C", "type_name": "TableType"}}},
+  "ADD_VERTEX": {"visibility": "U", "parameters": {"IV_VERTEX": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "StringType"}}},
   "ADD_EDGE": {"visibility": "U", "parameters": {"IV_FROM": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "StringType"}, "IV_TO": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "StringType"}}},
   "IS_EMPTY": {"visibility": "U", "parameters": {"RV_EMPTY": {"type": () => {return new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"});}, "is_optional": " ", "parm_kind": "R", "type_name": "CharacterType"}}},
   "POP": {"visibility": "U", "parameters": {"RV_NODE": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "R", "type_name": "StringType"}}},
+  "REMOVE_CYCLES": {"visibility": "U", "parameters": {"RT_REMOVED": {"type": () => {return abap.types.TableFactory.construct(new abap.types.Structure({
+  "from": new abap.types.String({qualifiedName: "ZCL_OAPI_GRAPH=>TY_EDGE-FROM"}),
+  "to": new abap.types.String({qualifiedName: "ZCL_OAPI_GRAPH=>TY_EDGE-TO"})}, "zcl_oapi_graph=>ty_edge", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "zcl_oapi_graph=>ty_edges");}, "is_optional": " ", "parm_kind": "R", "type_name": "TableType"}}},
   "DUMP": {"visibility": "U", "parameters": {}}};
   #mt_vertices;
   #mt_edges;
@@ -372347,17 +374008,19 @@ class zcl_oapi_graph {
     this.me.set(this);
     this.INTERNAL_ID = abap.internalIdCounter++;
     this.FRIENDS_ACCESS_INSTANCE = {
+      "remove_cycles_dfs": this.#remove_cycles_dfs.bind(this),
       "add_vertex": this.add_vertex.bind(this),
       "add_edge": this.add_edge.bind(this),
       "is_empty": this.is_empty.bind(this),
       "pop": this.pop.bind(this),
+      "remove_cycles": this.remove_cycles.bind(this),
       "dump": this.dump.bind(this),
     };
     this.#mt_vertices = abap.types.TableFactory.construct(new abap.types.String({qualifiedName: "STRING"}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "");
     this.FRIENDS_ACCESS_INSTANCE["mt_vertices"] = this.#mt_vertices;
     this.#mt_edges = abap.types.TableFactory.construct(new abap.types.Structure({
     "from": new abap.types.String({qualifiedName: "ZCL_OAPI_GRAPH=>TY_EDGE-FROM"}),
-    "to": new abap.types.String({qualifiedName: "ZCL_OAPI_GRAPH=>TY_EDGE-TO"})}, "zcl_oapi_graph=>ty_edge", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "");
+    "to": new abap.types.String({qualifiedName: "ZCL_OAPI_GRAPH=>TY_EDGE-TO"})}, "zcl_oapi_graph=>ty_edge", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "zcl_oapi_graph=>ty_edges");
     this.FRIENDS_ACCESS_INSTANCE["mt_edges"] = this.#mt_edges;
   }
   async constructor_(INPUT) {
@@ -372373,8 +374036,8 @@ class zcl_oapi_graph {
     let ls_edge = new abap.types.Structure({
     "from": new abap.types.String({qualifiedName: "ZCL_OAPI_GRAPH=>TY_EDGE-FROM"}),
     "to": new abap.types.String({qualifiedName: "ZCL_OAPI_GRAPH=>TY_EDGE-TO"})}, "zcl_oapi_graph=>ty_edge", undefined, {}, {});
-    for await (const unique85 of abap.statements.loop(this.#mt_edges)) {
-      ls_edge.set(unique85);
+    for await (const unique88 of abap.statements.loop(this.#mt_edges)) {
+      ls_edge.set(unique88);
       abap.statements.write(ls_edge.get().from,{newLine: true});
       abap.statements.write(abap.CharacterFactory.get(2, '->'));
       abap.statements.write(ls_edge.get().to);
@@ -372385,8 +374048,8 @@ class zcl_oapi_graph {
     let lv_vertex = new abap.types.String({qualifiedName: "STRING"});
     let lv_index = new abap.types.Integer({qualifiedName: "I"});
     abap.statements.assert(abap.compare.eq((await this.is_empty({rv_empty: 1})), abap.builtin.abap_false));
-    for await (const unique86 of abap.statements.loop(this.#mt_vertices)) {
-      lv_vertex.set(unique86);
+    for await (const unique89 of abap.statements.loop(this.#mt_vertices)) {
+      lv_vertex.set(unique89);
       lv_index.set(abap.builtin.sy.get().tabix);
       abap.statements.readTable(this.#mt_edges,{withKey: (i) => {return abap.compare.eq(i.to, lv_vertex);},
         withKeyValue: [{key: (i) => {return i.to}, value: lv_vertex}],
@@ -372402,6 +374065,73 @@ class zcl_oapi_graph {
     }
     abap.statements.assert(abap.compare.eq(abap.CharacterFactory.get(1, ''), abap.CharacterFactory.get(16, 'graph has cycles')));
     return rv_node;
+  }
+  async remove_cycles(INPUT) {
+    let rt_removed = abap.types.TableFactory.construct(new abap.types.Structure({
+    "from": new abap.types.String({qualifiedName: "ZCL_OAPI_GRAPH=>TY_EDGE-FROM"}),
+    "to": new abap.types.String({qualifiedName: "ZCL_OAPI_GRAPH=>TY_EDGE-TO"})}, "zcl_oapi_graph=>ty_edge", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "zcl_oapi_graph=>ty_edges");
+    let lv_vertex = new abap.types.String({qualifiedName: "STRING"});
+    let ls_edge = new abap.types.Structure({
+    "from": new abap.types.String({qualifiedName: "ZCL_OAPI_GRAPH=>TY_EDGE-FROM"}),
+    "to": new abap.types.String({qualifiedName: "ZCL_OAPI_GRAPH=>TY_EDGE-TO"})}, "zcl_oapi_graph=>ty_edge", undefined, {}, {});
+    let lt_visited = abap.types.TableFactory.construct(new abap.types.String({qualifiedName: "STRING"}), {"withHeader":false,"keyType":"USER","primaryKey":{"name":"primary_key","type":"HASHED","isUnique":true,"keyFields":["TABLE_LINE"]},"secondary":[]}, "zcl_oapi_graph=>ty_strings");
+    let lt_stack = abap.types.TableFactory.construct(new abap.types.String({qualifiedName: "STRING"}), {"withHeader":false,"keyType":"USER","primaryKey":{"name":"primary_key","type":"HASHED","isUnique":true,"keyFields":["TABLE_LINE"]},"secondary":[]}, "zcl_oapi_graph=>ty_strings");
+    for await (const unique90 of abap.statements.loop(this.#mt_vertices)) {
+      lv_vertex.set(unique90);
+      abap.statements.readTable(lt_visited,{withTableKey: true,
+        withKey: (i) => {return abap.compare.eq(i.table_line, lv_vertex);},
+        withKeyValue: [{key: (i) => {return i.table_line}, value: lv_vertex}],
+        usesTableLine: true,
+        withKeySimple: {"table_line": lv_vertex}});
+      if (abap.compare.eq(abap.builtin.sy.get().subrc, abap.IntegerFactory.get(0))) {
+        continue;
+      }
+      await this.#remove_cycles_dfs({iv_vertex: lv_vertex, ct_visited: lt_visited, ct_stack: lt_stack, ct_removed: rt_removed});
+    }
+    for await (const unique91 of abap.statements.loop(rt_removed)) {
+      ls_edge.set(unique91);
+      await abap.statements.deleteInternal(this.#mt_edges,{where: async (I) => {return abap.compare.eq(I.from, ls_edge.get().from) && abap.compare.eq(I.to, ls_edge.get().to);}});
+    }
+    return rt_removed;
+  }
+  async #remove_cycles_dfs(INPUT) {
+    let iv_vertex = INPUT?.iv_vertex;
+    if (iv_vertex?.getQualifiedName === undefined || iv_vertex.getQualifiedName() !== "STRING") { iv_vertex = undefined; }
+    if (iv_vertex === undefined) { iv_vertex = new abap.types.String({qualifiedName: "STRING"}).set(INPUT.iv_vertex); }
+    let ct_visited = abap.types.TableFactory.construct(new abap.types.String({qualifiedName: "STRING"}), {"withHeader":false,"keyType":"USER","primaryKey":{"name":"primary_key","type":"HASHED","isUnique":true,"keyFields":["TABLE_LINE"]},"secondary":[]}, "zcl_oapi_graph=>ty_strings");
+    if (INPUT && INPUT.ct_visited) {ct_visited = INPUT.ct_visited;}
+    let ct_stack = abap.types.TableFactory.construct(new abap.types.String({qualifiedName: "STRING"}), {"withHeader":false,"keyType":"USER","primaryKey":{"name":"primary_key","type":"HASHED","isUnique":true,"keyFields":["TABLE_LINE"]},"secondary":[]}, "zcl_oapi_graph=>ty_strings");
+    if (INPUT && INPUT.ct_stack) {ct_stack = INPUT.ct_stack;}
+    let ct_removed = abap.types.TableFactory.construct(new abap.types.Structure({
+    "from": new abap.types.String({qualifiedName: "ZCL_OAPI_GRAPH=>TY_EDGE-FROM"}),
+    "to": new abap.types.String({qualifiedName: "ZCL_OAPI_GRAPH=>TY_EDGE-TO"})}, "zcl_oapi_graph=>ty_edge", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "zcl_oapi_graph=>ty_edges");
+    if (INPUT && INPUT.ct_removed) {ct_removed = INPUT.ct_removed;}
+    let ls_edge = new abap.types.Structure({
+    "from": new abap.types.String({qualifiedName: "ZCL_OAPI_GRAPH=>TY_EDGE-FROM"}),
+    "to": new abap.types.String({qualifiedName: "ZCL_OAPI_GRAPH=>TY_EDGE-TO"})}, "zcl_oapi_graph=>ty_edge", undefined, {}, {});
+    abap.statements.insertInternal({data: iv_vertex, table: ct_visited});
+    abap.statements.insertInternal({data: iv_vertex, table: ct_stack});
+    for await (const unique92 of abap.statements.loop(this.#mt_edges,{where: async (I) => {return abap.compare.eq(I.from, iv_vertex);},topEquals: {"from": iv_vertex}})) {
+      ls_edge.set(unique92);
+      abap.statements.readTable(ct_stack,{withTableKey: true,
+        withKey: (i) => {return abap.compare.eq(i.table_line, ls_edge.get().to);},
+        withKeyValue: [{key: (i) => {return i.table_line}, value: ls_edge.get().to}],
+        usesTableLine: true,
+        withKeySimple: {"table_line": ls_edge.get().to}});
+      if (abap.compare.eq(abap.builtin.sy.get().subrc, abap.IntegerFactory.get(0))) {
+        abap.statements.append({source: ls_edge, target: ct_removed});
+        continue;
+      }
+      abap.statements.readTable(ct_visited,{withTableKey: true,
+        withKey: (i) => {return abap.compare.eq(i.table_line, ls_edge.get().to);},
+        withKeyValue: [{key: (i) => {return i.table_line}, value: ls_edge.get().to}],
+        usesTableLine: true,
+        withKeySimple: {"table_line": ls_edge.get().to}});
+      if (abap.compare.ne(abap.builtin.sy.get().subrc, abap.IntegerFactory.get(0))) {
+        await this.#remove_cycles_dfs({iv_vertex: ls_edge.get().to, ct_visited: ct_visited, ct_stack: ct_stack, ct_removed: ct_removed});
+      }
+    }
+    await abap.statements.deleteInternal(ct_stack,{where: async (I) => {return abap.compare.eq(I.table_line, iv_vertex);}});
   }
   async add_vertex(INPUT) {
     let iv_vertex = INPUT?.iv_vertex;
@@ -372451,6 +374181,10 @@ abap.Classes['ZCL_OAPI_GRAPH'] = zcl_oapi_graph;
 zcl_oapi_graph.ty_edge = new abap.types.Structure({
 "from": new abap.types.String({qualifiedName: "ZCL_OAPI_GRAPH=>TY_EDGE-FROM"}),
 "to": new abap.types.String({qualifiedName: "ZCL_OAPI_GRAPH=>TY_EDGE-TO"})}, "zcl_oapi_graph=>ty_edge", undefined, {}, {});
+zcl_oapi_graph.ty_edges = abap.types.TableFactory.construct(new abap.types.Structure({
+"from": new abap.types.String({qualifiedName: "ZCL_OAPI_GRAPH=>TY_EDGE-FROM"}),
+"to": new abap.types.String({qualifiedName: "ZCL_OAPI_GRAPH=>TY_EDGE-TO"})}, "zcl_oapi_graph=>ty_edge", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "zcl_oapi_graph=>ty_edges");
+zcl_oapi_graph.ty_strings = abap.types.TableFactory.construct(new abap.types.String({qualifiedName: "STRING"}), {"withHeader":false,"keyType":"USER","primaryKey":{"name":"primary_key","type":"HASHED","isUnique":true,"keyFields":["TABLE_LINE"]},"secondary":[]}, "zcl_oapi_graph=>ty_strings");
 
 __webpack_async_result__();
 } catch(e) { __webpack_async_result__(e); } }, 1);
@@ -372477,11 +374211,12 @@ class zcl_oapi_json {
   static INTERNAL_TYPE = 'CLAS';
   static INTERNAL_NAME = 'ZCL_OAPI_JSON';
   static IMPLEMENTED_INTERFACES = [];
-  static ATTRIBUTES = {"MT_DATA": {"type": () => {return abap.types.TableFactory.construct(new abap.types.Structure({
-  "parent": new abap.types.String({qualifiedName: "TY_DATA-PARENT"}),
-  "name": new abap.types.String({qualifiedName: "TY_DATA-NAME"}),
-  "full_name": new abap.types.String({qualifiedName: "TY_DATA-FULL_NAME"}),
-  "value": new abap.types.String({qualifiedName: "TY_DATA-VALUE"})}, "ty_data", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "ty_data_tt");}, "visibility": "I", "is_constant": " ", "is_class": " "}};
+  static ATTRIBUTES = {"MT_VALUES": {"type": () => {return abap.types.TableFactory.construct(new abap.types.Structure({
+  "full_name": new abap.types.String({qualifiedName: "ZCL_OAPI_JSON=>TY_VALUE-FULL_NAME"}),
+  "value": new abap.types.String({qualifiedName: "ZCL_OAPI_JSON=>TY_VALUE-VALUE"})}, "zcl_oapi_json=>ty_value", undefined, {}, {}), {"withHeader":false,"keyType":"USER","primaryKey":{"name":"primary_key","type":"HASHED","isUnique":true,"keyFields":["FULL_NAME"]},"secondary":[]}, "");}, "visibility": "I", "is_constant": " ", "is_class": " "},
+  "MT_MEMBERS": {"type": () => {return abap.types.TableFactory.construct(new abap.types.Structure({
+  "parent": new abap.types.String({qualifiedName: "ZCL_OAPI_JSON=>TY_MEMBERS-PARENT"}),
+  "members": abap.types.TableFactory.construct(new abap.types.String({qualifiedName: "STRING"}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"isUnique":false,"type":"STANDARD","keyFields":[],"name":"primary_key"},"secondary":[]}, "STRING_TABLE")}, "zcl_oapi_json=>ty_members", undefined, {}, {}), {"withHeader":false,"keyType":"USER","primaryKey":{"name":"primary_key","type":"HASHED","isUnique":true,"keyFields":["PARENT"]},"secondary":[]}, "");}, "visibility": "I", "is_constant": " ", "is_class": " "}};
   static METHODS = {"CONSTRUCTOR": {"visibility": "U", "parameters": {"IV_JSON": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "StringType"}}},
   "VALUE_BOOLEAN": {"visibility": "U", "parameters": {"RV_VALUE": {"type": () => {return new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"});}, "is_optional": " ", "parm_kind": "R", "type_name": "CharacterType"}, "IV_PATH": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "StringType"}}},
   "VALUE_INTEGER": {"visibility": "U", "parameters": {"RV_VALUE": {"type": () => {return new abap.types.Integer({qualifiedName: "I"});}, "is_optional": " ", "parm_kind": "R", "type_name": "IntegerType"}, "IV_PATH": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "StringType"}}},
@@ -372489,7 +374224,8 @@ class zcl_oapi_json {
   "VALUE_STRING": {"visibility": "U", "parameters": {"RV_VALUE": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "R", "type_name": "StringType"}, "IV_PATH": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "StringType"}}},
   "EXISTS": {"visibility": "U", "parameters": {"RV_EXISTS": {"type": () => {return new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"});}, "is_optional": " ", "parm_kind": "R", "type_name": "CharacterType"}, "IV_PATH": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "StringType"}}},
   "MEMBERS": {"visibility": "U", "parameters": {"RT_MEMBERS": {"type": () => {return abap.types.TableFactory.construct(new abap.types.String({qualifiedName: "STRING"}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"isUnique":false,"type":"STANDARD","keyFields":[],"name":"primary_key"},"secondary":[]}, "STRING_TABLE");}, "is_optional": " ", "parm_kind": "R", "type_name": "TableType"}, "IV_PATH": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "StringType"}}}};
-  #mt_data;
+  #mt_values;
+  #mt_members;
   constructor() {
     this.me = new abap.types.ABAPObject();
     this.me.set(this);
@@ -372502,20 +374238,59 @@ class zcl_oapi_json {
       "exists": this.exists.bind(this),
       "members": this.members.bind(this),
     };
-    this.#mt_data = abap.types.TableFactory.construct(new abap.types.Structure({
-    "parent": new abap.types.String({qualifiedName: "TY_DATA-PARENT"}),
-    "name": new abap.types.String({qualifiedName: "TY_DATA-NAME"}),
-    "full_name": new abap.types.String({qualifiedName: "TY_DATA-FULL_NAME"}),
-    "value": new abap.types.String({qualifiedName: "TY_DATA-VALUE"})}, "ty_data", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "ty_data_tt");
-    this.FRIENDS_ACCESS_INSTANCE["mt_data"] = this.#mt_data;
+    this.#mt_values = abap.types.TableFactory.construct(new abap.types.Structure({
+    "full_name": new abap.types.String({qualifiedName: "ZCL_OAPI_JSON=>TY_VALUE-FULL_NAME"}),
+    "value": new abap.types.String({qualifiedName: "ZCL_OAPI_JSON=>TY_VALUE-VALUE"})}, "zcl_oapi_json=>ty_value", undefined, {}, {}), {"withHeader":false,"keyType":"USER","primaryKey":{"name":"primary_key","type":"HASHED","isUnique":true,"keyFields":["FULL_NAME"]},"secondary":[]}, "");
+    this.FRIENDS_ACCESS_INSTANCE["mt_values"] = this.#mt_values;
+    this.#mt_members = abap.types.TableFactory.construct(new abap.types.Structure({
+    "parent": new abap.types.String({qualifiedName: "ZCL_OAPI_JSON=>TY_MEMBERS-PARENT"}),
+    "members": abap.types.TableFactory.construct(new abap.types.String({qualifiedName: "STRING"}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"isUnique":false,"type":"STANDARD","keyFields":[],"name":"primary_key"},"secondary":[]}, "STRING_TABLE")}, "zcl_oapi_json=>ty_members", undefined, {}, {}), {"withHeader":false,"keyType":"USER","primaryKey":{"name":"primary_key","type":"HASHED","isUnique":true,"keyFields":["PARENT"]},"secondary":[]}, "");
+    this.FRIENDS_ACCESS_INSTANCE["mt_members"] = this.#mt_members;
   }
   async constructor_(INPUT) {
     let iv_json = INPUT?.iv_json;
     if (iv_json?.getQualifiedName === undefined || iv_json.getQualifiedName() !== "STRING") { iv_json = undefined; }
     if (iv_json === undefined) { iv_json = new abap.types.String({qualifiedName: "STRING"}).set(INPUT.iv_json); }
     let lo_parser = new abap.types.ABAPObject({qualifiedName: "LCL_PARSER", RTTIName: "\\CLASS-POOL=ZCL_OAPI_JSON\\CLASS=LCL_PARSER"});
+    let lt_data = abap.types.TableFactory.construct(new abap.types.Structure({
+    "parent": new abap.types.String({qualifiedName: "TY_DATA-PARENT"}),
+    "name": new abap.types.String({qualifiedName: "TY_DATA-NAME"}),
+    "full_name": new abap.types.String({qualifiedName: "TY_DATA-FULL_NAME"}),
+    "value": new abap.types.String({qualifiedName: "TY_DATA-VALUE"})}, "ty_data", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "ty_data_tt");
+    let ls_data = new abap.types.Structure({
+    "parent": new abap.types.String({qualifiedName: "TY_DATA-PARENT"}),
+    "name": new abap.types.String({qualifiedName: "TY_DATA-NAME"}),
+    "full_name": new abap.types.String({qualifiedName: "TY_DATA-FULL_NAME"}),
+    "value": new abap.types.String({qualifiedName: "TY_DATA-VALUE"})}, "ty_data", undefined, {}, {});
+    let ls_value = new abap.types.Structure({
+    "full_name": new abap.types.String({qualifiedName: "ZCL_OAPI_JSON=>TY_VALUE-FULL_NAME"}),
+    "value": new abap.types.String({qualifiedName: "ZCL_OAPI_JSON=>TY_VALUE-VALUE"})}, "zcl_oapi_json=>ty_value", undefined, {}, {});
+    let ls_members = new abap.types.Structure({
+    "parent": new abap.types.String({qualifiedName: "ZCL_OAPI_JSON=>TY_MEMBERS-PARENT"}),
+    "members": abap.types.TableFactory.construct(new abap.types.String({qualifiedName: "STRING"}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"isUnique":false,"type":"STANDARD","keyFields":[],"name":"primary_key"},"secondary":[]}, "STRING_TABLE")}, "zcl_oapi_json=>ty_members", undefined, {}, {});
+    let fs_ls_members_ = new abap.types.FieldSymbol(new abap.types.Structure({
+    "parent": new abap.types.String({qualifiedName: "ZCL_OAPI_JSON=>TY_MEMBERS-PARENT"}),
+    "members": abap.types.TableFactory.construct(new abap.types.String({qualifiedName: "STRING"}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"isUnique":false,"type":"STANDARD","keyFields":[],"name":"primary_key"},"secondary":[]}, "STRING_TABLE")}, "zcl_oapi_json=>ty_members", undefined, {}, {}));
     lo_parser.set(await (new abap.Classes['CLAS-ZCL_OAPI_JSON-LCL_PARSER']()).constructor_());
-    this.#mt_data.set((await lo_parser.get().parse({iv_json: iv_json, rt_data: 1})));
+    lt_data.set((await lo_parser.get().parse({iv_json: iv_json, rt_data: 1})));
+    for await (const unique87 of abap.statements.loop(lt_data)) {
+      ls_data.set(unique87);
+      ls_value.get().full_name.set(ls_data.get().full_name);
+      ls_value.get().value.set(ls_data.get().value);
+      abap.statements.insertInternal({data: ls_value, table: this.#mt_values});
+      abap.statements.readTable(this.#mt_members,{withTableKey: true,
+        assigning: fs_ls_members_,
+        withKey: (i) => {return abap.compare.eq(i.parent, ls_data.get().parent);},
+        withKeyValue: [{key: (i) => {return i.parent}, value: ls_data.get().parent}],
+        usesTableLine: false,
+        withKeySimple: {"parent": ls_data.get().parent}});
+      if (abap.compare.ne(abap.builtin.sy.get().subrc, abap.IntegerFactory.get(0))) {
+        ls_members.clear();
+        ls_members.get().parent.set(ls_data.get().parent);
+        abap.statements.insertInternal({data: ls_members, assigning: fs_ls_members_, table: this.#mt_members});
+      }
+      abap.statements.append({source: ls_data.get().name, target: fs_ls_members_.get().members});
+    }
     return this;
   }
   async exists(INPUT) {
@@ -372523,7 +374298,8 @@ class zcl_oapi_json {
     let iv_path = INPUT?.iv_path;
     if (iv_path?.getQualifiedName === undefined || iv_path.getQualifiedName() !== "STRING") { iv_path = undefined; }
     if (iv_path === undefined) { iv_path = new abap.types.String({qualifiedName: "STRING"}).set(INPUT.iv_path); }
-    abap.statements.readTable(this.#mt_data,{withKey: (i) => {return abap.compare.eq(i.full_name, iv_path);},
+    abap.statements.readTable(this.#mt_values,{withTableKey: true,
+      withKey: (i) => {return abap.compare.eq(i.full_name, iv_path);},
       withKeyValue: [{key: (i) => {return i.full_name}, value: iv_path}],
       usesTableLine: false,
       withKeySimple: {"full_name": iv_path}});
@@ -372535,14 +374311,17 @@ class zcl_oapi_json {
     let iv_path = INPUT?.iv_path;
     if (iv_path?.getQualifiedName === undefined || iv_path.getQualifiedName() !== "STRING") { iv_path = undefined; }
     if (iv_path === undefined) { iv_path = new abap.types.String({qualifiedName: "STRING"}).set(INPUT.iv_path); }
-    let ls_data = new abap.types.Structure({
-    "parent": new abap.types.String({qualifiedName: "TY_DATA-PARENT"}),
-    "name": new abap.types.String({qualifiedName: "TY_DATA-NAME"}),
-    "full_name": new abap.types.String({qualifiedName: "TY_DATA-FULL_NAME"}),
-    "value": new abap.types.String({qualifiedName: "TY_DATA-VALUE"})}, "ty_data", undefined, {}, {});
-    for await (const unique84 of abap.statements.loop(this.#mt_data,{where: async (I) => {return abap.compare.eq(I.parent, iv_path);},topEquals: {"parent": iv_path}})) {
-      ls_data.set(unique84);
-      abap.statements.append({source: ls_data.get().name, target: rt_members});
+    let ls_members = new abap.types.Structure({
+    "parent": new abap.types.String({qualifiedName: "ZCL_OAPI_JSON=>TY_MEMBERS-PARENT"}),
+    "members": abap.types.TableFactory.construct(new abap.types.String({qualifiedName: "STRING"}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"isUnique":false,"type":"STANDARD","keyFields":[],"name":"primary_key"},"secondary":[]}, "STRING_TABLE")}, "zcl_oapi_json=>ty_members", undefined, {}, {});
+    abap.statements.readTable(this.#mt_members,{withTableKey: true,
+      into: ls_members,
+      withKey: (i) => {return abap.compare.eq(i.parent, iv_path);},
+      withKeyValue: [{key: (i) => {return i.parent}, value: iv_path}],
+      usesTableLine: false,
+      withKeySimple: {"parent": iv_path}});
+    if (abap.compare.eq(abap.builtin.sy.get().subrc, abap.IntegerFactory.get(0))) {
+      rt_members.set(ls_members.get().members);
     }
     return rt_members;
   }
@@ -372575,23 +374354,28 @@ class zcl_oapi_json {
     let iv_path = INPUT?.iv_path;
     if (iv_path?.getQualifiedName === undefined || iv_path.getQualifiedName() !== "STRING") { iv_path = undefined; }
     if (iv_path === undefined) { iv_path = new abap.types.String({qualifiedName: "STRING"}).set(INPUT.iv_path); }
-    let ls_data = new abap.types.Structure({
-    "parent": new abap.types.String({qualifiedName: "TY_DATA-PARENT"}),
-    "name": new abap.types.String({qualifiedName: "TY_DATA-NAME"}),
-    "full_name": new abap.types.String({qualifiedName: "TY_DATA-FULL_NAME"}),
-    "value": new abap.types.String({qualifiedName: "TY_DATA-VALUE"})}, "ty_data", undefined, {}, {});
-    abap.statements.readTable(this.#mt_data,{into: ls_data,
+    let ls_value = new abap.types.Structure({
+    "full_name": new abap.types.String({qualifiedName: "ZCL_OAPI_JSON=>TY_VALUE-FULL_NAME"}),
+    "value": new abap.types.String({qualifiedName: "ZCL_OAPI_JSON=>TY_VALUE-VALUE"})}, "zcl_oapi_json=>ty_value", undefined, {}, {});
+    abap.statements.readTable(this.#mt_values,{withTableKey: true,
+      into: ls_value,
       withKey: (i) => {return abap.compare.eq(i.full_name, iv_path);},
       withKeyValue: [{key: (i) => {return i.full_name}, value: iv_path}],
       usesTableLine: false,
       withKeySimple: {"full_name": iv_path}});
     if (abap.compare.eq(abap.builtin.sy.get().subrc, abap.IntegerFactory.get(0))) {
-      rv_value.set(ls_data.get().value);
+      rv_value.set(ls_value.get().value);
     }
     return rv_value;
   }
 }
 abap.Classes['ZCL_OAPI_JSON'] = zcl_oapi_json;
+zcl_oapi_json.ty_value = new abap.types.Structure({
+"full_name": new abap.types.String({qualifiedName: "ZCL_OAPI_JSON=>TY_VALUE-FULL_NAME"}),
+"value": new abap.types.String({qualifiedName: "ZCL_OAPI_JSON=>TY_VALUE-VALUE"})}, "zcl_oapi_json=>ty_value", undefined, {}, {});
+zcl_oapi_json.ty_members = new abap.types.Structure({
+"parent": new abap.types.String({qualifiedName: "ZCL_OAPI_JSON=>TY_MEMBERS-PARENT"}),
+"members": abap.types.TableFactory.construct(new abap.types.String({qualifiedName: "STRING"}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"isUnique":false,"type":"STANDARD","keyFields":[],"name":"primary_key"},"secondary":[]}, "STRING_TABLE")}, "zcl_oapi_json=>ty_members", undefined, {}, {});
 
 __webpack_async_result__();
 } catch(e) { __webpack_async_result__(e); } }, 1);
@@ -372971,21 +374755,21 @@ class zcl_oapi_main {
     "abap_parser_method": new abap.types.String({qualifiedName: "ZIF_OAPI_SPECIFICATION_V3=>TY_COMPONENT_SCHEMA-ABAP_PARSER_METHOD"}),
     "abap_json_method": new abap.types.String({qualifiedName: "ZIF_OAPI_SPECIFICATION_V3=>TY_COMPONENT_SCHEMA-ABAP_JSON_METHOD"}),
     "schema": new abap.types.ABAPObject({qualifiedName: "ZIF_OAPI_SCHEMA", RTTIName: "\\INTERFACE=ZIF_OAPI_SCHEMA"})}, "zif_oapi_specification_v3=>ty_component_schema", undefined, {}, {});
-    rv_abap.set(abap.operators.concat(new abap.types.String().set(`CLASS ${abap.templateFormatting(this.#ms_input.get().class_name)} DEFINITION PUBLIC.\n`),abap.operators.concat(new abap.types.String().set(`* Generated by abap-openapi-client\n`),abap.operators.concat(new abap.types.String().set(`* ${abap.templateFormatting(this.#ms_specification.get().info.get().title)}, ${abap.templateFormatting(this.#ms_specification.get().info.get().version)}\n`),abap.operators.concat(new abap.types.String().set(`  PUBLIC SECTION.\n`),abap.operators.concat(new abap.types.String().set(`    INTERFACES ${abap.templateFormatting(this.#ms_input.get().interface_name)}.\n`),abap.operators.concat(new abap.types.String().set(`    METHODS constructor IMPORTING ii_client TYPE REF TO if_http_client.\n`),abap.operators.concat(new abap.types.String().set(`  PROTECTED SECTION.\n`),abap.operators.concat(new abap.types.String().set(`    DATA mi_client TYPE REF TO if_http_client.\n`),abap.operators.concat(new abap.types.String().set(`    DATA mo_json TYPE REF TO zcl_oapi_json.\n`),new abap.types.String().set(`    METHODS send_receive RETURNING VALUE(rv_code) TYPE i.\n`)))))))))));
-    for await (const unique44 of abap.statements.loop(this.#ms_specification.get().components.get().schemas)) {
-      ls_schema.set(unique44);
+    rv_abap.set(abap.operators.concat([new abap.types.String().set(`CLASS ${abap.templateFormatting(this.#ms_input.get().class_name)} DEFINITION PUBLIC.\n`),new abap.types.String().set(`* Generated by abap-openapi-client\n`),new abap.types.String().set(`* ${abap.templateFormatting(this.#ms_specification.get().info.get().title)}, ${abap.templateFormatting(this.#ms_specification.get().info.get().version)}\n`),new abap.types.String().set(`  PUBLIC SECTION.\n`),new abap.types.String().set(`    INTERFACES ${abap.templateFormatting(this.#ms_input.get().interface_name)}.\n`),new abap.types.String().set(`    METHODS constructor IMPORTING ii_client TYPE REF TO if_http_client.\n`),new abap.types.String().set(`  PROTECTED SECTION.\n`),new abap.types.String().set(`    DATA mi_client TYPE REF TO if_http_client.\n`),new abap.types.String().set(`    DATA mo_json TYPE REF TO zcl_oapi_json.\n`),new abap.types.String().set(`    METHODS send_receive RETURNING VALUE(rv_code) TYPE i.\n`)]));
+    for await (const unique45 of abap.statements.loop(this.#ms_specification.get().components.get().schemas)) {
+      ls_schema.set(unique45);
       if (abap.compare.initial(ls_schema.get().abap_parser_method) === false) {
-        rv_abap.set(abap.operators.concat(rv_abap,abap.operators.concat(new abap.types.String().set(`    METHODS ${abap.templateFormatting(ls_schema.get().abap_parser_method)}\n`),abap.operators.concat(new abap.types.String().set(`      IMPORTING iv_prefix TYPE string\n`),abap.operators.concat(new abap.types.String().set(`      RETURNING VALUE(${abap.templateFormatting(ls_schema.get().abap_name)}) TYPE ${abap.templateFormatting(this.#ms_input.get().interface_name)}=>${abap.templateFormatting(ls_schema.get().abap_name)}\n`),new abap.types.String().set(`      RAISING cx_static_check.\n`))))));
+        rv_abap.set(abap.operators.concat([rv_abap,new abap.types.String().set(`    METHODS ${abap.templateFormatting(ls_schema.get().abap_parser_method)}\n`),new abap.types.String().set(`      IMPORTING iv_prefix TYPE string\n`),new abap.types.String().set(`      RETURNING VALUE(${abap.templateFormatting(ls_schema.get().abap_name)}) TYPE ${abap.templateFormatting(this.#ms_input.get().interface_name)}=>${abap.templateFormatting(ls_schema.get().abap_name)}\n`),new abap.types.String().set(`      RAISING cx_static_check.\n`)]));
       }
       if (abap.compare.initial(ls_schema.get().abap_json_method) === false) {
-        rv_abap.set(abap.operators.concat(rv_abap,abap.operators.concat(new abap.types.String().set(`    METHODS ${abap.templateFormatting(ls_schema.get().abap_json_method)}\n`),abap.operators.concat(new abap.types.String().set(`      IMPORTING data TYPE ${abap.templateFormatting(this.#ms_input.get().interface_name)}=>${abap.templateFormatting(ls_schema.get().abap_name)}\n`),abap.operators.concat(new abap.types.String().set(`      RETURNING VALUE(json) TYPE string\n`),new abap.types.String().set(`      RAISING cx_static_check.\n`))))));
+        rv_abap.set(abap.operators.concat([rv_abap,new abap.types.String().set(`    METHODS ${abap.templateFormatting(ls_schema.get().abap_json_method)}\n`),new abap.types.String().set(`      IMPORTING data TYPE ${abap.templateFormatting(this.#ms_input.get().interface_name)}=>${abap.templateFormatting(ls_schema.get().abap_name)}\n`),new abap.types.String().set(`      RETURNING VALUE(json) TYPE string\n`),new abap.types.String().set(`      RAISING cx_static_check.\n`)]));
       }
     }
-    rv_abap.set(abap.operators.concat(rv_abap,abap.operators.concat(new abap.types.String().set(`ENDCLASS.\n\n`),abap.operators.concat(new abap.types.String().set(`CLASS ${abap.templateFormatting(this.#ms_input.get().class_name)} IMPLEMENTATION.\n`),abap.operators.concat(new abap.types.String().set(`  METHOD constructor.\n`),abap.operators.concat(new abap.types.String().set(`    mi_client = ii_client.\n`),abap.operators.concat(new abap.types.String().set(`  ENDMETHOD.\n\n`),abap.operators.concat(new abap.types.String().set(`  METHOD send_receive.\n`),abap.operators.concat(new abap.types.String().set(`    mi_client->send( ).\n`),abap.operators.concat(new abap.types.String().set(`    mi_client->receive( ).\n`),abap.operators.concat(new abap.types.String().set(`    mi_client->response->get_status( IMPORTING code = rv_code ).\n`),new abap.types.String().set(`  ENDMETHOD.\n\n`))))))))))));
-    rv_abap.set(abap.operators.concat(rv_abap,abap.operators.concat((await this.#dump_parser_methods({rv_abap: 1})),(await this.#dump_json_methods({rv_abap: 1})))));
-    for await (const unique45 of abap.statements.loop(this.#ms_specification.get().operations,{where: async (I) => {return abap.compare.eq(I.deprecated, abap.builtin.abap_false);},topEquals: {"deprecated": abap.builtin.abap_false}})) {
-      ls_operation.set(unique45);
-      rv_abap.set(abap.operators.concat(rv_abap,abap.operators.concat(new abap.types.String().set(`  METHOD ${abap.templateFormatting(this.#ms_input.get().interface_name)}~${abap.templateFormatting(ls_operation.get().abap_name)}.\n`),abap.operators.concat((await this.#operation_implementation({is_operation: ls_operation, rv_abap: 1})),new abap.types.String().set(`  ENDMETHOD.\n\n`)))));
+    rv_abap.set(abap.operators.concat([rv_abap,new abap.types.String().set(`ENDCLASS.\n\n`),new abap.types.String().set(`CLASS ${abap.templateFormatting(this.#ms_input.get().class_name)} IMPLEMENTATION.\n`),new abap.types.String().set(`  METHOD constructor.\n`),new abap.types.String().set(`    mi_client = ii_client.\n`),new abap.types.String().set(`  ENDMETHOD.\n\n`),new abap.types.String().set(`  METHOD send_receive.\n`),new abap.types.String().set(`    mi_client->send( ).\n`),new abap.types.String().set(`    mi_client->receive( ).\n`),new abap.types.String().set(`    mi_client->response->get_status( IMPORTING code = rv_code ).\n`),new abap.types.String().set(`  ENDMETHOD.\n\n`)]));
+    rv_abap.set(abap.operators.concat([rv_abap,(await this.#dump_parser_methods({rv_abap: 1})),(await this.#dump_json_methods({rv_abap: 1}))]));
+    for await (const unique46 of abap.statements.loop(this.#ms_specification.get().operations,{where: async (I) => {return abap.compare.eq(I.deprecated, abap.builtin.abap_false);},topEquals: {"deprecated": abap.builtin.abap_false}})) {
+      ls_operation.set(unique46);
+      rv_abap.set(abap.operators.concat([rv_abap,new abap.types.String().set(`  METHOD ${abap.templateFormatting(this.#ms_input.get().interface_name)}~${abap.templateFormatting(ls_operation.get().abap_name)}.\n`),(await this.#operation_implementation({is_operation: ls_operation, rv_abap: 1})),new abap.types.String().set(`  ENDMETHOD.\n\n`)]));
     }
     rv_abap.set(abap.operators.concat(rv_abap,new abap.types.String().set(`ENDCLASS.\n`)));
     return rv_abap;
@@ -372998,8 +374782,8 @@ class zcl_oapi_main {
     "abap_parser_method": new abap.types.String({qualifiedName: "ZIF_OAPI_SPECIFICATION_V3=>TY_COMPONENT_SCHEMA-ABAP_PARSER_METHOD"}),
     "abap_json_method": new abap.types.String({qualifiedName: "ZIF_OAPI_SPECIFICATION_V3=>TY_COMPONENT_SCHEMA-ABAP_JSON_METHOD"}),
     "schema": new abap.types.ABAPObject({qualifiedName: "ZIF_OAPI_SCHEMA", RTTIName: "\\INTERFACE=ZIF_OAPI_SCHEMA"})}, "zif_oapi_specification_v3=>ty_component_schema", undefined, {}, {});
-    for await (const unique46 of abap.statements.loop(this.#ms_specification.get().components.get().schemas,{where: async (I) => {return abap.compare.initial(I.abap_json_method) === false;}})) {
-      ls_schema.set(unique46);
+    for await (const unique47 of abap.statements.loop(this.#ms_specification.get().components.get().schemas,{where: async (I) => {return abap.compare.initial(I.abap_json_method) === false;}})) {
+      ls_schema.set(unique47);
       rv_abap.set(abap.operators.concat(rv_abap,new abap.types.String().set(`  METHOD ${abap.templateFormatting(ls_schema.get().abap_json_method)}.\n`)));
       rv_abap.set(abap.operators.concat(rv_abap,(await this.#dump_json({ii_schema: ls_schema.get().schema, rv_abap: 1}))));
       rv_abap.set(abap.operators.concat(rv_abap,new abap.types.String().set(`  ENDMETHOD.\n\n`)));
@@ -373016,18 +374800,18 @@ class zcl_oapi_main {
     "abap_name": new abap.types.String({qualifiedName: "ZIF_OAPI_SCHEMA=>TY_PROPERTY-ABAP_NAME"}),
     "ref": new abap.types.String({qualifiedName: "ZIF_OAPI_SCHEMA=>TY_PROPERTY-REF"}),
     "schema": new abap.types.ABAPObject({qualifiedName: "ZIF_OAPI_SCHEMA", RTTIName: "\\INTERFACE=ZIF_OAPI_SCHEMA"})}, "zif_oapi_schema=>ty_property", undefined, {}, {});
-    let unique47 = ii_schema.get().zif_oapi_schema$type;
-    if (abap.compare.eq(unique47, abap.CharacterFactory.get(6, 'object'))) {
+    let unique48 = ii_schema.get().zif_oapi_schema$type;
+    if (abap.compare.eq(unique48, abap.CharacterFactory.get(6, 'object'))) {
       rv_abap.set(abap.operators.concat(rv_abap,new abap.types.String().set(`    json = json && '\{'.\n`)));
-      for await (const unique48 of abap.statements.loop(ii_schema.get().zif_oapi_schema$properties)) {
-        ls_property.set(unique48);
+      for await (const unique49 of abap.statements.loop(ii_schema.get().zif_oapi_schema$properties)) {
+        ls_property.set(unique49);
         if (abap.compare.initial(ls_property.get().schema) === false && abap.compare.eq((await ls_property.get().schema.get().zif_oapi_schema$is_simple_type({rv_simple: 1})), abap.builtin.abap_true)) {
-          let unique49 = ls_property.get().schema.get().zif_oapi_schema$type;
-          if (abap.compare.eq(unique49, abap.CharacterFactory.get(7, 'integer'))) {
+          let unique50 = ls_property.get().schema.get().zif_oapi_schema$type;
+          if (abap.compare.eq(unique50, abap.CharacterFactory.get(7, 'integer'))) {
             rv_abap.set(abap.operators.concat(rv_abap,new abap.types.String().set(`    IF data-${abap.templateFormatting(ls_property.get().abap_name)} <> cl_abap_math=>max_int4.\n`)));
             rv_abap.set(abap.operators.concat(rv_abap,new abap.types.String().set(`      json = json && \|"${abap.templateFormatting(ls_property.get().name)}": \{ data-${abap.templateFormatting(ls_property.get().abap_name)} \},\|.\n`)));
             rv_abap.set(abap.operators.concat(rv_abap,new abap.types.String().set(`    ENDIF.\n`)));
-          } else if (abap.compare.eq(unique49, abap.CharacterFactory.get(7, 'boolean'))) {
+          } else if (abap.compare.eq(unique50, abap.CharacterFactory.get(7, 'boolean'))) {
             rv_abap.set(abap.operators.concat(rv_abap,new abap.types.String().set(`    IF data-${abap.templateFormatting(ls_property.get().abap_name)} = abap_true.\n`)));
             rv_abap.set(abap.operators.concat(rv_abap,new abap.types.String().set(`      json = json && \|"${abap.templateFormatting(ls_property.get().name)}": true,\|.\n`)));
             rv_abap.set(abap.operators.concat(rv_abap,new abap.types.String().set(`    ELSEIF data-${abap.templateFormatting(ls_property.get().abap_name)} = abap_false.\n`)));
@@ -373042,7 +374826,7 @@ class zcl_oapi_main {
       }
       rv_abap.set(abap.operators.concat(rv_abap,new abap.types.String().set(`    json = substring( val = json off = 0 len = strlen( json ) - 1 ).\n`)));
       rv_abap.set(abap.operators.concat(rv_abap,new abap.types.String().set(`    json = json && '\}'.\n`)));
-    } else if (abap.compare.eq(unique47, abap.CharacterFactory.get(5, 'array'))) {
+    } else if (abap.compare.eq(unique48, abap.CharacterFactory.get(5, 'array'))) {
       rv_abap.set(abap.operators.concat(rv_abap,new abap.types.String().set(`    json = json && '['.\n`)));
       rv_abap.set(abap.operators.concat(rv_abap,new abap.types.String().set(`* todo, array\n`)));
       rv_abap.set(abap.operators.concat(rv_abap,new abap.types.String().set(`    json = json && ']'.\n`)));
@@ -373059,8 +374843,8 @@ class zcl_oapi_main {
     "abap_parser_method": new abap.types.String({qualifiedName: "ZIF_OAPI_SPECIFICATION_V3=>TY_COMPONENT_SCHEMA-ABAP_PARSER_METHOD"}),
     "abap_json_method": new abap.types.String({qualifiedName: "ZIF_OAPI_SPECIFICATION_V3=>TY_COMPONENT_SCHEMA-ABAP_JSON_METHOD"}),
     "schema": new abap.types.ABAPObject({qualifiedName: "ZIF_OAPI_SCHEMA", RTTIName: "\\INTERFACE=ZIF_OAPI_SCHEMA"})}, "zif_oapi_specification_v3=>ty_component_schema", undefined, {}, {});
-    for await (const unique50 of abap.statements.loop(this.#ms_specification.get().components.get().schemas,{where: async (I) => {return abap.compare.initial(I.abap_parser_method) === false;}})) {
-      ls_schema.set(unique50);
+    for await (const unique51 of abap.statements.loop(this.#ms_specification.get().components.get().schemas,{where: async (I) => {return abap.compare.initial(I.abap_parser_method) === false;}})) {
+      ls_schema.set(unique51);
       rv_abap.set(abap.operators.concat(rv_abap,new abap.types.String().set(`  METHOD ${abap.templateFormatting(ls_schema.get().abap_parser_method)}.\n`)));
       rv_abap.set(abap.operators.concat(rv_abap,(await this.#dump_parser({ii_schema: ls_schema.get().schema, iv_abap_name: ls_schema.get().abap_name, rv_abap: 1}))));
       rv_abap.set(abap.operators.concat(rv_abap,new abap.types.String().set(`  ENDMETHOD.\n\n`)));
@@ -373128,10 +374912,10 @@ class zcl_oapi_main {
     "abap_json_method": new abap.types.String({qualifiedName: "ZIF_OAPI_SPECIFICATION_V3=>TY_COMPONENT_SCHEMA-ABAP_JSON_METHOD"}),
     "schema": new abap.types.ABAPObject({qualifiedName: "ZIF_OAPI_SCHEMA", RTTIName: "\\INTERFACE=ZIF_OAPI_SCHEMA"})}, "zif_oapi_specification_v3=>ty_component_schema", undefined, {}, {});
     let lv_method = new abap.types.String({qualifiedName: "STRING"});
-    let unique51 = ii_schema.get().zif_oapi_schema$type;
-    if (abap.compare.eq(unique51, abap.CharacterFactory.get(6, 'object'))) {
-      for await (const unique52 of abap.statements.loop(ii_schema.get().zif_oapi_schema$properties)) {
-        ls_property.set(unique52);
+    let unique52 = ii_schema.get().zif_oapi_schema$type;
+    if (abap.compare.eq(unique52, abap.CharacterFactory.get(6, 'object'))) {
+      for await (const unique53 of abap.statements.loop(ii_schema.get().zif_oapi_schema$properties)) {
+        ls_property.set(unique53);
         if (abap.compare.initial(ls_property.get().schema) && abap.compare.initial(ls_property.get().ref) === false) {
           lv_method.set((await this.#find_parser_method({iv_name: ls_property.get().ref, rv_method: 1})));
           rv_abap.set(abap.operators.concat(rv_abap,new abap.types.String().set(`    ${abap.templateFormatting(iv_abap_name)}-${abap.templateFormatting(ls_property.get().abap_name)} = ${abap.templateFormatting(lv_method)}( iv_prefix && '${abap.templateFormatting(iv_hard_prefix)}/${abap.templateFormatting(ls_property.get().name)}' ).\n`)));
@@ -373142,19 +374926,19 @@ class zcl_oapi_main {
         } else if (abap.compare.eq(ls_property.get().schema.get().zif_oapi_schema$type, abap.CharacterFactory.get(7, 'boolean'))) {
           rv_abap.set(abap.operators.concat(rv_abap,new abap.types.String().set(`    ${abap.templateFormatting(iv_abap_name)}-${abap.templateFormatting(ls_property.get().abap_name)} = mo_json->value_boolean( iv_prefix && '${abap.templateFormatting(iv_hard_prefix)}/${abap.templateFormatting(ls_property.get().name)}' ).\n`)));
         } else if (abap.compare.eq(ls_property.get().schema.get().zif_oapi_schema$type, abap.CharacterFactory.get(6, 'object'))) {
-          rv_abap.set(abap.operators.concat(rv_abap,(await this.#dump_parser({ii_schema: ls_property.get().schema, iv_hard_prefix: abap.operators.concat(iv_hard_prefix,abap.operators.concat(abap.CharacterFactory.get(1, '/'),ls_property.get().name)), iv_abap_name: new abap.types.String().set(`${abap.templateFormatting(iv_abap_name)}-${abap.templateFormatting(ls_property.get().abap_name)}`), rv_abap: 1}))));
+          rv_abap.set(abap.operators.concat(rv_abap,(await this.#dump_parser({ii_schema: ls_property.get().schema, iv_hard_prefix: abap.operators.concat([iv_hard_prefix,abap.CharacterFactory.get(1, '/'),ls_property.get().name]), iv_abap_name: new abap.types.String().set(`${abap.templateFormatting(iv_abap_name)}-${abap.templateFormatting(ls_property.get().abap_name)}`), rv_abap: 1}))));
         } else {
           rv_abap.set(abap.operators.concat(rv_abap,new abap.types.String().set(`* todo, ${abap.templateFormatting(ls_property.get().schema.get().zif_oapi_schema$type)}, ${abap.templateFormatting(ls_property.get().abap_name)}\n`)));
         }
       }
-    } else if (abap.compare.eq(unique51, abap.CharacterFactory.get(5, 'array'))) {
+    } else if (abap.compare.eq(unique52, abap.CharacterFactory.get(5, 'array'))) {
       if (abap.compare.initial(ii_schema.get().zif_oapi_schema$items_ref) === false) {
         ls_schema.set((await this.#find_schema({iv_name: ii_schema.get().zif_oapi_schema$items_ref, rs_schema: 1})));
-        rv_abap.set(abap.operators.concat(rv_abap,abap.operators.concat(new abap.types.String().set(`    DATA lt_members TYPE string_table.\n`),abap.operators.concat(new abap.types.String().set(`    DATA lv_member LIKE LINE OF lt_members.\n`),abap.operators.concat(new abap.types.String().set(`    DATA ${abap.templateFormatting(ls_schema.get().abap_name)} TYPE ${abap.templateFormatting(this.#ms_input.get().interface_name)}=>${abap.templateFormatting(ls_schema.get().abap_name)}.\n`),abap.operators.concat(new abap.types.String().set(`    lt_members = mo_json->members( iv_prefix && '/' ).\n`),abap.operators.concat(new abap.types.String().set(`    LOOP AT lt_members INTO lv_member.\n`),abap.operators.concat(new abap.types.String().set(`      CLEAR ${abap.templateFormatting(ls_schema.get().abap_name)}.\n`),abap.operators.concat(new abap.types.String().set(`      ${abap.templateFormatting(ls_schema.get().abap_name)} = ${abap.templateFormatting(ls_schema.get().abap_parser_method)}( iv_prefix && '/' && lv_member ).\n`),abap.operators.concat(new abap.types.String().set(`      APPEND ${abap.templateFormatting(ls_schema.get().abap_name)} TO ${abap.templateFormatting(iv_abap_name)}.\n`),new abap.types.String().set(`    ENDLOOP.\n`)))))))))));
+        rv_abap.set(abap.operators.concat([rv_abap,new abap.types.String().set(`    DATA lt_members TYPE string_table.\n`),new abap.types.String().set(`    DATA lv_member LIKE LINE OF lt_members.\n`),new abap.types.String().set(`    DATA ${abap.templateFormatting(ls_schema.get().abap_name)} TYPE ${abap.templateFormatting(this.#ms_input.get().interface_name)}=>${abap.templateFormatting(ls_schema.get().abap_name)}.\n`),new abap.types.String().set(`    lt_members = mo_json->members( iv_prefix && '/' ).\n`),new abap.types.String().set(`    LOOP AT lt_members INTO lv_member.\n`),new abap.types.String().set(`      CLEAR ${abap.templateFormatting(ls_schema.get().abap_name)}.\n`),new abap.types.String().set(`      ${abap.templateFormatting(ls_schema.get().abap_name)} = ${abap.templateFormatting(ls_schema.get().abap_parser_method)}( iv_prefix && '/' && lv_member ).\n`),new abap.types.String().set(`      APPEND ${abap.templateFormatting(ls_schema.get().abap_name)} TO ${abap.templateFormatting(iv_abap_name)}.\n`),new abap.types.String().set(`    ENDLOOP.\n`)]));
       } else {
         rv_abap.set(abap.operators.concat(rv_abap,new abap.types.String().set(`* todo, handle type ${abap.templateFormatting(ii_schema.get().zif_oapi_schema$type)}, no item_ref\n`)));
       }
-    } else if (abap.compare.eq(unique51, abap.CharacterFactory.get(7, 'integer'))) {
+    } else if (abap.compare.eq(unique52, abap.CharacterFactory.get(7, 'integer'))) {
       rv_abap.set(abap.operators.concat(rv_abap,new abap.types.String().set(`    ${abap.templateFormatting(iv_abap_name)} = mo_json->value_integer( iv_prefix && '${abap.templateFormatting(iv_hard_prefix)}/${abap.templateFormatting(ls_property.get().name)}' ).\n`)));
     } else {
       rv_abap.set(abap.operators.concat(rv_abap,new abap.types.String().set(`* todo, handle type ${abap.templateFormatting(ii_schema.get().zif_oapi_schema$type)}\n`)));
@@ -373171,12 +374955,12 @@ class zcl_oapi_main {
     "schema": new abap.types.ABAPObject({qualifiedName: "ZIF_OAPI_SCHEMA", RTTIName: "\\INTERFACE=ZIF_OAPI_SCHEMA"})}, "zif_oapi_specification_v3=>ty_component_schema", undefined, {}, {});
     let lo_names = new abap.types.ABAPObject({qualifiedName: "ZCL_OAPI_ABAP_NAME", RTTIName: "\\CLASS=ZCL_OAPI_ABAP_NAME"});
     lo_names.set(await (new abap.Classes['ZCL_OAPI_ABAP_NAME']()).constructor_());
-    for await (const unique53 of abap.statements.loop(this.#ms_specification.get().components.get().schemas)) {
-      ls_schema.set(unique53);
-      await lo_names.get().add_used({iv_name: ls_schema.get().abap_name});
-    }
     for await (const unique54 of abap.statements.loop(this.#ms_specification.get().components.get().schemas)) {
       ls_schema.set(unique54);
+      await lo_names.get().add_used({iv_name: ls_schema.get().abap_name});
+    }
+    for await (const unique55 of abap.statements.loop(this.#ms_specification.get().components.get().schemas)) {
+      ls_schema.set(unique55);
       rv_abap.set(abap.operators.concat(rv_abap,new abap.types.String().set(`* Component schema: ${abap.templateFormatting(ls_schema.get().name)}, ${abap.templateFormatting(ls_schema.get().schema.get().zif_oapi_schema$type)}\n`)));
       rv_abap.set(abap.operators.concat(rv_abap,(await ls_schema.get().schema.get().zif_oapi_schema$build_type_definition({iv_name: ls_schema.get().abap_name, io_names: lo_names, it_refs: this.#ms_specification.get().components.get().schemas, rv_abap: 1}))));
       rv_abap.set(abap.operators.concat(rv_abap,new abap.types.String().set(`\n`)));
@@ -373244,16 +375028,16 @@ class zcl_oapi_main {
     "schema": new abap.types.ABAPObject({qualifiedName: "ZIF_OAPI_SCHEMA", RTTIName: "\\INTERFACE=ZIF_OAPI_SCHEMA"})}, "zif_oapi_specification_v3=>ty_component_schema", undefined, {}, {});
     let lv_required = new abap.types.String({qualifiedName: "STRING"});
     let lv_extra = new abap.types.String({qualifiedName: "STRING"});
-    rv_abap.set(abap.operators.concat(new abap.types.String().set(`INTERFACE ${abap.templateFormatting(this.#ms_input.get().interface_name)} PUBLIC.\n`),abap.operators.concat(new abap.types.String().set(`* Generated by abap-openapi-client\n`),new abap.types.String().set(`* ${abap.templateFormatting(this.#ms_specification.get().info.get().title)}, ${abap.templateFormatting(this.#ms_specification.get().info.get().version)}\n\n`))));
+    rv_abap.set(abap.operators.concat([new abap.types.String().set(`INTERFACE ${abap.templateFormatting(this.#ms_input.get().interface_name)} PUBLIC.\n`),new abap.types.String().set(`* Generated by abap-openapi-client\n`),new abap.types.String().set(`* ${abap.templateFormatting(this.#ms_specification.get().info.get().title)}, ${abap.templateFormatting(this.#ms_specification.get().info.get().version)}\n\n`)]));
     rv_abap.set(abap.operators.concat(rv_abap,(await this.#dump_types({rv_abap: 1}))));
-    for await (const unique55 of abap.statements.loop(this.#ms_specification.get().operations,{where: async (I) => {return abap.compare.eq(I.deprecated, abap.builtin.abap_false);},topEquals: {"deprecated": abap.builtin.abap_false}})) {
-      ls_operation.set(unique55);
+    for await (const unique56 of abap.statements.loop(this.#ms_specification.get().operations,{where: async (I) => {return abap.compare.eq(I.deprecated, abap.builtin.abap_false);},topEquals: {"deprecated": abap.builtin.abap_false}})) {
+      ls_operation.set(unique56);
       rv_abap.set(abap.operators.concat(rv_abap,new abap.types.String().set(`* ${abap.templateFormatting(abap.builtin.to_upper({val: ls_operation.get().method}))} - "${abap.templateFormatting(ls_operation.get().summary)}"\n`)));
       if (abap.compare.initial(ls_operation.get().operation_id) === false) {
         rv_abap.set(abap.operators.concat(rv_abap,new abap.types.String().set(`* Operation id: ${abap.templateFormatting(ls_operation.get().operation_id)}\n`)));
       }
-      for await (const unique56 of abap.statements.loop(ls_operation.get().parameters)) {
-        ls_parameter.set(unique56);
+      for await (const unique57 of abap.statements.loop(ls_operation.get().parameters)) {
+        ls_parameter.set(unique57);
         if (abap.compare.eq(ls_parameter.get().required, abap.builtin.abap_true)) {
           lv_required.set(abap.CharacterFactory.get(8, 'required'));
         } else {
@@ -373261,11 +375045,11 @@ class zcl_oapi_main {
         }
         rv_abap.set(abap.operators.concat(rv_abap,new abap.types.String().set(`* Parameter: ${abap.templateFormatting(ls_parameter.get().name)}, ${abap.templateFormatting(lv_required)}, ${abap.templateFormatting(ls_parameter.get().in)}\n`)));
       }
-      for await (const unique57 of abap.statements.loop(ls_operation.get().responses)) {
-        ls_response.set(unique57);
+      for await (const unique58 of abap.statements.loop(ls_operation.get().responses)) {
+        ls_response.set(unique58);
         rv_abap.set(abap.operators.concat(rv_abap,new abap.types.String().set(`* Response: ${abap.templateFormatting(ls_response.get().code)}\n`)));
-        for await (const unique58 of abap.statements.loop(ls_response.get().content)) {
-          ls_content.set(unique58);
+        for await (const unique59 of abap.statements.loop(ls_response.get().content)) {
+          ls_content.set(unique59);
           if (abap.compare.initial(ls_content.get().schema_ref) === false) {
             lv_extra.set(new abap.types.String().set(`, ${abap.templateFormatting(ls_content.get().schema_ref)}`));
           } else {
@@ -373282,7 +375066,7 @@ class zcl_oapi_main {
       rv_abap.set(abap.operators.concat(rv_abap,new abap.types.String().set(`  METHODS ${abap.templateFormatting(ls_operation.get().abap_name)}${abap.templateFormatting((await this.#build_abap_parameters({is_operation: ls_operation, rv_abap: 1})))}`)));
       ls_return.set((await this.#find_return({is_operation: ls_operation, rs_type: 1})));
       if (abap.compare.initial(ls_return) === false) {
-        rv_abap.set(abap.operators.concat(rv_abap,abap.operators.concat(new abap.types.String().set(`    RETURNING\n`),new abap.types.String().set(`      VALUE(return_data) TYPE ${abap.templateFormatting(ls_return.get().abap_name)}\n`))));
+        rv_abap.set(abap.operators.concat([rv_abap,new abap.types.String().set(`    RETURNING\n`),new abap.types.String().set(`      VALUE(return_data) TYPE ${abap.templateFormatting(ls_return.get().abap_name)}\n`)]));
       }
       rv_abap.set(abap.operators.concat(rv_abap,new abap.types.String().set(`    RAISING cx_static_check.\n\n`)));
     }
@@ -373375,13 +375159,13 @@ class zcl_oapi_main {
     "abap_parser_method": new abap.types.String({qualifiedName: "ZIF_OAPI_SPECIFICATION_V3=>TY_COMPONENT_SCHEMA-ABAP_PARSER_METHOD"}),
     "abap_json_method": new abap.types.String({qualifiedName: "ZIF_OAPI_SPECIFICATION_V3=>TY_COMPONENT_SCHEMA-ABAP_JSON_METHOD"}),
     "schema": new abap.types.ABAPObject({qualifiedName: "ZIF_OAPI_SCHEMA", RTTIName: "\\INTERFACE=ZIF_OAPI_SCHEMA"})}, "zif_oapi_specification_v3=>ty_component_schema", undefined, {}, {});
-    rv_abap.set(abap.operators.concat(new abap.types.String().set(`    DATA lv_code TYPE i.\n`),abap.operators.concat(new abap.types.String().set(`    DATA lv_temp TYPE string.\n`),new abap.types.String().set(`    DATA lv_uri TYPE string VALUE '${abap.templateFormatting((await this.#find_uri_prefix({is_servers: this.#ms_specification.get().servers, rv_prefix: 1})))}${abap.templateFormatting(is_operation.get().path)}'.\n`))));
-    for await (const unique59 of abap.statements.loop(is_operation.get().parameters,{where: async (I) => {return abap.compare.eq(I.in, abap.CharacterFactory.get(4, 'path'));},topEquals: {"in": abap.CharacterFactory.get(4, 'path')}})) {
-      ls_parameter.set(unique59);
-      rv_abap.set(abap.operators.concat(rv_abap,abap.operators.concat(new abap.types.String().set(`    lv_temp = ${abap.templateFormatting(ls_parameter.get().abap_name)}.\n`),abap.operators.concat(new abap.types.String().set(`    lv_temp = cl_http_utility=>escape_url( condense( lv_temp ) ).\n`),new abap.types.String().set(`    REPLACE ALL OCCURRENCES OF '\{${abap.templateFormatting(ls_parameter.get().name)}\}' IN lv_uri WITH lv_temp.\n`)))));
-    }
-    for await (const unique60 of abap.statements.loop(is_operation.get().parameters,{where: async (I) => {return abap.compare.eq(I.in, abap.CharacterFactory.get(5, 'query'));},topEquals: {"in": abap.CharacterFactory.get(5, 'query')}})) {
+    rv_abap.set(abap.operators.concat([new abap.types.String().set(`    DATA lv_code TYPE i.\n`),new abap.types.String().set(`    DATA lv_temp TYPE string.\n`),new abap.types.String().set(`    DATA lv_uri TYPE string VALUE '${abap.templateFormatting((await this.#find_uri_prefix({is_servers: this.#ms_specification.get().servers, rv_prefix: 1})))}${abap.templateFormatting(is_operation.get().path)}'.\n`)]));
+    for await (const unique60 of abap.statements.loop(is_operation.get().parameters,{where: async (I) => {return abap.compare.eq(I.in, abap.CharacterFactory.get(4, 'path'));},topEquals: {"in": abap.CharacterFactory.get(4, 'path')}})) {
       ls_parameter.set(unique60);
+      rv_abap.set(abap.operators.concat([rv_abap,new abap.types.String().set(`    lv_temp = ${abap.templateFormatting(ls_parameter.get().abap_name)}.\n`),new abap.types.String().set(`    lv_temp = cl_http_utility=>escape_url( condense( lv_temp ) ).\n`),new abap.types.String().set(`    REPLACE ALL OCCURRENCES OF '\{${abap.templateFormatting(ls_parameter.get().name)}\}' IN lv_uri WITH lv_temp.\n`)]));
+    }
+    for await (const unique61 of abap.statements.loop(is_operation.get().parameters,{where: async (I) => {return abap.compare.eq(I.in, abap.CharacterFactory.get(5, 'query'));},topEquals: {"in": abap.CharacterFactory.get(5, 'query')}})) {
+      ls_parameter.set(unique61);
       lv_value.set(ls_parameter.get().abap_name);
       if (abap.compare.initial(ls_parameter.get().schema) === false && abap.compare.ne(ls_parameter.get().schema.get().zif_oapi_schema$type, abap.CharacterFactory.get(6, 'string'))) {
         rv_abap.set(abap.operators.concat(rv_abap,new abap.types.String().set(`    lv_temp = ${abap.templateFormatting(lv_value)}.\n`)));
@@ -373389,14 +375173,14 @@ class zcl_oapi_main {
         lv_value.set(abap.CharacterFactory.get(7, 'lv_temp'));
       }
       if (abap.compare.eq(ls_parameter.get().required, abap.builtin.abap_false)) {
-        rv_abap.set(abap.operators.concat(rv_abap,abap.operators.concat(new abap.types.String().set(`    IF ${abap.templateFormatting(ls_parameter.get().abap_name)} IS SUPPLIED.\n`),abap.operators.concat(new abap.types.String().set(`      mi_client->request->set_form_field( name = '${abap.templateFormatting(ls_parameter.get().name)}' value = ${abap.templateFormatting(lv_value)} ).\n`),new abap.types.String().set(`    ENDIF.\n`)))));
+        rv_abap.set(abap.operators.concat([rv_abap,new abap.types.String().set(`    IF ${abap.templateFormatting(ls_parameter.get().abap_name)} IS SUPPLIED.\n`),new abap.types.String().set(`      mi_client->request->set_form_field( name = '${abap.templateFormatting(ls_parameter.get().name)}' value = ${abap.templateFormatting(lv_value)} ).\n`),new abap.types.String().set(`    ENDIF.\n`)]));
       } else {
         rv_abap.set(abap.operators.concat(rv_abap,new abap.types.String().set(`    mi_client->request->set_form_field( name = '${abap.templateFormatting(ls_parameter.get().name)}' value = ${abap.templateFormatting(lv_value)} ).\n`)));
       }
     }
-    rv_abap.set(abap.operators.concat(rv_abap,abap.operators.concat(new abap.types.String().set(`    mi_client->request->set_method( '${abap.templateFormatting(abap.builtin.to_upper({val: is_operation.get().method}))}' ).\n`),new abap.types.String().set(`    mi_client->request->set_header_field( name = '~request_uri' value = lv_uri ).\n`))));
-    for await (const unique61 of abap.statements.loop(is_operation.get().parameters,{where: async (I) => {return abap.compare.eq(I.in, abap.CharacterFactory.get(6, 'header'));},topEquals: {"in": abap.CharacterFactory.get(6, 'header')}})) {
-      ls_parameter.set(unique61);
+    rv_abap.set(abap.operators.concat([rv_abap,new abap.types.String().set(`    mi_client->request->set_method( '${abap.templateFormatting(abap.builtin.to_upper({val: is_operation.get().method}))}' ).\n`),new abap.types.String().set(`    mi_client->request->set_header_field( name = '~request_uri' value = lv_uri ).\n`)]));
+    for await (const unique62 of abap.statements.loop(is_operation.get().parameters,{where: async (I) => {return abap.compare.eq(I.in, abap.CharacterFactory.get(6, 'header'));},topEquals: {"in": abap.CharacterFactory.get(6, 'header')}})) {
+      ls_parameter.set(unique62);
       rv_abap.set(abap.operators.concat(rv_abap,new abap.types.String().set(`    mi_client->request->set_header_field( name = '${abap.templateFormatting(ls_parameter.get().name)}' value = ${abap.templateFormatting(ls_parameter.get().abap_name)} ).\n`)));
     }
     if (abap.compare.initial(is_operation.get().request_body.get().schema_ref) === false) {
@@ -373404,11 +375188,11 @@ class zcl_oapi_main {
     } else if (abap.compare.initial(is_operation.get().request_body.get().schema) === false && abap.compare.eq(is_operation.get().request_body.get().schema.get().zif_oapi_schema$type, abap.CharacterFactory.get(6, 'string'))) {
       rv_abap.set(abap.operators.concat(rv_abap,new abap.types.String().set(`    mi_client->request->set_cdata( body ).\n`)));
     }
-    rv_abap.set(abap.operators.concat(rv_abap,abap.operators.concat(new abap.types.String().set(`    lv_code = send_receive( ).\n`),new abap.types.String().set(`    WRITE / lv_code.\n`))));
+    rv_abap.set(abap.operators.concat([rv_abap,new abap.types.String().set(`    lv_code = send_receive( ).\n`),new abap.types.String().set(`    WRITE / lv_code.\n`)]));
     ls_return.set((await this.#find_return({is_operation: is_operation, rs_type: 1})));
     rv_abap.set(abap.operators.concat(rv_abap,new abap.types.String().set(`    CASE lv_code.\n`)));
-    for await (const unique62 of abap.statements.loop(is_operation.get().responses)) {
-      ls_response.set(unique62);
+    for await (const unique63 of abap.statements.loop(is_operation.get().responses)) {
+      ls_response.set(unique63);
       if (abap.compare.eq(ls_response.get().code, abap.CharacterFactory.get(7, 'default'))) {
         rv_abap.set(abap.operators.concat(rv_abap,new abap.types.String().set(`      WHEN OTHERS.\n`)));
       } else {
@@ -373417,15 +375201,15 @@ class zcl_oapi_main {
         } else {
           rv_abap.set(abap.operators.concat(rv_abap,new abap.types.String().set(`      WHEN ${abap.templateFormatting(ls_response.get().code)}.\n`)));
         }
-        for await (const unique63 of abap.statements.loop(ls_response.get().content,{where: async (I) => {return abap.compare.eq(I.type, abap.CharacterFactory.get(16, 'application/json'));},topEquals: {"type": abap.CharacterFactory.get(16, 'application/json')}})) {
-          ls_content.set(unique63);
+        for await (const unique64 of abap.statements.loop(ls_response.get().content,{where: async (I) => {return abap.compare.eq(I.type, abap.CharacterFactory.get(16, 'application/json'));},topEquals: {"type": abap.CharacterFactory.get(16, 'application/json')}})) {
+          ls_content.set(unique64);
           rv_abap.set(abap.operators.concat(rv_abap,new abap.types.String().set(`" ${abap.templateFormatting(ls_content.get().type)},${abap.templateFormatting(ls_content.get().schema_ref)}\n`)));
           if (abap.compare.initial(ls_content.get().schema_ref) === false) {
             ls_schema.set((await this.#find_schema({iv_name: ls_content.get().schema_ref, rs_schema: 1})));
             if (abap.compare.initial(ls_schema) === false && abap.compare.eq(ls_schema.get().abap_parser_method, ls_return.get().abap_parser_method)) {
-              rv_abap.set(abap.operators.concat(rv_abap,abap.operators.concat(new abap.types.String().set(`        CREATE OBJECT mo_json EXPORTING iv_json = mi_client->response->get_cdata( ).\n`),new abap.types.String().set(`        return_data = ${abap.templateFormatting(ls_schema.get().abap_parser_method)}( '' ).\n`))));
+              rv_abap.set(abap.operators.concat([rv_abap,new abap.types.String().set(`        CREATE OBJECT mo_json EXPORTING iv_json = mi_client->response->get_cdata( ).\n`),new abap.types.String().set(`        return_data = ${abap.templateFormatting(ls_schema.get().abap_parser_method)}( '' ).\n`)]));
             } else if (abap.compare.initial(ls_schema) === false && abap.compare.initial(ls_schema.get().abap_parser_method) === false) {
-              rv_abap.set(abap.operators.concat(rv_abap,abap.operators.concat(new abap.types.String().set(`        CREATE OBJECT mo_json EXPORTING iv_json = mi_client->response->get_cdata( ).\n`),new abap.types.String().set(`        ${abap.templateFormatting(ls_schema.get().abap_parser_method)}( '' ).\n`))));
+              rv_abap.set(abap.operators.concat([rv_abap,new abap.types.String().set(`        CREATE OBJECT mo_json EXPORTING iv_json = mi_client->response->get_cdata( ).\n`),new abap.types.String().set(`        ${abap.templateFormatting(ls_schema.get().abap_parser_method)}( '' ).\n`)]));
             }
           }
         }
@@ -373517,8 +375301,8 @@ class zcl_oapi_main {
     "type": new abap.types.String({qualifiedName: "ZIF_OAPI_SPECIFICATION_V3=>TY_MEDIA_TYPE-TYPE"}),
     "schema": new abap.types.ABAPObject({qualifiedName: "ZIF_OAPI_SCHEMA", RTTIName: "\\INTERFACE=ZIF_OAPI_SCHEMA"}),
     "schema_ref": new abap.types.String({qualifiedName: "ZIF_OAPI_SPECIFICATION_V3=>TY_MEDIA_TYPE-SCHEMA_REF"})}, "zif_oapi_specification_v3=>ty_media_type", undefined, {}, {});
-    for await (const unique64 of abap.statements.loop(is_operation.get().responses)) {
-      ls_response.set(unique64);
+    for await (const unique65 of abap.statements.loop(is_operation.get().responses)) {
+      ls_response.set(unique65);
       if (abap.compare.eq((await this.#is_success_code({iv_code: ls_response.get().code, rv_bool: 1})), abap.builtin.abap_true)) {
         abap.statements.readTable(ls_response.get().content,{into: ls_content,
           withKey: (i) => {return abap.compare.eq(i.type, abap.CharacterFactory.get(16, 'application/json'));},
@@ -373588,8 +375372,8 @@ class zcl_oapi_main {
     let lv_type = new abap.types.String({qualifiedName: "STRING"});
     let lv_text = new abap.types.String({qualifiedName: "STRING"});
     let lv_default = new abap.types.String({qualifiedName: "STRING"});
-    for await (const unique65 of abap.statements.loop(is_operation.get().parameters)) {
-      ls_parameter.set(unique65);
+    for await (const unique66 of abap.statements.loop(is_operation.get().parameters)) {
+      ls_parameter.set(unique66);
       if (abap.compare.initial(ls_parameter.get().schema) === false) {
         lv_type.set((await ls_parameter.get().schema.get().zif_oapi_schema$get_simple_type({rv_simple: 1})));
       }
@@ -373610,7 +375394,7 @@ class zcl_oapi_main {
           lv_default.set(new abap.types.String().set(` DEFAULT '${abap.templateFormatting(ls_parameter.get().schema.get().zif_oapi_schema$default)}'`));
         }
       }
-      lv_text.set(abap.operators.concat(new abap.types.String().set(`      `),abap.operators.concat(ls_parameter.get().abap_name,abap.operators.concat(new abap.types.String().set(` TYPE `),abap.operators.concat(lv_type,lv_default)))));
+      lv_text.set(abap.operators.concat([new abap.types.String().set(`      `),ls_parameter.get().abap_name,new abap.types.String().set(` TYPE `),lv_type,lv_default]));
       if (abap.compare.eq(ls_parameter.get().required, abap.builtin.abap_false) && abap.compare.initial(lv_default)) {
         lv_text.set(abap.operators.concat(lv_text,new abap.types.String().set(` OPTIONAL`)));
       }
@@ -373634,7 +375418,7 @@ class zcl_oapi_main {
       lv_text.set(abap.operators.concat(lv_text,new abap.types.String().set(`      body TYPE string`)));
     }
     if (abap.compare.initial(lv_text) === false) {
-      rv_abap.set(abap.operators.concat(new abap.types.String().set(`\n    IMPORTING\n`),abap.operators.concat(lv_text,new abap.types.String().set(`\n`))));
+      rv_abap.set(abap.operators.concat([new abap.types.String().set(`\n    IMPORTING\n`),lv_text,new abap.types.String().set(`\n`)]));
     } else {
       rv_abap.set(new abap.types.String().set(`\n`));
     }
@@ -373981,13 +375765,13 @@ class zcl_oapi_parser {
       abap.statements.append({source: lv_prefix, target: lt_composition_prefixes});
       abap.statements.concatenate({source: [iv_prefix, abap.CharacterFactory.get(7, '/allOf/')], target: lv_prefix});
       abap.statements.append({source: lv_prefix, target: lt_composition_prefixes});
-      for await (const unique95 of abap.statements.loop(lt_composition_prefixes)) {
-        lv_prefix.set(unique95);
+      for await (const unique101 of abap.statements.loop(lt_composition_prefixes)) {
+        lv_prefix.set(unique101);
         lt_composition_members.set((await this.#mo_json.get().members({iv_path: lv_prefix, rt_members: 1})));
-        for await (const unique96 of abap.statements.loop(lt_composition_members)) {
-          lv_string.set(unique96);
+        for await (const unique102 of abap.statements.loop(lt_composition_members)) {
+          lv_string.set(unique102);
           lv_ref.clear();
-          lv_ref.set((await this.#mo_json.get().value_string({iv_path: abap.operators.concat(lv_prefix,abap.operators.concat(lv_string,abap.CharacterFactory.get(5, '/$ref'))), rv_value: 1})));
+          lv_ref.set((await this.#mo_json.get().value_string({iv_path: abap.operators.concat([lv_prefix,lv_string,abap.CharacterFactory.get(5, '/$ref')]), rv_value: 1})));
           if (abap.compare.initial(lv_ref)) {
             lo_composition.set((await this.#parse_schema({iv_prefix: abap.operators.concat(lv_prefix,lv_string), ri_schema: 1})));
           } else {
@@ -373996,8 +375780,8 @@ class zcl_oapi_parser {
           }
           if (abap.compare.initial(lo_composition) === false) {
             ri_schema.get().zif_oapi_schema$type.set(abap.CharacterFactory.get(6, 'object'));
-            for await (const unique97 of abap.statements.loop(lo_composition.get().zif_oapi_schema$properties)) {
-              ls_composition_property.set(unique97);
+            for await (const unique103 of abap.statements.loop(lo_composition.get().zif_oapi_schema$properties)) {
+              ls_composition_property.set(unique103);
               abap.statements.readTable(ri_schema.get().zif_oapi_schema$properties,{withKey: (i) => {return abap.compare.eq(i.name, ls_composition_property.get().name);},
                 withKeyValue: [{key: (i) => {return i.name}, value: ls_composition_property.get().name}],
                 usesTableLine: false,
@@ -374029,25 +375813,25 @@ class zcl_oapi_parser {
       ri_schema.get().zif_oapi_schema$items_schema.set((await this.#parse_schema({iv_prefix: abap.operators.concat(iv_prefix,abap.CharacterFactory.get(6, '/items')), ri_schema: 1})));
     }
     lt_strings.set((await this.#mo_json.get().members({iv_path: abap.operators.concat(iv_prefix,abap.CharacterFactory.get(6, '/enum/')), rt_members: 1})));
-    for await (const unique98 of abap.statements.loop(lt_strings)) {
-      lv_string.set(unique98);
-      lv_string.set((await this.#mo_json.get().value_string({iv_path: abap.operators.concat(iv_prefix,abap.operators.concat(abap.CharacterFactory.get(6, '/enum/'),lv_string)), rv_value: 1})));
+    for await (const unique104 of abap.statements.loop(lt_strings)) {
+      lv_string.set(unique104);
+      lv_string.set((await this.#mo_json.get().value_string({iv_path: abap.operators.concat([iv_prefix,abap.CharacterFactory.get(6, '/enum/'),lv_string]), rv_value: 1})));
       if (abap.compare.initial(lv_string) === false) {
         abap.statements.insertInternal({data: lv_string, table: ri_schema.get().zif_oapi_schema$enum});
       }
     }
     lt_strings.set((await this.#mo_json.get().members({iv_path: abap.operators.concat(iv_prefix,abap.CharacterFactory.get(12, '/properties/')), rt_members: 1})));
-    for await (const unique99 of abap.statements.loop(lt_strings)) {
-      lv_string.set(unique99);
+    for await (const unique105 of abap.statements.loop(lt_strings)) {
+      lv_string.set(unique105);
       ls_property.clear();
       ls_property.get().name.set(lv_string);
       ls_property.get().abap_name.set((await lo_names.get().to_abap_name({iv_name: lv_string, rv_name: 1})));
-      ls_property.get().ref.set((await this.#mo_json.get().value_string({iv_path: abap.operators.concat(iv_prefix,abap.operators.concat(abap.CharacterFactory.get(12, '/properties/'),abap.operators.concat(lv_string,abap.CharacterFactory.get(5, '/$ref')))), rv_value: 1})));
-      if (abap.compare.initial(ls_property.get().ref) && abap.compare.eq((await this.#mo_json.get().exists({iv_path: abap.operators.concat(iv_prefix,abap.operators.concat(abap.CharacterFactory.get(12, '/properties/'),abap.operators.concat(lv_string,abap.CharacterFactory.get(6, '/allOf')))), rv_exists: 1})), abap.builtin.abap_true) && abap.compare.eq((abap.builtin.lines({val: (await this.#mo_json.get().members({iv_path: abap.operators.concat(iv_prefix,abap.operators.concat(abap.CharacterFactory.get(12, '/properties/'),abap.operators.concat(lv_string,abap.CharacterFactory.get(6, '/allOf')))), rt_members: 1}))})), abap.IntegerFactory.get(1))) {
-        ls_property.get().ref.set((await this.#mo_json.get().value_string({iv_path: abap.operators.concat(iv_prefix,abap.operators.concat(abap.CharacterFactory.get(12, '/properties/'),abap.operators.concat(lv_string,abap.CharacterFactory.get(13, '/allOf/1/$ref')))), rv_value: 1})));
+      ls_property.get().ref.set((await this.#mo_json.get().value_string({iv_path: abap.operators.concat([iv_prefix,abap.CharacterFactory.get(12, '/properties/'),lv_string,abap.CharacterFactory.get(5, '/$ref')]), rv_value: 1})));
+      if (abap.compare.initial(ls_property.get().ref) && abap.compare.eq((await this.#mo_json.get().exists({iv_path: abap.operators.concat([iv_prefix,abap.CharacterFactory.get(12, '/properties/'),lv_string,abap.CharacterFactory.get(6, '/allOf')]), rv_exists: 1})), abap.builtin.abap_true) && abap.compare.eq((abap.builtin.lines({val: (await this.#mo_json.get().members({iv_path: abap.operators.concat([iv_prefix,abap.CharacterFactory.get(12, '/properties/'),lv_string,abap.CharacterFactory.get(6, '/allOf')]), rt_members: 1}))})), abap.IntegerFactory.get(1))) {
+        ls_property.get().ref.set((await this.#mo_json.get().value_string({iv_path: abap.operators.concat([iv_prefix,abap.CharacterFactory.get(12, '/properties/'),lv_string,abap.CharacterFactory.get(13, '/allOf/1/$ref')]), rv_value: 1})));
       }
       if (abap.compare.initial(ls_property.get().ref)) {
-        ls_property.get().schema.set((await this.#parse_schema({iv_prefix: abap.operators.concat(iv_prefix,abap.operators.concat(abap.CharacterFactory.get(12, '/properties/'),lv_string)), ri_schema: 1})));
+        ls_property.get().schema.set((await this.#parse_schema({iv_prefix: abap.operators.concat([iv_prefix,abap.CharacterFactory.get(12, '/properties/'),lv_string]), ri_schema: 1})));
       }
       abap.statements.readTable(ri_schema.get().zif_oapi_schema$properties,{withKey: (i) => {return abap.compare.eq(i.name, ls_property.get().name);},
         withKeyValue: [{key: (i) => {return i.name}, value: ls_property.get().name}],
@@ -374080,12 +375864,12 @@ class zcl_oapi_parser {
     "schema": new abap.types.ABAPObject({qualifiedName: "ZIF_OAPI_SCHEMA", RTTIName: "\\INTERFACE=ZIF_OAPI_SCHEMA"}),
     "schema_ref": new abap.types.String({qualifiedName: "ZIF_OAPI_SPECIFICATION_V3=>TY_MEDIA_TYPE-SCHEMA_REF"})}, "zif_oapi_specification_v3=>ty_media_type", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "zif_oapi_specification_v3=>ty_media_types")}, "zif_oapi_specification_v3=>ty_response", undefined, {}, {});
     lt_names.set((await this.#mo_json.get().members({iv_path: iv_prefix, rt_members: 1})));
-    for await (const unique100 of abap.statements.loop(lt_names)) {
-      lv_name.set(unique100);
+    for await (const unique106 of abap.statements.loop(lt_names)) {
+      lv_name.set(unique106);
       ls_response.clear();
       ls_response.get().name.set(lv_name);
-      ls_response.get().description.set((await this.#mo_json.get().value_string({iv_path: abap.operators.concat(iv_prefix,abap.operators.concat(lv_name,abap.CharacterFactory.get(12, '/description'))), rv_value: 1})));
-      ls_response.get().content.set((await this.#parse_media_types({iv_prefix: abap.operators.concat(iv_prefix,abap.operators.concat(lv_name,abap.CharacterFactory.get(9, '/content/'))), rt_media_types: 1})));
+      ls_response.get().description.set((await this.#mo_json.get().value_string({iv_path: abap.operators.concat([iv_prefix,lv_name,abap.CharacterFactory.get(12, '/description')]), rv_value: 1})));
+      ls_response.get().content.set((await this.#parse_media_types({iv_prefix: abap.operators.concat([iv_prefix,lv_name,abap.CharacterFactory.get(9, '/content/')]), rt_media_types: 1})));
       abap.statements.append({source: ls_response, target: rt_responses});
     }
     return rt_responses;
@@ -374146,8 +375930,8 @@ class zcl_oapi_parser {
     let lo_names = new abap.types.ABAPObject({qualifiedName: "ZCL_OAPI_ABAP_NAME", RTTIName: "\\CLASS=ZCL_OAPI_ABAP_NAME"});
     lo_names.set(await (new abap.Classes['ZCL_OAPI_ABAP_NAME']()).constructor_());
     lt_names.set((await this.#mo_json.get().members({iv_path: iv_prefix, rt_members: 1})));
-    for await (const unique101 of abap.statements.loop(lt_names)) {
-      lv_name.set(unique101);
+    for await (const unique107 of abap.statements.loop(lt_names)) {
+      lv_name.set(unique107);
       ls_schema.clear();
       ls_schema.get().name.set(lv_name);
       ls_schema.get().abap_name.set((await lo_names.get().to_abap_name({iv_name: ls_schema.get().name, rv_name: 1})));
@@ -374165,10 +375949,10 @@ class zcl_oapi_parser {
     let ls_server = new abap.types.Structure({
     "url": new abap.types.String({qualifiedName: "ZIF_OAPI_SPECIFICATION_V3=>TY_SERVER-URL"})}, "zif_oapi_specification_v3=>ty_server", undefined, {}, {});
     lt_array.set((await this.#mo_json.get().members({iv_path: abap.CharacterFactory.get(9, '/servers/'), rt_members: 1})));
-    for await (const unique102 of abap.statements.loop(lt_array)) {
-      lv_index.set(unique102);
+    for await (const unique108 of abap.statements.loop(lt_array)) {
+      lv_index.set(unique108);
       ls_server.clear();
-      ls_server.get().url.set((await this.#mo_json.get().value_string({iv_path: abap.operators.concat(abap.CharacterFactory.get(9, '/servers/'),abap.operators.concat(lv_index,abap.CharacterFactory.get(4, '/url'))), rv_value: 1})));
+      ls_server.get().url.set((await this.#mo_json.get().value_string({iv_path: abap.operators.concat([abap.CharacterFactory.get(9, '/servers/'),lv_index,abap.CharacterFactory.get(4, '/url')]), rv_value: 1})));
       abap.statements.append({source: ls_server, target: rt_servers});
     }
     return rt_servers;
@@ -374244,18 +376028,18 @@ class zcl_oapi_parser {
     let lo_names = new abap.types.ABAPObject({qualifiedName: "ZCL_OAPI_ABAP_NAME", RTTIName: "\\CLASS=ZCL_OAPI_ABAP_NAME"});
     lo_names.set(await (new abap.Classes['ZCL_OAPI_ABAP_NAME']()).constructor_());
     lt_paths.set((await this.#mo_json.get().members({iv_path: abap.CharacterFactory.get(7, '/paths/'), rt_members: 1})));
-    for await (const unique103 of abap.statements.loop(lt_paths)) {
-      lv_path.set(unique103);
+    for await (const unique109 of abap.statements.loop(lt_paths)) {
+      lv_path.set(unique109);
       ls_operation.clear();
       ls_operation.get().path.set(lv_path);
-      lt_methods.set((await this.#mo_json.get().members({iv_path: abap.operators.concat(abap.CharacterFactory.get(7, '/paths/'),abap.operators.concat(lv_path,abap.CharacterFactory.get(1, '/'))), rt_members: 1})));
-      for await (const unique104 of abap.statements.loop(lt_methods)) {
-        lv_method.set(unique104);
+      lt_methods.set((await this.#mo_json.get().members({iv_path: abap.operators.concat([abap.CharacterFactory.get(7, '/paths/'),lv_path,abap.CharacterFactory.get(1, '/')]), rt_members: 1})));
+      for await (const unique110 of abap.statements.loop(lt_methods)) {
+        lv_method.set(unique110);
         if (abap.compare.eq(lv_method, abap.CharacterFactory.get(7, 'summary')) || abap.compare.eq(lv_method, abap.CharacterFactory.get(11, 'description'))) {
           continue;
         }
         ls_operation.get().method.set(lv_method);
-        lv_prefix.set(abap.operators.concat(abap.CharacterFactory.get(7, '/paths/'),abap.operators.concat(lv_path,abap.operators.concat(abap.CharacterFactory.get(1, '/'),lv_method))));
+        lv_prefix.set(abap.operators.concat([abap.CharacterFactory.get(7, '/paths/'),lv_path,abap.CharacterFactory.get(1, '/'),lv_method]));
         ls_operation.get().summary.set((await this.#mo_json.get().value_string({iv_path: abap.operators.concat(lv_prefix,abap.CharacterFactory.get(8, '/summary')), rv_value: 1})));
         ls_operation.get().deprecated.set((await this.#mo_json.get().value_boolean({iv_path: abap.operators.concat(lv_prefix,abap.CharacterFactory.get(11, '/deprecated')), rv_value: 1})));
         ls_operation.get().description.set((await this.#mo_json.get().value_string({iv_path: abap.operators.concat(lv_prefix,abap.CharacterFactory.get(12, '/description')), rv_value: 1})));
@@ -374280,9 +376064,9 @@ class zcl_oapi_parser {
             into: lv_content});
           abap.statements.assert(abap.compare.eq(abap.builtin.sy.get().subrc, abap.IntegerFactory.get(0)));
           ls_operation.get().request_body.get().type.set(lv_content);
-          ls_operation.get().request_body.get().schema_ref.set((await this.#mo_json.get().value_string({iv_path: abap.operators.concat(lv_prefix,abap.operators.concat(abap.CharacterFactory.get(21, '/requestBody/content/'),abap.operators.concat(lv_content,abap.CharacterFactory.get(12, '/schema/$ref')))), rv_value: 1})));
-          if (abap.compare.initial(ls_operation.get().request_body.get().schema_ref) && abap.compare.gt((abap.builtin.lines({val: (await this.#mo_json.get().members({iv_path: abap.operators.concat(lv_prefix,abap.operators.concat(abap.CharacterFactory.get(21, '/requestBody/content/'),abap.operators.concat(lv_content,abap.CharacterFactory.get(8, '/schema/')))), rt_members: 1}))})), abap.IntegerFactory.get(0))) {
-            ls_operation.get().request_body.get().schema.set((await this.#parse_schema({iv_prefix: abap.operators.concat(lv_prefix,abap.operators.concat(abap.CharacterFactory.get(21, '/requestBody/content/'),abap.operators.concat(lv_content,abap.CharacterFactory.get(7, '/schema')))), ri_schema: 1})));
+          ls_operation.get().request_body.get().schema_ref.set((await this.#mo_json.get().value_string({iv_path: abap.operators.concat([lv_prefix,abap.CharacterFactory.get(21, '/requestBody/content/'),lv_content,abap.CharacterFactory.get(12, '/schema/$ref')]), rv_value: 1})));
+          if (abap.compare.initial(ls_operation.get().request_body.get().schema_ref) && abap.compare.gt((abap.builtin.lines({val: (await this.#mo_json.get().members({iv_path: abap.operators.concat([lv_prefix,abap.CharacterFactory.get(21, '/requestBody/content/'),lv_content,abap.CharacterFactory.get(8, '/schema/')]), rt_members: 1}))})), abap.IntegerFactory.get(0))) {
+            ls_operation.get().request_body.get().schema.set((await this.#parse_schema({iv_prefix: abap.operators.concat([lv_prefix,abap.CharacterFactory.get(21, '/requestBody/content/'),lv_content,abap.CharacterFactory.get(7, '/schema')]), ri_schema: 1})));
           }
         }
         abap.statements.append({source: ls_operation, target: rt_operations});
@@ -374317,20 +376101,20 @@ class zcl_oapi_parser {
     let lo_names = new abap.types.ABAPObject({qualifiedName: "ZCL_OAPI_ABAP_NAME", RTTIName: "\\CLASS=ZCL_OAPI_ABAP_NAME"});
     let lv_name = new abap.types.String({qualifiedName: "STRING"});
     lt_members.set((await this.#mo_json.get().members({iv_path: iv_prefix, rt_members: 1})));
-    for await (const unique105 of abap.statements.loop(lt_members)) {
-      lv_member.set(unique105);
+    for await (const unique111 of abap.statements.loop(lt_members)) {
+      lv_member.set(unique111);
       ls_parameter.clear();
       ls_parameter.get().id.set(lv_member);
-      ls_parameter.get().name.set((await this.#mo_json.get().value_string({iv_path: abap.operators.concat(iv_prefix,abap.operators.concat(lv_member,abap.CharacterFactory.get(5, '/name'))), rv_value: 1})));
+      ls_parameter.get().name.set((await this.#mo_json.get().value_string({iv_path: abap.operators.concat([iv_prefix,lv_member,abap.CharacterFactory.get(5, '/name')]), rv_value: 1})));
       if (abap.compare.initial(ls_parameter.get().name) === false) {
-        ls_parameter.get().in.set((await this.#mo_json.get().value_string({iv_path: abap.operators.concat(iv_prefix,abap.operators.concat(lv_member,abap.CharacterFactory.get(3, '/in'))), rv_value: 1})));
-        ls_parameter.get().description.set((await this.#mo_json.get().value_string({iv_path: abap.operators.concat(iv_prefix,abap.operators.concat(lv_member,abap.CharacterFactory.get(12, '/description'))), rv_value: 1})));
-        ls_parameter.get().required.set((await this.#mo_json.get().value_boolean({iv_path: abap.operators.concat(iv_prefix,abap.operators.concat(lv_member,abap.CharacterFactory.get(9, '/required'))), rv_value: 1})));
+        ls_parameter.get().in.set((await this.#mo_json.get().value_string({iv_path: abap.operators.concat([iv_prefix,lv_member,abap.CharacterFactory.get(3, '/in')]), rv_value: 1})));
+        ls_parameter.get().description.set((await this.#mo_json.get().value_string({iv_path: abap.operators.concat([iv_prefix,lv_member,abap.CharacterFactory.get(12, '/description')]), rv_value: 1})));
+        ls_parameter.get().required.set((await this.#mo_json.get().value_boolean({iv_path: abap.operators.concat([iv_prefix,lv_member,abap.CharacterFactory.get(9, '/required')]), rv_value: 1})));
         lo_names.set(await (new abap.Classes['ZCL_OAPI_ABAP_NAME']()).constructor_());
         ls_parameter.get().abap_name.set((await lo_names.get().to_abap_name({iv_name: ls_parameter.get().name, rv_name: 1})));
-        ls_parameter.get().schema_ref.set((await this.#mo_json.get().value_string({iv_path: abap.operators.concat(iv_prefix,abap.operators.concat(lv_member,abap.CharacterFactory.get(12, '/schema/$ref'))), rv_value: 1})));
+        ls_parameter.get().schema_ref.set((await this.#mo_json.get().value_string({iv_path: abap.operators.concat([iv_prefix,lv_member,abap.CharacterFactory.get(12, '/schema/$ref')]), rv_value: 1})));
         if (abap.compare.initial(ls_parameter.get().schema_ref)) {
-          ls_parameter.get().schema.set((await this.#parse_schema({iv_prefix: abap.operators.concat(iv_prefix,abap.operators.concat(lv_member,abap.CharacterFactory.get(7, '/schema'))), ri_schema: 1})));
+          ls_parameter.get().schema.set((await this.#parse_schema({iv_prefix: abap.operators.concat([iv_prefix,lv_member,abap.CharacterFactory.get(7, '/schema')]), ri_schema: 1})));
         } else {
           lv_name.set(ls_parameter.get().schema_ref.getOffset({length: 1}));
           ls_parameter.get().schema.set((await this.#parse_schema({iv_prefix: lv_name, ri_schema: 1})));
@@ -374349,9 +376133,9 @@ class zcl_oapi_parser {
     let lv_member = new abap.types.String({qualifiedName: "STRING"});
     let lv_ref = new abap.types.String({qualifiedName: "STRING"});
     lt_members.set((await this.#mo_json.get().members({iv_path: iv_prefix, rt_members: 1})));
-    for await (const unique106 of abap.statements.loop(lt_members)) {
-      lv_member.set(unique106);
-      lv_ref.set((await this.#mo_json.get().value_string({iv_path: abap.operators.concat(iv_prefix,abap.operators.concat(lv_member,abap.CharacterFactory.get(5, '/$ref'))), rv_value: 1})));
+    for await (const unique112 of abap.statements.loop(lt_members)) {
+      lv_member.set(unique112);
+      lv_ref.set((await this.#mo_json.get().value_string({iv_path: abap.operators.concat([iv_prefix,lv_member,abap.CharacterFactory.get(5, '/$ref')]), rv_value: 1})));
       if (abap.compare.initial(lv_ref) === false) {
         abap.statements.append({source: lv_ref, target: rt_parameters});
       }
@@ -374381,13 +376165,13 @@ class zcl_oapi_parser {
     "schema_ref": new abap.types.String({qualifiedName: "ZIF_OAPI_SPECIFICATION_V3=>TY_MEDIA_TYPE-SCHEMA_REF"})}, "zif_oapi_specification_v3=>ty_media_type", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "zif_oapi_specification_v3=>ty_media_types"),
     "ref": new abap.types.String({qualifiedName: "ZIF_OAPI_SPECIFICATION_V3=>TY_OPERATION_RESPONSE-REF"})}, "zif_oapi_specification_v3=>ty_operation_response", undefined, {}, {});
     lt_members.set((await this.#mo_json.get().members({iv_path: iv_prefix, rt_members: 1})));
-    for await (const unique107 of abap.statements.loop(lt_members)) {
-      lv_member.set(unique107);
+    for await (const unique113 of abap.statements.loop(lt_members)) {
+      lv_member.set(unique113);
       ls_response.clear();
       ls_response.get().code.set(lv_member);
-      ls_response.get().description.set((await this.#mo_json.get().value_string({iv_path: abap.operators.concat(iv_prefix,abap.operators.concat(lv_member,abap.CharacterFactory.get(12, '/description'))), rv_value: 1})));
-      ls_response.get().content.set((await this.#parse_media_types({iv_prefix: abap.operators.concat(iv_prefix,abap.operators.concat(lv_member,abap.CharacterFactory.get(9, '/content/'))), rt_media_types: 1})));
-      ls_response.get().ref.set((await this.#mo_json.get().value_string({iv_path: abap.operators.concat(iv_prefix,abap.operators.concat(lv_member,abap.CharacterFactory.get(5, '/$ref'))), rv_value: 1})));
+      ls_response.get().description.set((await this.#mo_json.get().value_string({iv_path: abap.operators.concat([iv_prefix,lv_member,abap.CharacterFactory.get(12, '/description')]), rv_value: 1})));
+      ls_response.get().content.set((await this.#parse_media_types({iv_prefix: abap.operators.concat([iv_prefix,lv_member,abap.CharacterFactory.get(9, '/content/')]), rt_media_types: 1})));
+      ls_response.get().ref.set((await this.#mo_json.get().value_string({iv_path: abap.operators.concat([iv_prefix,lv_member,abap.CharacterFactory.get(5, '/$ref')]), rv_value: 1})));
       abap.statements.append({source: ls_response, target: rt_responses});
     }
     return rt_responses;
@@ -374407,16 +376191,16 @@ class zcl_oapi_parser {
     "schema": new abap.types.ABAPObject({qualifiedName: "ZIF_OAPI_SCHEMA", RTTIName: "\\INTERFACE=ZIF_OAPI_SCHEMA"}),
     "schema_ref": new abap.types.String({qualifiedName: "ZIF_OAPI_SPECIFICATION_V3=>TY_MEDIA_TYPE-SCHEMA_REF"})}, "zif_oapi_specification_v3=>ty_media_type", undefined, {}, {});
     lt_members.set((await this.#mo_json.get().members({iv_path: iv_prefix, rt_members: 1})));
-    for await (const unique108 of abap.statements.loop(lt_members)) {
-      lv_member.set(unique108);
+    for await (const unique114 of abap.statements.loop(lt_members)) {
+      lv_member.set(unique114);
       ls_media_type.clear();
       ls_media_type.get().type.set(lv_member);
-      ls_media_type.get().schema_ref.set((await this.#mo_json.get().value_string({iv_path: abap.operators.concat(iv_prefix,abap.operators.concat(lv_member,abap.CharacterFactory.get(12, '/schema/$ref'))), rv_value: 1})));
-      if (abap.compare.initial(ls_media_type.get().schema_ref) && abap.compare.eq((await this.#mo_json.get().exists({iv_path: abap.operators.concat(iv_prefix,abap.operators.concat(lv_member,abap.CharacterFactory.get(13, '/schema/allOf'))), rv_exists: 1})), abap.builtin.abap_true) && abap.compare.eq((abap.builtin.lines({val: (await this.#mo_json.get().members({iv_path: abap.operators.concat(iv_prefix,abap.operators.concat(lv_member,abap.CharacterFactory.get(13, '/schema/allOf'))), rt_members: 1}))})), abap.IntegerFactory.get(1))) {
-        ls_media_type.get().schema_ref.set((await this.#mo_json.get().value_string({iv_path: abap.operators.concat(iv_prefix,abap.operators.concat(lv_member,abap.CharacterFactory.get(20, '/schema/allOf/1/$ref'))), rv_value: 1})));
+      ls_media_type.get().schema_ref.set((await this.#mo_json.get().value_string({iv_path: abap.operators.concat([iv_prefix,lv_member,abap.CharacterFactory.get(12, '/schema/$ref')]), rv_value: 1})));
+      if (abap.compare.initial(ls_media_type.get().schema_ref) && abap.compare.eq((await this.#mo_json.get().exists({iv_path: abap.operators.concat([iv_prefix,lv_member,abap.CharacterFactory.get(13, '/schema/allOf')]), rv_exists: 1})), abap.builtin.abap_true) && abap.compare.eq((abap.builtin.lines({val: (await this.#mo_json.get().members({iv_path: abap.operators.concat([iv_prefix,lv_member,abap.CharacterFactory.get(13, '/schema/allOf')]), rt_members: 1}))})), abap.IntegerFactory.get(1))) {
+        ls_media_type.get().schema_ref.set((await this.#mo_json.get().value_string({iv_path: abap.operators.concat([iv_prefix,lv_member,abap.CharacterFactory.get(20, '/schema/allOf/1/$ref')]), rv_value: 1})));
       }
       if (abap.compare.initial(ls_media_type.get().schema_ref)) {
-        ls_media_type.get().schema.set((await this.#parse_schema({iv_prefix: abap.operators.concat(iv_prefix,abap.operators.concat(lv_member,abap.CharacterFactory.get(7, '/schema'))), ri_schema: 1})));
+        ls_media_type.get().schema.set((await this.#parse_schema({iv_prefix: abap.operators.concat([iv_prefix,lv_member,abap.CharacterFactory.get(7, '/schema')]), ri_schema: 1})));
       }
       abap.statements.append({source: ls_media_type, target: rt_media_types});
     }
@@ -374520,9 +376304,10 @@ class zcl_oapi_references {
   "CREATE_BODY_REFERENCES": {"visibility": "I", "parameters": {}},
   "CREATE_RESPONSE_REFERENCES": {"visibility": "I", "parameters": {}},
   "CREATE_ARRAY_REFERENCES_TOP": {"visibility": "I", "parameters": {}},
-  "CREATE_ARRAY_REFERENCES_SUB": {"visibility": "I", "parameters": {"II_SCHEMA": {"type": () => {return new abap.types.ABAPObject({qualifiedName: "ZIF_OAPI_SCHEMA", RTTIName: "\\INTERFACE=ZIF_OAPI_SCHEMA"});}, "is_optional": " ", "parm_kind": "I", "type_name": "ObjectReferenceType"}}},
+  "CREATE_ARRAY_REFERENCES_SUB": {"visibility": "I", "parameters": {"II_SCHEMA": {"type": () => {return new abap.types.ABAPObject({qualifiedName: "ZIF_OAPI_SCHEMA", RTTIName: "\\INTERFACE=ZIF_OAPI_SCHEMA"});}, "is_optional": " ", "parm_kind": "I", "type_name": "ObjectReferenceType"}, "IO_NAMES": {"type": () => {return new abap.types.ABAPObject({qualifiedName: "ZCL_OAPI_ABAP_NAME", RTTIName: "\\CLASS=ZCL_OAPI_ABAP_NAME"});}, "is_optional": " ", "parm_kind": "I", "type_name": "ObjectReferenceType"}}},
   "SORT_SCHEMAS": {"visibility": "I", "parameters": {}},
   "SORT_TRAVERSE": {"visibility": "I", "parameters": {"IV_PARENT": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "StringType"}, "IO_GRAPH": {"type": () => {return new abap.types.ABAPObject({qualifiedName: "ZCL_OAPI_GRAPH", RTTIName: "\\CLASS=ZCL_OAPI_GRAPH"});}, "is_optional": " ", "parm_kind": "I", "type_name": "ObjectReferenceType"}, "II_SCHEMA": {"type": () => {return new abap.types.ABAPObject({qualifiedName: "ZIF_OAPI_SCHEMA", RTTIName: "\\INTERFACE=ZIF_OAPI_SCHEMA"});}, "is_optional": " ", "parm_kind": "I", "type_name": "ObjectReferenceType"}}},
+  "BREAK_REFERENCE": {"visibility": "I", "parameters": {"IV_TARGET": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "StringType"}, "II_SCHEMA": {"type": () => {return new abap.types.ABAPObject({qualifiedName: "ZIF_OAPI_SCHEMA", RTTIName: "\\INTERFACE=ZIF_OAPI_SCHEMA"});}, "is_optional": " ", "parm_kind": "I", "type_name": "ObjectReferenceType"}}},
   "IS_SUPPORTED_TYPE": {"visibility": "I", "parameters": {"RV_SUPPORTED": {"type": () => {return new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"});}, "is_optional": " ", "parm_kind": "R", "type_name": "CharacterType"}, "IS_CONTENT_TYPE": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "StringType"}}},
   "NORMALIZE": {"visibility": "U", "parameters": {"RS_SPEC": {"type": () => {return new abap.types.Structure({
   "openapi": new abap.types.String({qualifiedName: "ZIF_OAPI_SPECIFICATION_V3=>TY_SPECIFICATION-OPENAPI"}),
@@ -374670,6 +376455,7 @@ class zcl_oapi_references {
       "create_array_references_sub": this.#create_array_references_sub.bind(this),
       "sort_schemas": this.#sort_schemas.bind(this),
       "sort_traverse": this.#sort_traverse.bind(this),
+      "break_reference": this.#break_reference.bind(this),
       "is_supported_type": this.#is_supported_type.bind(this),
       "normalize": this.normalize.bind(this),
     };
@@ -374785,8 +376571,8 @@ class zcl_oapi_references {
     "schema": new abap.types.ABAPObject({qualifiedName: "ZIF_OAPI_SCHEMA", RTTIName: "\\INTERFACE=ZIF_OAPI_SCHEMA"})}, "zif_oapi_specification_v3=>ty_component_schema", undefined, {}, {});
     let lo_names = new abap.types.ABAPObject({qualifiedName: "ZCL_OAPI_ABAP_NAME", RTTIName: "\\CLASS=ZCL_OAPI_ABAP_NAME"});
     lo_names.set(await (new abap.Classes['ZCL_OAPI_ABAP_NAME']()).constructor_());
-    for await (const unique67 of abap.statements.loop(this.#ms_spec.get().operations,{where: async (I) => {return abap.compare.eq(I.deprecated, abap.builtin.abap_false);},topEquals: {"deprecated": abap.builtin.abap_false}})) {
-      fs_ls_operation_.assign(unique67);
+    for await (const unique68 of abap.statements.loop(this.#ms_spec.get().operations,{where: async (I) => {return abap.compare.eq(I.deprecated, abap.builtin.abap_false);},topEquals: {"deprecated": abap.builtin.abap_false}})) {
+      fs_ls_operation_.assign(unique68);
       if (abap.compare.initial(fs_ls_operation_.get().request_body.get().schema) === false && abap.compare.eq((await fs_ls_operation_.get().request_body.get().schema.get().zif_oapi_schema$is_simple_type({rv_simple: 1})), abap.builtin.abap_false)) {
         ls_new.get().name.set((await lo_names.get().to_abap_name({iv_name: new abap.types.String().set(`body${abap.templateFormatting(fs_ls_operation_.get().abap_name)}`), rv_name: 1})));
         ls_new.get().abap_name.set(ls_new.get().name);
@@ -374803,6 +376589,9 @@ class zcl_oapi_references {
     let ii_schema = INPUT?.ii_schema;
     if (ii_schema?.getQualifiedName === undefined || ii_schema.getQualifiedName() !== "ZIF_OAPI_SCHEMA") { ii_schema = undefined; }
     if (ii_schema === undefined) { ii_schema = new abap.types.ABAPObject({qualifiedName: "ZIF_OAPI_SCHEMA", RTTIName: "\\INTERFACE=ZIF_OAPI_SCHEMA"}).set(INPUT.ii_schema); }
+    let io_names = INPUT?.io_names;
+    if (io_names?.getQualifiedName === undefined || io_names.getQualifiedName() !== "ZCL_OAPI_ABAP_NAME") { io_names = undefined; }
+    if (io_names === undefined) { io_names = new abap.types.ABAPObject({qualifiedName: "ZCL_OAPI_ABAP_NAME", RTTIName: "\\CLASS=ZCL_OAPI_ABAP_NAME"}).set(INPUT.io_names); }
     let fs_ls_property_ = new abap.types.FieldSymbol(new abap.types.Structure({
     "name": new abap.types.String({qualifiedName: "ZIF_OAPI_SCHEMA=>TY_PROPERTY-NAME"}),
     "abap_name": new abap.types.String({qualifiedName: "ZIF_OAPI_SCHEMA=>TY_PROPERTY-ABAP_NAME"}),
@@ -374814,24 +376603,22 @@ class zcl_oapi_references {
     "abap_parser_method": new abap.types.String({qualifiedName: "ZIF_OAPI_SPECIFICATION_V3=>TY_COMPONENT_SCHEMA-ABAP_PARSER_METHOD"}),
     "abap_json_method": new abap.types.String({qualifiedName: "ZIF_OAPI_SPECIFICATION_V3=>TY_COMPONENT_SCHEMA-ABAP_JSON_METHOD"}),
     "schema": new abap.types.ABAPObject({qualifiedName: "ZIF_OAPI_SCHEMA", RTTIName: "\\INTERFACE=ZIF_OAPI_SCHEMA"})}, "zif_oapi_specification_v3=>ty_component_schema", undefined, {}, {});
-    let lo_names = new abap.types.ABAPObject({qualifiedName: "ZCL_OAPI_ABAP_NAME", RTTIName: "\\CLASS=ZCL_OAPI_ABAP_NAME"});
-    lo_names.set(await (new abap.Classes['ZCL_OAPI_ABAP_NAME']()).constructor_());
     if (abap.compare.ne(ii_schema.get().zif_oapi_schema$type, abap.CharacterFactory.get(6, 'object'))) {
       return;
     }
-    for await (const unique68 of abap.statements.loop(ii_schema.get().zif_oapi_schema$properties)) {
-      fs_ls_property_.assign(unique68);
+    for await (const unique69 of abap.statements.loop(ii_schema.get().zif_oapi_schema$properties)) {
+      fs_ls_property_.assign(unique69);
       if (abap.compare.initial(fs_ls_property_.get().schema) === false && abap.compare.eq(fs_ls_property_.get().schema.get().zif_oapi_schema$type, abap.CharacterFactory.get(6, 'object'))) {
-        await this.#create_array_references_sub({ii_schema: fs_ls_property_.get().schema});
+        await this.#create_array_references_sub({ii_schema: fs_ls_property_.get().schema, io_names: io_names});
         continue;
       } else if (abap.compare.initial(fs_ls_property_.get().schema) || abap.compare.ne(fs_ls_property_.get().schema.get().zif_oapi_schema$type, abap.CharacterFactory.get(5, 'array')) || abap.compare.initial(fs_ls_property_.get().schema.get().zif_oapi_schema$items_ref) === false || abap.compare.ne(fs_ls_property_.get().schema.get().zif_oapi_schema$items_type, abap.CharacterFactory.get(6, 'object'))) {
         continue;
       }
       ls_new.clear();
-      ls_new.get().name.set((await lo_names.get().to_abap_name({iv_name: new abap.types.String().set(`arr${abap.templateFormatting(fs_ls_property_.get().abap_name)}`), rv_name: 1})));
+      ls_new.get().name.set((await io_names.get().to_abap_name({iv_name: new abap.types.String().set(`arr${abap.templateFormatting(fs_ls_property_.get().abap_name)}`), rv_name: 1})));
       ls_new.get().abap_name.set(ls_new.get().name);
-      ls_new.get().abap_json_method.set((await lo_names.get().to_abap_name({iv_name: new abap.types.String().set(`json_${abap.templateFormatting(ls_new.get().name)}`), rv_name: 1})));
-      ls_new.get().abap_parser_method.set((await lo_names.get().to_abap_name({iv_name: new abap.types.String().set(`parse_${abap.templateFormatting(ls_new.get().name)}`), rv_name: 1})));
+      ls_new.get().abap_json_method.set((await io_names.get().to_abap_name({iv_name: new abap.types.String().set(`json_${abap.templateFormatting(ls_new.get().name)}`), rv_name: 1})));
+      ls_new.get().abap_parser_method.set((await io_names.get().to_abap_name({iv_name: new abap.types.String().set(`parse_${abap.templateFormatting(ls_new.get().name)}`), rv_name: 1})));
       ls_new.get().schema.set(fs_ls_property_.get().schema.get().zif_oapi_schema$items_schema);
       abap.statements.append({source: ls_new, target: this.#ms_spec.get().components.get().schemas});
       fs_ls_property_.get().schema.get().zif_oapi_schema$items_ref.set(abap.operators.concat(abap.CharacterFactory.get(21, '#/components/schemas/'),ls_new.get().name));
@@ -374845,9 +376632,11 @@ class zcl_oapi_references {
     "abap_parser_method": new abap.types.String({qualifiedName: "ZIF_OAPI_SPECIFICATION_V3=>TY_COMPONENT_SCHEMA-ABAP_PARSER_METHOD"}),
     "abap_json_method": new abap.types.String({qualifiedName: "ZIF_OAPI_SPECIFICATION_V3=>TY_COMPONENT_SCHEMA-ABAP_JSON_METHOD"}),
     "schema": new abap.types.ABAPObject({qualifiedName: "ZIF_OAPI_SCHEMA", RTTIName: "\\INTERFACE=ZIF_OAPI_SCHEMA"})}, "zif_oapi_specification_v3=>ty_component_schema", undefined, {}, {});
-    for await (const unique69 of abap.statements.loop(this.#ms_spec.get().components.get().schemas)) {
-      ls_schema.set(unique69);
-      await this.#create_array_references_sub({ii_schema: ls_schema.get().schema});
+    let lo_names = new abap.types.ABAPObject({qualifiedName: "ZCL_OAPI_ABAP_NAME", RTTIName: "\\CLASS=ZCL_OAPI_ABAP_NAME"});
+    lo_names.set(await (new abap.Classes['ZCL_OAPI_ABAP_NAME']()).constructor_());
+    for await (const unique70 of abap.statements.loop(this.#ms_spec.get().components.get().schemas)) {
+      ls_schema.set(unique70);
+      await this.#create_array_references_sub({ii_schema: ls_schema.get().schema, io_names: lo_names});
     }
   }
   async #create_response_references() {
@@ -374899,29 +376688,33 @@ class zcl_oapi_references {
     "abap_parser_method": new abap.types.String({qualifiedName: "ZIF_OAPI_SPECIFICATION_V3=>TY_COMPONENT_SCHEMA-ABAP_PARSER_METHOD"}),
     "abap_json_method": new abap.types.String({qualifiedName: "ZIF_OAPI_SPECIFICATION_V3=>TY_COMPONENT_SCHEMA-ABAP_JSON_METHOD"}),
     "schema": new abap.types.ABAPObject({qualifiedName: "ZIF_OAPI_SCHEMA", RTTIName: "\\INTERFACE=ZIF_OAPI_SCHEMA"})}, "zif_oapi_specification_v3=>ty_component_schema", undefined, {}, {});
+    let lv_operation_schema = new abap.types.String({qualifiedName: "STRING"});
     let lo_names = new abap.types.ABAPObject({qualifiedName: "ZCL_OAPI_ABAP_NAME", RTTIName: "\\CLASS=ZCL_OAPI_ABAP_NAME"});
     lo_names.set(await (new abap.Classes['ZCL_OAPI_ABAP_NAME']()).constructor_());
-    for await (const unique70 of abap.statements.loop(this.#ms_spec.get().operations,{where: async (I) => {return abap.compare.eq(I.deprecated, abap.builtin.abap_false);},topEquals: {"deprecated": abap.builtin.abap_false}})) {
-      fs_ls_operation_.assign(unique70);
-      for await (const unique71 of abap.statements.loop(fs_ls_operation_.get().responses)) {
-        fs_ls_response_.assign(unique71);
-        for await (const unique72 of abap.statements.loop(fs_ls_response_.get().content,{where: async (I) => {return abap.compare.initial(I.schema_ref) && abap.compare.initial(I.schema) === false;}})) {
-          fs_ls_content_.assign(unique72);
+    for await (const unique71 of abap.statements.loop(this.#ms_spec.get().operations,{where: async (I) => {return abap.compare.eq(I.deprecated, abap.builtin.abap_false);},topEquals: {"deprecated": abap.builtin.abap_false}})) {
+      fs_ls_operation_.assign(unique71);
+      lv_operation_schema.clear();
+      for await (const unique72 of abap.statements.loop(fs_ls_operation_.get().responses)) {
+        fs_ls_response_.assign(unique72);
+        for await (const unique73 of abap.statements.loop(fs_ls_response_.get().content,{where: async (I) => {return abap.compare.initial(I.schema_ref) && abap.compare.initial(I.schema) === false;}})) {
+          fs_ls_content_.assign(unique73);
           if (abap.compare.eq((await this.#is_supported_type({is_content_type: fs_ls_content_.get().type, rv_supported: 1})), abap.builtin.abap_false)) {
             continue;
           }
           if (abap.compare.eq((await fs_ls_content_.get().schema.get().zif_oapi_schema$is_simple_type({rv_simple: 1})), abap.builtin.abap_true)) {
             continue;
           }
-          ls_new.get().name.set(new abap.types.String().set(`response_${abap.templateFormatting(fs_ls_operation_.get().abap_name)}`));
-          if (abap.compare.eq((await lo_names.get().is_used({iv_name: ls_new.get().name, rv_used: 1})), abap.builtin.abap_false)) {
-            ls_new.get().abap_name.set((await lo_names.get().to_abap_name({iv_name: ls_new.get().name, rv_name: 1})));
+          if (abap.compare.initial(lv_operation_schema)) {
+            ls_new.clear();
+            ls_new.get().name.set((await lo_names.get().to_abap_name({iv_name: new abap.types.String().set(`response_${abap.templateFormatting(fs_ls_operation_.get().abap_name)}`), rv_name: 1})));
+            ls_new.get().abap_name.set(ls_new.get().name);
             ls_new.get().abap_parser_method.set((await lo_names.get().to_abap_name({iv_name: new abap.types.String().set(`parse_${abap.templateFormatting(fs_ls_operation_.get().abap_name)}`), rv_name: 1})));
             ls_new.get().abap_json_method.clear();
             ls_new.get().schema.set(fs_ls_content_.get().schema);
             abap.statements.append({source: ls_new, target: this.#ms_spec.get().components.get().schemas});
+            lv_operation_schema.set(ls_new.get().name);
           }
-          fs_ls_content_.get().schema_ref.set(abap.operators.concat(abap.CharacterFactory.get(21, '#/components/schemas/'),ls_new.get().name));
+          fs_ls_content_.get().schema_ref.set(abap.operators.concat(abap.CharacterFactory.get(21, '#/components/schemas/'),lv_operation_schema));
         }
       }
     }
@@ -374967,10 +376760,10 @@ class zcl_oapi_references {
     "schema": new abap.types.ABAPObject({qualifiedName: "ZIF_OAPI_SCHEMA", RTTIName: "\\INTERFACE=ZIF_OAPI_SCHEMA"}),
     "schema_ref": new abap.types.String({qualifiedName: "ZIF_OAPI_SPECIFICATION_V3=>TY_PARAMETER-SCHEMA_REF"})}, "zif_oapi_specification_v3=>ty_parameter", undefined, {}, {});
     let lv_ref = new abap.types.String({qualifiedName: "STRING"});
-    for await (const unique73 of abap.statements.loop(this.#ms_spec.get().operations,{where: async (I) => {return abap.compare.eq(I.deprecated, abap.builtin.abap_false);},topEquals: {"deprecated": abap.builtin.abap_false}})) {
-      fs_ls_operation_.assign(unique73);
-      for await (const unique74 of abap.statements.loop(fs_ls_operation_.get().parameters_ref)) {
-        lv_ref.set(unique74);
+    for await (const unique74 of abap.statements.loop(this.#ms_spec.get().operations,{where: async (I) => {return abap.compare.eq(I.deprecated, abap.builtin.abap_false);},topEquals: {"deprecated": abap.builtin.abap_false}})) {
+      fs_ls_operation_.assign(unique74);
+      for await (const unique75 of abap.statements.loop(fs_ls_operation_.get().parameters_ref)) {
+        lv_ref.set(unique75);
         abap.statements.replace({target: lv_ref, all: false, with: abap.CharacterFactory.get(1, ''), of: abap.CharacterFactory.get(24, '#/components/parameters/')});
         abap.statements.readTable(this.#ms_spec.get().components.get().parameters,{into: ls_parameter,
           withKey: (i) => {return abap.compare.eq(i.id, lv_ref);},
@@ -375121,10 +376914,10 @@ class zcl_oapi_references {
     "links": new abap.types.String({qualifiedName: "ZIF_OAPI_SPECIFICATION_V3=>TY_COMPONENTS-LINKS"}),
     "callbacks": new abap.types.String({qualifiedName: "ZIF_OAPI_SPECIFICATION_V3=>TY_COMPONENTS-CALLBACKS"})}, "zif_oapi_specification_v3=>ty_components", undefined, {}, {})}, "zif_oapi_specification_v3=>ty_specification", undefined, {}, {}).set(INPUT.is_spec); }
     this.#ms_spec.set(is_spec);
-    await this.#create_array_references_top();
     await this.#dereference_parameters();
     await this.#create_body_references();
     await this.#create_response_references();
+    await this.#create_array_references_top();
     await this.#sort_schemas();
     rs_spec.set(this.#ms_spec);
     return rs_spec;
@@ -375150,21 +376943,38 @@ class zcl_oapi_references {
     "schema": new abap.types.ABAPObject({qualifiedName: "ZIF_OAPI_SCHEMA", RTTIName: "\\INTERFACE=ZIF_OAPI_SCHEMA"})}, "zif_oapi_specification_v3=>ty_component_schema", undefined, {}, {});
     let lv_name = new abap.types.String({qualifiedName: "STRING"});
     let lo_graph = new abap.types.ABAPObject({qualifiedName: "ZCL_OAPI_GRAPH", RTTIName: "\\CLASS=ZCL_OAPI_GRAPH"});
+    let lt_removed = abap.types.TableFactory.construct(new abap.types.Structure({
+    "from": new abap.types.String({qualifiedName: "ZCL_OAPI_GRAPH=>TY_EDGE-FROM"}),
+    "to": new abap.types.String({qualifiedName: "ZCL_OAPI_GRAPH=>TY_EDGE-TO"})}, "zcl_oapi_graph=>ty_edge", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "zcl_oapi_graph=>ty_edges");
+    let ls_removed = new abap.types.Structure({
+    "from": new abap.types.String({qualifiedName: "ZCL_OAPI_GRAPH=>TY_EDGE-FROM"}),
+    "to": new abap.types.String({qualifiedName: "ZCL_OAPI_GRAPH=>TY_EDGE-TO"})}, "zcl_oapi_graph=>ty_edge", undefined, {}, {});
     lo_graph.set(await (new abap.Classes['ZCL_OAPI_GRAPH']()).constructor_());
-    for await (const unique75 of abap.statements.loop(this.#ms_spec.get().components.get().schemas)) {
-      ls_schema.set(unique75);
-      await lo_graph.get().add_vertex({iv_vertex: ls_schema.get().name});
-    }
     for await (const unique76 of abap.statements.loop(this.#ms_spec.get().components.get().schemas)) {
       ls_schema.set(unique76);
+      await lo_graph.get().add_vertex({iv_vertex: ls_schema.get().name});
+    }
+    for await (const unique77 of abap.statements.loop(this.#ms_spec.get().components.get().schemas)) {
+      ls_schema.set(unique77);
       await this.#sort_traverse({iv_parent: ls_schema.get().name, io_graph: lo_graph, ii_schema: ls_schema.get().schema});
+    }
+    lt_removed.set((await lo_graph.get().remove_cycles({rt_removed: 1})));
+    for await (const unique78 of abap.statements.loop(lt_removed)) {
+      ls_removed.set(unique78);
+      abap.statements.readTable(this.#ms_spec.get().components.get().schemas,{into: ls_schema,
+        withKey: (i) => {return abap.compare.eq(i.name, ls_removed.get().from);},
+        withKeyValue: [{key: (i) => {return i.name}, value: ls_removed.get().from}],
+        usesTableLine: false,
+        withKeySimple: {"name": ls_removed.get().from}});
+      abap.statements.assert(abap.compare.eq(abap.builtin.sy.get().subrc, abap.IntegerFactory.get(0)));
+      await this.#break_reference({iv_target: ls_removed.get().to, ii_schema: ls_schema.get().schema});
     }
     lt_copy.set(this.#ms_spec.get().components.get().schemas);
     this.#ms_spec.get().components.get().schemas.clear();
     const indexBackup1 = abap.builtin.sy.get().index.get();
-    let unique77 = 1;
+    let unique79 = 1;
     while (abap.compare.eq((await lo_graph.get().is_empty({rv_empty: 1})), abap.builtin.abap_false)) {
-      abap.builtin.sy.get().index.set(unique77++);
+      abap.builtin.sy.get().index.set(unique79++);
       lv_name.set((await lo_graph.get().pop({rv_node: 1})));
       abap.statements.readTable(lt_copy,{into: ls_copy,
         withKey: (i) => {return abap.compare.eq(i.name, lv_name);},
@@ -375197,8 +377007,8 @@ class zcl_oapi_references {
       abap.statements.replace({target: lv_name, all: false, with: abap.CharacterFactory.get(1, ''), of: abap.CharacterFactory.get(21, '#/components/schemas/')});
       await io_graph.get().add_edge({iv_from: iv_parent, iv_to: lv_name});
     }
-    for await (const unique78 of abap.statements.loop(ii_schema.get().zif_oapi_schema$properties)) {
-      ls_property.set(unique78);
+    for await (const unique80 of abap.statements.loop(ii_schema.get().zif_oapi_schema$properties)) {
+      ls_property.set(unique80);
       if (abap.compare.initial(ls_property.get().ref) === false) {
         lv_name.set(ls_property.get().ref);
         abap.statements.replace({target: lv_name, all: false, with: abap.CharacterFactory.get(1, ''), of: abap.CharacterFactory.get(21, '#/components/schemas/')});
@@ -375208,15 +377018,45 @@ class zcl_oapi_references {
       }
     }
   }
+  async #break_reference(INPUT) {
+    let iv_target = INPUT?.iv_target;
+    if (iv_target?.getQualifiedName === undefined || iv_target.getQualifiedName() !== "STRING") { iv_target = undefined; }
+    if (iv_target === undefined) { iv_target = new abap.types.String({qualifiedName: "STRING"}).set(INPUT.iv_target); }
+    let ii_schema = INPUT?.ii_schema;
+    if (ii_schema?.getQualifiedName === undefined || ii_schema.getQualifiedName() !== "ZIF_OAPI_SCHEMA") { ii_schema = undefined; }
+    if (ii_schema === undefined) { ii_schema = new abap.types.ABAPObject({qualifiedName: "ZIF_OAPI_SCHEMA", RTTIName: "\\INTERFACE=ZIF_OAPI_SCHEMA"}).set(INPUT.ii_schema); }
+    let lv_ref = new abap.types.String({qualifiedName: "STRING"});
+    let fs_ls_property_ = new abap.types.FieldSymbol(new abap.types.Structure({
+    "name": new abap.types.String({qualifiedName: "ZIF_OAPI_SCHEMA=>TY_PROPERTY-NAME"}),
+    "abap_name": new abap.types.String({qualifiedName: "ZIF_OAPI_SCHEMA=>TY_PROPERTY-ABAP_NAME"}),
+    "ref": new abap.types.String({qualifiedName: "ZIF_OAPI_SCHEMA=>TY_PROPERTY-REF"}),
+    "schema": new abap.types.ABAPObject({qualifiedName: "ZIF_OAPI_SCHEMA", RTTIName: "\\INTERFACE=ZIF_OAPI_SCHEMA"})}, "zif_oapi_schema=>ty_property", undefined, {}, {}));
+    lv_ref.set(abap.operators.concat(abap.CharacterFactory.get(21, '#/components/schemas/'),iv_target));
+    if (abap.compare.eq(ii_schema.get().zif_oapi_schema$items_ref, lv_ref)) {
+      ii_schema.get().zif_oapi_schema$type.set(abap.Classes['ZIF_OAPI_SCHEMA'].zif_oapi_schema$c_type_ref_to_data);
+      ii_schema.get().zif_oapi_schema$items_ref.clear();
+      ii_schema.get().zif_oapi_schema$items_type.clear();
+    }
+    for await (const unique81 of abap.statements.loop(ii_schema.get().zif_oapi_schema$properties)) {
+      fs_ls_property_.assign(unique81);
+      if (abap.compare.eq(fs_ls_property_.get().ref, lv_ref)) {
+        fs_ls_property_.get().ref.clear();
+        fs_ls_property_.get().schema.set(await (new abap.Classes['ZCL_OAPI_SCHEMA']()).constructor_());
+        fs_ls_property_.get().schema.get().zif_oapi_schema$type.set(abap.Classes['ZIF_OAPI_SCHEMA'].zif_oapi_schema$c_type_ref_to_data);
+      } else if (abap.compare.initial(fs_ls_property_.get().schema) === false) {
+        await this.#break_reference({iv_target: iv_target, ii_schema: fs_ls_property_.get().schema});
+      }
+    }
+  }
   async #is_supported_type(INPUT) {
     let rv_supported = new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"});
     let is_content_type = INPUT?.is_content_type;
     if (is_content_type?.getQualifiedName === undefined || is_content_type.getQualifiedName() !== "STRING") { is_content_type = undefined; }
     if (is_content_type === undefined) { is_content_type = new abap.types.String({qualifiedName: "STRING"}).set(INPUT.is_content_type); }
-    let unique79 = is_content_type;
-    if (abap.compare.eq(unique79, abap.CharacterFactory.get(16, 'application/json'))) {
+    let unique82 = is_content_type;
+    if (abap.compare.eq(unique82, abap.CharacterFactory.get(16, 'application/json'))) {
       rv_supported.set(abap.builtin.abap_true);
-    } else if (abap.compare.eq(unique79, abap.CharacterFactory.get(15, 'application/xml'))) {
+    } else if (abap.compare.eq(unique82, abap.CharacterFactory.get(15, 'application/xml'))) {
       rv_supported.set(abap.builtin.abap_true);
     } else {
       rv_supported.set(abap.builtin.abap_false);
@@ -375277,29 +377117,34 @@ class zcl_oapi_response_name {
     let iv_name = INPUT?.iv_name;
     if (iv_name?.getQualifiedName === undefined || iv_name.getQualifiedName() !== "STRING") { iv_name = undefined; }
     if (iv_name === undefined) { iv_name = new abap.types.String({qualifiedName: "STRING"}).set(INPUT.iv_name); }
-    let unique66 = iv_name;
-    if (abap.compare.eq(unique66, abap.CharacterFactory.get(11, 'application'))) {
+    let unique67 = iv_name;
+    if (abap.compare.eq(unique67, abap.CharacterFactory.get(11, 'application'))) {
       rv_result.set(abap.CharacterFactory.get(3, 'app'));
-    } else if (abap.compare.eq(unique66, abap.CharacterFactory.get(5, 'audio'))) {
+    } else if (abap.compare.eq(unique67, abap.CharacterFactory.get(5, 'audio'))) {
       rv_result.set(abap.CharacterFactory.get(3, 'aud'));
-    } else if (abap.compare.eq(unique66, abap.CharacterFactory.get(4, 'font'))) {
+    } else if (abap.compare.eq(unique67, abap.CharacterFactory.get(4, 'font'))) {
       rv_result.set(abap.CharacterFactory.get(3, 'fnt'));
-    } else if (abap.compare.eq(unique66, abap.CharacterFactory.get(7, 'example'))) {
+    } else if (abap.compare.eq(unique67, abap.CharacterFactory.get(7, 'example'))) {
       rv_result.set(abap.CharacterFactory.get(3, 'exm'));
-    } else if (abap.compare.eq(unique66, abap.CharacterFactory.get(5, 'image'))) {
+    } else if (abap.compare.eq(unique67, abap.CharacterFactory.get(5, 'image'))) {
       rv_result.set(abap.CharacterFactory.get(3, 'img'));
-    } else if (abap.compare.eq(unique66, abap.CharacterFactory.get(7, 'message'))) {
+    } else if (abap.compare.eq(unique67, abap.CharacterFactory.get(7, 'message'))) {
       rv_result.set(abap.CharacterFactory.get(3, 'msg'));
-    } else if (abap.compare.eq(unique66, abap.CharacterFactory.get(5, 'model'))) {
+    } else if (abap.compare.eq(unique67, abap.CharacterFactory.get(5, 'model'))) {
       rv_result.set(abap.CharacterFactory.get(3, 'mdl'));
-    } else if (abap.compare.eq(unique66, abap.CharacterFactory.get(9, 'multipart'))) {
+    } else if (abap.compare.eq(unique67, abap.CharacterFactory.get(9, 'multipart'))) {
       rv_result.set(abap.CharacterFactory.get(2, 'mp'));
-    } else if (abap.compare.eq(unique66, abap.CharacterFactory.get(4, 'text'))) {
+    } else if (abap.compare.eq(unique67, abap.CharacterFactory.get(4, 'text'))) {
       rv_result.set(abap.CharacterFactory.get(3, 'txt'));
-    } else if (abap.compare.eq(unique66, abap.CharacterFactory.get(5, 'video'))) {
+    } else if (abap.compare.eq(unique67, abap.CharacterFactory.get(5, 'video'))) {
       rv_result.set(abap.CharacterFactory.get(3, 'vid'));
+    } else if (abap.compare.eq(unique67, abap.CharacterFactory.get(1, '*'))) {
+      rv_result.set(abap.CharacterFactory.get(3, 'any'));
     } else {
-      rv_result.set(iv_name.getOffset({length: 3}));
+      rv_result.set(iv_name);
+      if (abap.compare.gt(abap.builtin.strlen({val: rv_result}), abap.IntegerFactory.get(3))) {
+        rv_result.set(rv_result.getOffset({length: 3}));
+      }
     }
     return rv_result;
   }
@@ -375312,12 +377157,19 @@ class zcl_oapi_response_name {
     let lv_descriptor_full = new abap.types.String({qualifiedName: "STRING"});
     let lv_descriptor_primary = new abap.types.String({qualifiedName: "STRING"});
     let lv_descriptor_secondary = new abap.types.String({qualifiedName: "STRING"});
+    if (abap.compare.eq(iv_name, abap.CharacterFactory.get(1, '*'))) {
+      rv_result.set(abap.CharacterFactory.get(3, 'any'));
+      return rv_result;
+    }
     abap.statements.split({source: iv_name, at: abap.CharacterFactory.get(1, '+'), targets: [lv_descriptor_full,lv_type]});
     abap.statements.split({source: lv_descriptor_full, at: abap.CharacterFactory.get(1, '-'), targets: [lv_descriptor_primary,lv_descriptor_secondary]});
     if (abap.compare.ne(lv_descriptor_primary, abap.builtin.space)) {
       rv_result.set(lv_descriptor_primary);
       if (abap.compare.ne(lv_descriptor_secondary, abap.builtin.space)) {
-        rv_result.set(new abap.types.String().set(`${abap.templateFormatting(rv_result)}_${abap.templateFormatting(lv_descriptor_secondary.getOffset({length: 3}))}`));
+        if (abap.compare.gt(abap.builtin.strlen({val: lv_descriptor_secondary}), abap.IntegerFactory.get(3))) {
+          lv_descriptor_secondary.set(lv_descriptor_secondary.getOffset({length: 3}));
+        }
+        rv_result.set(new abap.types.String().set(`${abap.templateFormatting(rv_result)}_${abap.templateFormatting(lv_descriptor_secondary)}`));
       }
       if (abap.compare.ne(lv_type, abap.builtin.space)) {
         rv_result.set(new abap.types.String().set(`${abap.templateFormatting(rv_result)}_${abap.templateFormatting(lv_type)}`));
@@ -375399,7 +377251,8 @@ class zcl_oapi_schema {
   "ZIF_OAPI_SCHEMA~ENUM": {"type": () => {return abap.types.TableFactory.construct(new abap.types.String({qualifiedName: "STRING"}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "");}, "visibility": "U", "is_constant": " ", "is_class": " "},
   "ZIF_OAPI_SCHEMA~ITEMS_TYPE": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "visibility": "U", "is_constant": " ", "is_class": " "},
   "ZIF_OAPI_SCHEMA~ITEMS_SCHEMA": {"type": () => {return new abap.types.ABAPObject({qualifiedName: "ZIF_OAPI_SCHEMA", RTTIName: "\\INTERFACE=ZIF_OAPI_SCHEMA"});}, "visibility": "U", "is_constant": " ", "is_class": " "},
-  "ZIF_OAPI_SCHEMA~ITEMS_REF": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "visibility": "U", "is_constant": " ", "is_class": " "}};
+  "ZIF_OAPI_SCHEMA~ITEMS_REF": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "visibility": "U", "is_constant": " ", "is_class": " "},
+  "ZIF_OAPI_SCHEMA~C_TYPE_REF_TO_DATA": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "visibility": "U", "is_constant": "X", "is_class": "X"}};
   static METHODS = {"LOOKUP_REF": {"visibility": "O", "parameters": {"RS_REF": {"type": () => {return new abap.types.Structure({
   "name": new abap.types.String({qualifiedName: "ZIF_OAPI_SPECIFICATION_V3=>TY_COMPONENT_SCHEMA-NAME"}),
   "abap_name": new abap.types.String({qualifiedName: "ZIF_OAPI_SPECIFICATION_V3=>TY_COMPONENT_SCHEMA-ABAP_NAME"}),
@@ -375426,6 +377279,7 @@ class zcl_oapi_schema {
     };
     this.mv_json_pattern = new abap.types.String({qualifiedName: "STRING"});
     this.mv_json_example = new abap.types.String({qualifiedName: "STRING"});
+    this.zif_oapi_schema$c_type_ref_to_data = abap.Classes['ZIF_OAPI_SCHEMA'].zif_oapi_schema$c_type_ref_to_data;
     if (this.zif_oapi_schema$type === undefined) this.zif_oapi_schema$type = new abap.types.String({qualifiedName: "STRING"});
     if (this.zif_oapi_schema$format === undefined) this.zif_oapi_schema$format = new abap.types.String({qualifiedName: "STRING"});
     if (this.zif_oapi_schema$default === undefined) this.zif_oapi_schema$default = new abap.types.String({qualifiedName: "STRING"});
@@ -375514,6 +377368,8 @@ class zcl_oapi_schema {
     let lv_name = new abap.types.String({qualifiedName: "STRING"});
     let lv_value = new abap.types.String({qualifiedName: "STRING"});
     let lv_key = new abap.types.String({qualifiedName: "STRING"});
+    let lv_escaped = new abap.types.String({qualifiedName: "STRING"});
+    let lo_enum_names = new abap.types.ABAPObject({qualifiedName: "ZCL_OAPI_ABAP_NAME", RTTIName: "\\CLASS=ZCL_OAPI_ABAP_NAME"});
     if (abap.compare.eq(iv_use_empty_key, abap.builtin.abap_true)) {
       lv_key.set(new abap.types.String().set(`EMPTY KEY`));
     } else {
@@ -375522,24 +377378,27 @@ class zcl_oapi_schema {
     if (abap.compare.eq(this.zif_oapi_schema$type, abap.CharacterFactory.get(6, 'object'))) {
       rv_abap.set(abap.operators.concat(rv_abap,new abap.types.String().set(`  TYPES: BEGIN OF ${abap.templateFormatting(iv_name)},\n`)));
       lv_count.set(abap.IntegerFactory.get(0));
-      for await (const unique89 of abap.statements.loop(this.zif_oapi_schema$properties)) {
-        ls_property.set(unique89);
-        rv_abap.set(abap.operators.concat(rv_abap,abap.operators.concat(new abap.types.String().set(`           `),abap.operators.concat(ls_property.get().abap_name,new abap.types.String().set(` TYPE `)))));
+      for await (const unique95 of abap.statements.loop(this.zif_oapi_schema$properties)) {
+        ls_property.set(unique95);
+        rv_abap.set(abap.operators.concat([rv_abap,new abap.types.String().set(`           `),ls_property.get().abap_name,new abap.types.String().set(` TYPE `)]));
         if (abap.compare.initial(ls_property.get().schema)) {
           ls_ref.set((await this.lookup_ref({iv_name: ls_property.get().ref, it_refs: it_refs, rs_ref: 1})));
-          rv_abap.set(abap.operators.concat(rv_abap,abap.operators.concat(ls_ref.get().abap_name,new abap.types.String().set(`,\n`))));
+          rv_abap.set(abap.operators.concat([rv_abap,ls_ref.get().abap_name,new abap.types.String().set(`,\n`)]));
         } else if (abap.compare.eq((await ls_property.get().schema.get().zif_oapi_schema$is_simple_type({rv_simple: 1})), abap.builtin.abap_true)) {
           if (abap.compare.gt(abap.builtin.lines({val: ls_property.get().schema.get().zif_oapi_schema$enum}), abap.IntegerFactory.get(0))) {
-            lv_name.set((await io_names.get().to_abap_name({iv_name: abap.operators.concat(abap.CharacterFactory.get(7, 'c_enum_'),abap.operators.concat(iv_name,abap.operators.concat(abap.CharacterFactory.get(1, '_'),ls_property.get().abap_name))), rv_name: 1})));
+            lv_name.set((await io_names.get().to_abap_name({iv_name: abap.operators.concat([abap.CharacterFactory.get(7, 'c_enum_'),iv_name,abap.CharacterFactory.get(1, '_'),ls_property.get().abap_name]), rv_name: 1})));
             lv_enums.set(abap.operators.concat(lv_enums,new abap.types.String().set(`* Enum: ${abap.templateFormatting(iv_name)}-${abap.templateFormatting(ls_property.get().abap_name)}\n`)));
             lv_enums.set(abap.operators.concat(lv_enums,new abap.types.String().set(`  CONSTANTS: BEGIN OF ${abap.templateFormatting(lv_name)},\n`)));
-            for await (const unique90 of abap.statements.loop(ls_property.get().schema.get().zif_oapi_schema$enum)) {
-              lv_value.set(unique90);
-              lv_enums.set(abap.operators.concat(lv_enums,new abap.types.String().set(`               ${abap.templateFormatting(abap.builtin.to_lower({val: lv_value}))} TYPE string VALUE '${abap.templateFormatting(lv_value)}',\n`)));
+            lo_enum_names.set(await (new abap.Classes['ZCL_OAPI_ABAP_NAME']()).constructor_());
+            for await (const unique96 of abap.statements.loop(ls_property.get().schema.get().zif_oapi_schema$enum)) {
+              lv_value.set(unique96);
+              lv_escaped.set(lv_value);
+              abap.statements.replace({target: lv_escaped, all: true, with: abap.CharacterFactory.get(2, '\'\''), of: abap.CharacterFactory.get(1, '\'')});
+              lv_enums.set(abap.operators.concat(lv_enums,new abap.types.String().set(`               ${abap.templateFormatting((await lo_enum_names.get().to_abap_name({iv_name: lv_value, rv_name: 1})))} TYPE string VALUE '${abap.templateFormatting(lv_escaped)}',\n`)));
             }
             lv_enums.set(abap.operators.concat(lv_enums,new abap.types.String().set(`             END OF ${abap.templateFormatting(lv_name)}.\n`)));
           }
-          rv_abap.set(abap.operators.concat(rv_abap,abap.operators.concat((await ls_property.get().schema.get().zif_oapi_schema$get_simple_type({rv_simple: 1})),new abap.types.String().set(`,\n`))));
+          rv_abap.set(abap.operators.concat([rv_abap,(await ls_property.get().schema.get().zif_oapi_schema$get_simple_type({rv_simple: 1})),new abap.types.String().set(`,\n`)]));
         } else if (abap.compare.eq(ls_property.get().schema.get().zif_oapi_schema$type, abap.CharacterFactory.get(5, 'array')) && abap.compare.initial(ls_property.get().schema.get().zif_oapi_schema$items_ref) === false) {
           ls_ref.set((await this.lookup_ref({iv_name: ls_property.get().schema.get().zif_oapi_schema$items_ref, it_refs: it_refs, rs_ref: 1})));
           rv_abap.set(abap.operators.concat(rv_abap,new abap.types.String().set(`STANDARD TABLE OF ${abap.templateFormatting(ls_ref.get().abap_name)} WITH ${abap.templateFormatting(lv_key)},\n`)));
@@ -375548,8 +377407,8 @@ class zcl_oapi_schema {
         } else if (abap.compare.eq(ls_property.get().schema.get().zif_oapi_schema$type, abap.CharacterFactory.get(5, 'array'))) {
           rv_abap.set(abap.operators.concat(rv_abap,new abap.types.String().set(`STANDARD TABLE OF string WITH ${abap.templateFormatting(lv_key)}, " todo, handle array\n`)));
         } else {
-          lv_name.set((await io_names.get().to_abap_name({iv_name: abap.operators.concat(abap.CharacterFactory.get(3, 'sub'),abap.operators.concat(iv_name,abap.operators.concat(abap.CharacterFactory.get(1, '_'),ls_property.get().abap_name))), rv_name: 1})));
-          rv_abap.set(abap.operators.concat((await ls_property.get().schema.get().zif_oapi_schema$build_type_definition({iv_name: lv_name, io_names: io_names, it_refs: it_refs, iv_use_empty_key: iv_use_empty_key, rv_abap: 1})),abap.operators.concat(rv_abap,abap.operators.concat(lv_name,new abap.types.String().set(`,\n`)))));
+          lv_name.set((await io_names.get().to_abap_name({iv_name: abap.operators.concat([abap.CharacterFactory.get(3, 'sub'),iv_name,abap.CharacterFactory.get(1, '_'),ls_property.get().abap_name]), rv_name: 1})));
+          rv_abap.set(abap.operators.concat([(await ls_property.get().schema.get().zif_oapi_schema$build_type_definition({iv_name: lv_name, io_names: io_names, it_refs: it_refs, iv_use_empty_key: iv_use_empty_key, rv_abap: 1})),rv_abap,lv_name,new abap.types.String().set(`,\n`)]));
         }
         lv_count.set(abap.operators.add(lv_count,abap.IntegerFactory.get(1)));
       }
@@ -375652,8 +377511,8 @@ class zcl_oapi_schema {
     "schema": new abap.types.ABAPObject({qualifiedName: "ZIF_OAPI_SCHEMA", RTTIName: "\\INTERFACE=ZIF_OAPI_SCHEMA"})}, "zif_oapi_specification_v3=>ty_component_schema", undefined, {}, {});
     let lo_names = new abap.types.ABAPObject({qualifiedName: "ZCL_OAPI_ABAP_NAME", RTTIName: "\\CLASS=ZCL_OAPI_ABAP_NAME"});
     lo_names.set(await (new abap.Classes['ZCL_OAPI_ABAP_NAME']()).constructor_());
-    for await (const unique91 of abap.statements.loop(is_specification.get().components.get().schemas)) {
-      ls_schema.set(unique91);
+    for await (const unique97 of abap.statements.loop(is_specification.get().components.get().schemas)) {
+      ls_schema.set(unique97);
       await lo_names.get().add_used({iv_name: ls_schema.get().abap_name});
     }
     rv_abap.set((await this.zif_oapi_schema$build_type_definition({iv_name: iv_name, it_refs: is_specification.get().components.get().schemas, io_names: lo_names, iv_use_empty_key: iv_use_empty_key, rv_abap: 1})));
@@ -375683,47 +377542,51 @@ class zcl_oapi_schema {
     if (iv_type === undefined) { iv_type = new abap.types.String({qualifiedName: "STRING"}).set(INPUT.iv_type); }
     let iv_format = new abap.types.String({qualifiedName: "STRING"});
     if (INPUT && INPUT.iv_format) {iv_format.set(INPUT.iv_format);}
-    let unique92 = iv_type;
-    if (abap.compare.eq(unique92, abap.CharacterFactory.get(7, 'integer'))) {
+    let unique98 = iv_type;
+    if (abap.compare.eq(unique98, abap.CharacterFactory.get(7, 'integer'))) {
       rv_simple.set(abap.CharacterFactory.get(1, 'i'));
-    } else if (abap.compare.eq(unique92, abap.CharacterFactory.get(6, 'number'))) {
+    } else if (abap.compare.eq(unique98, abap.CharacterFactory.get(6, 'number'))) {
       rv_simple.set(abap.CharacterFactory.get(1, 'f'));
-    } else if (abap.compare.eq(unique92, abap.CharacterFactory.get(6, 'string'))) {
-      let unique93 = this.zif_oapi_schema$max_length;
-      if (abap.compare.eq(unique93, abap.IntegerFactory.get(1))) {
+    } else if (abap.compare.eq(unique98, abap.CharacterFactory.get(6, 'string'))) {
+      let unique99 = this.zif_oapi_schema$max_length;
+      if (abap.compare.eq(unique99, abap.IntegerFactory.get(1))) {
         rv_simple.set(abap.CharacterFactory.get(5, 'char1'));
-      } else if (abap.compare.eq(unique93, abap.IntegerFactory.get(2))) {
+      } else if (abap.compare.eq(unique99, abap.IntegerFactory.get(2))) {
         rv_simple.set(abap.CharacterFactory.get(5, 'char2'));
-      } else if (abap.compare.eq(unique93, abap.IntegerFactory.get(4))) {
+      } else if (abap.compare.eq(unique99, abap.IntegerFactory.get(4))) {
         rv_simple.set(abap.CharacterFactory.get(5, 'char4'));
-      } else if (abap.compare.eq(unique93, abap.IntegerFactory.get(8))) {
+      } else if (abap.compare.eq(unique99, abap.IntegerFactory.get(8))) {
         rv_simple.set(abap.CharacterFactory.get(5, 'char8'));
-      } else if (abap.compare.eq(unique93, abap.IntegerFactory.get(30))) {
+      } else if (abap.compare.eq(unique99, abap.IntegerFactory.get(30))) {
         rv_simple.set(abap.CharacterFactory.get(6, 'char30'));
-      } else if (abap.compare.eq(unique93, abap.IntegerFactory.get(40))) {
+      } else if (abap.compare.eq(unique99, abap.IntegerFactory.get(40))) {
         rv_simple.set(abap.CharacterFactory.get(6, 'char40'));
       } else {
         rv_simple.set(abap.CharacterFactory.get(6, 'string'));
       }
-      let unique94 = iv_format;
-      if (abap.compare.eq(unique94, abap.CharacterFactory.get(6, 'binary'))) {
+      let unique100 = iv_format;
+      if (abap.compare.eq(unique100, abap.CharacterFactory.get(6, 'binary'))) {
         rv_simple.set(abap.CharacterFactory.get(7, 'xstring'));
-      } else if (abap.compare.eq(unique94, abap.CharacterFactory.get(9, 'date-time'))) {
+      } else if (abap.compare.eq(unique100, abap.CharacterFactory.get(9, 'date-time'))) {
         rv_simple.set(abap.CharacterFactory.get(10, 'timestampl'));
-      } else if (abap.compare.eq(unique94, abap.CharacterFactory.get(4, 'uuid'))) {
+      } else if (abap.compare.eq(unique100, abap.CharacterFactory.get(4, 'uuid'))) {
         rv_simple.set(abap.CharacterFactory.get(11, 'sysuuid_c36'));
       }
-    } else if (abap.compare.eq(unique92, abap.CharacterFactory.get(5, 'array'))) {
+    } else if (abap.compare.eq(unique98, abap.CharacterFactory.get(5, 'array'))) {
       if (abap.compare.eq(this.zif_oapi_schema$items_type, abap.CharacterFactory.get(6, 'object')) && abap.compare.initial(this.zif_oapi_schema$items_ref)) {
         rv_simple.set(abap.CharacterFactory.get(3, 'any'));
       }
-    } else if (abap.compare.eq(unique92, abap.CharacterFactory.get(7, 'boolean'))) {
+    } else if (abap.compare.eq(unique98, abap.CharacterFactory.get(7, 'boolean'))) {
       rv_simple.set(abap.CharacterFactory.get(9, 'abap_bool'));
+    } else if (abap.compare.eq(unique98, abap.Classes['ZIF_OAPI_SCHEMA'].zif_oapi_schema$c_type_ref_to_data)) {
+      rv_simple.set(abap.CharacterFactory.get(11, 'REF TO data'));
     }
     return rv_simple;
   }
 }
 abap.Classes['ZCL_OAPI_SCHEMA'] = zcl_oapi_schema;
+zcl_oapi_schema.zif_oapi_schema$c_type_ref_to_data = new abap.types.String({qualifiedName: "STRING"});
+zcl_oapi_schema.zif_oapi_schema$c_type_ref_to_data.set('ref_to_data');
 
 __webpack_async_result__();
 } catch(e) { __webpack_async_result__(e); } }, 1);
@@ -375757,7 +377620,8 @@ class zif_oapi_schema {
   "ENUM": {"type": () => {return abap.types.TableFactory.construct(new abap.types.String({qualifiedName: "STRING"}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "");}, "visibility": "U", "is_constant": " ", "is_class": " "},
   "ITEMS_TYPE": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "visibility": "U", "is_constant": " ", "is_class": " "},
   "ITEMS_SCHEMA": {"type": () => {return new abap.types.ABAPObject({qualifiedName: "ZIF_OAPI_SCHEMA", RTTIName: "\\INTERFACE=ZIF_OAPI_SCHEMA"});}, "visibility": "U", "is_constant": " ", "is_class": " "},
-  "ITEMS_REF": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "visibility": "U", "is_constant": " ", "is_class": " "}};
+  "ITEMS_REF": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "visibility": "U", "is_constant": " ", "is_class": " "},
+  "C_TYPE_REF_TO_DATA": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "visibility": "U", "is_constant": "X", "is_class": "X"}};
   static METHODS = {"IS_SIMPLE_TYPE": {"visibility": "U", "parameters": {"RV_SIMPLE": {"type": () => {return new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"});}, "is_optional": " ", "parm_kind": "R", "type_name": "CharacterType"}}},
   "GET_SIMPLE_TYPE": {"visibility": "U", "parameters": {"RV_SIMPLE": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "R", "type_name": "StringType"}}},
   "BUILD_TYPE_DEFINITION": {"visibility": "U", "parameters": {"RV_ABAP": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "R", "type_name": "StringType"}, "IV_NAME": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "StringType"}, "IT_REFS": {"type": () => {return abap.types.TableFactory.construct(new abap.types.Structure({
@@ -375835,6 +377699,8 @@ class zif_oapi_schema {
   "callbacks": new abap.types.String({qualifiedName: "ZIF_OAPI_SPECIFICATION_V3=>TY_COMPONENTS-CALLBACKS"})}, "zif_oapi_specification_v3=>ty_components", undefined, {}, {})}, "zif_oapi_specification_v3=>ty_specification", undefined, {}, {});}, "is_optional": " ", "parm_kind": "I", "type_name": "StructureType"}, "IV_USE_EMPTY_KEY": {"type": () => {return new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"});}, "is_optional": " ", "parm_kind": "I", "type_name": "CharacterType"}}}};
 }
 abap.Classes['ZIF_OAPI_SCHEMA'] = zif_oapi_schema;
+zif_oapi_schema.zif_oapi_schema$c_type_ref_to_data = new abap.types.String({qualifiedName: "STRING"});
+zif_oapi_schema.zif_oapi_schema$c_type_ref_to_data.set('ref_to_data');
 zif_oapi_schema.ty_property = new abap.types.Structure({
 "name": new abap.types.String({qualifiedName: "ZIF_OAPI_SCHEMA=>TY_PROPERTY-NAME"}),
 "abap_name": new abap.types.String({qualifiedName: "ZIF_OAPI_SCHEMA=>TY_PROPERTY-ABAP_NAME"}),
@@ -376153,9 +378019,9 @@ async function wwwdata_import(INPUT) {
   const __dirname = path.dirname(__filename);
   xstr.set(fs.readFileSync(__dirname + path.sep + filename.get()).toString("hex").toUpperCase());
   const indexBackup1 = abap.builtin.sy.get().index.get();
-  let unique114 = 1;
+  let unique120 = 1;
   while (abap.compare.gt(abap.builtin.xstrlen({val: xstr}), abap.IntegerFactory.get(0))) {
-    abap.builtin.sy.get().index.set(unique114++);
+    abap.builtin.sy.get().index.set(unique120++);
     len.set(new abap.types.Integer().set(255));
     if (abap.compare.lt(abap.builtin.xstrlen({val: xstr}), len)) {
       len.set(abap.builtin.xstrlen({val: xstr}));
