@@ -324505,7 +324505,9 @@ ENDCLASS.
 CLASS cl_abap_elemdescr IMPLEMENTATION.
 
   METHOD get_p.
-    ASSERT 1 = ''todo''.
+    DATA foo TYPE REF TO data.
+    CREATE DATA foo TYPE p LENGTH p_length DECIMALS p_decimals.
+    p_result ?= cl_abap_typedescr=>describe_by_data_ref( foo ).
   ENDMETHOD.
 
   METHOD get_decfloat16.
@@ -324543,6 +324545,7 @@ CLASS cl_abap_elemdescr IMPLEMENTATION.
     p_flddescr-outputlen = output_length.
 
     WRITE ''@KERNEL p_flddescr.get().domname.set(abap.DDIC[this.relative_name.get()]?.domain || "");''.
+    WRITE ''@KERNEL p_flddescr.get().fieldtext.set(abap.DDIC[this.relative_name.get()]?.description || "");''.
     WRITE ''@KERNEL lv_datatype.set(abap.DDIC[this.relative_name.get()]?.datatype || "");''.
     IF lv_datatype IS INITIAL.
       lv_datatype = ddic_datatype_from_typekind( type_kind ).
@@ -340667,11 +340670,11 @@ class cl_abap_elemdescr extends cl_abap_datadescr {
   "scrlen1": new abap.types.Character(1, {}),
   "scrlen2": new abap.types.Character(1, {}),
   "scrlen3": new abap.types.Character(1, {}),
-  "fieldtext": new abap.types.Character(1, {}),
-  "reptext": new abap.types.Character(1, {}),
-  "scrtext_s": new abap.types.Character(1, {}),
-  "scrtext_m": new abap.types.Character(1, {}),
-  "scrtext_l": new abap.types.Character(1, {}),
+  "fieldtext": new abap.types.Character(60, {}),
+  "reptext": new abap.types.Character(55, {}),
+  "scrtext_s": new abap.types.Character(10, {}),
+  "scrtext_m": new abap.types.Character(20, {}),
+  "scrtext_l": new abap.types.Character(40, {}),
   "keyflag": new abap.types.Character(1, {}),
   "lowercase": new abap.types.Character(1, {}),
   "mac": new abap.types.Character(1, {}),
@@ -340727,7 +340730,9 @@ class cl_abap_elemdescr extends cl_abap_datadescr {
     let p_decimals = INPUT?.p_decimals;
     if (p_decimals?.getQualifiedName === undefined || p_decimals.getQualifiedName() !== "I") { p_decimals = undefined; }
     if (p_decimals === undefined) { p_decimals = new abap.types.Integer({qualifiedName: "I"}).set(INPUT.p_decimals); }
-    abap.statements.assert(abap.compare.eq(abap.IntegerFactory.get(1), abap.CharacterFactory.get(4, 'todo')));
+    let foo = new abap.types.DataReference(new abap.types.Character(4));
+    abap.statements.createData(foo,{"typeName": "P","length": p_length,"decimals": p_decimals});
+    await abap.statements.cast(p_result, (await abap.Classes['CL_ABAP_TYPEDESCR'].describe_by_data_ref({p_data_ref: foo, type: 1})));
     return p_result;
   }
   async get_decfloat16(INPUT) {
@@ -340807,11 +340812,11 @@ class cl_abap_elemdescr extends cl_abap_datadescr {
     "scrlen1": new abap.types.Character(1, {}),
     "scrlen2": new abap.types.Character(1, {}),
     "scrlen3": new abap.types.Character(1, {}),
-    "fieldtext": new abap.types.Character(1, {}),
-    "reptext": new abap.types.Character(1, {}),
-    "scrtext_s": new abap.types.Character(1, {}),
-    "scrtext_m": new abap.types.Character(1, {}),
-    "scrtext_l": new abap.types.Character(1, {}),
+    "fieldtext": new abap.types.Character(60, {}),
+    "reptext": new abap.types.Character(55, {}),
+    "scrtext_s": new abap.types.Character(10, {}),
+    "scrtext_m": new abap.types.Character(20, {}),
+    "scrtext_l": new abap.types.Character(40, {}),
     "keyflag": new abap.types.Character(1, {}),
     "lowercase": new abap.types.Character(1, {}),
     "mac": new abap.types.Character(1, {}),
@@ -340838,6 +340843,7 @@ class cl_abap_elemdescr extends cl_abap_datadescr {
     p_flddescr.get().decimals.set(this.decimals);
     p_flddescr.get().outputlen.set(this.output_length);
     p_flddescr.get().domname.set(abap.DDIC[this.relative_name.get()]?.domain || "");
+    p_flddescr.get().fieldtext.set(abap.DDIC[this.relative_name.get()]?.description || "");
     lv_datatype.set(abap.DDIC[this.relative_name.get()]?.datatype || "");
     if (abap.compare.initial(lv_datatype)) {
       lv_datatype.set((await this.ddic_datatype_from_typekind({typekind: this.type_kind, rv_datatype: 1})));
@@ -343334,11 +343340,11 @@ class cl_abap_structdescr extends cl_abap_complexdescr {
   "scrlen1": new abap.types.Character(1, {}),
   "scrlen2": new abap.types.Character(1, {}),
   "scrlen3": new abap.types.Character(1, {}),
-  "fieldtext": new abap.types.Character(1, {}),
-  "reptext": new abap.types.Character(1, {}),
-  "scrtext_s": new abap.types.Character(1, {}),
-  "scrtext_m": new abap.types.Character(1, {}),
-  "scrtext_l": new abap.types.Character(1, {}),
+  "fieldtext": new abap.types.Character(60, {}),
+  "reptext": new abap.types.Character(55, {}),
+  "scrtext_s": new abap.types.Character(10, {}),
+  "scrtext_m": new abap.types.Character(20, {}),
+  "scrtext_l": new abap.types.Character(40, {}),
   "keyflag": new abap.types.Character(1, {}),
   "lowercase": new abap.types.Character(1, {}),
   "mac": new abap.types.Character(1, {}),
@@ -343581,11 +343587,11 @@ class cl_abap_structdescr extends cl_abap_complexdescr {
     "scrlen1": new abap.types.Character(1, {}),
     "scrlen2": new abap.types.Character(1, {}),
     "scrlen3": new abap.types.Character(1, {}),
-    "fieldtext": new abap.types.Character(1, {}),
-    "reptext": new abap.types.Character(1, {}),
-    "scrtext_s": new abap.types.Character(1, {}),
-    "scrtext_m": new abap.types.Character(1, {}),
-    "scrtext_l": new abap.types.Character(1, {}),
+    "fieldtext": new abap.types.Character(60, {}),
+    "reptext": new abap.types.Character(55, {}),
+    "scrtext_s": new abap.types.Character(10, {}),
+    "scrtext_m": new abap.types.Character(20, {}),
+    "scrtext_l": new abap.types.Character(40, {}),
     "keyflag": new abap.types.Character(1, {}),
     "lowercase": new abap.types.Character(1, {}),
     "mac": new abap.types.Character(1, {}),
@@ -343643,11 +343649,11 @@ class cl_abap_structdescr extends cl_abap_complexdescr {
     "scrlen1": new abap.types.Character(1, {}),
     "scrlen2": new abap.types.Character(1, {}),
     "scrlen3": new abap.types.Character(1, {}),
-    "fieldtext": new abap.types.Character(1, {}),
-    "reptext": new abap.types.Character(1, {}),
-    "scrtext_s": new abap.types.Character(1, {}),
-    "scrtext_m": new abap.types.Character(1, {}),
-    "scrtext_l": new abap.types.Character(1, {}),
+    "fieldtext": new abap.types.Character(60, {}),
+    "reptext": new abap.types.Character(55, {}),
+    "scrtext_s": new abap.types.Character(10, {}),
+    "scrtext_m": new abap.types.Character(20, {}),
+    "scrtext_l": new abap.types.Character(40, {}),
     "keyflag": new abap.types.Character(1, {}),
     "lowercase": new abap.types.Character(1, {}),
     "mac": new abap.types.Character(1, {}),
@@ -343692,11 +343698,11 @@ class cl_abap_structdescr extends cl_abap_complexdescr {
     "scrlen1": new abap.types.Character(1, {}),
     "scrlen2": new abap.types.Character(1, {}),
     "scrlen3": new abap.types.Character(1, {}),
-    "fieldtext": new abap.types.Character(1, {}),
-    "reptext": new abap.types.Character(1, {}),
-    "scrtext_s": new abap.types.Character(1, {}),
-    "scrtext_m": new abap.types.Character(1, {}),
-    "scrtext_l": new abap.types.Character(1, {}),
+    "fieldtext": new abap.types.Character(60, {}),
+    "reptext": new abap.types.Character(55, {}),
+    "scrtext_s": new abap.types.Character(10, {}),
+    "scrtext_m": new abap.types.Character(20, {}),
+    "scrtext_l": new abap.types.Character(40, {}),
     "keyflag": new abap.types.Character(1, {}),
     "lowercase": new abap.types.Character(1, {}),
     "mac": new abap.types.Character(1, {}),
@@ -343738,11 +343744,11 @@ class cl_abap_structdescr extends cl_abap_complexdescr {
     "scrlen1": new abap.types.Character(1, {}),
     "scrlen2": new abap.types.Character(1, {}),
     "scrlen3": new abap.types.Character(1, {}),
-    "fieldtext": new abap.types.Character(1, {}),
-    "reptext": new abap.types.Character(1, {}),
-    "scrtext_s": new abap.types.Character(1, {}),
-    "scrtext_m": new abap.types.Character(1, {}),
-    "scrtext_l": new abap.types.Character(1, {}),
+    "fieldtext": new abap.types.Character(60, {}),
+    "reptext": new abap.types.Character(55, {}),
+    "scrtext_s": new abap.types.Character(10, {}),
+    "scrtext_m": new abap.types.Character(20, {}),
+    "scrtext_l": new abap.types.Character(40, {}),
     "keyflag": new abap.types.Character(1, {}),
     "lowercase": new abap.types.Character(1, {}),
     "mac": new abap.types.Character(1, {}),
@@ -361779,11 +361785,11 @@ abap.DDIC["DDFIELDS"] = {
 "scrlen1": new abap.types.Character(1, {}),
 "scrlen2": new abap.types.Character(1, {}),
 "scrlen3": new abap.types.Character(1, {}),
-"fieldtext": new abap.types.Character(1, {}),
-"reptext": new abap.types.Character(1, {}),
-"scrtext_s": new abap.types.Character(1, {}),
-"scrtext_m": new abap.types.Character(1, {}),
-"scrtext_l": new abap.types.Character(1, {}),
+"fieldtext": new abap.types.Character(60, {}),
+"reptext": new abap.types.Character(55, {}),
+"scrtext_s": new abap.types.Character(10, {}),
+"scrtext_m": new abap.types.Character(20, {}),
+"scrtext_l": new abap.types.Character(40, {}),
 "keyflag": new abap.types.Character(1, {}),
 "lowercase": new abap.types.Character(1, {}),
 "mac": new abap.types.Character(1, {}),
@@ -361894,11 +361900,11 @@ abap.DDIC["DFIES"] = {
 "scrlen1": new abap.types.Character(1, {}),
 "scrlen2": new abap.types.Character(1, {}),
 "scrlen3": new abap.types.Character(1, {}),
-"fieldtext": new abap.types.Character(1, {}),
-"reptext": new abap.types.Character(1, {}),
-"scrtext_s": new abap.types.Character(1, {}),
-"scrtext_m": new abap.types.Character(1, {}),
-"scrtext_l": new abap.types.Character(1, {}),
+"fieldtext": new abap.types.Character(60, {}),
+"reptext": new abap.types.Character(55, {}),
+"scrtext_s": new abap.types.Character(10, {}),
+"scrtext_m": new abap.types.Character(20, {}),
+"scrtext_l": new abap.types.Character(40, {}),
 "keyflag": new abap.types.Character(1, {}),
 "lowercase": new abap.types.Character(1, {}),
 "mac": new abap.types.Character(1, {}),
