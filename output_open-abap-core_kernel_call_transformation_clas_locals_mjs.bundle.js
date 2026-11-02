@@ -223,7 +223,7 @@ class lcl_data_to_xml {
     let ls_compo = $t_a2VybmVsX2NhbGxfdHJhbnNmb3JtYXRpb24uY2xhcy5sb2NhbHMubWpz_3();
     let lv_ref = new abap.types.DataReference(new abap.types.Character(4));
     let fs_any_ = new abap.types.FieldSymbol(new abap.types.Character(4));
-    let fs_table_ = new abap.types.FieldSymbol(abap.types.TableFactory.construct(new abap.types.Character(4), {"withHeader":false,"keyType":"USER"}));
+    let fs_table_ = new abap.types.FieldSymbol(abap.types.TableFactory.construct(new abap.types.Character(4), {"withHeader":false,"keyType":"USER","primaryKey":{"name":"primary_key","type":"ANY","keyFields":[],"isUnique":false}}));
     let fs_field_ = new abap.types.FieldSymbol(new abap.types.Character(4));
     let fs_ref_ = new abap.types.FieldSymbol(new abap.types.Character(4));
     abap.statements.assign({target: fs_ref_, source: iv_ref.dereference()});
@@ -369,7 +369,7 @@ class lcl_object_to_sxml {
     let ls_compo = $t_a2VybmVsX2NhbGxfdHJhbnNmb3JtYXRpb24uY2xhcy5sb2NhbHMubWpz_3();
     let lv_ref = new abap.types.DataReference(new abap.types.Character(4));
     let fs_any_ = new abap.types.FieldSymbol(new abap.types.Character(4));
-    let fs_table_ = new abap.types.FieldSymbol(abap.types.TableFactory.construct(new abap.types.Character(4), {"withHeader":false,"keyType":"USER"}));
+    let fs_table_ = new abap.types.FieldSymbol(abap.types.TableFactory.construct(new abap.types.Character(4), {"withHeader":false,"keyType":"USER","primaryKey":{"name":"primary_key","type":"ANY","keyFields":[],"isUnique":false}}));
     let fs_field_ = new abap.types.FieldSymbol(new abap.types.Character(4));
     abap.statements.assign({target: fs_any_, source: iv_ref.dereference()});
     lo_type.set((await abap.Classes['CL_ABAP_TYPEDESCR'].describe_by_data({p_data: fs_any_, type: 1})));
@@ -548,7 +548,7 @@ class lcl_object_to_ixml {
     let lv_ref = new abap.types.DataReference(new abap.types.Character(4));
     let li_element = new abap.types.ABAPObject({qualifiedName: "IF_IXML_ELEMENT", RTTIName: "\\INTERFACE=IF_IXML_ELEMENT"});
     let fs_any_ = new abap.types.FieldSymbol(new abap.types.Character(4));
-    let fs_table_ = new abap.types.FieldSymbol(abap.types.TableFactory.construct(new abap.types.Character(4), {"withHeader":false,"keyType":"USER"}));
+    let fs_table_ = new abap.types.FieldSymbol(abap.types.TableFactory.construct(new abap.types.Character(4), {"withHeader":false,"keyType":"USER","primaryKey":{"name":"primary_key","type":"ANY","keyFields":[],"isUnique":false}}));
     let fs_field_ = new abap.types.FieldSymbol(new abap.types.Character(4));
     abap.statements.assign({target: fs_any_, source: iv_ref.dereference()});
     lo_type.set((await abap.Classes['CL_ABAP_TYPEDESCR'].describe_by_data({p_data: fs_any_, type: 1})));
