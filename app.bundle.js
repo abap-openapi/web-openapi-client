@@ -375942,6 +375942,8 @@ CLASS zcl_oapi_parser IMPLEMENTATION.
     DATA ls_operation LIKE LINE OF rt_operations.
     DATA ls_schema LIKE LINE OF it_schemas.
     DATA lo_names TYPE REF TO zcl_oapi_abap_name.
+    DATA lt_path_parameters TYPE zif_oapi_specification_v3=>ty_parameters.
+    DATA ls_path_parameter LIKE LINE OF lt_path_parameters.
     CREATE OBJECT lo_names.
 
 * methods and types share the same namespace in the generated interface
@@ -375955,7 +375957,8 @@ CLASS zcl_oapi_parser IMPLEMENTATION.
       ls_operation-path = lv_path.
       lt_methods = mo_json->members( ''/paths/'' && zcl_oapi_json=>escape_key( lv_path ) && ''/'' ).
       LOOP AT lt_methods INTO lv_method.
-        IF lv_method = ''summary'' OR lv_method = ''description''.
+        IF lv_method <> ''get'' AND lv_method <> ''put'' AND lv_method <> ''post'' AND lv_method <> ''delete''
+            AND lv_method <> ''options'' AND lv_method <> ''head'' AND lv_method <> ''patch'' AND lv_method <> ''trace''.
           CONTINUE.
         ENDIF.
 
@@ -375967,6 +375970,18 @@ CLASS zcl_oapi_parser IMPLEMENTATION.
         ls_operation-operation_id = mo_json->value_string( lv_prefix && ''/operationId'' ).
         ls_operation-parameters = parse_parameters( lv_prefix && ''/parameters/'' ).
         ls_operation-parameters_ref = parse_parameters_ref( lv_prefix && ''/parameters/'' ).
+
+* parameters on path item level apply to all operations, unless overridden on operation level
+        lt_path_parameters = parse_parameters( ''/paths/'' && zcl_oapi_json=>escape_key( lv_path ) && ''/parameters/'' ).
+        LOOP AT lt_path_parameters INTO ls_path_parameter.
+          READ TABLE ls_operation-parameters WITH KEY name = ls_path_parameter-name in = ls_path_parameter-in
+            TRANSPORTING NO FIELDS.
+          IF sy-subrc <> 0.
+            APPEND ls_path_parameter TO ls_operation-parameters.
+          ENDIF.
+        ENDLOOP.
+        APPEND LINES OF parse_parameters_ref( ''/paths/'' && zcl_oapi_json=>escape_key( lv_path ) && ''/parameters/'' )
+          TO ls_operation-parameters_ref.
         ls_operation-responses = parse_operation_responses( lv_prefix && ''/responses/'' ).
 
         ls_operation-abap_name = lo_names->to_abap_name( ls_operation-operation_id ).
@@ -417380,6 +417395,8 @@ class zcl_oapi_parser {
     let ls_operation = $t_emNsX29hcGlfcGFyc2VyLmNsYXMubWpz_6();
     let ls_schema = $t_emNsX29hcGlfcGFyc2VyLmNsYXMubWpz_8();
     let lo_names = new abap.types.ABAPObject({qualifiedName: "ZCL_OAPI_ABAP_NAME", RTTIName: "\\CLASS=ZCL_OAPI_ABAP_NAME"});
+    let lt_path_parameters = $t_emNsX29hcGlfcGFyc2VyLmNsYXMubWpz_2();
+    let ls_path_parameter = $t_emNsX29hcGlfcGFyc2VyLmNsYXMubWpz_1();
     lo_names.set(await (new abap.Classes['ZCL_OAPI_ABAP_NAME']()).constructor_());
     for await (const unique9 of abap.statements.loop(it_schemas)) {
       ls_schema.set(unique9);
@@ -417393,7 +417410,7 @@ class zcl_oapi_parser {
       lt_methods.set((await this.#mo_json.get().members({iv_path: abap.operators.concat([abap.CharacterFactory.get(7, '/paths/'),(await abap.Classes['ZCL_OAPI_JSON'].escape_key({iv_name: lv_path, rv_escaped: 1})),abap.CharacterFactory.get(1, '/')]), rt_members: 1})));
       for await (const unique11 of abap.statements.loop(lt_methods)) {
         lv_method.set(unique11);
-        if (abap.compare.eq(lv_method, abap.CharacterFactory.get(7, 'summary')) || abap.compare.eq(lv_method, abap.CharacterFactory.get(11, 'description'))) {
+        if (abap.compare.ne(lv_method, abap.CharacterFactory.get(3, 'get')) && abap.compare.ne(lv_method, abap.CharacterFactory.get(3, 'put')) && abap.compare.ne(lv_method, abap.CharacterFactory.get(4, 'post')) && abap.compare.ne(lv_method, abap.CharacterFactory.get(6, 'delete')) && abap.compare.ne(lv_method, abap.CharacterFactory.get(7, 'options')) && abap.compare.ne(lv_method, abap.CharacterFactory.get(4, 'head')) && abap.compare.ne(lv_method, abap.CharacterFactory.get(5, 'patch')) && abap.compare.ne(lv_method, abap.CharacterFactory.get(5, 'trace'))) {
           continue;
         }
         ls_operation.get().method.set(lv_method);
@@ -417404,6 +417421,18 @@ class zcl_oapi_parser {
         ls_operation.get().operation_id.set((await this.#mo_json.get().value_string({iv_path: abap.operators.concat(lv_prefix,abap.CharacterFactory.get(12, '/operationId')), rv_value: 1})));
         ls_operation.get().parameters.set((await this.#parse_parameters({iv_prefix: abap.operators.concat(lv_prefix,abap.CharacterFactory.get(12, '/parameters/')), rt_parameters: 1})));
         ls_operation.get().parameters_ref.set((await this.#parse_parameters_ref({iv_prefix: abap.operators.concat(lv_prefix,abap.CharacterFactory.get(12, '/parameters/')), rt_parameters: 1})));
+        lt_path_parameters.set((await this.#parse_parameters({iv_prefix: abap.operators.concat([abap.CharacterFactory.get(7, '/paths/'),(await abap.Classes['ZCL_OAPI_JSON'].escape_key({iv_name: lv_path, rv_escaped: 1})),abap.CharacterFactory.get(12, '/parameters/')]), rt_parameters: 1})));
+        for await (const unique12 of abap.statements.loop(lt_path_parameters)) {
+          ls_path_parameter.set(unique12);
+          abap.statements.readTable(ls_operation.get().parameters,{withKey: (i) => {return abap.compare.eq(i.name, ls_path_parameter.get().name) && abap.compare.eq(i.in, ls_path_parameter.get().in);},
+            withKeyValue: [{key: (i) => {return i.name}, value: ls_path_parameter.get().name},{key: (i) => {return i.in}, value: ls_path_parameter.get().in}],
+            usesTableLine: false,
+            withKeySimple: {"name": ls_path_parameter.get().name,"in": ls_path_parameter.get().in}});
+          if (abap.compare.ne(abap.builtin.sy.get().subrc, abap.IntegerFactory.get(0))) {
+            abap.statements.append({source: ls_path_parameter, target: ls_operation.get().parameters});
+          }
+        }
+        abap.statements.append({source: (await this.#parse_parameters_ref({iv_prefix: abap.operators.concat([abap.CharacterFactory.get(7, '/paths/'),(await abap.Classes['ZCL_OAPI_JSON'].escape_key({iv_name: lv_path, rv_escaped: 1})),abap.CharacterFactory.get(12, '/parameters/')]), rt_parameters: 1})), lines: true, target: ls_operation.get().parameters_ref});
         ls_operation.get().responses.set((await this.#parse_operation_responses({iv_prefix: abap.operators.concat(lv_prefix,abap.CharacterFactory.get(11, '/responses/')), rt_responses: 1})));
         ls_operation.get().abap_name.set((await lo_names.get().to_abap_name({iv_name: ls_operation.get().operation_id, rv_name: 1})));
         if (abap.compare.initial(ls_operation.get().abap_name)) {
@@ -417445,8 +417474,8 @@ class zcl_oapi_parser {
     let lv_name = new abap.types.String({qualifiedName: "STRING"});
     let lv_prefix = new abap.types.String({qualifiedName: "STRING"});
     lt_members.set((await this.#mo_json.get().members({iv_path: iv_prefix, rt_members: 1})));
-    for await (const unique12 of abap.statements.loop(lt_members)) {
-      lv_member.set(unique12);
+    for await (const unique13 of abap.statements.loop(lt_members)) {
+      lv_member.set(unique13);
       ls_parameter.clear();
       ls_parameter.get().id.set(lv_member);
       lv_prefix.set(abap.operators.concat(iv_prefix,(await abap.Classes['ZCL_OAPI_JSON'].escape_key({iv_name: lv_member, rv_escaped: 1}))));
@@ -417478,8 +417507,8 @@ class zcl_oapi_parser {
     let lv_member = new abap.types.String({qualifiedName: "STRING"});
     let lv_ref = new abap.types.String({qualifiedName: "STRING"});
     lt_members.set((await this.#mo_json.get().members({iv_path: iv_prefix, rt_members: 1})));
-    for await (const unique13 of abap.statements.loop(lt_members)) {
-      lv_member.set(unique13);
+    for await (const unique14 of abap.statements.loop(lt_members)) {
+      lv_member.set(unique14);
       lv_ref.set((await this.#mo_json.get().value_string({iv_path: abap.operators.concat([iv_prefix,(await abap.Classes['ZCL_OAPI_JSON'].escape_key({iv_name: lv_member, rv_escaped: 1})),abap.CharacterFactory.get(5, '/$ref')]), rv_value: 1})));
       if (abap.compare.initial(lv_ref) === false) {
         abap.statements.append({source: lv_ref, target: rt_parameters});
@@ -417497,8 +417526,8 @@ class zcl_oapi_parser {
     let lv_prefix = new abap.types.String({qualifiedName: "STRING"});
     let ls_response = $t_emNsX29hcGlfcGFyc2VyLmNsYXMubWpz_4();
     lt_members.set((await this.#mo_json.get().members({iv_path: iv_prefix, rt_members: 1})));
-    for await (const unique14 of abap.statements.loop(lt_members)) {
-      lv_member.set(unique14);
+    for await (const unique15 of abap.statements.loop(lt_members)) {
+      lv_member.set(unique15);
       ls_response.clear();
       ls_response.get().code.set(lv_member);
       lv_prefix.set(abap.operators.concat(iv_prefix,(await abap.Classes['ZCL_OAPI_JSON'].escape_key({iv_name: lv_member, rv_escaped: 1}))));
@@ -417519,8 +417548,8 @@ class zcl_oapi_parser {
     let lv_prefix = new abap.types.String({qualifiedName: "STRING"});
     let ls_media_type = $t_emNsX29hcGlfcGFyc2VyLmNsYXMubWpz_0();
     lt_members.set((await this.#mo_json.get().members({iv_path: iv_prefix, rt_members: 1})));
-    for await (const unique15 of abap.statements.loop(lt_members)) {
-      lv_member.set(unique15);
+    for await (const unique16 of abap.statements.loop(lt_members)) {
+      lv_member.set(unique16);
       ls_media_type.clear();
       ls_media_type.get().type.set(lv_member);
       lv_prefix.set(abap.operators.concat(iv_prefix,(await abap.Classes['ZCL_OAPI_JSON'].escape_key({iv_name: lv_member, rv_escaped: 1}))));
