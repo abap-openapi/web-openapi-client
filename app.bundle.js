@@ -375814,6 +375814,10 @@ ENDCLASS.
       IMPORTING iv_prefix        TYPE string
       RETURNING VALUE(ri_schema) TYPE REF TO zif_oapi_schema.
 
+    METHODS find_nullable_member
+      IMPORTING iv_prefix        TYPE string
+      RETURNING VALUE(rv_prefix) TYPE string.
+
     METHODS parse_schemas
       IMPORTING iv_prefix         TYPE string
       RETURNING VALUE(rt_schemas) TYPE zif_oapi_specification_v3=>ty_schemas.
@@ -375855,7 +375859,26 @@ CLASS zcl_oapi_parser IMPLEMENTATION.
     DATA lo_names                TYPE REF TO zcl_oapi_abap_name.
     DATA lo_schema_impl          TYPE REF TO zcl_oapi_schema.
     DATA lo_composition          TYPE REF TO zif_oapi_schema.
+    DATA lv_nullable             TYPE string.
+    DATA lv_default              TYPE string.
     CREATE OBJECT lo_names.
+
+* "X or null" is parsed as X, ABAP has no null
+    lv_nullable = find_nullable_member( iv_prefix ).
+    IF lv_nullable IS NOT INITIAL.
+      lv_ref = mo_json->value_string( lv_nullable && ''/$ref'' ).
+      IF lv_ref IS INITIAL.
+        ri_schema = parse_schema( lv_nullable ).
+      ELSE.
+        REPLACE FIRST OCCURRENCE OF ''#/components'' IN lv_ref WITH ''/components''.
+        ri_schema = parse_schema( lv_ref ).
+      ENDIF.
+      lv_default = mo_json->value_string( iv_prefix && ''/default'' ).
+      IF lv_default IS NOT INITIAL.
+        ri_schema->default = lv_default.
+      ENDIF.
+      RETURN.
+    ENDIF.
 
     CREATE OBJECT ri_schema TYPE zcl_oapi_schema.
     lo_schema_impl ?= ri_schema.
@@ -375941,6 +375964,14 @@ CLASS zcl_oapi_parser IMPLEMENTATION.
           AND lines( mo_json->members( lv_prefix && ''/allOf'' ) ) = 1.
 * squash single allOf in object type
         ls_property-ref = mo_json->value_string( lv_prefix && ''/allOf/1/$ref'' ).
+      ENDIF.
+
+      IF ls_property-ref IS INITIAL.
+* reference or null, keep the reference
+        lv_nullable = find_nullable_member( lv_prefix ).
+        IF lv_nullable IS NOT INITIAL.
+          ls_property-ref = mo_json->value_string( lv_nullable && ''/$ref'' ).
+        ENDIF.
       ENDIF.
 
       IF ls_property-ref IS INITIAL.
@@ -376098,6 +376129,43 @@ CLASS zcl_oapi_parser IMPLEMENTATION.
         APPEND ls_operation TO rt_operations.
       ENDLOOP.
 
+    ENDLOOP.
+  ENDMETHOD.
+
+  METHOD find_nullable_member.
+* OpenAPI 3.1 has no "nullable", it is written as anyOf/oneOf with a {"type": "null"} member,
+* returns the prefix of the other member when the schema is exactly "X or null"
+    DATA lt_compositions TYPE string_table.
+    DATA lv_composition  TYPE string.
+    DATA lt_members      TYPE string_table.
+    DATA lv_member       TYPE string.
+    DATA lv_nulls        TYPE i.
+    DATA lv_other        TYPE string.
+
+    IF mo_json->exists( iv_prefix && ''/type'' ) = abap_true.
+      RETURN.
+    ENDIF.
+
+    APPEND ''/anyOf/'' TO lt_compositions.
+    APPEND ''/oneOf/'' TO lt_compositions.
+    LOOP AT lt_compositions INTO lv_composition.
+      lt_members = mo_json->members( iv_prefix && lv_composition ).
+      IF lines( lt_members ) <> 2.
+        CONTINUE.
+      ENDIF.
+      CLEAR lv_nulls.
+      CLEAR lv_other.
+      LOOP AT lt_members INTO lv_member.
+        IF mo_json->value_string( iv_prefix && lv_composition && lv_member && ''/type'' ) = ''null''.
+          lv_nulls = lv_nulls + 1.
+        ELSE.
+          lv_other = iv_prefix && lv_composition && lv_member.
+        ENDIF.
+      ENDLOOP.
+      IF lv_nulls = 1.
+        rv_prefix = lv_other.
+        RETURN.
+      ENDIF.
     ENDLOOP.
   ENDMETHOD.
 
@@ -417395,6 +417463,7 @@ class zcl_oapi_parser {
   "PARSE_MEDIA_TYPES": {"visibility": "I", "parameters": {"RT_MEDIA_TYPES": {"type": () => {return $t_emNsX29hcGlfcGFyc2VyLmNsYXMubWpz_3();}, "is_optional": " ", "parm_kind": "R", "type_name": "TableType"}, "IV_PREFIX": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "StringType"}}},
   "PARSE_COMPONENTS": {"visibility": "I", "parameters": {"RS_COMPONENTS": {"type": () => {return $t_emNsX29hcGlfcGFyc2VyLmNsYXMubWpz_14();}, "is_optional": " ", "parm_kind": "R", "type_name": "StructureType"}}},
   "PARSE_SCHEMA": {"visibility": "I", "parameters": {"RI_SCHEMA": {"type": () => {return new abap.types.ABAPObject({qualifiedName: "ZIF_OAPI_SCHEMA", RTTIName: "\\INTERFACE=ZIF_OAPI_SCHEMA"});}, "is_optional": " ", "parm_kind": "R", "type_name": "ObjectReferenceType"}, "IV_PREFIX": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "StringType"}}},
+  "FIND_NULLABLE_MEMBER": {"visibility": "I", "parameters": {"RV_PREFIX": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "R", "type_name": "StringType"}, "IV_PREFIX": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "StringType"}}},
   "PARSE_SCHEMAS": {"visibility": "I", "parameters": {"RT_SCHEMAS": {"type": () => {return $t_emNsX29hcGlfcGFyc2VyLmNsYXMubWpz_9();}, "is_optional": " ", "parm_kind": "R", "type_name": "TableType"}, "IV_PREFIX": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "StringType"}}},
   "PARSE_COMPONENT_RESPONSES": {"visibility": "I", "parameters": {"RT_RESPONSES": {"type": () => {return $t_emNsX29hcGlfcGFyc2VyLmNsYXMubWpz_13();}, "is_optional": " ", "parm_kind": "R", "type_name": "TableType"}, "IV_PREFIX": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "StringType"}}},
   "PARSE": {"visibility": "U", "parameters": {"RS_SCHEMA": {"type": () => {return $t_emNsX29hcGlfcGFyc2VyLmNsYXMubWpz_16();}, "is_optional": " ", "parm_kind": "R", "type_name": "StructureType"}, "IV_JSON": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "StringType"}}}};
@@ -417412,6 +417481,7 @@ class zcl_oapi_parser {
       "parse_media_types": this.#parse_media_types.bind(this),
       "parse_components": this.#parse_components.bind(this),
       "parse_schema": this.#parse_schema.bind(this),
+      "find_nullable_member": this.#find_nullable_member.bind(this),
       "parse_schemas": this.#parse_schemas.bind(this),
       "parse_component_responses": this.#parse_component_responses.bind(this),
       "parse": this.parse.bind(this),
@@ -417455,9 +417525,26 @@ class zcl_oapi_parser {
     let lo_names = new abap.types.ABAPObject({qualifiedName: "ZCL_OAPI_ABAP_NAME", RTTIName: "\\CLASS=ZCL_OAPI_ABAP_NAME"});
     let lo_schema_impl = new abap.types.ABAPObject({qualifiedName: "ZCL_OAPI_SCHEMA", RTTIName: "\\CLASS=ZCL_OAPI_SCHEMA"});
     let lo_composition = new abap.types.ABAPObject({qualifiedName: "ZIF_OAPI_SCHEMA", RTTIName: "\\INTERFACE=ZIF_OAPI_SCHEMA"});
+    let lv_nullable = new abap.types.String({qualifiedName: "STRING"});
+    let lv_default = new abap.types.String({qualifiedName: "STRING"});
     lo_names.set(await (new abap.Classes['ZCL_OAPI_ABAP_NAME']()).constructor_());
+    lv_nullable.set((await this.#find_nullable_member({iv_prefix: iv_prefix, rv_prefix: 1})));
+    if (abap.compare.initial(lv_nullable) === false) {
+      lv_ref.set((await this.#mo_json.get().value_string({iv_path: abap.operators.concat(lv_nullable,abap.CharacterFactory.get(5, '/$ref')), rv_value: 1})));
+      if (abap.compare.initial(lv_ref)) {
+        ri_schema.set((await this.#parse_schema({iv_prefix: lv_nullable, ri_schema: 1})));
+      } else {
+        abap.statements.replace({target: lv_ref, all: false, with: abap.CharacterFactory.get(11, '/components'), of: abap.CharacterFactory.get(12, '#/components')});
+        ri_schema.set((await this.#parse_schema({iv_prefix: lv_ref, ri_schema: 1})));
+      }
+      lv_default.set((await this.#mo_json.get().value_string({iv_path: abap.operators.concat(iv_prefix,abap.CharacterFactory.get(8, '/default')), rv_value: 1})));
+      if (abap.compare.initial(lv_default) === false) {
+        ri_schema.get().zif_oapi_schema$default.set(lv_default);
+      }
+      return ri_schema;
+    }
     ri_schema.set(await (new abap.Classes['ZCL_OAPI_SCHEMA']()).constructor_());
-    await abap.statements.cast(lo_schema_impl, ri_schema, {"INTERNAL_FILENAME": "zcl_oapi_parser.clas.abap","INTERNAL_LINE": 86});
+    await abap.statements.cast(lo_schema_impl, ri_schema, {"INTERNAL_FILENAME": "zcl_oapi_parser.clas.abap","INTERNAL_LINE": 109});
     ri_schema.get().zif_oapi_schema$type.set((await this.#mo_json.get().value_string({iv_path: abap.operators.concat(iv_prefix,abap.CharacterFactory.get(5, '/type')), rv_value: 1})));
     if (abap.compare.initial(ri_schema.get().zif_oapi_schema$type) || abap.compare.eq((await this.#mo_json.get().exists({iv_path: abap.operators.concat(iv_prefix,abap.CharacterFactory.get(6, '/oneOf')), rv_exists: 1})), abap.builtin.abap_true) || abap.compare.eq((await this.#mo_json.get().exists({iv_path: abap.operators.concat(iv_prefix,abap.CharacterFactory.get(6, '/anyOf')), rv_exists: 1})), abap.builtin.abap_true) || abap.compare.eq((await this.#mo_json.get().exists({iv_path: abap.operators.concat(iv_prefix,abap.CharacterFactory.get(6, '/allOf')), rv_exists: 1})), abap.builtin.abap_true)) {
       abap.statements.concatenate({source: [iv_prefix, abap.CharacterFactory.get(7, '/oneOf/')], target: lv_prefix});
@@ -417531,6 +417618,12 @@ class zcl_oapi_parser {
       ls_property.get().ref.set((await this.#mo_json.get().value_string({iv_path: abap.operators.concat(lv_prefix,abap.CharacterFactory.get(5, '/$ref')), rv_value: 1})));
       if (abap.compare.initial(ls_property.get().ref) && abap.compare.eq((await this.#mo_json.get().exists({iv_path: abap.operators.concat(lv_prefix,abap.CharacterFactory.get(6, '/allOf')), rv_exists: 1})), abap.builtin.abap_true) && abap.compare.eq((abap.builtin.lines({val: (await this.#mo_json.get().members({iv_path: abap.operators.concat(lv_prefix,abap.CharacterFactory.get(6, '/allOf')), rt_members: 1}))})), abap.IntegerFactory.get(1))) {
         ls_property.get().ref.set((await this.#mo_json.get().value_string({iv_path: abap.operators.concat(lv_prefix,abap.CharacterFactory.get(13, '/allOf/1/$ref')), rv_value: 1})));
+      }
+      if (abap.compare.initial(ls_property.get().ref)) {
+        lv_nullable.set((await this.#find_nullable_member({iv_prefix: lv_prefix, rv_prefix: 1})));
+        if (abap.compare.initial(lv_nullable) === false) {
+          ls_property.get().ref.set((await this.#mo_json.get().value_string({iv_path: abap.operators.concat(lv_nullable,abap.CharacterFactory.get(5, '/$ref')), rv_value: 1})));
+        }
       }
       if (abap.compare.initial(ls_property.get().ref)) {
         ls_property.get().schema.set((await this.#parse_schema({iv_prefix: lv_prefix, ri_schema: 1})));
@@ -417691,6 +417784,45 @@ class zcl_oapi_parser {
     }
     return rt_operations;
   }
+  async #find_nullable_member(INPUT) {
+    let rv_prefix = new abap.types.String({qualifiedName: "STRING"});
+    let iv_prefix = INPUT?.iv_prefix;
+    if (iv_prefix?.getQualifiedName === undefined || iv_prefix.getQualifiedName() !== "STRING") { iv_prefix = undefined; }
+    if (iv_prefix === undefined) { iv_prefix = new abap.types.String({qualifiedName: "STRING"}).set(INPUT.iv_prefix); }
+    let lt_compositions = abap.types.TableFactory.construct(new abap.types.String({qualifiedName: "STRING"}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"isUnique":false,"type":"STANDARD","keyFields":[],"name":"primary_key"},"secondary":[]}, "STRING_TABLE");
+    let lv_composition = new abap.types.String({qualifiedName: "STRING"});
+    let lt_members = abap.types.TableFactory.construct(new abap.types.String({qualifiedName: "STRING"}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"isUnique":false,"type":"STANDARD","keyFields":[],"name":"primary_key"},"secondary":[]}, "STRING_TABLE");
+    let lv_member = new abap.types.String({qualifiedName: "STRING"});
+    let lv_nulls = new abap.types.Integer({qualifiedName: "I"});
+    let lv_other = new abap.types.String({qualifiedName: "STRING"});
+    if (abap.compare.eq((await this.#mo_json.get().exists({iv_path: abap.operators.concat(iv_prefix,abap.CharacterFactory.get(5, '/type')), rv_exists: 1})), abap.builtin.abap_true)) {
+      return rv_prefix;
+    }
+    abap.statements.append({source: abap.CharacterFactory.get(7, '/anyOf/'), target: lt_compositions});
+    abap.statements.append({source: abap.CharacterFactory.get(7, '/oneOf/'), target: lt_compositions});
+    for await (const unique13 of abap.statements.loop(lt_compositions)) {
+      lv_composition.set(unique13);
+      lt_members.set((await this.#mo_json.get().members({iv_path: abap.operators.concat(iv_prefix,lv_composition), rt_members: 1})));
+      if (abap.compare.ne(abap.builtin.lines({val: lt_members}), abap.IntegerFactory.get(2))) {
+        continue;
+      }
+      lv_nulls.clear();
+      lv_other.clear();
+      for await (const unique14 of abap.statements.loop(lt_members)) {
+        lv_member.set(unique14);
+        if (abap.compare.eq((await this.#mo_json.get().value_string({iv_path: abap.operators.concat([iv_prefix,lv_composition,lv_member,abap.CharacterFactory.get(5, '/type')]), rv_value: 1})), abap.CharacterFactory.get(4, 'null'))) {
+          lv_nulls.set(abap.operators.add(lv_nulls,abap.IntegerFactory.get(1)));
+        } else {
+          lv_other.set(abap.operators.concat([iv_prefix,lv_composition,lv_member]));
+        }
+      }
+      if (abap.compare.eq(lv_nulls, abap.IntegerFactory.get(1))) {
+        rv_prefix.set(lv_other);
+        return rv_prefix;
+      }
+    }
+    return rv_prefix;
+  }
   async #parse_parameters(INPUT) {
     let rt_parameters = $t_emNsX29hcGlfcGFyc2VyLmNsYXMubWpz_2();
     let iv_prefix = INPUT?.iv_prefix;
@@ -417703,8 +417835,8 @@ class zcl_oapi_parser {
     let lv_name = new abap.types.String({qualifiedName: "STRING"});
     let lv_prefix = new abap.types.String({qualifiedName: "STRING"});
     lt_members.set((await this.#mo_json.get().members({iv_path: iv_prefix, rt_members: 1})));
-    for await (const unique13 of abap.statements.loop(lt_members)) {
-      lv_member.set(unique13);
+    for await (const unique15 of abap.statements.loop(lt_members)) {
+      lv_member.set(unique15);
       ls_parameter.clear();
       ls_parameter.get().id.set(lv_member);
       lv_prefix.set(abap.operators.concat(iv_prefix,(await abap.Classes['ZCL_OAPI_JSON'].escape_key({iv_name: lv_member, rv_escaped: 1}))));
@@ -417736,8 +417868,8 @@ class zcl_oapi_parser {
     let lv_member = new abap.types.String({qualifiedName: "STRING"});
     let lv_ref = new abap.types.String({qualifiedName: "STRING"});
     lt_members.set((await this.#mo_json.get().members({iv_path: iv_prefix, rt_members: 1})));
-    for await (const unique14 of abap.statements.loop(lt_members)) {
-      lv_member.set(unique14);
+    for await (const unique16 of abap.statements.loop(lt_members)) {
+      lv_member.set(unique16);
       lv_ref.set((await this.#mo_json.get().value_string({iv_path: abap.operators.concat([iv_prefix,(await abap.Classes['ZCL_OAPI_JSON'].escape_key({iv_name: lv_member, rv_escaped: 1})),abap.CharacterFactory.get(5, '/$ref')]), rv_value: 1})));
       if (abap.compare.initial(lv_ref) === false) {
         abap.statements.append({source: lv_ref, target: rt_parameters});
@@ -417755,8 +417887,8 @@ class zcl_oapi_parser {
     let lv_prefix = new abap.types.String({qualifiedName: "STRING"});
     let ls_response = $t_emNsX29hcGlfcGFyc2VyLmNsYXMubWpz_4();
     lt_members.set((await this.#mo_json.get().members({iv_path: iv_prefix, rt_members: 1})));
-    for await (const unique15 of abap.statements.loop(lt_members)) {
-      lv_member.set(unique15);
+    for await (const unique17 of abap.statements.loop(lt_members)) {
+      lv_member.set(unique17);
       ls_response.clear();
       ls_response.get().code.set(lv_member);
       lv_prefix.set(abap.operators.concat(iv_prefix,(await abap.Classes['ZCL_OAPI_JSON'].escape_key({iv_name: lv_member, rv_escaped: 1}))));
@@ -417777,8 +417909,8 @@ class zcl_oapi_parser {
     let lv_prefix = new abap.types.String({qualifiedName: "STRING"});
     let ls_media_type = $t_emNsX29hcGlfcGFyc2VyLmNsYXMubWpz_0();
     lt_members.set((await this.#mo_json.get().members({iv_path: iv_prefix, rt_members: 1})));
-    for await (const unique16 of abap.statements.loop(lt_members)) {
-      lv_member.set(unique16);
+    for await (const unique18 of abap.statements.loop(lt_members)) {
+      lv_member.set(unique18);
       ls_media_type.clear();
       ls_media_type.get().type.set(lv_member);
       lv_prefix.set(abap.operators.concat(iv_prefix,(await abap.Classes['ZCL_OAPI_JSON'].escape_key({iv_name: lv_member, rv_escaped: 1}))));
