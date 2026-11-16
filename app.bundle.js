@@ -372562,6 +372562,12 @@ ENDCLASS.
       RETURNING
         VALUE(rv_abap) TYPE string.
 
+    METHODS build_query_parameter
+      IMPORTING
+        is_parameter   TYPE zif_oapi_specification_v3=>ty_parameter
+      RETURNING
+        VALUE(rv_abap) TYPE string.
+
     METHODS build_intf
       RETURNING
         VALUE(rv_abap) TYPE string.
@@ -373491,6 +373497,7 @@ CLASS zcl_oapi_generator_v2 IMPLEMENTATION.
     DATA ls_cresponse     LIKE LINE OF ms_specification-components-responses.
     DATA lv_name          TYPE string.
     DATA lv_has_others       TYPE abap_bool.
+    DATA lv_has_query     TYPE abap_bool.
     DATA lv_name_mappings TYPE string.
 
     CREATE OBJECT lo_response_name.
@@ -373534,12 +373541,24 @@ CLASS zcl_oapi_generator_v2 IMPLEMENTATION.
       |  ENDMETHOD.\\n\\n|.
 
     LOOP AT ms_specification-operations INTO ls_operation.
+      lv_has_query = abap_false.
+      READ TABLE ls_operation-parameters WITH KEY in = ''query'' TRANSPORTING NO FIELDS.
+      IF sy-subrc = 0.
+        lv_has_query = abap_true.
+      ENDIF.
+
       rv_abap = rv_abap &&
         |  METHOD { ms_input-intf }~{ ls_operation-abap_name }.\\n| &&
         |    DATA lv_uri          TYPE string.\\n| &&
         |    DATA ls_header       LIKE LINE OF mt_extra_headers.\\n| &&
         |    DATA lv_dummy        TYPE string.\\n| &&
-        |    DATA lv_content_type TYPE string.\\n| &&
+        |    DATA lv_content_type TYPE string.\\n|.
+      IF lv_has_query = abap_true.
+        rv_abap = rv_abap &&
+          |    DATA lv_query        TYPE string.\\n| &&
+          |    DATA lv_query_value  TYPE string.\\n|.
+      ENDIF.
+      rv_abap = rv_abap &&
         |\\n| &&
         |    mi_client->propertytype_logon_popup = mv_logon_popup.\\n| &&
         |    mi_client->request->set_method( ''{ to_upper( ls_operation-method ) }'' ).\\n| &&
@@ -373561,11 +373580,20 @@ CLASS zcl_oapi_generator_v2 IMPLEMENTATION.
           WHEN ''path''.
             rv_abap = rv_abap &&
               |    REPLACE FIRST OCCURRENCE OF ''\\{{ ls_parameter-name }\\}'' IN lv_uri WITH { ls_parameter-abap_name }.\\n|.
+          WHEN ''query''.
+            rv_abap = rv_abap && build_query_parameter( ls_parameter ).
           WHEN OTHERS.
             rv_abap = rv_abap &&
               |" todo, in={ ls_parameter-in } name={ ls_parameter-name }\\n|.
         ENDCASE.
       ENDLOOP.
+
+      IF lv_has_query = abap_true.
+        rv_abap = rv_abap &&
+          |    IF lv_query IS NOT INITIAL.\\n| &&
+          |      lv_uri = lv_uri && ''?'' && substring( val = lv_query off = 1 ).\\n| &&
+          |    ENDIF.\\n|.
+      ENDIF.
 
       rv_abap = rv_abap &&
         |    cl_http_utility=>set_request_uri(\\n| &&
@@ -373790,6 +373818,45 @@ CLASS zcl_oapi_generator_v2 IMPLEMENTATION.
 
     IF rv_abap IS NOT INITIAL.
       rv_abap = |\\n    IMPORTING\\n{ rv_abap }|.
+    ENDIF.
+  ENDMETHOD.
+
+
+  METHOD build_query_parameter.
+* style "form" with explode, the OpenAPI default for query parameters: name=value, arrays repeat the name
+    DATA lv_indent TYPE string.
+    DATA lv_append TYPE string.
+
+    lv_indent = \`    \`.
+    IF is_parameter-required = abap_false.
+      rv_abap = |    IF { is_parameter-abap_name } IS SUPPLIED.\\n|.
+      lv_indent = \`      \`.
+    ENDIF.
+
+* the name is used as is, so OData names like $top stay readable
+    lv_append = |lv_query = lv_query && ''&{ escape_abap_literal( is_parameter-name ) }=''|.
+
+    CASE find_parameter_type( is_parameter ).
+      WHEN ''string_table''.
+        rv_abap = rv_abap &&
+          |{ lv_indent }LOOP AT { is_parameter-abap_name } INTO lv_query_value.\\n| &&
+          |{ lv_indent }  { lv_append } && escape( val = lv_query_value format = cl_abap_format=>e_url_full ).\\n| &&
+          |{ lv_indent }ENDLOOP.\\n|.
+      WHEN ''abap_bool''.
+        rv_abap = rv_abap &&
+          |{ lv_indent }IF { is_parameter-abap_name } = abap_true.\\n| &&
+          |{ lv_indent }  { lv_append } && ''true''.\\n| &&
+          |{ lv_indent }ELSE.\\n| &&
+          |{ lv_indent }  { lv_append } && ''false''.\\n| &&
+          |{ lv_indent }ENDIF.\\n|.
+      WHEN OTHERS.
+        rv_abap = rv_abap &&
+          |{ lv_indent }lv_query_value = \\|\\{ { is_parameter-abap_name } \\}\\|.\\n| &&
+          |{ lv_indent }{ lv_append } && escape( val = lv_query_value format = cl_abap_format=>e_url_full ).\\n|.
+    ENDCASE.
+
+    IF is_parameter-required = abap_false.
+      rv_abap = rv_abap && |    ENDIF.\\n|.
     ENDIF.
   ENDMETHOD.
 
@@ -415254,6 +415321,7 @@ class zcl_oapi_generator_v2 {
   "BUILD_CLAS_ICF_SERV": {"visibility": "I", "parameters": {"RV_ABAP": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "R", "type_name": "StringType"}}},
   "BUILD_CLAS_ICF_IMPL": {"visibility": "I", "parameters": {"RV_ABAP": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "R", "type_name": "StringType"}}},
   "BUILD_CLAS_CLIENT": {"visibility": "I", "parameters": {"RV_ABAP": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "R", "type_name": "StringType"}}},
+  "BUILD_QUERY_PARAMETER": {"visibility": "I", "parameters": {"RV_ABAP": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "R", "type_name": "StringType"}, "IS_PARAMETER": {"type": () => {return $t_emNsX29hcGlfZ2VuZXJhdG9yX3YyLmNsYXMubWpz_4();}, "is_optional": " ", "parm_kind": "I", "type_name": "StructureType"}}},
   "BUILD_INTF": {"visibility": "I", "parameters": {"RV_ABAP": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "R", "type_name": "StringType"}}},
   "BUILD_PATTERN_SUPPORT": {"visibility": "I", "parameters": {"RV_ABAP": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "R", "type_name": "StringType"}}},
   "COLLECT_PATTERN_RULES": {"visibility": "I", "parameters": {"IO_SCHEMA": {"type": () => {return new abap.types.ABAPObject({qualifiedName: "ZIF_OAPI_SCHEMA", RTTIName: "\\INTERFACE=ZIF_OAPI_SCHEMA"});}, "is_optional": "X", "parm_kind": "I", "type_name": "ObjectReferenceType"}, "IV_SCHEMA_REF": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": "X", "parm_kind": "I", "type_name": "StringType"}, "IV_PATH": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": "X", "parm_kind": "I", "type_name": "StringType"}, "CT_RULES": {"type": () => {return abap.types.TableFactory.construct(new abap.types.String({qualifiedName: "STRING"}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"isUnique":false,"type":"STANDARD","keyFields":[],"name":"primary_key"},"secondary":[]}, "STRING_TABLE");}, "is_optional": " ", "parm_kind": "C", "type_name": "TableType"}, "CT_VISITED_SCHEMA_REFS": {"type": () => {return abap.types.TableFactory.construct(new abap.types.String({qualifiedName: "STRING"}), {"withHeader":false,"keyType":"USER","primaryKey":{"name":"primary_key","type":"HASHED","isUnique":true,"keyFields":["TABLE_LINE"]},"secondary":[]}, "zcl_oapi_generator_v2=>ty_strings");}, "is_optional": " ", "parm_kind": "C", "type_name": "TableType"}}},
@@ -415284,6 +415352,7 @@ class zcl_oapi_generator_v2 {
       "build_clas_icf_serv": this.#build_clas_icf_serv.bind(this),
       "build_clas_icf_impl": this.#build_clas_icf_impl.bind(this),
       "build_clas_client": this.#build_clas_client.bind(this),
+      "build_query_parameter": this.#build_query_parameter.bind(this),
       "build_intf": this.#build_intf.bind(this),
       "build_pattern_support": this.#build_pattern_support.bind(this),
       "collect_pattern_rules": this.#collect_pattern_rules.bind(this),
@@ -415749,7 +415818,7 @@ class zcl_oapi_generator_v2 {
     if (abap.compare.initial(lo_schema)) {
       return;
     }
-    await abap.statements.cast(lo_schema_impl, lo_schema, {"INTERNAL_FILENAME": "zcl_oapi_generator_v2.clas.abap","INTERNAL_LINE": 608});
+    await abap.statements.cast(lo_schema_impl, lo_schema, {"INTERNAL_FILENAME": "zcl_oapi_generator_v2.clas.abap","INTERNAL_LINE": 614});
     if (abap.compare.initial(lo_schema_impl.get().mv_json_pattern) === false) {
       if (abap.compare.initial(lv_schema_name)) {
         lv_schema_name.set(iv_path);
@@ -415855,7 +415924,7 @@ class zcl_oapi_generator_v2 {
     if (abap.compare.initial(lo_schema)) {
       return rv_abap;
     }
-    await abap.statements.cast(lo_schema_impl, lo_schema, {"INTERNAL_FILENAME": "zcl_oapi_generator_v2.clas.abap","INTERNAL_LINE": 729});
+    await abap.statements.cast(lo_schema_impl, lo_schema, {"INTERNAL_FILENAME": "zcl_oapi_generator_v2.clas.abap","INTERNAL_LINE": 735});
     if (abap.compare.initial(lo_schema_impl.get().mv_json_pattern) === false) {
       if (abap.compare.initial(lv_schema_name)) {
         lv_schema_name.set(iv_path);
@@ -416043,6 +416112,7 @@ class zcl_oapi_generator_v2 {
     let ls_cresponse = $t_emNsX29hcGlfZ2VuZXJhdG9yX3YyLmNsYXMubWpz_13();
     let lv_name = new abap.types.String({qualifiedName: "STRING"});
     let lv_has_others = new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"});
+    let lv_has_query = new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"});
     let lv_name_mappings = new abap.types.String({qualifiedName: "STRING"});
     lo_response_name.set(await (new abap.Classes['ZCL_OAPI_RESPONSE_NAME']()).constructor_());
     lv_name_mappings.set((await this.#build_name_mappings({rv_abap: 1})));
@@ -416052,7 +416122,19 @@ class zcl_oapi_generator_v2 {
     })())),new abap.types.String().set(`  ENDMETHOD.\n\n`))]));
     for await (const unique28 of abap.statements.loop(this.#ms_specification.get().operations)) {
       ls_operation.set(unique28);
-      rv_abap.set(abap.operators.concat([rv_abap,new abap.types.String().set(`  METHOD ${abap.templateFormatting(this.#ms_input.get().intf)}~${abap.templateFormatting(ls_operation.get().abap_name)}.\n`),new abap.types.String().set(`    DATA lv_uri          TYPE string.\n`),new abap.types.String().set(`    DATA ls_header       LIKE LINE OF mt_extra_headers.\n`),new abap.types.String().set(`    DATA lv_dummy        TYPE string.\n`),new abap.types.String().set(`    DATA lv_content_type TYPE string.\n`),new abap.types.String().set(`\n`),new abap.types.String().set(`    mi_client->propertytype_logon_popup = mv_logon_popup.\n`),new abap.types.String().set(`    mi_client->request->set_method( '${abap.templateFormatting(abap.builtin.to_upper({val: ls_operation.get().method}))}' ).\n`),new abap.types.String().set(`    mi_client->request->set_version( if_http_request=>co_protocol_version_1_1 ).\n`)]));
+      lv_has_query.set(abap.builtin.abap_false);
+      abap.statements.readTable(ls_operation.get().parameters,{withKey: (i) => {return abap.compare.eq(i.in, abap.CharacterFactory.get(5, 'query'));},
+        withKeyValue: [{key: (i) => {return i.in}, value: abap.CharacterFactory.get(5, 'query')}],
+        usesTableLine: false,
+        withKeySimple: {"in": abap.CharacterFactory.get(5, 'query')}});
+      if (abap.compare.eq(abap.builtin.sy.get().subrc, abap.IntegerFactory.get(0))) {
+        lv_has_query.set(abap.builtin.abap_true);
+      }
+      rv_abap.set(abap.operators.concat([rv_abap,new abap.types.String().set(`  METHOD ${abap.templateFormatting(this.#ms_input.get().intf)}~${abap.templateFormatting(ls_operation.get().abap_name)}.\n`),new abap.types.String().set(`    DATA lv_uri          TYPE string.\n`),new abap.types.String().set(`    DATA ls_header       LIKE LINE OF mt_extra_headers.\n`),new abap.types.String().set(`    DATA lv_dummy        TYPE string.\n`),new abap.types.String().set(`    DATA lv_content_type TYPE string.\n`)]));
+      if (abap.compare.eq(lv_has_query, abap.builtin.abap_true)) {
+        rv_abap.set(abap.operators.concat([rv_abap,new abap.types.String().set(`    DATA lv_query        TYPE string.\n`),new abap.types.String().set(`    DATA lv_query_value  TYPE string.\n`)]));
+      }
+      rv_abap.set(abap.operators.concat([rv_abap,new abap.types.String().set(`\n`),new abap.types.String().set(`    mi_client->propertytype_logon_popup = mv_logon_popup.\n`),new abap.types.String().set(`    mi_client->request->set_method( '${abap.templateFormatting(abap.builtin.to_upper({val: ls_operation.get().method}))}' ).\n`),new abap.types.String().set(`    mi_client->request->set_version( if_http_request=>co_protocol_version_1_1 ).\n`)]));
       if (abap.compare.eq(this.#ms_input.get().no_compression, abap.builtin.abap_false)) {
         rv_abap.set(abap.operators.concat(rv_abap,new abap.types.String().set(`    mi_client->request->set_compression( ).\n`)));
       }
@@ -416064,9 +416146,14 @@ class zcl_oapi_generator_v2 {
           rv_abap.set(abap.operators.concat([rv_abap,new abap.types.String().set(`    mi_client->request->set_header_field(\n`),new abap.types.String().set(`      name  = '${abap.templateFormatting(ls_parameter.get().name)}'\n`),new abap.types.String().set(`      value = ${abap.templateFormatting(ls_parameter.get().abap_name)} ).\n`)]));
         } else if (abap.compare.eq(unique30, abap.CharacterFactory.get(4, 'path'))) {
           rv_abap.set(abap.operators.concat(rv_abap,new abap.types.String().set(`    REPLACE FIRST OCCURRENCE OF '\{${abap.templateFormatting(ls_parameter.get().name)}\}' IN lv_uri WITH ${abap.templateFormatting(ls_parameter.get().abap_name)}.\n`)));
+        } else if (abap.compare.eq(unique30, abap.CharacterFactory.get(5, 'query'))) {
+          rv_abap.set(abap.operators.concat(rv_abap,(await this.#build_query_parameter({is_parameter: ls_parameter, rv_abap: 1}))));
         } else {
           rv_abap.set(abap.operators.concat(rv_abap,new abap.types.String().set(`" todo, in=${abap.templateFormatting(ls_parameter.get().in)} name=${abap.templateFormatting(ls_parameter.get().name)}\n`)));
         }
+      }
+      if (abap.compare.eq(lv_has_query, abap.builtin.abap_true)) {
+        rv_abap.set(abap.operators.concat([rv_abap,new abap.types.String().set(`    IF lv_query IS NOT INITIAL.\n`),new abap.types.String().set(`      lv_uri = lv_uri && '?' && substring( val = lv_query off = 1 ).\n`),new abap.types.String().set(`    ENDIF.\n`)]));
       }
       rv_abap.set(abap.operators.concat([rv_abap,new abap.types.String().set(`    cl_http_utility=>set_request_uri(\n`),new abap.types.String().set(`      request = mi_client->request\n`),new abap.types.String().set(`      uri     = lv_uri ).\n`),new abap.types.String().set(`    LOOP AT mt_extra_headers INTO ls_header.\n`),new abap.types.String().set(`      mi_client->request->set_header_field(\n`),new abap.types.String().set(`        name  = ls_header-name\n`),new abap.types.String().set(`        value = ls_header-value ).\n`),new abap.types.String().set(`    ENDLOOP.\n`)]));
       if (abap.compare.initial(ls_operation.get().request_body.get().type) === false) {
@@ -416226,6 +416313,32 @@ class zcl_oapi_generator_v2 {
     }
     return rv_abap;
   }
+  async #build_query_parameter(INPUT) {
+    let rv_abap = new abap.types.String({qualifiedName: "STRING"});
+    let is_parameter = INPUT?.is_parameter;
+    if (is_parameter?.getQualifiedName === undefined || is_parameter.getQualifiedName() !== "ZIF_OAPI_SPECIFICATION_V3=>TY_PARAMETER") { is_parameter = undefined; }
+    if (is_parameter === undefined) { is_parameter = $t_emNsX29hcGlfZ2VuZXJhdG9yX3YyLmNsYXMubWpz_4().set(INPUT.is_parameter); }
+    let lv_indent = new abap.types.String({qualifiedName: "STRING"});
+    let lv_append = new abap.types.String({qualifiedName: "STRING"});
+    lv_indent.set(new abap.types.String().set(`    `));
+    if (abap.compare.eq(is_parameter.get().required, abap.builtin.abap_false)) {
+      rv_abap.set(new abap.types.String().set(`    IF ${abap.templateFormatting(is_parameter.get().abap_name)} IS SUPPLIED.\n`));
+      lv_indent.set(new abap.types.String().set(`      `));
+    }
+    lv_append.set(new abap.types.String().set(`lv_query = lv_query && '&${abap.templateFormatting((await this.#escape_abap_literal({iv_value: is_parameter.get().name, rv_value: 1})))}='`));
+    let unique40 = (await this.#find_parameter_type({is_parameter: is_parameter, rv_type: 1}));
+    if (abap.compare.eq(unique40, abap.CharacterFactory.get(12, 'string_table'))) {
+      rv_abap.set(abap.operators.concat([rv_abap,new abap.types.String().set(`${abap.templateFormatting(lv_indent)}LOOP AT ${abap.templateFormatting(is_parameter.get().abap_name)} INTO lv_query_value.\n`),new abap.types.String().set(`${abap.templateFormatting(lv_indent)}  ${abap.templateFormatting(lv_append)} && escape( val = lv_query_value format = cl_abap_format=>e_url_full ).\n`),new abap.types.String().set(`${abap.templateFormatting(lv_indent)}ENDLOOP.\n`)]));
+    } else if (abap.compare.eq(unique40, abap.CharacterFactory.get(9, 'abap_bool'))) {
+      rv_abap.set(abap.operators.concat([rv_abap,new abap.types.String().set(`${abap.templateFormatting(lv_indent)}IF ${abap.templateFormatting(is_parameter.get().abap_name)} = abap_true.\n`),new abap.types.String().set(`${abap.templateFormatting(lv_indent)}  ${abap.templateFormatting(lv_append)} && 'true'.\n`),new abap.types.String().set(`${abap.templateFormatting(lv_indent)}ELSE.\n`),new abap.types.String().set(`${abap.templateFormatting(lv_indent)}  ${abap.templateFormatting(lv_append)} && 'false'.\n`),new abap.types.String().set(`${abap.templateFormatting(lv_indent)}ENDIF.\n`)]));
+    } else {
+      rv_abap.set(abap.operators.concat([rv_abap,new abap.types.String().set(`${abap.templateFormatting(lv_indent)}lv_query_value = \|\{ ${abap.templateFormatting(is_parameter.get().abap_name)} \}\|.\n`),new abap.types.String().set(`${abap.templateFormatting(lv_indent)}${abap.templateFormatting(lv_append)} && escape( val = lv_query_value format = cl_abap_format=>e_url_full ).\n`)]));
+    }
+    if (abap.compare.eq(is_parameter.get().required, abap.builtin.abap_false)) {
+      rv_abap.set(abap.operators.concat(rv_abap,new abap.types.String().set(`    ENDIF.\n`)));
+    }
+    return rv_abap;
+  }
   async #find_parameter_type(INPUT) {
     let rv_type = new abap.types.String({qualifiedName: "STRING"});
     let is_parameter = INPUT?.is_parameter;
@@ -416254,8 +416367,8 @@ class zcl_oapi_generator_v2 {
     let fs_ls_response_ = new abap.types.FieldSymbol($t_emNsX29hcGlfZ2VuZXJhdG9yX3YyLmNsYXMubWpz_7());
     lo_response_name.set(await (new abap.Classes['ZCL_OAPI_RESPONSE_NAME']()).constructor_());
     lv_typename.set(abap.operators.concat(abap.CharacterFactory.get(2, 'r_'),is_operation.get().abap_name));
-    for await (const unique40 of abap.statements.loop(is_operation.get().responses)) {
-      fs_ls_response_.assign(unique40);
+    for await (const unique41 of abap.statements.loop(is_operation.get().responses)) {
+      fs_ls_response_.assign(unique41);
       if (abap.compare.initial(fs_ls_response_.get().ref) === false) {
         lv_name.set(fs_ls_response_.get().ref);
         abap.statements.replace({target: lv_name, all: false, with: abap.CharacterFactory.get(1, ''), of: abap.CharacterFactory.get(23, '#/components/responses/')});
@@ -416268,8 +416381,8 @@ class zcl_oapi_generator_v2 {
           abap.statements.append({source: ls_cresponse.get().content, lines: true, target: fs_ls_response_.get().content});
         }
       }
-      for await (const unique41 of abap.statements.loop(fs_ls_response_.get().content)) {
-        ls_content.set(unique41);
+      for await (const unique42 of abap.statements.loop(fs_ls_response_.get().content)) {
+        ls_content.set(unique42);
         lv_response_name.set((await lo_response_name.get().generate_response_name({iv_content_type: ls_content.get().type, iv_code: fs_ls_response_.get().code, rv_name: 1})));
         if (abap.compare.eq(ls_content.get().schema_ref, abap.builtin.space)) {
           lv_returning_type.set((await ls_content.get().schema.get().zif_oapi_schema$get_simple_type({rv_simple: 1})));
@@ -416299,13 +416412,13 @@ class zcl_oapi_generator_v2 {
     let fs_ls_desc2_ = new abap.types.FieldSymbol(new abap.types.String({qualifiedName: "STRING"}));
     cv_info.set(abap.operators.concat(cv_info,new abap.types.String().set(`* Description:`)));
     abap.statements.split({source: iv_description, at: abap.Classes['CL_ABAP_CHAR_UTILITIES'].newline, table: lt_descr1});
-    for await (const unique42 of abap.statements.loop(lt_descr1)) {
-      fs_ls_desc1_.assign(unique42);
+    for await (const unique43 of abap.statements.loop(lt_descr1)) {
+      fs_ls_desc1_.assign(unique43);
       lt_descr2.clear();
       fs_ls_desc2_.unassign();
       lt_descr2.set((await this.#split_string({iv_size: abap.IntegerFactory.get(200), iv_input: fs_ls_desc1_, rt_output: 1})));
-      for await (const unique43 of abap.statements.loop(lt_descr2)) {
-        fs_ls_desc2_.assign(unique43);
+      for await (const unique44 of abap.statements.loop(lt_descr2)) {
+        fs_ls_desc2_.assign(unique44);
         if (abap.compare.eq(lv_first_time, abap.builtin.abap_false)) {
           cv_info.set(abap.operators.concat(cv_info,new abap.types.String().set(` ${abap.templateFormatting(fs_ls_desc2_)}\n`)));
           lv_first_time.set(abap.builtin.abap_true);
@@ -416330,9 +416443,9 @@ class zcl_oapi_generator_v2 {
     lv_size.set(abap.operators.div(abap.builtin.strlen({val: iv_input}),iv_size));
     lv_size_end.set(abap.operators.mod(abap.builtin.strlen({val: iv_input}),iv_size));
     const indexBackup1 = abap.builtin.sy.get().index.get();
-    const unique44 = new abap.types.Integer().set(lv_size).get();
-    for (let unique45 = 0; unique45 < unique44; unique45++) {
-      abap.builtin.sy.get().index.set(unique45 + 1);
+    const unique45 = new abap.types.Integer().set(lv_size).get();
+    for (let unique46 = 0; unique46 < unique45; unique46++) {
+      abap.builtin.sy.get().index.set(unique46 + 1);
       lv_substring.clear();
       lv_substring.set(abap.builtin.substring({val: iv_input, off: lv_pos, len: iv_size}));
       lv_pos.set(abap.operators.add(lv_pos,iv_size));
