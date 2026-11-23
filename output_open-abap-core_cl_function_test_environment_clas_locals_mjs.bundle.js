@@ -23,16 +23,11 @@ const {cx_root} = await Promise.resolve(/*! import() */).then(__webpack_require_
 function $t_Y2xfZnVuY3Rpb25fdGVzdF9lbnZpcm9ubWVudC5jbGFzLmxvY2Fscy5tanM_0() { return new abap.types.Structure({
 "kind": new abap.types.Character(1, {"qualifiedName":"lcl_parameters=>ty_parameter-kind"}),
 "name": new abap.types.Character(30, {"qualifiedName":"abap_parmname"}),
-"value": new abap.types.DataReference(new abap.types.Character(4))}, "lcl_parameters=>ty_parameter", undefined, {}, {}); }
+"value": new abap.types.DataReference(new abap.types.Character(4))}, "lcl_parameters=>ty_parameter"); }
 function $t_Y2xfZnVuY3Rpb25fdGVzdF9lbnZpcm9ubWVudC5jbGFzLmxvY2Fscy5tanM_1() { return abap.types.TableFactory.construct($t_Y2xfZnVuY3Rpb25fdGVzdF9lbnZpcm9ubWVudC5jbGFzLmxvY2Fscy5tanM_0(), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "lcl_parameters=>ty_parameters"); }
-function $t_Y2xfZnVuY3Rpb25fdGVzdF9lbnZpcm9ubWVudC5jbGFzLmxvY2Fscy5tanM_2() { return new abap.types.Structure({
-"importing": new abap.types.Character(1, {}),
-"exporting": new abap.types.Character(1, {}),
-"changing": new abap.types.Character(1, {}),
-"tables": new abap.types.Character(1, {})}, undefined, undefined, {}, {}); }
 function $t_Y2xfZnVuY3Rpb25fdGVzdF9lbnZpcm9ubWVudC5jbGFzLmxvY2Fscy5tanM_3() { return new abap.types.Structure({
 "name": new abap.types.Character(30, {"qualifiedName":"abap_parmname"}),
-"value": new abap.types.DataReference(new abap.types.Character(4))}, "lcl_input_arguments=>ty_name_value", undefined, {}, {}); }
+"value": new abap.types.DataReference(new abap.types.Character(4))}, "lcl_input_arguments=>ty_name_value"); }
 function $t_Y2xfZnVuY3Rpb25fdGVzdF9lbnZpcm9ubWVudC5jbGFzLmxvY2Fscy5tanM_4() { return abap.types.TableFactory.construct($t_Y2xfZnVuY3Rpb25fdGVzdF9lbnZpcm9ubWVudC5jbGFzLmxvY2Fscy5tanM_3(), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, ""); }
 // cl_function_test_environment.clas.locals_imp.abap
 class lcl_parameters {
@@ -41,7 +36,11 @@ class lcl_parameters {
   static INTERNAL_NAME = 'CLAS-CL_FUNCTION_TEST_ENVIRONMENT-LCL_PARAMETERS';
   static IMPLEMENTED_INTERFACES = [];
   static ATTRIBUTES = {"MT_PARAMETERS": {"type": () => {return $t_Y2xfZnVuY3Rpb25fdGVzdF9lbnZpcm9ubWVudC5jbGFzLmxvY2Fscy5tanM_1();}, "visibility": "U", "is_constant": " ", "is_class": " "},
-  "GC_KIND": {"type": () => {return $t_Y2xfZnVuY3Rpb25fdGVzdF9lbnZpcm9ubWVudC5jbGFzLmxvY2Fscy5tanM_2();}, "visibility": "U", "is_constant": "X", "is_class": "X"}};
+  "GC_KIND": {"type": () => {return new abap.types.Structure({
+  "importing": new abap.types.Character(1),
+  "exporting": new abap.types.Character(1),
+  "changing": new abap.types.Character(1),
+  "tables": new abap.types.Character(1)});}, "visibility": "U", "is_constant": "X", "is_class": "X"}};
   static METHODS = {"COPY": {"visibility": "U", "is_class": "X", "parameters": {"RR_COPY": {"type": () => {return new abap.types.DataReference(new abap.types.Character(4));}, "is_optional": " ", "parm_kind": "R", "type_name": "DataReference"}, "IV_VALUE": {"type": () => {return new abap.types.Character(4);}, "is_optional": " ", "parm_kind": "I", "type_name": "AnyType"}}},
   "SET": {"visibility": "U", "parameters": {"IV_KIND": {"type": () => {return new abap.types.Character();}, "is_optional": " ", "parm_kind": "I", "type_name": "CGenericType"}, "IV_NAME": {"type": () => {return new abap.types.Character(30, {"qualifiedName":"abap_parmname"});}, "is_optional": " ", "parm_kind": "I", "type_name": "CharacterType"}, "IV_VALUE": {"type": () => {return new abap.types.Character(4);}, "is_optional": " ", "parm_kind": "I", "type_name": "AnyType"}}}};
   constructor() {
@@ -85,7 +84,11 @@ class lcl_parameters {
   }
 }
 abap.Classes['CLAS-CL_FUNCTION_TEST_ENVIRONMENT-LCL_PARAMETERS'] = lcl_parameters;
-lcl_parameters.gc_kind = $t_Y2xfZnVuY3Rpb25fdGVzdF9lbnZpcm9ubWVudC5jbGFzLmxvY2Fscy5tanM_2();
+lcl_parameters.gc_kind = new abap.types.Structure({
+"importing": new abap.types.Character(1),
+"exporting": new abap.types.Character(1),
+"changing": new abap.types.Character(1),
+"tables": new abap.types.Character(1)});
 lcl_parameters.gc_kind.get().importing.set('I');
 lcl_parameters.gc_kind.get().exporting.set('E');
 lcl_parameters.gc_kind.get().changing.set('C');

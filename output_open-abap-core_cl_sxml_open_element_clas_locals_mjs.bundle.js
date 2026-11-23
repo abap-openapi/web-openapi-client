@@ -22,7 +22,7 @@ class lcl_attribute {
   static ATTRIBUTES = {"MV_VALUE": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "visibility": "I", "is_constant": " ", "is_class": " "},
   "IF_SXML_ATTRIBUTE~QNAME": {"type": () => {return new abap.types.Structure({
   "name": new abap.types.String({qualifiedName: "STRING"}),
-  "namespace": new abap.types.String({qualifiedName: "STRING"})}, undefined, undefined, {}, {});}, "visibility": "U", "is_constant": " ", "is_class": " "},
+  "namespace": new abap.types.String({qualifiedName: "STRING"})});}, "visibility": "U", "is_constant": " ", "is_class": " "},
   "IF_SXML_ATTRIBUTE~PREFIX": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "visibility": "U", "is_constant": " ", "is_class": " "},
   "IF_SXML_ATTRIBUTE~VALUE_TYPE": {"type": () => {return new abap.types.Integer({qualifiedName: "IF_SXML_VALUE=>VALUE_TYPE"});}, "visibility": "U", "is_constant": " ", "is_class": " "}};
   static METHODS = {"CONSTRUCTOR": {"visibility": "U", "parameters": {"NAME": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " ", "parm_kind": "I", "type_name": "StringType"}, "PREFIX": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": "X", "parm_kind": "I", "type_name": "StringType"}, "NSURI": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": "X", "parm_kind": "I", "type_name": "StringType"}, "VALUE": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": "X", "parm_kind": "I", "type_name": "StringType"}}}};
@@ -37,7 +37,7 @@ class lcl_attribute {
     this.FRIENDS_ACCESS_INSTANCE["mv_value"] = this.#mv_value;
     if (this.if_sxml_attribute$qname === undefined) this.if_sxml_attribute$qname = new abap.types.Structure({
     "name": new abap.types.String({qualifiedName: "STRING"}),
-    "namespace": new abap.types.String({qualifiedName: "STRING"})}, undefined, undefined, {}, {});
+    "namespace": new abap.types.String({qualifiedName: "STRING"})});
     if (this.if_sxml_attribute$prefix === undefined) this.if_sxml_attribute$prefix = new abap.types.String({qualifiedName: "STRING"});
     if (this.if_sxml_attribute$value_type === undefined) this.if_sxml_attribute$value_type = new abap.types.Integer({qualifiedName: "IF_SXML_VALUE=>VALUE_TYPE"});
   }

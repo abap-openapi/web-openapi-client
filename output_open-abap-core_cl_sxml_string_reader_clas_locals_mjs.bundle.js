@@ -24,28 +24,28 @@ function $t_Y2xfc3htbF9zdHJpbmdfcmVhZGVyLmNsYXMubG9jYWxzLm1qcw_0() { return new 
 "name": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-NAME"}),
 "key": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-KEY"}),
 "has_key": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}),
-"value": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-VALUE"})}, "lcl_json_parser=>ty_node", undefined, {}, {}); }
+"value": new abap.types.String({qualifiedName: "LCL_JSON_PARSER=>TY_NODE-VALUE"})}, "lcl_json_parser=>ty_node"); }
 function $t_Y2xfc3htbF9zdHJpbmdfcmVhZGVyLmNsYXMubG9jYWxzLm1qcw_1() { return abap.types.TableFactory.construct($t_Y2xfc3htbF9zdHJpbmdfcmVhZGVyLmNsYXMubG9jYWxzLm1qcw_0(), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "lcl_json_parser=>ty_nodes"); }
 function $t_Y2xfc3htbF9zdHJpbmdfcmVhZGVyLmNsYXMubG9jYWxzLm1qcw_3() { return new abap.types.Structure({
 "name": new abap.types.String({qualifiedName: "STRING"}),
-"namespace": new abap.types.String({qualifiedName: "STRING"})}, undefined, undefined, {}, {}); }
+"namespace": new abap.types.String({qualifiedName: "STRING"})}); }
 function $t_Y2xfc3htbF9zdHJpbmdfcmVhZGVyLmNsYXMubG9jYWxzLm1qcw_4() { return new abap.types.Structure({
 "name": new abap.types.String({qualifiedName: "LCL_XML_PARSER=>TY_ELEMENT-NAME"}),
 "local_name": new abap.types.String({qualifiedName: "LCL_XML_PARSER=>TY_ELEMENT-LOCAL_NAME"}),
 "prefix": new abap.types.String({qualifiedName: "LCL_XML_PARSER=>TY_ELEMENT-PREFIX"}),
 "nsuri": new abap.types.String({qualifiedName: "LCL_XML_PARSER=>TY_ELEMENT-NSURI"}),
-"has_child": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"})}, "lcl_xml_parser=>ty_element", undefined, {}, {}); }
+"has_child": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"})}, "lcl_xml_parser=>ty_element"); }
 function $t_Y2xfc3htbF9zdHJpbmdfcmVhZGVyLmNsYXMubG9jYWxzLm1qcw_5() { return abap.types.TableFactory.construct($t_Y2xfc3htbF9zdHJpbmdfcmVhZGVyLmNsYXMubG9jYWxzLm1qcw_4(), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, ""); }
 function $t_Y2xfc3htbF9zdHJpbmdfcmVhZGVyLmNsYXMubG9jYWxzLm1qcw_6() { return new abap.types.Structure({
 "depth": new abap.types.Integer({qualifiedName: "LCL_XML_PARSER=>TY_BINDING-DEPTH"}),
 "prefix": new abap.types.String({qualifiedName: "LCL_XML_PARSER=>TY_BINDING-PREFIX"}),
 "nsuri": new abap.types.String({qualifiedName: "LCL_XML_PARSER=>TY_BINDING-NSURI"}),
 "previous": new abap.types.String({qualifiedName: "LCL_XML_PARSER=>TY_BINDING-PREVIOUS"}),
-"had_previous": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"})}, "lcl_xml_parser=>ty_binding", undefined, {}, {}); }
+"had_previous": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"})}, "lcl_xml_parser=>ty_binding"); }
 function $t_Y2xfc3htbF9zdHJpbmdfcmVhZGVyLmNsYXMubG9jYWxzLm1qcw_7() { return abap.types.TableFactory.construct($t_Y2xfc3htbF9zdHJpbmdfcmVhZGVyLmNsYXMubG9jYWxzLm1qcw_6(), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, ""); }
 function $t_Y2xfc3htbF9zdHJpbmdfcmVhZGVyLmNsYXMubG9jYWxzLm1qcw_8() { return new abap.types.Structure({
 "prefix": new abap.types.String({qualifiedName: "IF_SXML_NAMED=>NSBINDING-PREFIX"}),
-"nsuri": new abap.types.String({qualifiedName: "IF_SXML_NAMED=>NSBINDING-NSURI"})}, "if_sxml_named=>nsbinding", undefined, {}, {}); }
+"nsuri": new abap.types.String({qualifiedName: "IF_SXML_NAMED=>NSBINDING-NSURI"})}, "if_sxml_named=>nsbinding"); }
 function $t_Y2xfc3htbF9zdHJpbmdfcmVhZGVyLmNsYXMubG9jYWxzLm1qcw_9() { return abap.types.TableFactory.construct($t_Y2xfc3htbF9zdHJpbmdfcmVhZGVyLmNsYXMubG9jYWxzLm1qcw_8(), {"withHeader":false,"keyType":"USER","primaryKey":{"name":"primary_key","type":"HASHED","isUnique":true,"keyFields":["PREFIX"]},"secondary":[]}, ""); }
 function $t_Y2xfc3htbF9zdHJpbmdfcmVhZGVyLmNsYXMubG9jYWxzLm1qcw_10() { return new abap.types.Structure({
 "kind": new abap.types.Integer({qualifiedName: "LCL_XML_PARSER=>TY_ITEM-KIND"}),
@@ -53,7 +53,7 @@ function $t_Y2xfc3htbF9zdHJpbmdfcmVhZGVyLmNsYXMubG9jYWxzLm1qcw_10() { return new
 "prefix": new abap.types.String({qualifiedName: "LCL_XML_PARSER=>TY_ITEM-PREFIX"}),
 "nsuri": new abap.types.String({qualifiedName: "LCL_XML_PARSER=>TY_ITEM-NSURI"}),
 "value": new abap.types.String({qualifiedName: "LCL_XML_PARSER=>TY_ITEM-VALUE"}),
-"attrs": abap.types.TableFactory.construct(new abap.types.ABAPObject({qualifiedName: "IF_SXML_ATTRIBUTE", RTTIName: "\\INTERFACE=IF_SXML_ATTRIBUTE"}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "if_sxml_attribute=>attributes")}, "lcl_xml_parser=>ty_item", undefined, {}, {}); }
+"attrs": abap.types.TableFactory.construct(new abap.types.ABAPObject({qualifiedName: "IF_SXML_ATTRIBUTE", RTTIName: "\\INTERFACE=IF_SXML_ATTRIBUTE"}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "if_sxml_attribute=>attributes")}, "lcl_xml_parser=>ty_item"); }
 // cl_sxml_string_reader.clas.locals_imp.abap
 class lcl_json_parser {
   static STATIC_SUPER = undefined;
@@ -797,7 +797,7 @@ class lcl_xml_parser {
     return yes;
   }
   async #whitespace() {
-    let c = new abap.types.Character(1, {});
+    let c = new abap.types.Character(1);
     const indexBackup1 = abap.builtin.sy.get().index.get();
     let unique8 = 1;
     while (abap.compare.lt(this.#mv_pos, this.#mv_length)) {
@@ -815,7 +815,7 @@ class lcl_xml_parser {
   async #take_name(INPUT) {
     let name = new abap.types.String({qualifiedName: "STRING"});
     let begin = new abap.types.Integer({qualifiedName: "I"});
-    let c = new abap.types.Character(1, {});
+    let c = new abap.types.Character(1);
     let length = new abap.types.Integer({qualifiedName: "I"});
     begin.set(this.#mv_pos);
     const indexBackup1 = abap.builtin.sy.get().index.get();
@@ -879,7 +879,7 @@ class lcl_xml_parser {
         break;
       }
       await abap.statements.deleteInternal(this.#mt_bindings,{index: last});
-      await abap.statements.deleteInternal(this.#mt_current,{where: async (I) => {return abap.compare.eq(I.prefix, binding.get().prefix);}});
+      await abap.statements.deleteInternal(this.#mt_current,{where: async (I) => {return abap.compare.eq(I.prefix, binding.get().prefix);},withTableKey: true});
       if (abap.compare.eq(binding.get().had_previous, abap.builtin.abap_true)) {
         current.get().prefix.set(binding.get().prefix);
         current.get().nsuri.set(binding.get().previous);
@@ -903,7 +903,7 @@ class lcl_xml_parser {
     let entity = new abap.types.String({qualifiedName: "STRING"});
     let part = new abap.types.String({qualifiedName: "STRING"});
     let parts = abap.types.TableFactory.construct(new abap.types.String({qualifiedName: "STRING"}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "");
-    let c = new abap.types.Character(1, {});
+    let c = new abap.types.Character(1);
     let length = new abap.types.Integer({qualifiedName: "I"});
     let chars = new abap.types.String({qualifiedName: "STRING"});
     chars.set('0123456789ABCDEF');
@@ -1002,7 +1002,7 @@ class lcl_xml_parser {
     let prefix = new abap.types.String({qualifiedName: "STRING"});
     let attr_nsuri = new abap.types.String({qualifiedName: "STRING"});
     let local_name = new abap.types.String({qualifiedName: "STRING"});
-    let quote = new abap.types.Character(1, {});
+    let quote = new abap.types.Character(1);
     let quote_text = new abap.types.String({qualifiedName: "STRING"});
     let element = $t_Y2xfc3htbF9zdHJpbmdfcmVhZGVyLmNsYXMubG9jYWxzLm1qcw_4();
     let binding = $t_Y2xfc3htbF9zdHJpbmdfcmVhZGVyLmNsYXMubG9jYWxzLm1qcw_6();
@@ -1016,8 +1016,8 @@ class lcl_xml_parser {
     let length = new abap.types.Integer({qualifiedName: "I"});
     let only_space = new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"});
     let has_entity = new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"});
-    let c = new abap.types.Character(1, {});
-    let c2 = new abap.types.Character(1, {});
+    let c = new abap.types.Character(1);
+    let c2 = new abap.types.Character(1);
     let found = new abap.types.Integer({qualifiedName: "I"});
     let spaces = new abap.types.String({qualifiedName: "STRING"});
     let fs_parent_ = new abap.types.FieldSymbol($t_Y2xfc3htbF9zdHJpbmdfcmVhZGVyLmNsYXMubG9jYWxzLm1qcw_4());
@@ -1211,7 +1211,7 @@ class lcl_xml_parser {
             if (abap.compare.eq(abap.builtin.sy.get().subrc, abap.IntegerFactory.get(0))) {
               binding.get().had_previous.set(abap.builtin.abap_true);
               binding.get().previous.set(current.get().nsuri);
-              await abap.statements.deleteInternal(this.#mt_current,{where: async (I) => {return abap.compare.eq(I.prefix, binding.get().prefix);}});
+              await abap.statements.deleteInternal(this.#mt_current,{where: async (I) => {return abap.compare.eq(I.prefix, binding.get().prefix);},withTableKey: true});
             }
             abap.statements.append({source: binding, target: this.#mt_bindings});
             current.get().prefix.set(binding.get().prefix);
@@ -1433,9 +1433,9 @@ class lcl_reader {
     let path = abap.types.TableFactory.construct(new abap.types.Structure({
     "qname": new abap.types.Structure({
     "name": new abap.types.String({qualifiedName: "IF_SXML_NAMED=>PATHNODE-QNAME-NAME"}),
-    "namespace": new abap.types.String({qualifiedName: "IF_SXML_NAMED=>PATHNODE-QNAME-NAMESPACE"})}, "if_sxml_named=>pathnode-qname", undefined, {}, {}),
+    "namespace": new abap.types.String({qualifiedName: "IF_SXML_NAMED=>PATHNODE-QNAME-NAMESPACE"})}, "if_sxml_named=>pathnode-qname"),
     "prefix": new abap.types.String({qualifiedName: "IF_SXML_NAMED=>PATHNODE-PREFIX"}),
-    "child_position": new abap.types.Integer({qualifiedName: "IF_SXML_NAMED=>PATHNODE-CHILD_POSITION"})}, "if_sxml_named=>pathnode", undefined, {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "if_sxml_named=>path");
+    "child_position": new abap.types.Integer({qualifiedName: "IF_SXML_NAMED=>PATHNODE-CHILD_POSITION"})}, "if_sxml_named=>pathnode"), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "if_sxml_named=>path");
     abap.statements.assert(abap.compare.eq(abap.IntegerFactory.get(1), abap.CharacterFactory.get(4, 'todo')));
     return path;
   }
@@ -1450,7 +1450,7 @@ class lcl_reader {
     if (INPUT === undefined || INPUT.iv_utf8 === undefined) {iv_utf8 = abap.builtin.abap_false;}
     let first = new abap.types.Integer({qualifiedName: "I"});
     let size = new abap.types.Integer({qualifiedName: "I"});
-    let c = new abap.types.Character(1, {});
+    let c = new abap.types.Character(1);
     if (abap.compare.eq(iv_utf8, abap.builtin.abap_true)) {
       this.#mo_xml.set(await (new abap.Classes['CLAS-CL_SXML_STRING_READER-LCL_XML_PARSER']()).constructor_({bytes: iv_bytes, binary: abap.builtin.abap_true}));
       this.#mv_initialized.set(abap.builtin.abap_false);

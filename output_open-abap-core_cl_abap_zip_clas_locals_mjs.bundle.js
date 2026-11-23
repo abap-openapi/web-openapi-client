@@ -68,6 +68,10 @@ class lcl_stream {
   }
   async append(INPUT) {
     let iv_xstr = INPUT?.iv_xstr;
+    if (iv_xstr?.constructor.name === "Character" || iv_xstr?.constructor.name === "String") {
+        const hex = iv_xstr.get().trimEnd();
+        iv_xstr = new abap.types.Hex({length: Math.ceil(hex.length / 2)}).set(hex.padEnd(Math.ceil(hex.length / 2) * 2, "0"));
+    }
     abap.statements.concatenate({source: [this.#mv_xstr, iv_xstr], target: this.#mv_xstr, byteMode: true});
   }
   async read_int2(INPUT) {

@@ -26,12 +26,12 @@ __webpack_require__.r(__webpack_exports__);
 const {cx_root} = await Promise.resolve(/*! import() */).then(__webpack_require__.bind(__webpack_require__, /*! ./cx_root.clas.mjs */ "../output/open-abap-core/cx_root.clas.mjs"));
 function $t_Y2xfaXhtbC5jbGFzLmxvY2Fscy5tanM_0() { return new abap.types.Structure({
 "offset": new abap.types.Integer({qualifiedName: "I"}),
-"length": new abap.types.Integer({qualifiedName: "I"})}, "SUBMATCH_RESULT", "SUBMATCH_RESULT", {}, {}); }
+"length": new abap.types.Integer({qualifiedName: "I"})}, "SUBMATCH_RESULT", "SUBMATCH_RESULT"); }
 function $t_Y2xfaXhtbC5jbGFzLmxvY2Fscy5tanM_2() { return new abap.types.Structure({
 "line": new abap.types.Integer({qualifiedName: "I"}),
 "offset": new abap.types.Integer({qualifiedName: "I"}),
 "length": new abap.types.Integer({qualifiedName: "I"}),
-"submatches": abap.types.TableFactory.construct($t_Y2xfaXhtbC5jbGFzLmxvY2Fscy5tanM_0(), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"isUnique":false,"type":"STANDARD","keyFields":[],"name":"primary_key"},"secondary":[]}, "SUBMATCH_RESULT_TAB")}, "MATCH_RESULT", "MATCH_RESULT", {}, {}); }
+"submatches": abap.types.TableFactory.construct($t_Y2xfaXhtbC5jbGFzLmxvY2Fscy5tanM_0(), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"isUnique":false,"type":"STANDARD","keyFields":[],"name":"primary_key"},"secondary":[]}, "SUBMATCH_RESULT_TAB")}, "MATCH_RESULT", "MATCH_RESULT"); }
 // cl_ixml.clas.locals_imp.abap
 class lcl_escape {
   static STATIC_SUPER = undefined;
@@ -2290,7 +2290,7 @@ class lcl_parser {
     let lv_rest = new abap.types.String({qualifiedName: "STRING"});
     let lv_whitespace = new abap.types.String({qualifiedName: "STRING"});
     let lv_in_element = new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"});
-    let lv_bom = new abap.types.Character(1, {});
+    let lv_bom = new abap.types.Character(1);
     let lv_offset = new abap.types.Integer({qualifiedName: "I"});
     let lv_subset = new abap.types.Integer({qualifiedName: "I"});
     let lv_length = new abap.types.Integer({qualifiedName: "I"});

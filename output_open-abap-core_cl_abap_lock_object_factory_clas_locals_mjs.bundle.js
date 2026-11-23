@@ -22,23 +22,17 @@ function $t_Y2xfYWJhcF9sb2NrX29iamVjdF9mYWN0b3J5LmNsYXMubG9jYWxzLm1qcw_0() { ret
 "check_write_lock": new abap.types.Character(1, {"qualifiedName":"if_abap_lock_object=>tv_mode"}),
 "check_shared_lock": new abap.types.Character(1, {"qualifiedName":"if_abap_lock_object=>tv_mode"}),
 "check_exclusive_lock": new abap.types.Character(1, {"qualifiedName":"if_abap_lock_object=>tv_mode"}),
-"check_promote_optimistic_lock": new abap.types.Character(1, {"qualifiedName":"if_abap_lock_object=>tv_mode"})}, undefined, undefined, {}, {}); }
+"check_promote_optimistic_lock": new abap.types.Character(1, {"qualifiedName":"if_abap_lock_object=>tv_mode"})}); }
 function $t_Y2xfYWJhcF9sb2NrX29iamVjdF9mYWN0b3J5LmNsYXMubG9jYWxzLm1qcw_1() { return new abap.types.Structure({
 "no_update_program": new abap.types.Numc({qualifiedName: "if_abap_lock_object=>tv_scope"}),
 "update_program": new abap.types.Numc({qualifiedName: "if_abap_lock_object=>tv_scope"}),
-"interactive_and_update_program": new abap.types.Numc({qualifiedName: "if_abap_lock_object=>tv_scope"})}, undefined, undefined, {}, {}); }
-function $t_Y2xfYWJhcF9sb2NrX29iamVjdF9mYWN0b3J5LmNsYXMubG9jYWxzLm1qcw_2() { return new abap.types.Structure({
-"yes": new abap.types.Character(1, {"qualifiedName":"if_abap_lock_object=>tv_synchronous"}),
-"no": new abap.types.Character(1, {"qualifiedName":"if_abap_lock_object=>tv_synchronous"})}, undefined, undefined, {}, {}); }
-function $t_Y2xfYWJhcF9sb2NrX29iamVjdF9mYWN0b3J5LmNsYXMubG9jYWxzLm1qcw_3() { return new abap.types.Structure({
-"no": new abap.types.Character(1, {"qualifiedName":"if_abap_lock_object=>tv_wait"}),
-"yes": new abap.types.Character(1, {"qualifiedName":"if_abap_lock_object=>tv_wait"})}, undefined, undefined, {}, {}); }
+"interactive_and_update_program": new abap.types.Numc({qualifiedName: "if_abap_lock_object=>tv_scope"})}); }
 function $t_Y2xfYWJhcF9sb2NrX29iamVjdF9mYWN0b3J5LmNsYXMubG9jYWxzLm1qcw_5() { return abap.types.TableFactory.construct(new abap.types.Structure({
-"table_name": new abap.types.Character(30, {"qualifiedName":"if_abap_lock_object=>tv_table_name","ddicName":"TABNAME","description":"TABNAME"}),
-"mode": new abap.types.Character(1, {"qualifiedName":"if_abap_lock_object=>tv_mode"})}, "if_abap_lock_object=>ts_table_mode", undefined, {}, {}), {"withHeader":false,"keyType":"USER","primaryKey":{"name":"primary_key","type":"HASHED","isUnique":true,"keyFields":["TABLE_NAME"]},"secondary":[]}, "if_abap_lock_object=>tt_table_mode"); }
+"table_name": new abap.types.Character(30, {"qualifiedName":"if_abap_lock_object=>tv_table_name","description":"TABNAME"}),
+"mode": new abap.types.Character(1, {"qualifiedName":"if_abap_lock_object=>tv_mode"})}, "if_abap_lock_object=>ts_table_mode"), {"withHeader":false,"keyType":"USER","primaryKey":{"name":"primary_key","type":"HASHED","isUnique":true,"keyFields":["TABLE_NAME"]},"secondary":[]}, "if_abap_lock_object=>tt_table_mode"); }
 function $t_Y2xfYWJhcF9sb2NrX29iamVjdF9mYWN0b3J5LmNsYXMubG9jYWxzLm1qcw_7() { return abap.types.TableFactory.construct(new abap.types.Structure({
 "name": new abap.types.Character(30, {"qualifiedName":"if_abap_lock_object=>tv_parameter_name"}),
-"value": new abap.types.DataReference(new abap.types.Character(4))}, "if_abap_lock_object=>ts_parameter", undefined, {}, {}), {"withHeader":false,"keyType":"USER","primaryKey":{"name":"primary_key","type":"HASHED","isUnique":true,"keyFields":["NAME"]},"secondary":[]}, "if_abap_lock_object=>tt_parameter"); }
+"value": new abap.types.DataReference(new abap.types.Character(4))}, "if_abap_lock_object=>ts_parameter"), {"withHeader":false,"keyType":"USER","primaryKey":{"name":"primary_key","type":"HASHED","isUnique":true,"keyFields":["NAME"]},"secondary":[]}, "if_abap_lock_object=>tt_parameter"); }
 // cl_abap_lock_object_factory.clas.locals_imp.abap
 class lcl_lock_object {
   static STATIC_SUPER = undefined;
@@ -47,8 +41,12 @@ class lcl_lock_object {
   static IMPLEMENTED_INTERFACES = ["IF_ABAP_LOCK_OBJECT"];
   static ATTRIBUTES = {"IF_ABAP_LOCK_OBJECT~CS_MODE": {"type": () => {return $t_Y2xfYWJhcF9sb2NrX29iamVjdF9mYWN0b3J5LmNsYXMubG9jYWxzLm1qcw_0();}, "visibility": "U", "is_constant": "X", "is_class": "X"},
   "IF_ABAP_LOCK_OBJECT~CS_SCOPE": {"type": () => {return $t_Y2xfYWJhcF9sb2NrX29iamVjdF9mYWN0b3J5LmNsYXMubG9jYWxzLm1qcw_1();}, "visibility": "U", "is_constant": "X", "is_class": "X"},
-  "IF_ABAP_LOCK_OBJECT~CS_SYNCHRONOUS": {"type": () => {return $t_Y2xfYWJhcF9sb2NrX29iamVjdF9mYWN0b3J5LmNsYXMubG9jYWxzLm1qcw_2();}, "visibility": "U", "is_constant": "X", "is_class": "X"},
-  "IF_ABAP_LOCK_OBJECT~CS_WAIT": {"type": () => {return $t_Y2xfYWJhcF9sb2NrX29iamVjdF9mYWN0b3J5LmNsYXMubG9jYWxzLm1qcw_3();}, "visibility": "U", "is_constant": "X", "is_class": "X"}};
+  "IF_ABAP_LOCK_OBJECT~CS_SYNCHRONOUS": {"type": () => {return new abap.types.Structure({
+  "yes": new abap.types.Character(1, {"qualifiedName":"if_abap_lock_object=>tv_synchronous"}),
+  "no": new abap.types.Character(1, {"qualifiedName":"if_abap_lock_object=>tv_synchronous"})});}, "visibility": "U", "is_constant": "X", "is_class": "X"},
+  "IF_ABAP_LOCK_OBJECT~CS_WAIT": {"type": () => {return new abap.types.Structure({
+  "no": new abap.types.Character(1, {"qualifiedName":"if_abap_lock_object=>tv_wait"}),
+  "yes": new abap.types.Character(1, {"qualifiedName":"if_abap_lock_object=>tv_wait"})});}, "visibility": "U", "is_constant": "X", "is_class": "X"}};
   static METHODS = {};
   constructor() {
     this.me = new abap.types.ABAPObject();
@@ -107,10 +105,14 @@ lcl_lock_object.if_abap_lock_object$cs_scope = $t_Y2xfYWJhcF9sb2NrX29iamVjdF9mYW
 lcl_lock_object.if_abap_lock_object$cs_scope.get().no_update_program.set('1');
 lcl_lock_object.if_abap_lock_object$cs_scope.get().update_program.set('2');
 lcl_lock_object.if_abap_lock_object$cs_scope.get().interactive_and_update_program.set('3');
-lcl_lock_object.if_abap_lock_object$cs_synchronous = $t_Y2xfYWJhcF9sb2NrX29iamVjdF9mYWN0b3J5LmNsYXMubG9jYWxzLm1qcw_2();
+lcl_lock_object.if_abap_lock_object$cs_synchronous = new abap.types.Structure({
+"yes": new abap.types.Character(1, {"qualifiedName":"if_abap_lock_object=>tv_synchronous"}),
+"no": new abap.types.Character(1, {"qualifiedName":"if_abap_lock_object=>tv_synchronous"})});
 lcl_lock_object.if_abap_lock_object$cs_synchronous.get().yes.set('X');
 lcl_lock_object.if_abap_lock_object$cs_synchronous.get().no.set('');
-lcl_lock_object.if_abap_lock_object$cs_wait = $t_Y2xfYWJhcF9sb2NrX29iamVjdF9mYWN0b3J5LmNsYXMubG9jYWxzLm1qcw_3();
+lcl_lock_object.if_abap_lock_object$cs_wait = new abap.types.Structure({
+"no": new abap.types.Character(1, {"qualifiedName":"if_abap_lock_object=>tv_wait"}),
+"yes": new abap.types.Character(1, {"qualifiedName":"if_abap_lock_object=>tv_wait"})});
 lcl_lock_object.if_abap_lock_object$cs_wait.get().no.set('');
 lcl_lock_object.if_abap_lock_object$cs_wait.get().yes.set('X');
 

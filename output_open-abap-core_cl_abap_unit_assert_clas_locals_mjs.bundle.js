@@ -39,7 +39,7 @@ class lcl_dump {
   static async to_string(INPUT) {
     let rv_str = new abap.types.String({qualifiedName: "STRING"});
     let iv_val = INPUT?.iv_val;
-    let lv_type = new abap.types.Character(1, {});
+    let lv_type = new abap.types.Character(1);
     let lv_name = new abap.types.String({qualifiedName: "STRING"});
     abap.statements.describe({field: iv_val, type: lv_type});
     let unique1 = lv_type;

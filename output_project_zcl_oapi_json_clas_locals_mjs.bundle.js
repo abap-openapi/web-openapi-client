@@ -17,13 +17,13 @@ const {cx_root} = await Promise.resolve(/*! import() */).then(__webpack_require_
 function $t_emNsX29hcGlfanNvbi5jbGFzLmxvY2Fscy5tanM_0() { return new abap.types.Structure({
 "name": new abap.types.String({qualifiedName: "LCL_STACK=>TY_DATA-NAME"}),
 "is_array": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}),
-"array_index": new abap.types.Integer({qualifiedName: "LCL_STACK=>TY_DATA-ARRAY_INDEX"})}, "lcl_stack=>ty_data", undefined, {}, {}); }
+"array_index": new abap.types.Integer({qualifiedName: "LCL_STACK=>TY_DATA-ARRAY_INDEX"})}, "lcl_stack=>ty_data"); }
 function $t_emNsX29hcGlfanNvbi5jbGFzLmxvY2Fscy5tanM_1() { return abap.types.TableFactory.construct($t_emNsX29hcGlfanNvbi5jbGFzLmxvY2Fscy5tanM_0(), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, ""); }
 function $t_emNsX29hcGlfanNvbi5jbGFzLmxvY2Fscy5tanM_2() { return new abap.types.Structure({
 "parent": new abap.types.String({qualifiedName: "TY_DATA-PARENT"}),
 "name": new abap.types.String({qualifiedName: "TY_DATA-NAME"}),
 "full_name": new abap.types.String({qualifiedName: "TY_DATA-FULL_NAME"}),
-"value": new abap.types.String({qualifiedName: "TY_DATA-VALUE"})}, "ty_data", undefined, {}, {}); }
+"value": new abap.types.String({qualifiedName: "TY_DATA-VALUE"})}, "ty_data"); }
 function $t_emNsX29hcGlfanNvbi5jbGFzLmxvY2Fscy5tanM_3() { return abap.types.TableFactory.construct($t_emNsX29hcGlfanNvbi5jbGFzLmxvY2Fscy5tanM_2(), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "ty_data_tt"); }
 // zcl_oapi_json.clas.locals_def.abap
 // zcl_oapi_json.clas.locals_imp.abap

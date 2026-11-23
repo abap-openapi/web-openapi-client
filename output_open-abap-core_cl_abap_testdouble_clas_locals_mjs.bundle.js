@@ -24,16 +24,16 @@ function $t_Y2xfYWJhcF90ZXN0ZG91YmxlLmNsYXMubG9jYWxzLm1qcw_0() { return new abap
 "kind": new abap.types.Character(1, {"qualifiedName":"abap_parmkind"}),
 "supplied": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}),
 "ignored": new abap.types.Character(1, {"qualifiedName":"ABAP_BOOL","ddicName":"ABAP_BOOL"}),
-"value": new abap.types.DataReference(new abap.types.Character(4))}, "lcl_arguments=>ty_parameter", undefined, {}, {}); }
+"value": new abap.types.DataReference(new abap.types.Character(4))}, "lcl_arguments=>ty_parameter"); }
 function $t_Y2xfYWJhcF90ZXN0ZG91YmxlLmNsYXMubG9jYWxzLm1qcw_1() { return abap.types.TableFactory.construct($t_Y2xfYWJhcF90ZXN0ZG91YmxlLmNsYXMubG9jYWxzLm1qcw_0(), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, "lcl_arguments=>ty_parameters"); }
 function $t_Y2xfYWJhcF90ZXN0ZG91YmxlLmNsYXMubG9jYWxzLm1qcw_3() { return abap.types.TableFactory.construct(new abap.types.Structure({
 "name": new abap.types.Character(30, {"qualifiedName":"name"}),
 "kind": new abap.types.Character(1, {"qualifiedName":"kind"}),
-"value": new abap.types.DataReference(new abap.types.Character(4))}, "abap_parmbind", undefined, {}, {}), {"withHeader":false,"keyType":"USER","primaryKey":{"name":"primary_key","type":"HASHED","isUnique":true,"keyFields":["NAME"]},"secondary":[]}, "abap_parmbind_tab"); }
+"value": new abap.types.DataReference(new abap.types.Character(4))}, "abap_parmbind"), {"withHeader":false,"keyType":"USER","primaryKey":{"name":"primary_key","type":"HASHED","isUnique":true,"keyFields":["NAME"]},"secondary":[]}, "abap_parmbind_tab"); }
 function $t_Y2xfYWJhcF90ZXN0ZG91YmxlLmNsYXMubG9jYWxzLm1qcw_4() { return new abap.types.Structure({
 "name": new abap.types.Character(30, {"qualifiedName":"abap_parmname"}),
 "kind": new abap.types.Character(1, {"qualifiedName":"abap_parmkind"}),
-"value": new abap.types.DataReference(new abap.types.Character(4))}, "lcl_configuration=>ty_output", undefined, {}, {}); }
+"value": new abap.types.DataReference(new abap.types.Character(4))}, "lcl_configuration=>ty_output"); }
 function $t_Y2xfYWJhcF90ZXN0ZG91YmxlLmNsYXMubG9jYWxzLm1qcw_5() { return abap.types.TableFactory.construct($t_Y2xfYWJhcF90ZXN0ZG91YmxlLmNsYXMubG9jYWxzLm1qcw_4(), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"name":"primary_key","type":"STANDARD","isUnique":false,"keyFields":[]},"secondary":[]}, ""); }
 // cl_abap_testdouble.clas.locals_imp.abap
 
